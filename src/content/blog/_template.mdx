@@ -1,0 +1,91 @@
+---
+# ── COPY THIS FILE to start a new post ──
+# Rename it (the filename becomes the URL slug, e.g. my-new-post.mdx -> /blog/my-new-post),
+# fill in the fields below, write the body, then flip draft to false when it's ready.
+# This file itself has draft: true, so it never appears on the live site or in "More stories" —
+# safe to leave in the repo as a reference.
+
+title: "Post title goes here"
+description: "One or two sentences — used as the hero subtitle, the <meta> description, and the OG/Twitter card text."
+category: "Threat Intel"          # shown in the breadcrumb + hero tag row
+pubDate: 2026-01-01                # any Date-parseable string
+# updatedDate: 2026-01-15          # optional — shows an "Updated" note if set
+# readTime: 9                      # optional — minutes. Omit to auto-compute from word count.
+tags: ["Tag One", "Tag Two"]       # free-form chips in the hero
+mitre: ["T1195.002"]               # optional — MITRE technique IDs, rendered as linked pills
+
+# heroImage: /images/my-post-hero.jpg   # optional — path under /public. Omit entirely (or leave
+                                          # commented out) to get the gradient placeholder instead
+                                          # of a real photo — no broken-image risk either way.
+# heroCredit: "Photo credit or generator name"   # optional small credit tag over the hero image
+
+# ogImage: /images/my-post-og.png    # optional — social share card. Defaults to /og/<slug>.png
+# cardImage: /images/my-post-card.jpg # optional — thumbnail when this post shows up in "More stories"
+
+# related:
+#   - some-other-post-slug            # optional — slugs of posts to show under "More stories"
+
+# alsoBy:                             # optional — the side-rail "Also in ..." card
+#   label: "Also in Lab Notes"
+#   title: "Some other write-up"
+#   meta: "Lab Notes · 14 Min"
+#   href: "#"
+#   # image: /images/also-by-thumb.jpg   # optional — omit for the placeholder treatment
+
+faqs:
+  - q: "First question a reader might ask"
+    a: "Answer text. Inline HTML is allowed, e.g. <span class=\"code-inline\">code</span> or an <a class=\"mitre-chip\" href=\"https://attack.mitre.org/techniques/T1195/002/\" target=\"_blank\" rel=\"noopener\">T1195.002</a> chip."
+  # - q: "Second question"
+  #   a: "Second answer."
+
+draft: true   # <-- set to false to publish
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import IocTable from '../../components/IocTable.astro';
+import AsideCta from '../../components/AsideCta.astro';
+import Mitre from '../../components/Mitre.astro';
+
+{/* Opening paragraph with a drop capital — use once, at the very start. */}
+<Dropcap letter="T">he opening paragraph of the post goes here. It gets a large drop-cap on the first letter automatically.</Dropcap>
+
+{/* Margin note — place inline at the start of a paragraph's first line. */}
+<Mnote day="Day 0" sub="short summary of this beat" tag="T1195.002" />Regular paragraph text continues right after the note, in the same line.
+
+{/* At-a-glance incident summary — one per post, usually right after the opening. */}
+<CaseFile
+  id="my-case-id"
+  rows={[
+    { term: 'Vector', desc: 'How the attacker got in' },
+    { term: 'Dwell', desc: 'How long it went undetected' },
+    { term: 'Impact', desc: 'What was affected' },
+    { term: 'Caught by', desc: 'What actually caught it' },
+    { term: 'Techniques', desc: 'T1195.002 &middot; T1567' },
+  ]}
+/>
+
+## A section heading
+
+Regular body paragraphs go here as plain Markdown.
+
+<DetectionOpportunity>
+  The one callout worth highlighting — what a defender should actually go build after reading this.
+</DetectionOpportunity>
+
+<IocTable
+  id="my-case-id"
+  rows={[
+    { type: 'Domain', value: 'evil-example[.]net', fanged: 'evil-example.net' },
+  ]}
+/>
+
+<AsideCta href="https://github.com/">The complete IOC set lives in the companion repository.</AsideCta>
+
+Reference a MITRE technique inline like this: <Mitre id="T1195.002" />.
+
+## Lessons for defenders
+
+Closing section, checklist, or takeaways go here.

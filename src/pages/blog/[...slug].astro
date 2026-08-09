@@ -1,0 +1,27 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BlogPost from '../../layouts/BlogPost.astro';
+import type { CollectionEntry } from 'astro:content';
+export async function getStaticPaths() {
+  // Drafts still get a real page here — direct-link-only, so a draft can be
+  // previewed at its real URL while writing. They're excluded everywhere a
+  // visitor would actually discover one: blog/index.astro's listing and
+  // public/sitemap.xml both keep filtering on `draft` separately.
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: CollectionEntry<'blog'> };
+const { Content, headings } = await render(post);
+
+// "More stories" cards pull their own frontmatter via the related slugs.
+const relatedPosts = (
+  await Promise.all(post.data.related.map((slug: string) => getEntry('blog', slug)))
+).filter(Boolean) as CollectionEntry<'blog'>[];
+
+const words = post.body ? post.body.split(/\s+/).length : 0;
+---
+
+<BlogPost post={post} headings={headings} relatedPosts={relatedPosts} words={words}>
+  <Content />
+</BlogPost>

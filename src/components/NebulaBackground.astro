@@ -1,0 +1,84 @@
+---
+/**
+ * Shared fixed-position background layer for index/about/contact/blog:
+ * the WebGL nebula canvas (#gc), the 2D network/ships/satellites canvas
+ * (#sc), the bloom + grain overlays, and a uniform darkening overlay
+ * (#bg-dim) on top of them. Byte-identical across all four pages before
+ * this extraction (confirmed via diff) — the markup/CSS live here now;
+ * the ~2,165-line engine that drives the two canvases stays a separate
+ * external script (src/scripts/nebula-engine.js), loaded per-page with
+ * `<script is:inline src="...">` right after this component, since the
+ * relative path depth differs between src/pages/*.astro and
+ * src/pages/blog/index.astro.
+ *
+ * `#window`/`#screen` are NOT a wrapper around page content — they're a
+ * small fixed-position stack that sits behind everything. Each page's
+ * real content lives in sibling elements after this component, with its
+ * own position:relative + higher z-index, layered visually on top.
+ */
+---
+
+<div id="window">
+  <div id="screen">
+    <canvas id="gc" aria-hidden="true"></canvas>
+    <canvas id="sc" aria-hidden="true"></canvas>
+    <div id="bg-bloom" aria-hidden="true"></div>
+    <svg id="bg-grain" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">
+      <filter id="bg-grain-noise"><feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" stitchTiles="stitch" seed="2"/><feGaussianBlur stdDeviation="0.45"/><feColorMatrix values="0 0 0 0 0.55  0 0 0 0 0.55  0 0 0 0 0.58  0.7 0 0 0 -0.15"/></filter>
+      <rect width="100%" height="100%" filter="url(#bg-grain-noise)"/>
+    </svg>
+    <div id="bg-dim" aria-hidden="true"></div>
+  </div>
+</div>
+
+<style is:global>
+  #bg-bloom {
+    position:absolute; inset:0; z-index:0; pointer-events:none;
+    background: radial-gradient(ellipse at 50% 55%,
+      rgba(60,90,160,0) 0%, transparent 100%);
+    transition: none;
+    mix-blend-mode: screen;
+  }
+  #bg-grain {
+    position:absolute; inset:0; z-index:2;
+    width:100%; height:100%;
+    display:block;
+    pointer-events:none;
+    opacity:0.25;
+  }
+  /* Uniform darkening layer for the nebula/bloom base only. Deliberately
+     BELOW #sc (z-index 1) — ships, satellites, stars and the constellation
+     are all drawn on #sc, and CRAFT's brightness boost for them happens
+     inside that canvas draw code. A dim layer sitting ABOVE #sc would
+     re-darken everything CRAFT just brightened, with no way for CRAFT to
+     compensate (it can't reach outside the canvas into a separate DOM
+     layer). Keeping this below #sc means it only pushes the nebula/bloom
+     glow darker, and never touches anything drawn on top of it. */
+  #bg-dim {
+    position:absolute; inset:0; z-index:0;
+    pointer-events:none;
+    background: rgba(0,0,0, var(--bg-dim-opacity, 0.35));
+  }
+  #window {
+    position:fixed; inset:0;
+    width:100vw; height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  #screen {
+    position:relative; flex:1; background:#030307; overflow:hidden;
+  }
+  #window::before {
+    content:'';
+    position:absolute; inset:0; z-index:200;
+    pointer-events:none;
+    background:repeating-linear-gradient(
+      0deg,
+      transparent, transparent 3px,
+      rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 4px
+    );
+  }
+  #gc { position:absolute; display:block; z-index:0; }
+  #sc { position:absolute; display:block; z-index:1; pointer-events:none; }
+</style>

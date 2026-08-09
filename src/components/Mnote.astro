@@ -1,0 +1,15 @@
+---
+/**
+ * Margin note. Place at the start of a paragraph:
+ *   <p class="body-text"><Mnote day="Day 2" sub="backdoored 4.2.1 ships" tag="T1195.002" />The attacker...</p>
+ * In MDX, keep it inline with the first line of the paragraph text.
+ */
+interface Props {
+  day?: string;
+  sub?: string;
+  tag?: string;
+}
+const { day, sub, tag } = Astro.props;
+---
+
+<span class="mnote" role="note">{day && <span class="mnote-day">{day}</span>}{sub && <span class="mnote-sub" set:html={sub} />}{tag && <span class="mnote-tag">{tag}</span>}</span>

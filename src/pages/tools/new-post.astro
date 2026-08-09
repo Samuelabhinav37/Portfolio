@@ -1,0 +1,553 @@
+---
+/**
+ * Private post-builder tool. Not linked from anywhere, not in sitemap.xml,
+ * marked noindex below, and disallowed in robots.txt — reachable only if
+ * you know this exact URL. See src/content/blog/_blueprint.mdx for what
+ * every field/block below actually does; this page just assembles them.
+ *
+ * Uses the File System Access API (Chrome/Edge only) to write the finished
+ * .mdx file straight into src/content/blog/ on whatever machine has this
+ * page open — it can only ever touch a folder you explicitly grant it via
+ * the browser's own native folder picker.
+ */
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const realPosts = allPosts.filter((p) => !p.id.startsWith('_'));
+const relatedOptions = realPosts.map((p) => ({ slug: p.id, title: p.data.title }));
+const categories = [...new Set(realPosts.map((p) => p.data.category))];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>New post builder</title>
+    <style is:global>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; font: 15px/1.5 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #0b0c10; color: #e2e6ee;
+        display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh;
+      }
+      @media (max-width: 900px) { body { grid-template-columns: 1fr; } }
+      .pane { padding: 22px 26px; overflow-y: auto; max-height: 100vh; }
+      .pane + .pane { border-left: 1px solid #23262f; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #8b93a7; margin: 26px 0 10px; }
+      h2:first-of-type { margin-top: 0; }
+      .sub { color: #8b93a7; font-size: 13px; margin: 0 0 20px; }
+      label { display: block; font-size: 12.5px; color: #b7bdcc; margin: 12px 0 4px; }
+      input[type=text], input[type=date], input[type=number], textarea, select {
+        width: 100%; background: #161822; border: 1px solid #2b2f3c; border-radius: 6px;
+        color: #e2e6ee; padding: 8px 10px; font: inherit; font-size: 13.5px;
+      }
+      input:focus, textarea:focus, select:focus { outline: 2px solid #5b7fff; outline-offset: -1px; }
+      textarea { resize: vertical; }
+      .hint { font-size: 11.5px; color: #6d7488; margin-top: 3px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+      .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+      .chip {
+        display: flex; align-items: center; gap: 6px; background: #1c2030; border: 1px solid #2b2f3c;
+        border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 12.5px;
+      }
+      .chip button { background: none; border: none; color: #8b93a7; cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px; }
+      .chip-input-row { display: flex; gap: 8px; margin-top: 6px; }
+      .chip-input-row input { flex: 1; }
+      .btn {
+        background: #1c2030; border: 1px solid #2b2f3c; color: #e2e6ee; border-radius: 6px;
+        padding: 7px 12px; font-size: 12.5px; cursor: pointer;
+      }
+      .btn:hover { background: #23273a; }
+      .btn-primary { background: #3854e0; border-color: #3854e0; color: #fff; }
+      .btn-primary:hover { background: #4863ef; }
+      .btn-danger { background: #3a1f22; border-color: #6b2a30; color: #f4b6bc; }
+      .btn-danger:hover { background: #4a262a; }
+      .faq-block, .related-list {
+        border: 1px solid #2b2f3c; border-radius: 8px; padding: 12px; margin-top: 10px; background: #12141c;
+      }
+      .faq-block + .faq-block { margin-top: 10px; }
+      .faq-block .del { float: right; }
+      .related-list label { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 6px 0; }
+      .related-list input[type=checkbox] { width: auto; }
+      details { border: 1px solid #2b2f3c; border-radius: 8px; padding: 10px 14px; margin-top: 14px; }
+      details summary { cursor: pointer; font-size: 12.5px; color: #b7bdcc; text-transform: uppercase; letter-spacing: .06em; }
+      details[open] summary { margin-bottom: 10px; }
+      .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+      .toolbar button { font-size: 11.5px; padding: 5px 9px; }
+      #body-editor { width: 100%; min-height: 420px; font: 13px/1.6 'Cascadia Code', Consolas, monospace; }
+      .status-bar {
+        position: sticky; bottom: 0; margin-top: 20px; padding: 12px 14px; border-radius: 8px;
+        background: #12141c; border: 1px solid #2b2f3c; font-size: 12.5px; display: flex;
+        align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      }
+      .status-bar .msg { color: #8b93a7; }
+      .status-bar .msg.ok { color: #7fd99a; }
+      .status-bar .msg.err { color: #f4b6bc; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .conn-pill {
+        display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px;
+        border-radius: 999px; border: 1px solid #2b2f3c; background: #12141c; color: #8b93a7;
+      }
+      .conn-pill.on { color: #7fd99a; border-color: #2a4a35; }
+      .conn-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+      .req { color: #f4b6bc; }
+    </style>
+  </head>
+  <body>
+    <div class="pane" id="form-pane">
+      <h1>New blog post builder</h1>
+      <p class="sub">
+        Not linked anywhere on the live site. See
+        <a href="/blog/_blueprint" style="color:#8fa3ff;" target="_blank" rel="noopener">/blog/_blueprint</a>
+        for what every field below actually means.
+      </p>
+
+      <div id="conn-row" style="margin-bottom: 18px;">
+        <span class="conn-pill" id="conn-pill"><span class="dot"></span><span id="conn-label">Not connected to src/content/blog</span></span>
+        <button class="btn" id="btn-connect" type="button" style="margin-left: 8px;">Connect folder…</button>
+      </div>
+
+      <h2>Basics</h2>
+      <label for="f-title">Title <span class="req">*</span></label>
+      <input type="text" id="f-title" placeholder="Anatomy of a supply chain attack" />
+
+      <label for="f-slug">URL slug <span class="hint" style="display:inline;">(auto-fills from title — filename too)</span></label>
+      <input type="text" id="f-slug" placeholder="anatomy-of-a-supply-chain-attack" />
+
+      <label for="f-desc">Description <span class="req">*</span></label>
+      <textarea id="f-desc" rows="2" placeholder="One or two sentences — hero subtitle, meta description, and share text."></textarea>
+
+      <div class="row">
+        <div>
+          <label for="f-category">Category</label>
+          <input type="text" id="f-category" list="category-list" value="Threat Intel" />
+          <datalist id="category-list">
+            {categories.map((c) => <option value={c} />)}
+          </datalist>
+        </div>
+        <div>
+          <label for="f-pubdate">Publish date <span class="req">*</span></label>
+          <input type="date" id="f-pubdate" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="f-readtime">Read time (minutes) <span class="hint" style="display:inline;">— optional, auto-computed if blank</span></label>
+          <input type="number" id="f-readtime" min="1" />
+        </div>
+        <div>
+          <label for="f-updated">Updated date <span class="hint" style="display:inline;">— only if revising after publish</span></label>
+          <input type="date" id="f-updated" />
+        </div>
+      </div>
+
+      <label for="f-tag-input">Tags</label>
+      <div class="chip-input-row">
+        <input type="text" id="f-tag-input" placeholder="Add a tag, press Enter" />
+        <button class="btn" id="btn-add-tag" type="button">Add</button>
+      </div>
+      <div class="chip-list" id="tag-list"></div>
+
+      <label for="f-mitre-input">MITRE ATT&amp;CK technique IDs <span class="hint" style="display:inline;">— hero-row pills, e.g. T1195.002</span></label>
+      <div class="chip-input-row">
+        <input type="text" id="f-mitre-input" placeholder="T1195.002, press Enter" />
+        <button class="btn" id="btn-add-mitre" type="button">Add</button>
+      </div>
+      <div class="chip-list" id="mitre-list"></div>
+
+      <h2>Images <span class="hint" style="display:inline; text-transform:none; letter-spacing:0;">— one wide crop for the hero, one tall crop reused as the card thumbnail + share image. Leave blank for the gradient placeholder.</span></h2>
+      <label for="f-hero">Hero image path <span class="hint" style="display:inline;">(wide crop, e.g. /images/my-post-hero.jpg)</span></label>
+      <input type="text" id="f-hero" placeholder="/images/my-post-hero.jpg" />
+      <label for="f-hero-alt">Hero image alt text <span class="hint" style="display:inline;">— required if hero image is set</span></label>
+      <input type="text" id="f-hero-alt" placeholder="Describe what's actually in the image" />
+      <label for="f-hero-credit">Hero credit <span class="hint" style="display:inline;">— optional</span></label>
+      <input type="text" id="f-hero-credit" placeholder="Photo credit or generator name" />
+
+      <label for="f-card">Card image path <span class="hint" style="display:inline;">(tall crop, e.g. /images/my-post-card.jpg)</span></label>
+      <input type="text" id="f-card" placeholder="/images/my-post-card.jpg" />
+      <label for="f-card-alt">Card image alt text <span class="hint" style="display:inline;">— required if card image is set</span></label>
+      <input type="text" id="f-card-alt" placeholder="Describe what's actually in the image" />
+
+      <h2>FAQs <span class="hint" style="display:inline; text-transform:none; letter-spacing:0;">— powers the visible accordion and the FAQPage rich result</span></h2>
+      <div id="faq-container"></div>
+      <button class="btn" id="btn-add-faq" type="button" style="margin-top: 10px;">+ Add FAQ</button>
+
+      <details>
+        <summary>Related posts &amp; "Also in…" card (optional)</summary>
+        <label>Related posts <span class="hint" style="display:inline;">— shown under "More stories"</span></label>
+        <div class="related-list" id="related-list">
+          {relatedOptions.length === 0 && <p class="hint">No other posts yet.</p>}
+          {relatedOptions.map((p) => (
+            <label><input type="checkbox" class="related-checkbox" value={p.slug} />{p.title}</label>
+          ))}
+        </div>
+
+        <label for="f-alsoby-title" style="margin-top:14px;">"Also in…" title <span class="hint" style="display:inline;">— leave blank to omit the whole card</span></label>
+        <input type="text" id="f-alsoby-title" placeholder="Some other write-up" />
+        <div class="row">
+          <div>
+            <label for="f-alsoby-label">Label</label>
+            <input type="text" id="f-alsoby-label" value="Also in Lab Notes" />
+          </div>
+          <div>
+            <label for="f-alsoby-meta">Meta</label>
+            <input type="text" id="f-alsoby-meta" placeholder="Lab Notes · 14 Min" />
+          </div>
+        </div>
+        <label for="f-alsoby-href">Link</label>
+        <input type="text" id="f-alsoby-href" placeholder="https://…" />
+        <label for="f-alsoby-image">Image path <span class="hint" style="display:inline;">— optional</span></label>
+        <input type="text" id="f-alsoby-image" placeholder="/images/also-by-thumb.jpg" />
+      </details>
+    </div>
+
+    <div class="pane" id="body-pane">
+      <h2 style="margin-top:0;">Body</h2>
+      <div class="toolbar" id="toolbar">
+        <button class="btn" data-insert="dropcap" type="button">Dropcap (start only)</button>
+        <button class="btn" data-insert="mnote" type="button">Margin note</button>
+        <button class="btn" data-insert="casefile" type="button">Case file</button>
+        <button class="btn" data-insert="detection" type="button">Detection callout</button>
+        <button class="btn" data-insert="ioctable" type="button">IOC table</button>
+        <button class="btn" data-insert="asidecta" type="button">Aside CTA</button>
+        <button class="btn" data-insert="mitre" type="button">MITRE chip</button>
+        <button class="btn" data-insert="highlight" type="button">Highlight selection</button>
+        <button class="btn" data-insert="h2" type="button">H2</button>
+        <button class="btn" data-insert="h3" type="button">H3</button>
+        <button class="btn" data-insert="quote" type="button">Blockquote</button>
+        <button class="btn" data-insert="code" type="button">Code block</button>
+      </div>
+      <textarea id="body-editor" spellcheck="false" placeholder="Write the post here. Use the buttons above to drop in the structured blocks — select some text first, then click Highlight, to wrap just that phrase."></textarea>
+
+      <div class="status-bar">
+        <span class="msg" id="status-msg">Not saved yet.</span>
+        <div class="actions">
+          <button class="btn" id="btn-save-draft" type="button">Save draft</button>
+          <button class="btn btn-primary" id="btn-publish" type="button">Publish</button>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+    (function () {
+      'use strict';
+
+      // ── tiny IndexedDB wrapper, just to remember the granted folder handle ──
+      function idbOpen() {
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open('post-builder', 1);
+          req.onupgradeneeded = () => req.result.createObjectStore('handles');
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      async function idbGet(key) {
+        const db = await idbOpen();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction('handles', 'readonly');
+          const req = tx.objectStore('handles').get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      async function idbSet(key, val) {
+        const db = await idbOpen();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction('handles', 'readwrite');
+          tx.objectStore('handles').put(val, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      let dirHandle = null;
+
+      function setConnLabel(text, on) {
+        document.getElementById('conn-label').textContent = text;
+        document.getElementById('conn-pill').classList.toggle('on', !!on);
+      }
+
+      async function tryRestoreHandle() {
+        if (!('showDirectoryPicker' in window)) {
+          setConnLabel('This browser doesn’t support direct save (use Chrome or Edge)', false);
+          document.getElementById('btn-connect').disabled = true;
+          return;
+        }
+        const saved = await idbGet('blogDir').catch(() => null);
+        if (!saved) return;
+        const perm = await saved.queryPermission({ mode: 'readwrite' }).catch(() => 'denied');
+        if (perm === 'granted') {
+          dirHandle = saved;
+          setConnLabel('Connected: ' + saved.name, true);
+        } else {
+          setConnLabel('Connection needs re-approval — click Connect', false);
+        }
+      }
+
+      document.getElementById('btn-connect').addEventListener('click', async function () {
+        try {
+          const handle = await window.showDirectoryPicker({ id: 'blog-content', mode: 'readwrite' });
+          const perm = await handle.requestPermission({ mode: 'readwrite' });
+          if (perm !== 'granted') { setConnLabel('Permission denied', false); return; }
+          dirHandle = handle;
+          await idbSet('blogDir', handle);
+          setConnLabel('Connected: ' + handle.name, true);
+          setStatus('Connected. Pick the folder that IS src/content/blog itself.', 'ok');
+        } catch (e) {
+          if (e && e.name !== 'AbortError') setStatus('Couldn’t connect: ' + e.message, 'err');
+        }
+      });
+
+      tryRestoreHandle();
+
+      // ── chip fields (tags, mitre) ──────────────────────────────────────
+      function makeChipField(inputId, addBtnId, listId) {
+        const items = [];
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        function render() {
+          list.innerHTML = '';
+          items.forEach((val, i) => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            const txt = document.createElement('span');
+            txt.textContent = val;
+            const del = document.createElement('button');
+            del.type = 'button'; del.textContent = '×';
+            del.addEventListener('click', () => { items.splice(i, 1); render(); });
+            chip.appendChild(txt); chip.appendChild(del);
+            list.appendChild(chip);
+          });
+        }
+        function add() {
+          const v = input.value.trim();
+          if (v) { items.push(v); input.value = ''; render(); }
+        }
+        document.getElementById(addBtnId).addEventListener('click', add);
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+        return { get: () => items.slice() };
+      }
+      const tagsField = makeChipField('f-tag-input', 'btn-add-tag', 'tag-list');
+      const mitreField = makeChipField('f-mitre-input', 'btn-add-mitre', 'mitre-list');
+
+      // ── FAQ rows ────────────────────────────────────────────────────────
+      const faqContainer = document.getElementById('faq-container');
+      function addFaqRow(q, a) {
+        const block = document.createElement('div');
+        block.className = 'faq-block';
+        block.innerHTML =
+          '<button class="btn btn-danger del" type="button">Remove</button>' +
+          '<label>Question</label><input type="text" class="faq-q" placeholder="What is a software supply chain attack?">' +
+          '<label>Answer <span class="hint" style="display:inline;">— a little inline HTML is OK, e.g. &lt;span class=&quot;code-inline&quot;&gt;code&lt;/span&gt;</span></label>' +
+          '<textarea class="faq-a" rows="2" placeholder="Answer text…"></textarea>';
+        block.querySelector('.faq-q').value = q || '';
+        block.querySelector('.faq-a').value = a || '';
+        block.querySelector('.del').addEventListener('click', () => block.remove());
+        faqContainer.appendChild(block);
+      }
+      document.getElementById('btn-add-faq').addEventListener('click', () => addFaqRow('', ''));
+      addFaqRow('', ''); // start with one row
+
+      // ── slug auto-fill (stops once user edits it by hand) ────────────────
+      const titleEl = document.getElementById('f-title');
+      const slugEl = document.getElementById('f-slug');
+      let slugTouched = false;
+      slugEl.addEventListener('input', () => { slugTouched = true; });
+      function slugify(s) {
+        return s.toLowerCase().trim()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+      titleEl.addEventListener('input', () => { if (!slugTouched) slugEl.value = slugify(titleEl.value); });
+
+      // default pub date = today
+      document.getElementById('f-pubdate').value = new Date().toISOString().slice(0, 10);
+
+      // ── body editor toolbar ───────────────────────────────────────────────
+      const editor = document.getElementById('body-editor');
+      const IMPORTS =
+        "import Dropcap from '../../components/Dropcap.astro';\n" +
+        "import Mnote from '../../components/Mnote.astro';\n" +
+        "import CaseFile from '../../components/CaseFile.astro';\n" +
+        "import DetectionOpportunity from '../../components/DetectionOpportunity.astro';\n" +
+        "import IocTable from '../../components/IocTable.astro';\n" +
+        "import AsideCta from '../../components/AsideCta.astro';\n" +
+        "import Mitre from '../../components/Mitre.astro';\n\n";
+
+      const SNIPPETS = {
+        dropcap: '<Dropcap letter="X">est of the opening sentence goes here.</Dropcap>',
+        mnote: '<Mnote day="Day 0" sub="short summary of this beat" tag="T1195.002" />',
+        casefile:
+          '<CaseFile\n  id="case-id"\n  rows={[\n' +
+          "    { term: 'Vector', desc: 'How the attacker got in' },\n" +
+          "    { term: 'Dwell', desc: 'How long it went undetected' },\n" +
+          "    { term: 'Impact', desc: 'What was affected' },\n" +
+          "    { term: 'Caught by', desc: 'What actually caught it' },\n" +
+          "    { term: 'Techniques', desc: 'T1195.002 &middot; T1567' },\n" +
+          '  ]}\n/>',
+        detection: '<DetectionOpportunity>What a defender should actually go build after reading this.</DetectionOpportunity>',
+        ioctable:
+          '<IocTable\n  id="case-id"\n  rows={[\n' +
+          "    { type: 'Domain', value: 'evil-example[.]net', fanged: 'evil-example.net' },\n" +
+          '  ]}\n/>',
+        asidecta: '<AsideCta href="https://github.com/">The complete IOC set lives in the companion repository.</AsideCta>',
+        mitre: '<Mitre id="T1195.002" />',
+        h2: '\n## Section heading\n\n',
+        h3: '\n### Subsection heading\n\n',
+        quote: '\n> Pull quote goes here.\n\n',
+        code: '\n```bash\n$ command here\n```\n\n',
+      };
+
+      document.getElementById('toolbar').addEventListener('click', function (e) {
+        const btn = e.target.closest('button[data-insert]');
+        if (!btn) return;
+        const kind = btn.dataset.insert;
+        const start = editor.selectionStart, end = editor.selectionEnd;
+        const selected = editor.value.slice(start, end);
+        let insertText;
+        if (kind === 'highlight') {
+          insertText = selected ? '<span class="highlight">' + selected + '</span>' : '<span class="highlight">important line</span>';
+        } else {
+          insertText = SNIPPETS[kind];
+        }
+        editor.setRangeText(insertText, start, end, 'end');
+        editor.focus();
+      });
+
+      // ── validation + MDX generation ───────────────────────────────────────
+      function esc(s) { return JSON.stringify(s || ''); }
+
+      function currentSlug() {
+        return slugEl.value.trim() || slugify(titleEl.value);
+      }
+
+      function buildFrontmatter(draft) {
+        const lines = [];
+        lines.push('title: ' + esc(titleEl.value.trim()));
+        lines.push('description: ' + esc(document.getElementById('f-desc').value.trim()));
+        const cat = document.getElementById('f-category').value.trim();
+        if (cat && cat !== 'Threat Intel') lines.push('category: ' + esc(cat));
+        lines.push('pubDate: ' + document.getElementById('f-pubdate').value);
+        const upd = document.getElementById('f-updated').value;
+        if (upd) lines.push('updatedDate: ' + upd);
+        const rt = document.getElementById('f-readtime').value;
+        if (rt) lines.push('readTime: ' + Number(rt));
+
+        const tags = tagsField.get();
+        if (tags.length) lines.push('tags: ' + JSON.stringify(tags));
+        const mitre = mitreField.get();
+        if (mitre.length) lines.push('mitre: ' + JSON.stringify(mitre));
+
+        const hero = document.getElementById('f-hero').value.trim();
+        const heroAlt = document.getElementById('f-hero-alt').value.trim();
+        const heroCredit = document.getElementById('f-hero-credit').value.trim();
+        if (hero) {
+          lines.push('heroImage: ' + hero);
+          lines.push('heroImageAlt: ' + esc(heroAlt));
+          if (heroCredit) lines.push('heroCredit: ' + esc(heroCredit));
+        }
+        const card = document.getElementById('f-card').value.trim();
+        const cardAlt = document.getElementById('f-card-alt').value.trim();
+        if (card) {
+          lines.push('cardImage: ' + card);
+          lines.push('cardImageAlt: ' + esc(cardAlt));
+        }
+
+        const related = Array.from(document.querySelectorAll('.related-checkbox:checked')).map((c) => c.value);
+        if (related.length) {
+          lines.push('related:');
+          related.forEach((s) => lines.push('  - ' + s));
+        }
+
+        const alsoTitle = document.getElementById('f-alsoby-title').value.trim();
+        if (alsoTitle) {
+          lines.push('alsoBy:');
+          lines.push('  label: ' + esc(document.getElementById('f-alsoby-label').value.trim() || 'Also in Lab Notes'));
+          lines.push('  title: ' + esc(alsoTitle));
+          lines.push('  meta: ' + esc(document.getElementById('f-alsoby-meta').value.trim()));
+          lines.push('  href: ' + esc(document.getElementById('f-alsoby-href').value.trim() || '#'));
+          const alsoImg = document.getElementById('f-alsoby-image').value.trim();
+          if (alsoImg) lines.push('  image: ' + alsoImg);
+        }
+
+        const faqRows = Array.from(document.querySelectorAll('.faq-block')).map((b) => ({
+          q: b.querySelector('.faq-q').value.trim(),
+          a: b.querySelector('.faq-a').value.trim(),
+        })).filter((f) => f.q && f.a);
+        if (faqRows.length) {
+          lines.push('faqs:');
+          faqRows.forEach((f) => {
+            lines.push('  - q: ' + esc(f.q));
+            lines.push('    a: ' + esc(f.a));
+          });
+        }
+
+        lines.push('draft: ' + (draft ? 'true' : 'false'));
+        return lines.join('\n');
+      }
+
+      function buildFile(draft) {
+        const fm = buildFrontmatter(draft);
+        const body = editor.value.trim();
+        return '---\n' + fm + '\n---\n\n' + IMPORTS + body + '\n';
+      }
+
+      function validate() {
+        const errs = [];
+        if (!titleEl.value.trim()) errs.push('Title is required.');
+        if (!document.getElementById('f-desc').value.trim()) errs.push('Description is required.');
+        if (!document.getElementById('f-pubdate').value) errs.push('Publish date is required.');
+        if (!currentSlug()) errs.push('Could not derive a URL slug from the title.');
+        const hero = document.getElementById('f-hero').value.trim();
+        if (hero && !document.getElementById('f-hero-alt').value.trim()) errs.push('Hero image alt text is required once a hero image is set.');
+        const card = document.getElementById('f-card').value.trim();
+        if (card && !document.getElementById('f-card-alt').value.trim()) errs.push('Card image alt text is required once a card image is set.');
+        return errs;
+      }
+
+      function setStatus(msg, kind) {
+        const el = document.getElementById('status-msg');
+        el.textContent = msg;
+        el.className = 'msg' + (kind ? ' ' + kind : '');
+      }
+
+      async function save(draft) {
+        const errs = validate();
+        if (errs.length) { setStatus(errs.join(' '), 'err'); return; }
+        if (!dirHandle) { setStatus('Connect the src/content/blog folder first.', 'err'); return; }
+        if (!draft) {
+          const ok = confirm('Publish for real? This sets draft: false — the post will appear in "All Work" and the sitemap once you deploy.');
+          if (!ok) return;
+        }
+        try {
+          const perm = await dirHandle.queryPermission({ mode: 'readwrite' });
+          if (perm !== 'granted') {
+            const req = await dirHandle.requestPermission({ mode: 'readwrite' });
+            if (req !== 'granted') { setStatus('Write permission denied.', 'err'); return; }
+          }
+          const filename = currentSlug() + '.mdx';
+          const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(buildFile(draft));
+          await writable.close();
+          setStatus((draft ? 'Draft saved' : 'Published') + ' → ' + filename + ' at ' + new Date().toLocaleTimeString() +
+            (draft ? '. View it at /blog/' + currentSlug() + ' (with bun run dev running) to preview.' : '.'), 'ok');
+        } catch (e) {
+          setStatus('Save failed: ' + e.message, 'err');
+        }
+      }
+
+      document.getElementById('btn-save-draft').addEventListener('click', () => save(true));
+      document.getElementById('btn-publish').addEventListener('click', () => save(false));
+    })();
+    </script>
+  </body>
+</html>

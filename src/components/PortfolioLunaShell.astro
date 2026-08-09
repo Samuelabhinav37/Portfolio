@@ -1,0 +1,1306 @@
+---
+/**
+ * Luna's creature/iframe shell for the portfolio pages — the canvas
+ * eye-engine template (byte-identical across index/about/work/contact,
+ * confirmed via diff) plus the Blob-iframe injection glue. Each page's own
+ * mouse-tracking bridge / idle-action loop / KB / drawer stays where it is
+ * today (those genuinely differ per page — different target actions,
+ * different tuning constants) and is NOT part of this shared component.
+ *
+ * `is:inline` for the same reason as the blog's Luna.astro: the template
+ * literal contains a deliberately-escaped `<\/script>` so the HTML parser
+ * doesn't prematurely close the real outer tag, and Astro's default script
+ * bundling has no reason to touch any of that.
+ *
+ * `hasIntro` mirrors SiteMenu's prop: only the home page gates this behind
+ * its own GSAP intro timeline (which sets `.style.opacity` directly by id,
+ * same as it does for site-identity/menu-trigger).
+ */
+interface Props {
+  hasIntro?: boolean;
+}
+const { hasIntro = false } = Astro.props;
+---
+
+<div id="luna-wrap" aria-hidden="true">
+  <iframe id="luna-frame" title="Luna (decorative companion)" tabindex="-1" scrolling="no"></iframe>
+</div>
+
+<style>
+  #luna-wrap {
+    position: fixed;
+    right: 18px;
+    top: calc(66vh + 80px);
+    width: 120px;
+    height: 120px;
+    z-index: 999;
+    transition: opacity 0.35s ease;
+  }
+  #luna-wrap.about-hidden, #luna-wrap.luna-hidden { opacity: 0; pointer-events: none; }
+  #luna-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    display: block;
+  }
+</style>
+
+{hasIntro && (
+  <style>
+    #luna-wrap { opacity: 0; }
+  </style>
+)}
+
+<script is:inline>
+(function(){
+  var LUNA_HTML = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Luna</title>
+
+<!--
+  LUNA · PORTFOLIO COMPANION  —  trimmed embed build
+  Engine is the unmodified Luna expression system (eye system v2).
+  This wrapper strips the test page down to just the character on a
+  transparent background so it can be embedded as a corner companion.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  /* A browser only composites an iframe transparently when the embedded
+     document's used colour-scheme MATCHES its embedder's. The parent page
+     declares dark; if this document declares nothing it defaults to light,
+     the schemes disagree, and Chrome paints an opaque WHITE base layer
+     underneath — a white square around Luna. Declaring dark here makes the
+     schemes agree and the frame composites clear. */
+  :root{ color-scheme: dark; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{
+    width:100%; height:100%;
+    background:transparent;
+    overflow:hidden;
+  }
+  /* test-page chrome the engine still references — kept but hidden */
+  #stars,#tag,#say,#moods,#actions{ display:none !important; }
+
+  .stage{
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .stage canvas{
+    width:100%; height:100%;
+    display:block;
+  }
+</style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="stage" id="stage"><canvas id="luna"></canvas></div>
+  <div id="tag"></div><div id="say"></div>
+  <div id="moods"></div><div id="actions"></div>
+
+<script>
+(() => {
+'use strict';
+const PI=Math.PI;
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>v<a?a:v>b?b:v, rand=(a,b)=>a+Math.random()*(b-a);
+const smooth=s=>{ s=clamp(s,0,1); return s*s*(3-2*s); };
+/* motion easings for the v2 action curves */
+const eOut =t=>1-Math.pow(1-clamp(t,0,1),3);                 // decelerate
+const eIn  =t=>{t=clamp(t,0,1);return t*t*t;};               // accelerate
+const back =t=>{t=clamp(t,0,1);const c=1.9;return 1+c*Math.pow(t-1,3)+ (c-0)*Math.pow(t-1,2);}; // overshoot then settle
+/* a unit "wind-up then strike" envelope: dips negative early (anticipation),
+   peaks, then overshoots and settles. Returns roughly [-antA .. 1 .. ~0]. */
+function windup(p, antA){
+  antA = antA==null? .22 : antA;
+  if(p<.16) return -antA*Math.sin(p/.16*PI);          // anticipation (opposite)
+  const q=(p-.16)/.84;
+  return Math.sin(q*PI)*(1-q*.18) ;                    // strike with slight droop
+}
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- backdrop ---------- */
+(() => {
+  const c=document.getElementById('stars'), x=c.getContext('2d');
+  let st=[];
+  function size(){
+    c.width=innerWidth*devicePixelRatio; c.height=innerHeight*devicePixelRatio;
+    x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    st=Array.from({length:160},()=>({
+      x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+      r:Math.random()*1.1+.2, a:Math.random()*.5+.12,
+      p:Math.random()*6.28, s:Math.random()*.5+.2 }));
+  }
+  size(); addEventListener('resize',size);
+  /* Perf: this backdrop is display:none in the companion embed, and even
+     when shown it never needs more than 30fps. Skip all draw work (and poll
+     slowly instead of tight-looping) whenever the canvas isn't actually
+     displayed or the tab is hidden, so it can't burn a 60fps loop on an
+     invisible canvas. */
+  let _sLast=0; const _sMin=1000/30;
+  (function tw(t){
+    if(document.hidden || !c.offsetWidth || !c.offsetHeight){
+      setTimeout(()=>requestAnimationFrame(tw), 500);   // idle poll, ~2Hz
+      return;
+    }
+    requestAnimationFrame(tw);
+    if(t - _sLast < _sMin) return;                       // 30fps cap
+    _sLast = t;
+    x.clearRect(0,0,innerWidth,innerHeight);
+    for(const s of st){
+      const a=s.a*(.7+.3*Math.sin(t*.001*s.s+s.p));
+      x.fillStyle='rgba(214,224,244,'+a.toFixed(3)+')';
+      x.beginPath(); x.arc(s.x,s.y,s.r,0,6.283); x.fill();
+    }
+  })(0);
+})();
+
+/* ===========================================================================
+   MOODS  — each carries an eye spec {open, bow, scale}
+       open  : lid separation   (0 shut .. 1 wide)
+       bow   : eye arc          (- sleepy/sad .. + happy)
+       scale : overall eye size
+=========================================================================== */
+const MOODS={
+  neutral:  {eye:{open:1,    bow:.06,  scale:1},
+             screenB:1,  posY:0,  tilt:0,    antD:0,   bobA:4.4, bobS:1,    gazeY:0,    restless:.32, fx:null,
+             say:'Calm and alert. Her resting state.'},
+  happy:    {eye:{open:.30,  bow:1.0,  scale:1.04},
+             screenB:1,  posY:-4, tilt:0,    antD:-.18,bobA:6.2, bobS:1.5,  gazeY:-.06, restless:.55, fx:null,
+             say:'Glad — eyes arched high, lifted and bright.'},
+  curious:  {eye:{open:1.05, bow:.12,  scale:1.12},
+             screenB:1,  posY:-3, tilt:.24,  antD:-.22,bobA:4,   bobS:1.1,  gazeY:0,    restless:.8,  fx:null,
+             say:'Head cocked, eyes wide — keenly interested.'},
+  thinking: {eye:{open:.82,  bow:.04,  scale:1},
+             screenB:.96,posY:-1, tilt:.08,  antD:-.05,bobA:3,   bobS:.8,   gazeY:-.6,  restless:.16, fx:'think',
+             say:'Processing — gaze up, holding still.'},
+  focused:  {eye:{open:.42,  bow:-.04, scale:1.06},
+             screenB:1,  posY:0,  tilt:0,    antD:.02, bobA:2,   bobS:.68,  gazeY:.06,  restless:.2,  fx:'scan',
+             say:'Scanning — narrowed, heads-down, steady.'},
+  surprised:{eye:{open:1.18, bow:.1,   scale:1.24},
+             screenB:1,  posY:-8, tilt:0,    antD:-.42,bobA:1.6, bobS:.58,  gazeY:-.05, restless:.3,  fx:null,
+             say:'Caught off guard — a held, wide-eyed jolt.'},
+  sad:      {eye:{open:.55,  bow:-.72, scale:.96},
+             screenB:.8, posY:8,  tilt:-.08, antD:.62, bobA:2.8, bobS:.66,  gazeY:.6,   restless:.12, fx:null,
+             say:'Down — sunk low, brow fallen, gaze dropped.'},
+  sleepy:   {eye:{open:.32,  bow:-.4,  scale:1},
+             screenB:.7, posY:4,  tilt:.07,  antD:.34, bobA:3.6, bobS:.55,  gazeY:.4,   restless:.08, fx:null,
+             say:'Drowsy — heavy-lidded, drifting off.'},
+  asleep:   {eye:{open:.04,  bow:-.55, scale:1},
+             screenB:.32,posY:5,  tilt:.08,  antD:.46, bobA:4.8, bobS:.48,  gazeY:0,    restless:0,   fx:'sleep',
+             say:'Out cold — after a long idle.'},
+};
+const MOOD_ORDER=['neutral','happy','curious','thinking','focused','surprised','sad','sleepy','asleep'];
+
+/* ===========================================================================
+   ACTIONS  — one-shot motions. fn(progress 0..1) -> partial modifiers.
+   Eye-affecting mods: eyeClose (both), winkR (right only), bowAdd.
+=========================================================================== */
+const MOD0={dx:0,dy:0,rot:0,sx:0,sy:0,eyeClose:0,winkR:0,bowAdd:0,eyeSquashX:0,
+            glitch:0,screenFlick:1,sparkle:false};
+const ACTIONS={
+  blink:    {dur:210, ping:false, say:'A natural blink — snaps shut, eases open, eye squashing wide.',
+             fn:p=>{const c=p<.4?eIn(p/.4):1-eOut((p-.4)/.6);
+                    return{eyeClose:c, eyeSquashX:c*.16};}},
+  wink:     {dur:480, ping:false, say:'A friendly wink with a little head dip.',
+             fn:p=>{const s=Math.sin(p*PI); return{winkR:s, rot:s*.05, dy:-s*1.5};}},
+  nod:      {dur:820, ping:false, say:'Yes — anticipates up, nods down, settles.',
+             fn:p=>{
+               if(p<.15) return{dy:-3*Math.sin(p/.15*PI)};        // anticipation lift
+               const q=(p-.15)/.85;
+               const dn=Math.sin(q*PI)*9;                          // firm nod down
+               const settle=q>.82?-Math.sin((q-.82)/.18*PI)*1.6:0; // tiny up overshoot
+               return{dy:dn+settle};
+             }},
+  shake:    {dur:820, ping:false, say:'No — winds one way, then a damped head shake.',
+             fn:p=>{
+               if(p<.12) return{dx:-2.6*Math.sin(p/.12*PI), rot:.02*Math.sin(p/.12*PI)};
+               const q=(p-.12)/.88, osc=Math.sin(q*PI*4)*(1-q*.65);
+               return{dx:osc*7, rot:osc*.05};
+             }},
+  hop:      {dur:600, ping:false, say:'A small jump — crouch, arc up, land squash, settle.',
+             fn:p=>{
+               if(p<.18){const a=eIn(p/.18); return{dy:a*5, sy:-a*.10, sx:a*.06};} // crouch
+               const q=(p-.18)/.82, up=Math.sin(q*PI), land=q>.86?(q-.86)/.14:0;
+               return{dy:-up*26+land*4, sy:up*.10-land*.09, sx:-up*.05+land*.05};
+             }},
+  wave:     {dur:1000,ping:true,  say:'Her greeting — played on hello / panel open.',
+             fn:p=>({rot:Math.sin(p*PI*3)*.16*(1-p*.4), dy:-Math.sin(p*PI)*6,
+                     bowAdd:Math.sin(p*PI)*.5})},
+  wiggle:   {dur:820, ping:false, say:'A happy little jiggle that settles out.',
+             fn:p=>({rot:Math.sin(p*PI*5)*.14*(1-p*.6)})},
+  yawn:     {dur:1300,ping:false, say:'A slow inhale, big stretch — getting sleepy.',
+             fn:p=>{const b=Math.sin(p*PI);
+                    return{sy:b*.15, sx:-b*.06, dy:-b*4, eyeClose:Math.pow(b,.55),
+                           eyeSquashX:Math.pow(b,.55)*.12};}},
+  glitch:   {dur:520, ping:false, say:'A brief signal glitch — an on-theme flicker.',
+             fn:p=>({glitch:(1-p)*(1-p)})},
+  celebrate:{dur:1450,ping:true,  say:'Full delight — crouch, bouncy hops, spin and sparkles.',
+             fn:p=>{
+               if(p<.12){const a=eIn(p/.12); return{dy:a*5, sy:-a*.09};}   // anticipation crouch
+               const q=(p-.12)/.88;
+               const hop=q<.6?Math.abs(Math.sin(q*PI*2.6)):0;
+               const spin=q>.55?smooth((q-.55)/.45):0;
+               return{dy:-hop*16, sy:hop*.07, rot:spin*PI*2,
+                      bowAdd:Math.sin(Math.min(q,.92)*PI*1.05)*.6, sparkle:true};
+             }},
+  boot:     {dur:1200,ping:true,  say:'Powering on — her startup sequence.',
+             fn:p=>({screenFlick:p<.55?(Math.random()<.5?rand(.2,1):1):1,
+                     eyeClose:1-smooth(clamp((p-.25)/.5,0,1)), dy:-(1-p)*2})},
+
+  /* ── Performance set-pieces (hold-and-rush choreography) ──────────────
+     Authored in the same modifier vocabulary as the actions above. Rule:
+     a pose OWNS a wide progress span (the hold); transitions own a narrow
+     one, eased sharp (the rush). Driven from the parent via lunaAction. */
+  stretch:  {dur:2400,ping:false, say:'A long stretch — gather, snap wide-and-low, hold, ease back.',
+             fn:p=>{
+               var pose={sx:.15,sy:-.11,dy:5,eyeClose:.5,bowAdd:.28,eyeSquashX:.10};
+               if(p<.10){var a=eIn(p/.10); return{dy:a*3,sy:-a*.05,eyeClose:a*.25};}                 // anticipation gather
+               if(p<.20){var e=eOut((p-.10)/.10),o={}; for(var k in pose)o[k]=pose[k]*e; return o;}   // RUSH into stretch
+               if(p<.72){return pose;}                                                                // HOLD (60% of beat)
+               var f=1-eOut((p-.72)/.28),o2={}; for(var k2 in pose)o2[k2]=pose[k2]*f; return o2;       // ease back
+             }},
+  startle:  {dur:1400,ping:true,  say:'Startled by a glitch — a flicker, a held crouch, then a rushed hop.',
+             fn:p=>{
+               if(p<.08){var a=eIn(p/.08);                                                            // SNAP: glitch + crouch
+                 return{glitch:1,dy:a*6,sy:-a*.14,sx:a*.08,eyeSquashX:a*.12,screenFlick:Math.random()<.5?.4:1};}
+               if(p<.46){return{dy:6,sy:-.14,sx:.08,glitch:(.46-p)/.38*.5};}                          // HOLD crouch, glitch fades
+               var q=(p-.46)/.54, up=Math.sin(clamp(q/.5,0,1)*PI), land=q>.72?(q-.72)/.28:0;           // RUSH up + land
+               return{dy:-up*28+land*5, sy:up*.12-land*.10, sx:-up*.06+land*.06, eyeSquashX:land*.14};
+             }},
+  signal:   {dur:1600,ping:true,  say:'Signal detected — a sharp perk toward the page, focused, held.',
+             fn:p=>{
+               if(p<.10){var a=eOut(p/.10); return{dx:-a*4,rot:-a*.10,dy:-a*2,eyeClose:a*.35,eyeSquashX:a*.10};} // snap perk
+               if(p<.78){return{dx:-4,rot:-.10,dy:-2,eyeClose:.4,eyeSquashX:.06};}                    // HOLD the point
+               var f=1-eOut((p-.78)/.22);
+               return{dx:-4*f,rot:-.10*f,dy:-2*f,eyeClose:.4*f,eyeSquashX:.06*f};
+             }},
+  patrol:   {dur:4200,ping:false, say:'A short patrol — pads left with a bobbing gait, pauses, returns.',
+             fn:p=>{
+               var reach=-110, bob=ph=>-Math.abs(Math.sin(ph*PI*7))*6;
+               if(p<.40){var o=smooth(p/.40); return{dx:reach*o,dy:bob(p/.40),rot:Math.sin(p/.40*PI*7)*.03};}
+               if(p<.52){return{dx:reach,dy:0};}                                                       // HOLD at far edge
+               if(p<.92){var q=(p-.52)/.40,o2=smooth(q); return{dx:reach*(1-o2),dy:bob(q),rot:Math.sin(q*PI*7)*.03};}
+               return{dx:0,dy:0};
+             }},
+};
+const ACTION_ORDER=['blink','wink','nod','shake','hop','wave','wiggle','yawn','glitch','celebrate','boot'];
+const ACTION_LABEL={blink:'Blink',wink:'Wink',nod:'Nod · yes',shake:'Shake · no',
+  hop:'Hop',wave:'Wave',wiggle:'Wiggle',yawn:'Yawn',glitch:'Glitch',
+  celebrate:'Celebrate',boot:'Boot up'};
+
+/* ===========================================================================
+   GETUP SYSTEM  — composable accessory layers (prototype)
+   Each getup is a pure draw fn in body-space (same coordinate frame as the
+   body), so it rides every transform she does: breathe, bob, tilt, posY, and
+   the action modifiers (hop dy, glitch jitter, celebrate spin). It recomputes
+   the geometry it anchors to from L, so it never depends on draw()'s locals.
+     slot  — z-order hook: 'topper' (at the antenna), 'face' (over the screen)
+     draw(c, gi) — gi = { now, m, M } ; c is the shared 2D context
+   Rendered in her own vocabulary: thin luminous strokes, the screen-blue
+   palette, soft glow — so "professor glasses" reads as an analyst HUD visor,
+   not cartoon specs. Add a getup = one entry here + (optionally) a context map.
+=========================================================================== */
+const GETUPS = {
+  visor: {
+    slot:'face', label:'Spectacles',
+    draw(c, gi){
+      // Rule 3/4/7: solid-weight matte frame, minimum marks, no decoration. Eyes lead.
+      const EW=14*L.eyeScale, EH=17*L.eyeScale;
+      const ey=-3+EH*0.05;
+      const ex=10.6, lw=EW*0.98, lh=EH*0.66, lr=4.5;
+      c.lineCap='round'; c.lineJoin='round';
+      c.shadowBlur=0;
+      c.fillStyle='rgba(110,140,200,.10)';            // faint glass tint so the lenses read
+      c.strokeStyle='rgba(166,186,224,.92)';          // matte slate, bolder so it survives 66px
+      c.lineWidth=2.1;
+      for(const s of [-1,1]){ rr(c, s*ex-lw/2, ey-lh/2, lw, lh, lr); c.fill(); c.stroke(); }
+      // bridge + short temples — the only other marks
+      c.beginPath();
+      c.moveTo(-ex+lw/2, ey-lh*0.12); c.lineTo(ex-lw/2, ey-lh*0.12); c.stroke();
+      const hy=ey-lh*0.30;
+      for(const s of [-1,1]){
+        c.beginPath();
+        c.moveTo(s*(ex+lw/2-0.5), hy); c.lineTo(s*31, hy-2); c.stroke();
+      }
+    }
+  },
+  antenna_flag: {
+    slot:'topper', label:'Antenna flag', dimsForEmote:true,
+    draw(c, gi){
+      const tx=L.antD*6+L.aSway, ty=-44+L.antD*7+L.aWhip;   // ride the springy antenna tip
+      const mastTop=ty-12, mx=tx+L.aSway*.3;
+      c.lineCap='round'; c.lineJoin='round';
+      c.strokeStyle='rgba(158,182,222,.72)'; c.lineWidth=1.4;
+      c.beginPath(); c.moveTo(tx, ty-3.5); c.lineTo(mx, mastTop); c.stroke();
+      const wave=Math.sin(gi.now*0.006)*1.6 + L.aSwayV*2.2;  // flutter + chained whip off the antenna's velocity
+      const fh=5.6, fl=9.2;
+      c.shadowColor='rgba(150,200,255,.85)'; c.shadowBlur=7;
+      c.fillStyle='rgba(150,200,255,.88)';
+      c.beginPath();
+      c.moveTo(mx, mastTop);
+      c.quadraticCurveTo(mx+fl*0.6, mastTop+fh*0.2+wave, mx+fl, mastTop+fh*0.5+wave*0.6);
+      c.quadraticCurveTo(mx+fl*0.6, mastTop+fh*0.9+wave, mx, mastTop+fh);
+      c.closePath(); c.fill();
+    }
+  },
+
+  /* ── tie — matte slate fabric on the lower body (the "work" cue) ── */
+  tie: {
+    slot:'collar', label:'Tie',
+    draw(c, gi){
+      const ny=15;
+      c.lineJoin='round'; c.lineCap='round';
+      c.shadowBlur=0;                                  // matte
+      c.strokeStyle='rgba(150,172,210,.6)'; c.lineWidth=1.3;
+      c.beginPath(); c.moveTo(-6,ny-1); c.lineTo(0,ny+3.5); c.lineTo(6,ny-1); c.stroke();
+      c.fillStyle='rgba(135,158,200,.85)';            // matte slate
+      c.beginPath(); rr(c,-2.4,ny+2.6,4.8,3.4,1); c.fill();
+      c.beginPath();
+      c.moveTo(-2.4,ny+5.6); c.lineTo(2.4,ny+5.6);
+      c.lineTo(3.4,ny+15); c.lineTo(0,ny+18.5); c.lineTo(-3.4,ny+15);
+      c.closePath(); c.fill();
+      c.strokeStyle='rgba(202,220,250,.4)'; c.lineWidth=.8;   // soft rim, catching light
+      c.beginPath(); c.moveTo(0,ny+6); c.lineTo(0,ny+16.5); c.stroke();
+    }
+  },
+
+  /* ── magnifier — the detective cue. One solid metaphor (rule 6), reads in silhouette. ── */
+  magnifier: {
+    slot:'face', label:'Magnifier',
+    draw(c, gi){
+      c.lineCap='round'; c.lineJoin='round'; c.shadowBlur=0;
+      const cx=24, cy=-9, r=6.5;
+      // handle — thick matte, off toward the lower-right
+      c.strokeStyle='rgba(150,172,210,.92)'; c.lineWidth=3.2;
+      c.beginPath(); c.moveTo(cx+r*0.7, cy+r*0.7); c.lineTo(cx+r*1.9, cy+r*1.9); c.stroke();
+      // lens ring — solid weight
+      c.strokeStyle='rgba(172,192,230,.95)'; c.lineWidth=2.8;
+      c.beginPath(); c.arc(cx,cy,r,0,6.283); c.stroke();
+      // faint glass + a single glint (the one allowed supporting mark)
+      c.fillStyle='rgba(150,185,255,.12)'; c.beginPath(); c.arc(cx,cy,r-1.3,0,6.283); c.fill();
+      c.strokeStyle='rgba(222,236,255,.6)'; c.lineWidth=1.2;
+      c.beginPath(); c.arc(cx,cy,r-2.4, PI*1.1, PI*1.6); c.stroke();
+    }
+  },
+
+  /* ── deerstalker — kept as an alternate; the magnifier reads better at 66px ── */
+  deerstalker: {
+    slot:'hat', label:'Deerstalker',
+    draw(c, gi){
+      c.lineJoin='round'; c.lineCap='round';
+      c.shadowBlur=0;                                  // matte wool, catches light only
+      const fill='rgba(132,152,192,.9)', line='rgba(186,204,238,.6)', rim='rgba(210,225,252,.45)';
+      // ear-flaps hanging DOWN at the sides (not up)
+      c.fillStyle=fill; c.strokeStyle=line; c.lineWidth=1;
+      for(const s of [-1,1]){ c.beginPath(); rr(c, s*23-3.5, -24, 7, 9, 3); c.fill(); c.stroke(); }
+      // domed crown with a notch so the antenna passes through
+      c.beginPath();
+      c.moveTo(-25,-20);
+      c.quadraticCurveTo(-24,-30,-12,-31);
+      c.quadraticCurveTo(-4,-31.5,-2.6,-30);
+      c.lineTo(2.6,-30);
+      c.quadraticCurveTo(4,-31.5,12,-31);
+      c.quadraticCurveTo(24,-30,25,-20);
+      c.closePath();
+      c.fillStyle=fill; c.fill(); c.strokeStyle=line; c.lineWidth=1.2; c.stroke();
+      // front brim across the forehead
+      c.beginPath(); rr(c,-22,-20.5,44,4.5,2.2); c.fillStyle=fill; c.fill(); c.strokeStyle=line; c.lineWidth=1; c.stroke();
+      // rim highlight + houndstooth hint
+      c.strokeStyle=rim; c.lineWidth=.9;
+      c.beginPath(); c.moveTo(-18,-28.5); c.quadraticCurveTo(0,-31,18,-28.5); c.stroke();
+      c.strokeStyle='rgba(186,204,238,.4)'; c.lineWidth=.7;
+      c.beginPath(); c.moveTo(-9,-29.5); c.lineTo(-7,-22); c.stroke();
+      c.beginPath(); c.moveTo(9,-29.5); c.lineTo(7,-22); c.stroke();
+    }
+  },
+
+  /* ── stars — tiny twinkles by the antenna (the night topper) ── */
+  stars: {
+    slot:'topper', label:'Stars', dimsForEmote:true,
+    draw(c, gi){
+      const dim=gi.emoteDim==null?1:gi.emoteDim;
+      const tx=L.antD*6+L.aSway, ty=-44+L.antD*7+L.aWhip;
+      const pts=[[tx+7,ty-6,1.5,.004],[tx-6,ty-2,1.1,.006],[tx+3,ty-12,1.3,.005]];
+      c.shadowColor='rgba(210,228,255,.9)';
+      for(const [x,y,r,sp] of pts){
+        const tw=.5+.5*Math.sin(gi.now*sp + x);
+        c.globalAlpha=(.4+tw*.6)*dim; c.shadowBlur=6;
+        c.fillStyle='#eaf3ff';
+        c.beginPath();
+        for(let i=0;i<4;i++){
+          const ang=i/4*6.283, r2=r*.32;
+          c.lineTo(x+Math.cos(ang)*r, y+Math.sin(ang)*r);
+          c.lineTo(x+Math.cos(ang+.785)*r2, y+Math.sin(ang+.785)*r2);
+        }
+        c.closePath(); c.fill();
+      }
+      c.globalAlpha=1;
+    }
+  },
+
+  /* ── moonglow — soft crescent halo behind her; night is her element ── */
+  moonglow: {
+    slot:'behind', label:'Moon glow',
+    draw(c, gi){
+      const g=c.createRadialGradient(8,-6,4, 8,-6,52);
+      g.addColorStop(0,'rgba(150,180,255,.22)');
+      g.addColorStop(.6,'rgba(120,150,235,.10)');
+      g.addColorStop(1,'rgba(120,150,235,0)');
+      c.fillStyle=g; c.beginPath(); c.arc(0,0,56,0,6.283); c.fill();
+      // faint crescent up and to the side, like a moon she's sitting under
+      c.save();
+      c.shadowColor='rgba(190,210,255,.6)'; c.shadowBlur=8;
+      c.fillStyle='rgba(210,225,255,.4)';
+      c.beginPath(); c.arc(38,-37,5,0,6.283); c.fill();
+      c.globalCompositeOperation='destination-out';
+      c.beginPath(); c.arc(40.6,-39.4,4.3,0,6.283); c.fill();
+      c.restore();
+    }
+  },
+
+  /* ── warmglow — Reader's reading-lamp halo; the WARM inverse of Moon's cool glow ── */
+  warmglow: {
+    slot:'behind', label:'Reading lamp',
+    draw(c, gi){
+      const g=c.createRadialGradient(-10,2,4, -10,2,54);
+      g.addColorStop(0,'rgba(255,196,120,.22)');
+      g.addColorStop(.55,'rgba(240,170,90,.10)');
+      g.addColorStop(1,'rgba(240,170,90,0)');
+      c.fillStyle=g; c.beginPath(); c.arc(0,0,56,0,6.283); c.fill();
+    }
+  },
+
+  /* ── book — Reader's accent: a big open book held LOW at a reading angle (not under the chin) ── */
+  book: {
+    slot:'collar', label:'Book', dimsForEmote:false,
+    draw(c, gi){
+      const by=23;                                  // low, in front of her lap — clear of the face
+      c.save(); c.shadowBlur=0; c.lineJoin='round'; c.lineCap='round';
+      const fill='rgba(150,170,206,.95)', line='rgba(206,222,250,.62)', txt='rgba(206,222,250,.34)';
+      const W=15, far=4, near=8;                     // wide, foreshortened open spread
+      c.fillStyle=fill; c.strokeStyle=line; c.lineWidth=1.2;
+      for(const s of [-1,1]){                        // two pages, trapezoid (perspective)
+        c.beginPath();
+        c.moveTo(0, by-far);
+        c.lineTo(s*W, by-far+2.4);
+        c.lineTo(s*W, by+near-1);
+        c.lineTo(0, by+near);
+        c.closePath(); c.fill(); c.stroke();
+      }
+      c.strokeStyle=line; c.lineWidth=1.4;           // spine
+      c.beginPath(); c.moveTo(0,by-far); c.lineTo(0,by+near); c.stroke();
+      c.strokeStyle=txt; c.lineWidth=.7;             // a few text lines (the hero piece's allowed detail)
+      for(const s of [-1,1]) for(let i=0;i<3;i++){ const yy=by-far+3.5+i*2.3;
+        c.beginPath(); c.moveTo(s*3.5, yy); c.lineTo(s*(W-2.5), yy+0.7); c.stroke(); }
+      c.restore();
+    }
+  },
+
+  /* ── mug — Dwell·Settled accent: a warm drink, held low, faint steam ── */
+  mug: {
+    slot:'collar', label:'Mug', dimsForEmote:false,
+    draw(c, gi){
+      const by=18;
+      c.save(); c.lineJoin='round'; c.lineCap='round';
+      c.strokeStyle='rgba(232,224,206,.4)'; c.lineWidth=1.4;   // steam (warm, faint)
+      c.shadowColor='rgba(255,238,205,.6)'; c.shadowBlur=5;
+      for(const sx of [-2.5,2.5]){ c.beginPath();
+        for(let i=0;i<=4;i++){ const yy=by-3-i*3, xx=sx+Math.sin(i*1.3+gi.now*.004)*2;
+          (i===0?c.moveTo:c.lineTo).call(c,xx,yy); } c.stroke(); }
+      c.shadowBlur=0;
+      c.fillStyle='rgba(150,170,206,.95)'; c.strokeStyle='rgba(206,222,250,.6)'; c.lineWidth=1.1;
+      c.beginPath(); rr(c,-6,by,12,9,2.6); c.fill(); c.stroke();   // cup
+      c.beginPath(); c.arc(7.4,by+4.4,3.2,-1.05,1.05); c.stroke(); // handle
+      c.strokeStyle='rgba(210,224,250,.5)'; c.lineWidth=.9;
+      c.beginPath(); c.moveTo(-5,by+1.6); c.lineTo(5,by+1.6); c.stroke();
+      c.restore();
+    }
+  },
+
+  /* ── bowtie — Home·Host accent: the warm greeter ── */
+  bowtie: {
+    slot:'collar', label:'Bowtie', dimsForEmote:false,
+    draw(c, gi){
+      const by=14;
+      c.save(); c.shadowBlur=0; c.lineJoin='round';
+      c.fillStyle='rgba(150,170,206,.95)'; c.strokeStyle='rgba(206,222,250,.55)'; c.lineWidth=1;
+      for(const s of [-1,1]){ c.beginPath();
+        c.moveTo(s*2,by); c.lineTo(s*9,by-3.6); c.lineTo(s*9,by+3.6); c.closePath(); c.fill(); c.stroke(); }
+      c.fillStyle='rgba(178,198,238,.95)';
+      c.beginPath(); rr(c,-2,by-2.7,4,5.4,1.3); c.fill();
+      c.restore();
+    }
+  },
+
+  /* ── headset — Contact·Comms accent: band + earpieces + mic boom (matte) ── */
+  headset: {
+    slot:'hat', label:'Headset', dimsForEmote:false,
+    draw(c, gi){
+      c.save(); c.shadowBlur=0; c.lineJoin='round'; c.lineCap='round';
+      const line='rgba(172,192,226,.92)', fill='rgba(146,166,202,.92)';
+      c.strokeStyle=line; c.lineWidth=2.4;                       // band over the head (clears the antenna)
+      c.beginPath(); c.moveTo(-30,-16); c.quadraticCurveTo(0,-29,30,-16); c.stroke();
+      c.fillStyle=fill; c.strokeStyle=line; c.lineWidth=1;       // earpieces
+      for(const s of [-1,1]){ c.beginPath(); rr(c, s*30-4, -18, 8, 9, 3); c.fill(); c.stroke(); }
+      c.strokeStyle=line; c.lineWidth=2;                          // mic boom from the left earpiece
+      c.beginPath(); c.moveTo(-30,-9); c.quadraticCurveTo(-22,6,-8,8); c.stroke();
+      c.fillStyle='rgba(178,198,238,.95)';
+      c.beginPath(); c.arc(-7,8,2.2,0,6.283); c.fill();           // mic ball
+      c.restore();
+    }
+  },
+
+  /* ── sentinel_ring — Watch·Sentinel accent: a quiet radar on her SCREEN (her own
+       glowing HUD, so it emits light — unlike the matte worn pieces) ── */
+  sentinel_ring: {
+    slot:'face', label:'Status ring', dimsForEmote:false,
+    draw(c, gi){
+      const cx=13, cy=9, r=4.6;                                   // lower-right of the screen
+      c.save(); c.globalAlpha=clamp(.3+L.screenB*.6,0,1);
+      c.shadowColor='rgba(130,200,255,.8)'; c.shadowBlur=6;
+      c.strokeStyle='rgba(150,205,255,.8)'; c.lineWidth=1;
+      c.beginPath(); c.arc(cx,cy,r,0,6.283); c.stroke();
+      c.beginPath(); c.arc(cx,cy,r*.5,0,6.283); c.stroke();
+      const a=gi.now*.002;                                        // sweeping radar line
+      c.strokeStyle='rgba(185,228,255,.9)'; c.lineWidth=1.1;
+      c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+Math.cos(a)*r, cy+Math.sin(a)*r); c.stroke();
+      c.fillStyle='rgba(120,255,200,.9)';                         // a blip
+      c.beginPath(); c.arc(cx+Math.cos(a*1.3)*r*.55, cy+Math.sin(a*1.3)*r*.55, 1, 0,6.283); c.fill();
+      c.restore();
+    }
+  },
+
+  /* ── surfboard — Play·Surf accent: a board under her + a drifting foam line.
+       Slot 'collar' so it renders in front of the lower body; sits low (by=34),
+       clear of the face, and rides a slow tilt so she reads as balancing on it. ── */
+  surfboard: {
+    slot:'collar', label:'Surfboard', dimsForEmote:false,
+    draw(c, gi){
+      const by=34, tilt=Math.sin(gi.now*0.0016)*0.12;
+      c.save(); c.translate(0,by); c.rotate(tilt); c.shadowBlur=0; c.lineJoin='round'; c.lineCap='round';
+      c.fillStyle='rgba(150,170,206,.95)'; c.strokeStyle='rgba(210,220,240,.6)'; c.lineWidth=1.1;
+      c.beginPath(); c.moveTo(-26,0); c.quadraticCurveTo(0,-6.5,26,0); c.quadraticCurveTo(0,6.5,-26,0); c.closePath(); c.fill(); c.stroke();
+      c.strokeStyle='rgba(120,150,235,.5)'; c.lineWidth=1;         // stringer
+      c.beginPath(); c.moveTo(-21,0); c.lineTo(22,0); c.stroke();
+      c.restore();
+      c.save();                                                    // foam line drifting under the board
+      c.strokeStyle='rgba(190,205,235,.42)'; c.lineWidth=1.4; c.lineCap='round';
+      const wob=gi.now*0.004;
+      c.beginPath();
+      for(let i=0;i<=6;i++){ const x=-30+i*10, y=by+9+Math.sin(i*1.1+wob)*2.2; (i===0?c.moveTo:c.lineTo).call(c,x,y); }
+      c.stroke(); c.restore();
+    }
+  },
+};
+function drawGetups(c, slot, gi){
+  if(!L.getup || !L.getup.size) return;
+  for(const key of L.getup){
+    const g=GETUPS[key];
+    if(g && g.slot===slot){ c.save(); if(g.dimsForEmote) c.globalAlpha=gi.emoteDim; g.draw(c, gi); c.restore(); }
+  }
+}
+
+/* ===========================================================================
+   EMOTES  — emanata: feeling glyphs drawn AROUND her head (Mort Walker lexicon).
+   Momentary (what she feels now), distinct from getups (what she wears / where).
+   All in her moonlight/terminal language: glowing white-blue, JetBrains Mono
+   for punctuation. Positioned around the head, never on the body. Each takes a
+   time t for gentle motion. This is the expressive layer the cat-emote sheet uses.
+=========================================================================== */
+function glyph(c, ch, x, y, size, a, rot){
+  c.save(); c.translate(x,y); if(rot) c.rotate(rot);
+  c.font='700 '+size+"px 'JetBrains Mono', monospace";
+  c.textAlign='center'; c.textBaseline='middle';
+  c.shadowColor='rgba(150,200,255,.9)'; c.shadowBlur=8;
+  c.fillStyle='rgba(225,238,255,'+a+')'; c.fillText(ch,0,0);
+  c.restore();
+}
+function star4(c,x,y,r,a){
+  c.save(); c.translate(x,y);
+  c.fillStyle='rgba(232,243,255,'+a+')'; c.shadowColor='#bcd9ff'; c.shadowBlur=7;
+  c.beginPath();
+  for(let i=0;i<4;i++){ const ang=i/4*6.283;
+    c.lineTo(Math.cos(ang)*r,Math.sin(ang)*r);
+    c.lineTo(Math.cos(ang+.785)*r*.34,Math.sin(ang+.785)*r*.34); }
+  c.closePath(); c.fill(); c.restore();
+}
+function drop(c,x,y,s,a){   // a teardrop / plewd, point up
+  c.save(); c.fillStyle='rgba(170,210,255,'+a+')'; c.shadowColor='rgba(150,200,255,.8)'; c.shadowBlur=6;
+  c.beginPath();
+  c.moveTo(x,y-s); c.bezierCurveTo(x+s*.85,y-s*.1, x+s*.6,y+s*.7, x,y+s*.7);
+  c.bezierCurveTo(x-s*.6,y+s*.7, x-s*.85,y-s*.1, x,y-s);
+  c.closePath(); c.fill(); c.restore();
+}
+const EMOTES={
+  sparkle:  (c,t)=>{ const ps=[[-26,-26,3.2,.004],[24,-30,2.4,.006],[30,-12,2,.005],[-30,-8,1.8,.007]];
+                     for(const[x,y,r,sp]of ps){ const tw=.5+.5*Math.sin(t*sp+x); star4(c,x,y,r*(.6+tw*.6), .35+tw*.6); } },
+  heart:    (c,t)=>{ const p=1+Math.sin(t*.006)*.08, x=23,y=-34, s=5*p;
+                     c.save(); c.fillStyle='rgba(150,196,255,.92)'; c.shadowColor='rgba(150,200,255,.9)'; c.shadowBlur=9;
+                     c.beginPath(); c.moveTo(x,y+s*.9);
+                     c.bezierCurveTo(x-s*1.3,y-s*.2, x-s*.4,y-s*1.1, x,y-s*.35);
+                     c.bezierCurveTo(x+s*.4,y-s*1.1, x+s*1.3,y-s*.2, x,y+s*.9);
+                     c.closePath(); c.fill(); c.restore();
+                     star4(c,x+8,y-7,1.6,.7); },
+  surprise: (c,t)=>{ // emanata burst lines around the crown + a bold !
+                     c.save(); c.strokeStyle='rgba(220,236,255,.85)'; c.lineWidth=1.6; c.lineCap='round';
+                     c.shadowColor='rgba(150,200,255,.8)'; c.shadowBlur=5;
+                     for(let i=0;i<7;i++){ const a=-PI/2 + (i-3)*.42, r0=30, r1=38;
+                       c.beginPath(); c.moveTo(Math.cos(a)*r0, -34+Math.sin(a)*r0*.5);
+                       c.lineTo(Math.cos(a)*r1, -34+Math.sin(a)*r1*.5); c.stroke(); }
+                     c.restore(); glyph(c,'!',26,-30,15,.95,.05); },
+  question: (c,t)=>glyph(c,'?',25,-32,15,.92,Math.sin(t*.004)*.06),
+  idea:     (c,t)=>{ const x=0,y=-46, fl=.6+.4*Math.sin(t*.012);
+                     c.save(); // bulb
+                     c.fillStyle='rgba(255,238,180,'+(.55+fl*.4)+')'; c.shadowColor='rgba(255,235,170,.9)'; c.shadowBlur=12;
+                     c.beginPath(); c.arc(x,y,5,0,6.283); c.fill();
+                     c.fillStyle='rgba(200,210,235,.8)'; c.fillRect(x-2,y+4,4,2.4);
+                     c.strokeStyle='rgba(255,240,190,'+(.5+fl*.4)+')'; c.lineWidth=1.2; c.lineCap='round';
+                     for(let i=0;i<4;i++){ const a=-PI/2+(i-1.5)*.6; c.beginPath();
+                       c.moveTo(x+Math.cos(a)*8,y+Math.sin(a)*8); c.lineTo(x+Math.cos(a)*12,y+Math.sin(a)*12); c.stroke(); }
+                     c.restore(); },
+  zzz:      (c,t)=>{ const base=t*.02; for(let i=0;i<3;i++){ const ph=(base+i*.6)%1.8;
+                       glyph(c,'z', 24+i*7, -30-ph*9, 9+i*2.5, clamp(1-ph/1.8,0,1)*.9); } },
+  tear:     (c,t)=>{ const fall=(t*.02)%1; drop(c,-11, -2+fall*14, 2.6, (1-fall)*.9); },
+  sweat:    (c,t)=>{ const wob=Math.sin(t*.006)*1.2;   // big single plewd = awkward/exasperated
+                     drop(c, 27+wob*.3, -19+wob, 4.6, .9);
+                     c.save(); c.strokeStyle='rgba(190,215,255,.5)'; c.lineWidth=1; c.lineCap='round';
+                     c.beginPath(); c.moveTo(31,-26); c.lineTo(33,-30); c.stroke(); c.restore(); },
+  agitron:  (c,t)=>{ c.save(); c.strokeStyle='rgba(190,215,255,.7)'; c.lineWidth=1.4; c.lineCap='round';
+                     c.shadowColor='rgba(150,200,255,.6)'; c.shadowBlur=4;
+                     for(const sx of [-34,34]){ c.beginPath();
+                       for(let y=-30;y<=-6;y+=3){ const wob=Math.sin(y*.6+t*.02)*2.4;
+                         (y===-30?c.moveTo:c.lineTo).call(c, sx+wob, y); } c.stroke(); }
+                     c.restore(); },
+  note:     (c,t)=>{ const y=-32+Math.sin(t*.006)*2; glyph(c,'\u266A',25,y,15,.9,Math.sin(t*.005)*.08); },
+  dots:     (c,t)=>{ const on=Math.floor((t*.003)%4); for(let i=0;i<3;i++) glyph(c,'.',18+i*6,-30,13, i<on?.95:.25); },
+  glitch:   (c,t)=>{ c.save(); for(let i=0;i<5;i++){ const gy=-26+i*9, w=8+Math.random()*16, gx=18+Math.random()*6;
+                       c.globalAlpha=.5+Math.random()*.4;
+                       c.fillStyle=i%2?'rgba(120,255,225,.7)':'rgba(255,110,170,.7)';
+                       c.fillRect(gx,gy,w,1.6); } c.restore();
+                     glyph(c,'?!',27,-32,12,.9); },
+  halo:     (c,t)=>{ const p=.7+.3*Math.sin(t*.005);
+                     c.save(); c.strokeStyle='rgba(255,243,200,'+(.7*p)+')'; c.lineWidth=2.2;
+                     c.shadowColor='rgba(255,240,180,.9)'; c.shadowBlur=10;
+                     c.beginPath(); c.ellipse(0,-44,13,4.2,0,0,6.283); c.stroke(); c.restore(); },
+};
+function drawEmote(c, now){
+  if(!L.emote) return;
+  const fn=EMOTES[L.emote]; if(fn){ c.save(); fn(c, now); c.restore(); }
+}
+
+/* ===========================================================================
+   ROLES  — context costumes as ACCESSORY BUNDLES on the one constant Luna.
+   Each role = a set of getup pieces (+ optional night tint + baseline mood).
+   The base body/identity never changes — only this surface does. This is the
+   resolver the adaptive system (page/time/dwell) will eventually drive.
+=========================================================================== */
+let nightTint=0, warmTint=0;
+const ROLES = {
+  bare:   {label:'Bare · base',      getup:[],                   mood:'neutral', tint:0, warm:0, blurb:'Constant Luna. The base everything sits on.'},
+  day:    {label:'Day · Analyst',    getup:['visor','tie'],      mood:'focused', tint:0, warm:0, blurb:'Daytime work self — spectacles + tie.'},
+  blog:   {label:'Blog · Reader',    getup:['warmglow','book'],  mood:'neutral', tint:0, warm:1, blurb:'Reading along: warm lamp glow + a book. The warm inverse of Moon.'},
+  night:  {label:'Night · Moon',     getup:['moonglow','stars'], mood:'neutral', tint:1, warm:0, blurb:'After dark, her element: cool moon glow + a few stars.'},
+  guide:  {label:'Tour · Guide',     getup:['antenna_flag'],     mood:'curious', tint:0, warm:0, blurb:'Showing you around — a little pennant up. "Let me show you this."'},
+  settled:{label:'Dwell · Settled',  getup:['mug'],              mood:'neutral', tint:0, warm:0, blurb:'Been here a while — settled in with a warm drink.'},
+  host:   {label:'Home · Host',      getup:['bowtie'],           mood:'happy',   tint:0, warm:0, blurb:'The greeter — a bowtie. "Welcome."'},
+  comms:  {label:'Contact · Comms',  getup:['headset'],          mood:'happy',   tint:0, warm:0, blurb:'Reach-out mode — a comms headset. "Let’s connect."'},
+  sentinel:{label:'Watch · Sentinel',getup:['sentinel_ring'],    mood:'focused', tint:0, warm:0, blurb:'On watch — a quiet radar on her screen. Her core identity, made visible.'},
+  surf:   {label:'Play · Surf',      getup:['surfboard'],        mood:'happy',   tint:0, warm:0, blurb:'Off-duty — riding the scroll while it is quiet.'},
+};
+function applyRole(key){
+  const R=ROLES[key]; if(!R) return;
+  L.getup=new Set(R.getup);
+  nightTint=R.tint||0; warmTint=R.warm||0;
+  setMood(R.mood);
+  if(voiceEl) voiceEl.textContent=R.blurb;
+  tag.innerHTML='ROLE — <b>'+R.label+'</b>';
+  document.querySelectorAll('#role .btn').forEach(b=>b.classList.toggle('active', b.dataset.r===key));
+}
+
+/* ===========================================================================
+   PERSONAS  — "who Luna is" (prototype for the 6→narrow exploration)
+   Each is a small character bible encoded as the levers the engine can drive:
+     archetype   — from the Jung/Pearson wheel
+     mood        — her resting baseline
+     energy      — scales restlessness (blink/dart frequency)   (low=still, high=twitchy)
+     calm        — presence: 1 = settled/peripheral, 0 = forward/animated (scales idle bob)
+     getup       — her default dress
+     warmth      — lead-with-warmth note (all warm; competence varies)
+     quirk       — a signature greeting action fired on select
+     flaw        — the small endearing imperfection (note for now; behavioural later)
+     voice       — formality/energy + a sample line (the "cover the name" test)
+=========================================================================== */
+const PERSONAS = {
+  sentinel:  {label:'Sentinel',  arch:'Caregiver', mood:'focused',  energy:.7, calm:.8, getup:['visor'],
+              quirk:'nod', voice:'“You’re secure here. I’ve got the perimeter.”', tone:'WARM · STEADY · LOW-KEY'},
+  analyst:   {label:'Analyst',   arch:'Sage',      mood:'thinking', energy:.9, calm:.5, getup:['visor'],
+              quirk:'blink', voice:'“Cross-referenced three sources — here’s what holds up.”', tone:'PRECISE · DRY · CALM'},
+  companion: {label:'Companion', arch:'Everyman',  mood:'neutral',  energy:.55,calm:1,  getup:[],
+              quirk:'slowblink', voice:'“I’m right here. Take your time.”', tone:'WARM · QUIET · MINIMAL'},
+  sprite:    {label:'Sprite',    arch:'Explorer',  mood:'curious',  energy:1.4,calm:.2, getup:[],
+              quirk:'wiggle', voice:'“Ooh — what does this one do?”', tone:'CURIOUS · LIVELY · PLAYFUL'},
+  encourager:{label:'Encourager',arch:'Hero×Care', mood:'happy',    energy:1.1,calm:.4, getup:['antenna_flag'],
+              quirk:'hop', voice:'“You’ve got this. Almost there.”', tone:'UPBEAT · WARM · SPARING'},
+  operator:  {label:'Operator',  arch:'Ruler×Sage',mood:'focused',  energy:.5, calm:.6, getup:['visor'],
+              quirk:'nod', voice:'“Online. Standing by.”', tone:'TERSE · COOL · PRO'},
+  trickster: {label:'Trickster', arch:'Jester',    mood:'curious',  energy:1.5,calm:.1, getup:['antenna_flag'],
+              quirk:'wink', voice:'“…did you see that? No? Good.”', tone:'CHEEKY · SPARK · EASTER-EGG'},
+};
+let personaEnergy=1, personaCalm=0, personaName=null;
+function applyPersona(key){
+  const P=PERSONAS[key]; if(!P) return;
+  personaName=key; personaEnergy=P.energy; personaCalm=P.calm;
+  override=P.getup.slice(); applyGetup();        // persona sets her default dress (an override)
+  setMood(P.mood);                                // ...and her resting carriage
+  if(P.quirk==='slowblink') blinkNow(320); else doAction(P.quirk);   // signature greeting
+  voiceEl.innerHTML='<b>'+P.tone+'</b><br>'+P.voice;
+  tag.innerHTML='PERSONA — <b>'+P.label+'</b> · '+P.arch;
+  document.querySelectorAll('#persona .btn').forEach(b=>b.classList.toggle('active', b.dataset.p===key));
+}
+
+
+/* ── Model 1: contextual default getup + mood per "room" she's in ── */
+const CONTEXT = {
+  home:    { getup:[],                        mood:'neutral' },
+  work:    { getup:['visor'],                 mood:'focused' },
+  tour:    { getup:['visor','antenna_flag'],  mood:'curious' },
+  contact: { getup:['antenna_flag'],          mood:'happy'   },
+};
+let ctxName='home';
+let override=null;   // null = Auto (follow context); else an explicit array of getup keys
+function effGetup(){ return override!==null ? override : CONTEXT[ctxName].getup; }
+function applyGetup(){ L.getup=new Set(effGetup()); refreshWardrobe(); }
+function examine(){    // triangle eye dart L→R→up — "taking in the room"
+  const t=performance.now();
+  L.examineSeq=[
+    {x:-.7, y:.12, until:t+260},
+    {x:.7,  y:.12, until:t+560},
+    {x:0,   y:-.55,until:t+900},
+  ];
+  blinkNow(100);
+}
+function setContext(name){
+  const switched = ctxName!==name;
+  ctxName=name;
+  setMood(CONTEXT[name].mood);                 // she dresses AND carries herself for the room
+  if(override===null) applyGetup();            // override wins until Auto is re-enabled
+  if(switched) examine();                       // glance around as she arrives
+  document.querySelectorAll('#context .btn').forEach(b=>b.classList.toggle('active', b.dataset.k===name));
+}
+function toggleGetup(key){                      // Model 3: user override
+  const cur=new Set(effGetup());
+  cur.has(key) ? cur.delete(key) : cur.add(key);
+  override=[...cur];
+  applyGetup();
+}
+function setAuto(){ override=null; applyGetup(); }
+function refreshWardrobe(){
+  document.querySelectorAll('#wardrobe .btn[data-g]').forEach(b=>b.classList.toggle('active', L.getup.has(b.dataset.g)));
+  const ab=document.querySelector('#wardrobe .btn[data-auto]');
+  if(ab) ab.classList.toggle('active', override===null);
+}
+
+/* ===========================================================================
+   LUNA STATE
+=========================================================================== */
+const mouse={x:-9999,y:-9999};
+addEventListener('pointermove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;},{passive:true});
+
+/* Parent bridge — the iframe is small (85×85) so direct pointermove only
+   fires when the user is literally over Luna. The parent forwards every
+   page-level mousemove (converted to iframe-local coords) so her gaze
+   tracks across the whole page, and can also trigger actions on demand. */
+addEventListener('message', e => {
+  if(e.origin !== location.origin) return;
+  const d = e.data;
+  if(!d || typeof d !== 'object') return;
+  if(d.type === 'lunaMouse'){
+    mouse.x = d.x; mouse.y = d.y;
+  } else if(d.type === 'lunaAction' && ACTIONS[d.name]){
+    L.action = {name: d.name, t0: performance.now(), pinged: false};
+  } else if(d.type === 'lunaCostume' && ROLES[d.key]){
+    applyRole(d.key);                                  // persistent: where she is
+  } else if(d.type === 'lunaMood' && MOODS[d.name]){
+    setMood(d.name);
+  } else if(d.type === 'lunaEmote'){                   // momentary feeling — fires, then clears
+    L.emote = (d.name && EMOTES[d.name]) ? d.name : null;
+    clearTimeout(L._emoteTimer);
+    if(L.emote) L._emoteTimer = setTimeout(()=>{ L.emote=null; }, d.hold||2200);
+  }
+});
+
+const L={
+  mood:'neutral',
+  eyeOpen:1, eyeBow:0, eyeScale:1,
+  screenB:1, posY:0, tilt:0, antD:0,
+  gx:0,gy:0, gxV:0,gyV:0,                       // gaze + gaze velocity (saccade spring)
+  blinkMul:1, nextBlink:rand(1500,3500), blinkUntil:0,
+  emoteFade:0,   // ramps up while an emote shows; fades colliding toppers (collision option 3)
+  lookUntil:0,lookX:0,lookY:0,nextLook:rand(2000,4500),
+  examineSeq:null,                              // triangle "reading the room" dart on context change
+  aSway:0,aSwayV:0, aWhip:0,aWhipV:0,           // antenna secondary motion (drag / follow-through)
+  _bX:0,_bY:0,_pbX:0,_pbY:0,                    // body-motion samples for the spring
+  action:null,
+  zzz:[], pings:[], sparks:[], nextZ:0,
+  scanY:0,
+  getup:new Set(),   // composable accessory layer — multiple may stack
+  emote:null,        // momentary feeling glyph (emanata) drawn around her head
+};
+
+/* force a blink right now — used to punctuate a beat (mood change, big gaze shift) */
+function blinkNow(dur){ L.blinkUntil=performance.now()+(dur||100); }
+
+function setMood(m){
+  const changed = L.mood!==m;
+  L.mood=m;
+  document.querySelectorAll('#moods .btn').forEach(b=>
+    b.classList.toggle('on', b.dataset.k===m));
+  tag.innerHTML='MOOD — <b>'+m[0].toUpperCase()+m.slice(1)+'</b>';
+  say.textContent=MOODS[m].say;
+  if(changed && m!=='asleep') blinkNow(m==='sleepy'?180:100);   // blink-on-realization
+}
+function doAction(a){
+  L.action={name:a, t0:performance.now(), pinged:false};
+  tag.innerHTML='ACTION — <b>'+ACTION_LABEL[a]+'</b>';
+  say.textContent=ACTIONS[a].say;
+  const btn=document.querySelector('#actions .btn[data-k="'+a+'"]');
+  if(btn){ btn.classList.add('flash'); setTimeout(()=>btn.classList.remove('flash'),260); }
+}
+
+function update(now,dt){
+  const M=MOODS[L.mood], E=M.eye;
+  L.eyeOpen =lerp(L.eyeOpen, E.open, L.mood==='asleep'?.08:.13);
+  L.eyeBow  =lerp(L.eyeBow,  E.bow,  .14);
+  L.eyeScale=lerp(L.eyeScale,E.scale,.13);
+  L.screenB =lerp(L.screenB,M.screenB,.08);
+  L.posY    =lerp(L.posY,   M.posY,  .1);
+  L.tilt    =lerp(L.tilt,   M.tilt,  .1);
+  L.antD    =lerp(L.antD,   M.antD,  .1);
+
+  L.emoteFade=lerp(L.emoteFade, L.emote?1:0, .18);   // smooth collision dim
+  const rest=clamp((M.restless==null?.3:M.restless)*personaEnergy, 0, 1.3);
+
+  // ── auto-blink ── frequency scales with restlessness; closes fast, opens slower
+  const eyeAction=L.action && /blink|wink|yawn|boot/.test(L.action.name);
+  if(L.mood!=='asleep' && !eyeAction){
+    if(now>L.nextBlink && now>L.blinkUntil){
+      L.blinkUntil=now+(L.mood==='sleepy'?220:110);
+      const base=L.mood==='sleepy'?rand(2200,3800):rand(2600,6000);
+      L.nextBlink=now+base*(1-rest*.45);              // restless => blinks sooner
+    }
+    const target=now<L.blinkUntil?0:1;
+    L.blinkMul=lerp(L.blinkMul,target, target<L.blinkMul?.65:.26);
+  } else L.blinkMul=lerp(L.blinkMul,1,.4);
+
+  // ── gaze: examine dart > random saccade > cursor pursuit > mood rest ──
+  let tgx=0,tgy=M.gazeY, saccade=false;
+
+  if(L.examineSeq){                                   // triangle "reading the room" dart
+    const step=L.examineSeq.find(s=>now<s.until);
+    if(step){ tgx=step.x; tgy=step.y+M.gazeY; saccade=true; }
+    else L.examineSeq=null;
+  }
+  if(!L.examineSeq){
+    if(L.mood!=='asleep' && now>L.nextLook){          // fire a new random saccade
+      L.lookUntil=now+rand(500,1100);
+      L.lookX=rand(-.85,.85); L.lookY=rand(-.5,.4);
+      L.nextLook=now+rand(1500,5200)*(1.25-rest);     // restless => darts more often
+      if(Math.random()<.5) blinkNow(95);              // a blink often rides a gaze shift
+    }
+    if(now<L.lookUntil && L.mood!=='asleep' && L.mood!=='thinking'){
+      tgx=L.lookX; tgy=L.lookY; saccade=true;
+    } else if(mouse.x>-9000 && L.mood!=='asleep' && L.mood!=='thinking' && L.mood!=='sad'){
+      const r=(_cvRect&&_cvRect.width)?_cvRect:(_cvRect=cv.getBoundingClientRect());
+      tgx=clamp((mouse.x-(r.left+r.width/2))/240,-1,1);
+      tgy=clamp((mouse.y-(r.top+r.height*.45))/240,-1,1)+M.gazeY;
+    }
+  }
+  tgx=clamp(tgx,-1,1); tgy=clamp(tgy,-1,1);
+
+  // saccade spring — darts fast with slight overshoot, smooth-pursues the cursor
+  const gk=saccade?.42:.16, gd=saccade?.55:.78;
+  L.gxV+=(tgx-L.gx)*gk - L.gxV*gd; L.gx+=L.gxV;
+  L.gyV+=(tgy-L.gy)*gk - L.gyV*gd; L.gy+=L.gyV;
+
+  // ── antenna secondary motion ── tip drags behind body motion, overshoots, settles
+  const velX=L._bX-L._pbX, velY=L._bY-L._pbY;
+  L._pbX=L._bX; L._pbY=L._bY;
+  const tgtSway=clamp(-velX*1.5,-10,10), tgtWhip=clamp(velY*.55,-8,8);
+  L.aSwayV+=(tgtSway-L.aSway)*.16 - L.aSwayV*.30; L.aSway+=L.aSwayV;
+  L.aWhipV+=(tgtWhip-L.aWhip)*.16 - L.aWhipV*.30; L.aWhip+=L.aWhipV;
+
+  // action lifecycle
+  if(L.action){
+    const A=ACTIONS[L.action.name];
+    const p=(now-L.action.t0)/A.dur;
+    if(p>=1) L.action=null;
+    else if(A.ping && !L.action.pinged && p>.12){
+      L.pings.push({life:1}); L.action.pinged=true;
+    }
+  }
+  if(L.action && L.action.name==='celebrate'){
+    if(Math.random()<.5) L.sparks.push({
+      x:rand(-40,40), y:rand(-34,28), vy:rand(-.5,-.15),
+      life:1, r:rand(1.4,3), rot:rand(0,6.28)});
+    if(!L.action.pinged2 && (now-L.action.t0)/ACTIONS.celebrate.dur>.5){
+      L.pings.push({life:1}); L.action.pinged2=true;
+    }
+  }
+  for(let i=L.sparks.length-1;i>=0;i--){
+    const s=L.sparks[i]; s.y+=s.vy*dt*.06; s.life-=dt/900;
+    if(s.life<=0) L.sparks.splice(i,1);
+  }
+  for(let i=L.pings.length-1;i>=0;i--){
+    L.pings[i].life-=dt/1100; if(L.pings[i].life<=0) L.pings.splice(i,1);
+  }
+  if(L.mood==='asleep' && now>L.nextZ){
+    L.zzz.push({x:rand(20,30),y:-30,life:1,rot:rand(-.3,.3)}); L.nextZ=now+1250;
+  }
+  for(let i=L.zzz.length-1;i>=0;i--){
+    const z=L.zzz[i]; z.life-=dt/3400; z.y-=dt*.013; z.x+=dt*.006;
+    if(z.life<=0) L.zzz.splice(i,1);
+  }
+  L.scanY=(L.scanY+dt*.0006)%1;
+}
+
+/* ===========================================================================
+   RENDER
+=========================================================================== */
+function rr(c,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  c.beginPath();
+  c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r);
+  c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r);
+  c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+function bodyPath(c){ rr(c,-33,-30,66,60,15); }
+
+/* ---- ONE-SHAPE EYE ----------------------------------------------------------
+   Drawn as the region between an upper lid and a lower lid. Openness sets
+   how far the lids part; bow arcs the whole eye. Never two stacked shapes.
+----------------------------------------------------------------------------*/
+function drawEye(c,ex,ey,EW,EH,openness,bow,gx,gy,chroma){
+  openness=Math.max(openness,0);
+  const hw=EW*0.5, bH=EH*0.5, BOW=EH*0.40;
+  const lidU=openness*bH + bow*BOW;          // upper lid lift above corner line
+  const lidL=openness*bH - bow*BOW;          // lower lid drop below corner line
+  const mid=(lidL-lidU)/2;                   // arc: middle's offset from the corners
+  const half=Math.max((lidU+lidL)/2, 0.7);   // half-thickness, floored so never vanishes
+  const upY=ey+mid-half, loY=ey+mid+half;
+  const cc=clamp(half*0.55,0,EW*0.4);        // corner cap
+
+  function path(){
+    c.beginPath();
+    c.moveTo(ex-hw, ey-cc);
+    c.quadraticCurveTo(ex, upY, ex+hw, ey-cc);   // upper lid
+    c.lineTo(ex+hw, ey+cc);
+    c.quadraticCurveTo(ex, loY, ex-hw, ey+cc);   // lower lid
+    c.closePath();
+  }
+
+  if(chroma){                                    // glitch chromatic split
+    c.save(); c.globalAlpha=.5; c.fillStyle='rgba(255,92,112,.9)';
+    c.translate(-chroma,0); path(); c.fill(); c.restore();
+    c.save(); c.globalAlpha=.5; c.fillStyle='rgba(96,170,255,.9)';
+    c.translate(chroma,0); path(); c.fill(); c.restore();
+  }
+  c.save();
+  c.shadowColor='rgba(198,206,219,.8)'; c.shadowBlur=6;
+  c.fillStyle='#eef2f8';
+  path(); c.fill();
+  c.restore();
+
+  // highlight — only on a fairly open eye, fades as she squints/closes
+  const hi=clamp((openness-0.5)/0.4,0,1);
+  if(hi>.02 && !chroma){
+    c.save(); c.globalAlpha=hi*.95; c.fillStyle='#fff';
+    const hs=EW*.30;
+    rr(c, ex-EW*.27-gx*1.5, ey+mid-half*.5-gy*1.1, hs,hs, hs*.42);
+    c.fill(); c.restore();
+  }
+}
+
+function draw(now){
+  const size=340;
+  ctx.clearRect(0,0,size,size);
+  const S=size/150, cx=size/2, cy=size*.52;
+
+  const m=Object.assign({},MOD0);
+  if(L.action){
+    const A=ACTIONS[L.action.name];
+    const p=clamp((now-L.action.t0)/A.dur,0,1);
+    Object.assign(m,A.fn(p));
+  }
+
+  const M=MOODS[L.mood];
+  const gi={now:now, m:m, M:M, emoteDim:1-(L.emoteFade||0)*0.85};   // shared frame info; emoteDim fades colliding toppers
+  const presAmp=1-personaCalm*0.5;   // calmer persona => smaller, more settled idle bob (peripheral presence)
+  const floatY=reduced?0:(Math.sin(now*.0019)*M.bobA*0.6+Math.sin(now*.0011)*M.bobA*0.4)*presAmp;
+  const breathe=1+Math.sin(now*.0026*M.bobS)*(L.mood==='asleep'?.045:.022);
+  const lean=clamp(L.gx*.05,-.09,.09);
+  const glitchJ=m.glitch>0?(Math.random()-.5)*m.glitch*6:0;
+  // sample body motion (horizontal + vertical) for the antenna spring (read next frame in update)
+  L._bX=(m.dx+glitchJ)+(lean+L.tilt+m.rot)*26;
+  L._bY=floatY+L.posY+m.dy;
+
+  // contact shadow
+  const lift=-(floatY+m.dy);
+  ctx.save();
+  ctx.globalAlpha=clamp(.44-lift*.011,.12,.46);
+  const sw=(58*S)*(1-lift*.004);
+  const g=ctx.createRadialGradient(cx,cy+50*S,0,cx,cy+50*S,sw);
+  g.addColorStop(0,'rgba(0,0,0,.72)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.ellipse(cx,cy+50*S,sw,sw*.3,0,0,6.283); ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx+(m.dx+glitchJ)*S, cy+floatY+L.posY+m.dy*S);
+  ctx.rotate(lean+L.tilt+m.rot);
+  ctx.scale(breathe*(1+m.sx),breathe*(1+m.sy));
+  ctx.scale(S,S);
+
+  drawGetups(ctx, 'behind', gi);   // aura/backdrop costumes (moon glow) sit behind everything
+
+  // moon aura
+  ctx.save();
+  const aura=ctx.createRadialGradient(0,0,8,0,0,60);
+  const auraA=(.15+L.screenB*.13)*(1+clamp(L.eyeBow+m.bowAdd,0,1)*.3);
+  aura.addColorStop(0,'rgba(188,197,214,'+auraA.toFixed(3)+')');
+  aura.addColorStop(1,'rgba(188,197,214,0)');
+  ctx.fillStyle=aura;
+  ctx.beginPath(); ctx.arc(0,0,60,0,6.283); ctx.fill();
+  ctx.restore();
+
+  // antenna (bends with droop)
+  ctx.save();
+  const baseY=-30, tipX=L.antD*6+L.aSway, tipY=-44+L.antD*7+L.aWhip,
+        ctlX=L.antD*3+L.aSway*.5, ctlY=-38+L.aWhip*.5;
+  ctx.strokeStyle='rgba(190,197,209,.6)'; ctx.lineWidth=2.4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,baseY); ctx.quadraticCurveTo(ctlX,ctlY,tipX,tipY); ctx.stroke();
+  for(const pg of L.pings){
+    ctx.globalAlpha=clamp(pg.life,0,1)*.55;
+    ctx.strokeStyle='#cdd6e2'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(tipX,tipY,(1-pg.life)*17+3,0,6.283); ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  const led=L.mood==='asleep'?(.4+.3*Math.sin(now*.004)):1;
+  ctx.shadowColor='rgba(198,206,219,.95)'; ctx.shadowBlur=14*led;
+  ctx.fillStyle=L.mood==='asleep'?'rgba(202,209,221,.8)':'#e4e9f1';
+  ctx.beginPath(); ctx.arc(tipX,tipY,4.3,0,6.283); ctx.fill();
+  ctx.restore();
+
+  drawGetups(ctx, 'topper', gi);   // antenna toppers ride the (drooping) antenna tip
+
+  // body
+  ctx.save();
+  ctx.shadowColor='rgba(74,84,104,.5)'; ctx.shadowBlur=24; ctx.shadowOffsetY=6;
+  bodyPath(ctx);
+  const bg=ctx.createLinearGradient(0,-32,0,32);
+  bg.addColorStop(0,'#1b1d25'); bg.addColorStop(1,'#0b0c11');
+  ctx.fillStyle=bg; ctx.fill();
+  ctx.restore();
+  ctx.save();
+  bodyPath(ctx); ctx.clip();
+  let hl=ctx.createRadialGradient(-6,-30,2,-6,-30,46);
+  hl.addColorStop(0,'rgba(200,216,244,.16)'); hl.addColorStop(1,'rgba(200,216,244,0)');
+  ctx.fillStyle=hl; ctx.fillRect(-50,-50,100,100);
+  let wm=ctx.createRadialGradient(26,24,1,26,24,40);
+  wm.addColorStop(0,'rgba(255,206,158,.12)'); wm.addColorStop(1,'rgba(255,206,158,0)');
+  ctx.fillStyle=wm; ctx.fillRect(-50,-50,100,100);
+  ctx.restore();
+  ctx.save();
+  bodyPath(ctx);
+  ctx.strokeStyle='rgba(208,216,228,.4)'; ctx.lineWidth=2.4; ctx.stroke();
+  ctx.restore();
+
+  // ── CRT shell finish: faint scanlines + a slow drifting bright line, clipped to her body ──
+  ctx.save();
+  bodyPath(ctx); ctx.clip();
+  ctx.globalAlpha=.5; ctx.strokeStyle='rgba(150,160,178,.10)'; ctx.lineWidth=1;
+  for(let yy=-29; yy<30; yy+=2){ ctx.beginPath(); ctx.moveTo(-33,yy); ctx.lineTo(33,yy); ctx.stroke(); }
+  ctx.globalAlpha=1;
+  const _scanY=-30 + ((now*0.02)%60);
+  const _sgl=ctx.createLinearGradient(0,_scanY-4,0,_scanY+4);
+  _sgl.addColorStop(0,'rgba(202,210,226,0)'); _sgl.addColorStop(.5,'rgba(202,210,226,.13)'); _sgl.addColorStop(1,'rgba(202,210,226,0)');
+  ctx.fillStyle=_sgl; ctx.fillRect(-33,_scanY-4,66,8);
+  ctx.restore();
+
+  // screen
+  const sx=-25,sy=-23,sw2=50,sh=40,sr=11, scx=0, scy=-3;
+  const screenBright=L.screenB*m.screenFlick;
+  ctx.save();
+  rr(ctx,sx,sy,sw2,sh,sr);
+  ctx.fillStyle='#06060f'; ctx.fill(); ctx.clip();
+  const sg=ctx.createRadialGradient(scx,scy+2,2,scx,scy+2,sw2*.7);
+  sg.addColorStop(0,'rgba(139,151,171,'+(.3*screenBright).toFixed(3)+')');
+  sg.addColorStop(1,'rgba(139,151,171,0)');
+  ctx.fillStyle=sg; ctx.fillRect(sx,sy,sw2,sh);
+  if(nightTint>0){ ctx.fillStyle='rgba(150,164,190,'+(0.16*nightTint).toFixed(3)+')'; ctx.fillRect(sx,sy,sw2,sh); }
+  if(warmTint>0){ ctx.fillStyle='rgba(255,182,108,'+(0.14*warmTint).toFixed(3)+')'; ctx.fillRect(sx,sy,sw2,sh); }
+  ctx.globalAlpha=.5; ctx.strokeStyle='rgba(140,175,230,.08)'; ctx.lineWidth=1;
+  for(let y=sy+2;y<sy+sh;y+=3){ ctx.beginPath(); ctx.moveTo(sx,y); ctx.lineTo(sx+sw2,y); ctx.stroke(); }
+  ctx.globalAlpha=1;
+  if(M.fx==='scan'){
+    const ly=sy+4+L.scanY*(sh-8);
+    const lg=ctx.createLinearGradient(0,ly-5,0,ly+5);
+    lg.addColorStop(0,'rgba(130,195,255,0)');
+    lg.addColorStop(.5,'rgba(130,195,255,.45)');
+    lg.addColorStop(1,'rgba(130,195,255,0)');
+    ctx.fillStyle=lg; ctx.fillRect(sx,ly-5,sw2,10);
+  }
+  if(M.fx==='think'){
+    for(let i=0;i<3;i++){
+      const a=.25+.6*(0.5+0.5*Math.sin(now*.006-i*1.1));
+      ctx.globalAlpha=a; ctx.fillStyle='#c9d3e4';
+      ctx.beginPath(); ctx.arc(-9+i*9, scy+11, 2.1, 0,6.283); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+  ctx.fillStyle='rgba(200,216,255,.05)';
+  ctx.beginPath();
+  ctx.moveTo(sx,sy); ctx.lineTo(sx+sw2*.42,sy);
+  ctx.lineTo(sx+sw2*.16,sy+sh); ctx.lineTo(sx,sy+sh);
+  ctx.closePath(); ctx.fill();
+  if(m.glitch>.02){
+    for(let i=0;i<3;i++){
+      if(Math.random()<m.glitch){
+        const by=sy+Math.random()*sh;
+        ctx.fillStyle='rgba(180,210,255,'+(m.glitch*.5)+')';
+        ctx.fillRect(sx,by,sw2,Math.random()*3+1);
+      }
+    }
+  }
+
+  // ---- eyes — drawn INSIDE the screen clip so nothing can spill ----
+  ctx.globalAlpha=clamp(.25+screenBright*.75,0,1);
+  const eyeScale=L.eyeScale;
+  // squash & stretch: eye widens as the lid closes (blink or eyeClose action)
+  const closeAmt=clamp((1-L.blinkMul)+m.eyeClose+(m.eyeSquashX||0),0,1.2);
+  const EW=14*eyeScale*(1+clamp(closeAmt,0,1)*.14), EH=17*eyeScale;
+  let effOpen=Math.max(L.eyeOpen*L.blinkMul*(1-m.eyeClose),0);
+  effOpen*=(1-clamp(L.gy,0,1)*.16);                 // eyelids ride the gaze (lower when looking down)
+  const effBow=clamp(L.eyeBow+m.bowAdd,-1,1.1);
+  const eyeY=scy+EH*0.05+L.gy*4.4;
+  const eyeDX=10.6;
+  const chroma=m.glitch>.15?m.glitch*2.6:0;
+  drawEye(ctx, scx-eyeDX+L.gx*4.4, eyeY, EW,EH, effOpen, effBow, L.gx,L.gy, chroma);
+  const rOpen=effOpen*(1-m.winkR), rBow=lerp(effBow,.85,m.winkR);
+  drawEye(ctx, scx+eyeDX+L.gx*4.4, eyeY, EW,EH, rOpen, rBow, L.gx,L.gy, chroma);
+  ctx.restore();   // end screen clip
+
+  ctx.save();
+  rr(ctx,sx,sy,sw2,sh,sr);
+  ctx.strokeStyle='rgba(150,180,228,.13)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.restore();
+
+  drawGetups(ctx, 'face', gi);   // visor / HUD glasses sit over the screen + eyes
+
+  // grille
+  ctx.fillStyle='rgba(126,154,200,.16)';
+  for(let i=-1;i<=1;i++){ rr(ctx,scx-2.5+i*7,sy+sh-6,4.4,2.6,1.3); ctx.fill(); }
+
+  drawGetups(ctx, 'collar', gi);   // ties / lapels on the lower body
+  drawGetups(ctx, 'hat', gi);      // caps on the upper body (antenna pokes through)
+
+  // zzz
+  if(L.zzz.length){
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#aecdf0';
+    for(const z of L.zzz){
+      ctx.save();
+      ctx.globalAlpha=clamp(z.life,0,1)*.85;
+      ctx.translate(z.x,z.y); ctx.rotate(z.rot);
+      ctx.font=(9+(1-z.life)*7)+"px 'JetBrains Mono', monospace";
+      ctx.fillText('Z',0,0);
+      ctx.restore();
+    }
+  }
+
+  // sparkles
+  for(const s of L.sparks){
+    ctx.save();
+    ctx.globalAlpha=clamp(s.life,0,1);
+    ctx.translate(s.x,s.y); ctx.rotate(s.rot+now*.003);
+    ctx.fillStyle='#dcebff'; ctx.shadowColor='#bcd9ff'; ctx.shadowBlur=8;
+    ctx.beginPath();
+    for(let i=0;i<4;i++){
+      const a=i/4*6.283, r1=s.r, r2=s.r*.34;
+      ctx.lineTo(Math.cos(a)*r1,Math.sin(a)*r1);
+      ctx.lineTo(Math.cos(a+.785)*r2,Math.sin(a+.785)*r2);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  drawEmote(ctx, now);   // emanata — feeling glyphs around her head, on top
+
+  ctx.restore();
+}
+
+/* ---------- EMBED WIRE-UP  (message-driven; no lab UI) ---------- */
+const cv=document.getElementById('luna'), ctx=cv.getContext('2d');
+let _cvRect=null;
+const tag=document.getElementById('tag'), say=document.getElementById('say');
+const voiceEl=document.getElementById('voice');   // absent in embed -> null (applyRole guards it)
+function sizeCanvas(){
+  const dpr=Math.min(devicePixelRatio||1,2);
+  cv.width=340*dpr; cv.height=340*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  _cvRect=cv.getBoundingClientRect();
+}
+sizeCanvas(); addEventListener('resize',sizeCanvas);
+
+let last=performance.now(), _fMin=1000/30, _fLast=0, _fPaused=false;
+function frame(now){
+  if(document.hidden){ _fPaused=true; return; }
+  requestAnimationFrame(frame);
+  if(now - _fLast < _fMin) return;
+  _fLast=now;
+  const dt=Math.min(now-last,50); last=now;
+  update(now,dt);
+  if(window.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
+  draw(now);
+}
+requestAnimationFrame(frame);
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden && _fPaused){ _fPaused=false; last=performance.now(); _fLast=0; requestAnimationFrame(frame); }
+});
+
+/* initial dress by local time (parent refines via lunaCostume) + power-on */
+(function(){ var h=new Date().getHours(); applyRole(h>=6 && h<18 ? 'day' : 'night'); })();
+doAction('boot');
+
+/* open the assistant drawer on click — posts to the parent page */
+try{ document.documentElement.style.cursor='pointer';
+  addEventListener('click', function(){ try{ parent.postMessage({type:'lunaOpenChat'}, location.origin); }catch(e){} }); }catch(e){}
+})();
+<\/script>
+
+</body>
+</html>
+`;
+  var f = document.getElementById("luna-frame");
+  if(f){
+    try{
+      var _lunaURL = URL.createObjectURL(new Blob([LUNA_HTML],{type:"text/html"}));
+      try{ window.__LUNA_HTML = LUNA_HTML; }catch(_){}
+      /* Release the blob once the iframe has parsed it — the document is
+         already live in memory, so the URL handle is no longer needed. */
+      f.addEventListener('load', function(){
+        try{ URL.revokeObjectURL(_lunaURL); }catch(_){}
+      }, {once:true});
+      f.src = _lunaURL;
+    }
+    catch(e){ console.error("Luna embed failed", e); }
+  }
+})();
+</script>

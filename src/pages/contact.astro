@@ -1,0 +1,2491 @@
+---
+import SiteMenu from '../components/SiteMenu.astro';
+import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
+import NebulaBackground from '../components/NebulaBackground.astro';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Samuel Abhinav — Contact</title>
+<meta name="description" content="Get in touch with Samuel Abhinav — SIEM, incident response, and anything that runs on a network." />
+<meta name="theme-color" content="#080814" />
+<meta name="color-scheme" content="dark" />
+<link rel="canonical" href="/contact" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Samuel Abhinav — Contact" />
+<meta property="og:description" content="Roles, findings, or anything that runs on a network." />
+<meta property="og:url" content="/contact" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Samuel Abhinav — Contact" />
+<meta name="twitter:description" content="Roles, findings, or anything that runs on a network." />
+<link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22geometricPrecision%22%3E%3Cdefs%3E%3Cfilter%20id%3D%22g%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%221.4%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2228.32%22%20cy%3D%225.85%22%20r%3D%223.64%22%20fill%3D%22white%22%20opacity%3D%220.5%22%20filter%3D%22url(%23g)%22%2F%3E%3Cline%20x1%3D%2228.32%22%20y1%3D%225.85%22%20x2%3D%2216.73%22%20y2%3D%2214.55%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Cline%20x1%3D%2216.73%22%20y1%3D%2214.55%22%20x2%3D%229.48%22%20y2%3D%2226.15%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Cline%20x1%3D%2216.73%22%20y1%3D%2214.55%22%20x2%3D%223.68%22%20y2%3D%2210.2%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Ccircle%20cx%3D%2228.32%22%20cy%3D%225.85%22%20r%3D%223.12%22%20fill%3D%22rgba(255%2C255%2C255%2C1)%22%2F%3E%3Ccircle%20cx%3D%2216.73%22%20cy%3D%2214.55%22%20r%3D%222.21%22%20fill%3D%22rgba(255%2C255%2C255%2C0.85)%22%2F%3E%3Ccircle%20cx%3D%229.48%22%20cy%3D%2226.15%22%20r%3D%221.43%22%20fill%3D%22rgba(255%2C255%2C255%2C0.55)%22%2F%3E%3Ccircle%20cx%3D%223.68%22%20cy%3D%2210.2%22%20r%3D%221.43%22%20fill%3D%22rgba(255%2C255%2C255%2C0.5)%22%2F%3E%3C%2Fsvg%3E">
+<style is:global>
+  /* Copy/selection deterrent — requested explicitly. Doesn't stop a
+     determined visitor (view-source, reader mode, screenshots all still
+     work), but it does stop casual drag-select and Ctrl+C. Form fields are
+     exempted so the contact form stays usable. */
+  body{ -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+  input, textarea, [contenteditable], [contenteditable] *{
+    -webkit-user-select:text; -moz-user-select:text; user-select:text;
+  }
+</style>
+<script is:inline>
+(function(){
+  document.addEventListener('copy', function(e){ e.preventDefault(); });
+  document.addEventListener('cut', function(e){ e.preventDefault(); });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
+<script is:inline>
+// ════════════════════════════════════════════════════════════════════
+//  TAB TITLE MANAGER
+//  Phoenix-favicon companion. The cursor (▌) lives at the end of the
+//  title at all times during rest, blinking at terminal rate. Glitches
+//  occasionally corrupt one or two characters. Page is auto-detected
+//  from the filename — drop this same script into other pages and they
+//  pick up their correct title automatically.
+//
+//  Public API:  window.titleManager.setPage(p) / fireGlitch() / snapshot()
+//  Pages:       home, about, work, contact
+// ════════════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // ── CONFIG ───────────────────────────────────────────────────────
+  var PAGES = Object.freeze({
+    home:    'Samuel Abhinav',
+    about:   '$ About',
+    blog:    '$ Blog',
+    contact: '$ Contact'
+  });
+  var CURSOR = '▌';
+  var SUBPAGE_PREFIX = '$ ';
+  var GLITCH_BLOCKS = ['▓', '░', '▒', '█', '▌'];
+  var GLITCH_PUNCT  = ['~', '`', '*', '#'];
+  var WIDE_LETTERS  = new Set('mbanwesMBANWES'.split(''));
+
+  var T = Object.freeze({
+    boot: { preDelay: 250, preHoldMs: 380 },
+    type: { charMin: 80, charMax: 140, slashHold: [140,200], spaceHold: [100,140], settledHold: 700 },
+    del:  { charMin: 38, charMax: 65, thinkPause: 340, preDelBlinks: 1, preDelMs: 280 },
+    rest: { blinkMs: 530 },
+    away: { delayMin: 800, delayMax: 1200 },
+    glitch: {
+      firstDelay: [10000, 50000],
+      earlyEvery: [10000, 50000],
+      lateEvery:  [10000, 50000],
+      decayAfter: 300000,
+      hold: [200, 350], doubleChance: 0.4, doubleGap: [100, 150], doubleHold: [120, 180]
+    }
+  });
+
+  // ── PAGE AUTO-DETECT ─────────────────────────────────────────────
+  function detectPage(){
+    var path = (window.location.pathname || '').toLowerCase();
+    if (/about/.test(path))   return 'about';
+    if (/blog/.test(path))    return 'blog';
+    if (/contact/.test(path)) return 'contact';
+    return 'home';
+  }
+
+  // ── STATE MACHINE ────────────────────────────────────────────────
+  var VALID_TRANSITIONS = {
+    idle:      ['booting', 'deferred', 'resting'],
+    deferred:  ['booting'],
+    booting:   ['resting', 'idle'],
+    resting:   ['typing', 'deleting', 'glitching', 'away', 'idle'],
+    typing:    ['resting', 'idle', 'away'],
+    deleting:  ['typing', 'idle', 'away'],
+    glitching: ['resting', 'idle', 'away'],
+    away:      ['resting', 'typing', 'idle']
+  };
+
+  // ── CORE MODEL ───────────────────────────────────────────────────
+  var realTitle = '';
+  var cursorOn  = false;
+  var state     = 'idle';
+  var currentPage = detectPage();
+  var isVisible = !document.hidden;
+  var gen = 0;
+
+  var firstGlitchPending = true;
+  var restStartedAt = 0;
+  var nextGlitchAt = 0;
+  var pausedTypingTarget = null;
+  var restBlinkTimer = null;
+  var glitchTimer = null;
+  var awayTimer = null;
+
+  // ── RENDER ───────────────────────────────────────────────────────
+  function render(){ document.title = realTitle + (cursorOn ? CURSOR : ''); }
+  function setReal(s){ realTitle = s; render(); }
+  function setCursor(b){ cursorOn = b; render(); }
+
+  function transition(next){
+    var allowed = VALID_TRANSITIONS[state] || [];
+    if (allowed.indexOf(next) === -1) return false;
+    state = next;
+    return true;
+  }
+
+  // ── ASYNC HELPERS ────────────────────────────────────────────────
+  function StaleGenError(){ this.name = 'StaleGenError'; }
+  StaleGenError.prototype = Object.create(Error.prototype);
+
+  function wait(ms, myGen){
+    return new Promise(function(resolve, reject){
+      setTimeout(function(){
+        if (myGen !== gen) reject(new StaleGenError());
+        else resolve();
+      }, ms);
+    });
+  }
+  function cancel(){
+    gen++;
+    if (restBlinkTimer){ clearTimeout(restBlinkTimer); restBlinkTimer = null; }
+  }
+  function rng(min, max){ return min + Math.random() * (max - min); }
+  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // ── PRIMITIVES ───────────────────────────────────────────────────
+  async function typeForward(target, fromIdx, myGen){
+    setCursor(true);
+    var i = fromIdx | 0;
+    setReal(target.substring(0, i));
+    while (i < target.length){
+      var ch = target[i];
+      i++;
+      setReal(target.substring(0, i));
+      var delay;
+      if (ch === '/')      delay = rng(T.type.slashHold[0], T.type.slashHold[1]);
+      else if (ch === ' ') delay = rng(T.type.spaceHold[0], T.type.spaceHold[1]);
+      else                 delay = rng(T.type.charMin, T.type.charMax);
+      await wait(delay, myGen);
+    }
+  }
+
+  async function deleteBackward(toPrefix, myGen){
+    setCursor(true);
+    while (realTitle.length > toPrefix.length){
+      setReal(realTitle.substring(0, realTitle.length - 1));
+      await wait(rng(T.del.charMin, T.del.charMax), myGen);
+    }
+    if (realTitle !== toPrefix) setReal(toPrefix);
+  }
+
+  async function blink(count, rate, myGen){
+    for (var i = 0; i < count; i++){
+      setCursor(false); await wait(rate, myGen);
+      setCursor(true);  await wait(rate, myGen);
+    }
+  }
+
+  // ── REST BLINK ───────────────────────────────────────────────────
+  function startRestBlink(){
+    if (restBlinkTimer) clearTimeout(restBlinkTimer);
+    if (!isVisible) return;
+    setCursor(true);
+    function tick(){
+      if (state !== 'resting' && state !== 'away'){ restBlinkTimer = null; return; }
+      cursorOn = !cursorOn;
+      render();
+      restBlinkTimer = setTimeout(tick, T.rest.blinkMs);
+    }
+    restBlinkTimer = setTimeout(tick, T.rest.blinkMs);
+  }
+  function stopRestBlink(){
+    if (restBlinkTimer){ clearTimeout(restBlinkTimer); restBlinkTimer = null; }
+  }
+
+  // ── FLOWS ────────────────────────────────────────────────────────
+  async function bootFlow(){
+    cancel();
+    var myGen = gen;
+    transition('booting');
+    setReal(''); setCursor(false);
+    try {
+      await wait(T.boot.preDelay, myGen);
+      setCursor(true);
+      await wait(T.boot.preHoldMs, myGen);
+      await typeForward(PAGES[currentPage], 0, myGen);
+      await wait(T.type.settledHold, myGen);
+      enterRest(myGen);
+    } catch (e){
+      if (!(e instanceof StaleGenError)) throw e;
+    }
+  }
+
+  async function navigateFlow(page){
+    if (!PAGES[page]) return;
+    if (page === currentPage && state === 'resting') return;
+    cancel();
+    var myGen = gen;
+    var prevPage = currentPage;
+    var prevText = realTitle.indexOf(CURSOR) === realTitle.length - CURSOR.length
+      ? realTitle.slice(0, -CURSOR.length) : realTitle;
+    var newText = PAGES[page];
+    currentPage = page;
+    var fromHome = (prevPage === 'home');
+    var toHome   = (page === 'home');
+    var sharedPrefix = (fromHome || toHome) ? '' : SUBPAGE_PREFIX;
+    try {
+      transition('deleting');
+      setReal(prevText); setCursor(true);
+      await blink(T.del.preDelBlinks, T.del.preDelMs, myGen);
+      await deleteBackward(sharedPrefix, myGen);
+      await wait(T.del.thinkPause, myGen);
+      transition('typing');
+      await typeForward(newText, sharedPrefix.length, myGen);
+      await wait(T.type.settledHold, myGen);
+      enterRest(myGen);
+    } catch (e){
+      if (!(e instanceof StaleGenError)) throw e;
+    }
+  }
+
+  function enterRest(myGen){
+    if (myGen !== gen) return;
+    transition('resting');
+    setReal(PAGES[currentPage]);
+    setCursor(true);
+    if (restStartedAt === 0) restStartedAt = Date.now();
+    startRestBlink();
+    scheduleGlitch();
+  }
+
+  // ── GLITCH ───────────────────────────────────────────────────────
+  function scheduleGlitch(){
+    if (glitchTimer){ clearTimeout(glitchTimer); glitchTimer = null; }
+    if (!isVisible){ nextGlitchAt = 0; return; }
+    var delay;
+    if (firstGlitchPending){
+      delay = rng(T.glitch.firstDelay[0], T.glitch.firstDelay[1]);
+      firstGlitchPending = false;
+    } else {
+      var sessionAge = Date.now() - restStartedAt;
+      if (sessionAge < T.glitch.decayAfter)
+        delay = rng(T.glitch.earlyEvery[0], T.glitch.earlyEvery[1]);
+      else
+        delay = rng(T.glitch.lateEvery[0], T.glitch.lateEvery[1]);
+    }
+    nextGlitchAt = Date.now() + delay;
+    glitchTimer = setTimeout(function(){
+      glitchTimer = null;
+      if (state === 'resting' && isVisible) glitchFlow();
+      else scheduleGlitch();
+    }, delay);
+  }
+
+  async function glitchFlow(){
+    cancel();
+    var myGen = gen;
+    transition('glitching');
+    stopRestBlink();
+    setCursor(true);
+    var original = PAGES[currentPage];
+    setReal(original);
+
+    var lettersOnly = (original.match(/[a-zA-Z]/g) || []).length;
+    var includeDollar = lettersOnly < 8;
+    var all = [], wide = [];
+    for (var i = 0; i < original.length; i++){
+      var ch = original[i];
+      if (ch === ' ' || ch === '/') continue;
+      if (ch === '$' && !includeDollar) continue;
+      all.push(i);
+      if (WIDE_LETTERS.has(ch) || ch === '$') wide.push(i);
+    }
+    if (!all.length){ enterRest(myGen); return; }
+    var pool = (wide.length && Math.random() < 0.7) ? wide : all;
+
+    function corruptAt(idx, useBlock){
+      var ch = original[idx];
+      var sub;
+      if (ch === '$') sub = pick(GLITCH_PUNCT);
+      else if (useBlock || /[^a-zA-Z]/.test(ch)) sub = pick(GLITCH_BLOCKS);
+      else {
+        sub = (ch === ch.toLowerCase()) ? ch.toUpperCase() : ch.toLowerCase();
+        if (sub === ch) sub = pick(GLITCH_BLOCKS);
+      }
+      return original.substring(0, idx) + sub + original.substring(idx + 1);
+    }
+
+    try {
+      var idx1 = pick(pool);
+      setReal(corruptAt(idx1, Math.random() < 0.6));
+      if (Math.random() < T.glitch.doubleChance){
+        await wait(rng(T.glitch.doubleGap[0], T.glitch.doubleGap[1]), myGen);
+        var idx2 = pick(pool);
+        setReal(corruptAt(idx2, Math.random() < 0.6));
+        await wait(rng(T.glitch.doubleHold[0], T.glitch.doubleHold[1]), myGen);
+      } else {
+        await wait(rng(T.glitch.hold[0], T.glitch.hold[1]), myGen);
+      }
+      setReal(original);
+      enterRest(myGen);
+    } catch (e){
+      if (!(e instanceof StaleGenError)) throw e;
+    }
+  }
+
+  // ── VISIBILITY ───────────────────────────────────────────────────
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden){
+      isVisible = false;
+      if (awayTimer) clearTimeout(awayTimer);
+      if (glitchTimer){ clearTimeout(glitchTimer); glitchTimer = null; nextGlitchAt = 0; }
+      stopRestBlink();
+      awayTimer = setTimeout(function(){
+        if (isVisible) return;
+        if (state === 'typing' || state === 'deleting'){
+          pausedTypingTarget = PAGES[currentPage];
+          cancel();
+        }
+        setCursor(true);
+        if (['resting','typing','deleting','glitching'].indexOf(state) !== -1){
+          transition('away');
+        }
+      }, rng(T.away.delayMin, T.away.delayMax));
+    } else {
+      isVisible = true;
+      if (awayTimer){ clearTimeout(awayTimer); awayTimer = null; }
+      if (state === 'deferred'){ bootFlow(); return; }
+      if (state === 'away'){
+        if (pausedTypingTarget){
+          var target = pausedTypingTarget;
+          pausedTypingTarget = null;
+          (async function(){
+            cancel();
+            var myGen = gen;
+            transition('typing');
+            try {
+              await typeForward(target, realTitle.length, myGen);
+              await wait(T.type.settledHold, myGen);
+              enterRest(myGen);
+            } catch (e){ if (!(e instanceof StaleGenError)) throw e; }
+          })();
+        } else {
+          transition('resting');
+          startRestBlink();
+          scheduleGlitch();
+        }
+      } else if (state === 'resting'){
+        startRestBlink();
+        if (!glitchTimer) scheduleGlitch();
+      }
+    }
+  });
+
+  // ── INIT ─────────────────────────────────────────────────────────
+  function start(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      realTitle = PAGES[currentPage]; cursorOn = false; render();
+      state = 'resting'; restStartedAt = Date.now();
+      return;
+    }
+    if (document.hidden){
+      realTitle = PAGES[currentPage]; cursorOn = false; render();
+      isVisible = false;
+      transition('deferred');
+    } else {
+      bootFlow();
+    }
+  }
+
+  // ── PUBLIC API ───────────────────────────────────────────────────
+  window.titleManager = {
+    setPage:    function(p){ navigateFlow(p); },
+    fireGlitch: function(){
+      if (state === 'resting' && isVisible){
+        if (glitchTimer){ clearTimeout(glitchTimer); glitchTimer = null; }
+        glitchFlow();
+      }
+    },
+    snapshot: function(){
+      return { state: state, realTitle: realTitle, cursorOn: cursorOn, currentPage: currentPage, isVisible: isVisible, gen: gen };
+    }
+  };
+
+  start();
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Inter:wght@300;400&family=DM+Sans:wght@300;400;500&family=Hanken+Grotesk:wght@400;500&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style is:global>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  /* The site token is #080814. This page runs one notch below it on purpose:
+     the craft are the only thing meant to hold light here, so the floor drops
+     to near-black and lets them burn against it. */
+  body{
+    background:#030307; color:rgba(233,236,247,0.92);
+    font-family:'EB Garamond', Georgia, serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+
+
+
+  /* ══════════════ WINDOW STACK ══════════════
+     Left: the clips, scattered as overlapping windows — different sizes,
+     deliberately misaligned, each one lapping over its neighbour so the
+     cluster reads as depth rather than a grid.
+     Right: the form, alone, with room to breathe. */
+  .field-wrap{
+    position:fixed; inset:0; z-index:40;
+    display:grid; grid-template-columns:1.12fr 0.88fr; align-items:center;
+    gap:3vw; padding:80px 4.5vw 48px; max-width:1500px; margin:0 auto;
+  }
+
+  /* ── the stack: cards are absolutely placed, so they can overlap ── */
+  .stack{ position:relative; width:100%; height:min(78vh, 720px);
+    perspective:1400px; transform-style:preserve-3d; }
+
+  /* .card is the PARALLAX box — JS writes a transform here every frame.
+     .card-inner is the VISUAL box — CSS owns its transform (entrance + hover).
+     Splitting them means the two transforms never fight over one property. */
+  .card{
+    position:absolute;
+    transform-style:preserve-3d;
+    will-change:transform;
+  }
+  /* resting shadow is STATIC — never transitioned. The hover shadow is a
+     separate layer whose opacity fades, so we only ever animate opacity and
+     transform (compositor-only; no paint, no reflow). */
+  .card::before{
+    content:''; position:absolute; inset:0; border-radius:14px; z-index:-1;
+    box-shadow:0 34px 70px -28px rgba(0,0,0,0.92);
+    pointer-events:none;
+  }
+  .card::after{
+    content:''; position:absolute; inset:0; border-radius:14px; z-index:-1;
+    box-shadow:0 50px 96px -30px rgba(0,0,0,0.96);
+    opacity:0; transition:opacity .5s ease; pointer-events:none;
+  }
+  .card:hover::after{ opacity:1; }
+
+  .card-inner{
+    position:absolute; inset:0; overflow:hidden; border-radius:14px;
+    border:1px solid rgba(255,255,255,0.16);
+    background:rgba(26,29,44,0.72);
+    /* entrance state — cards settle in rather than snapping on */
+    opacity:0; transform:translateY(26px) scale(0.985);
+    transition:opacity .95s cubic-bezier(.22,1,.36,1),
+               transform .95s cubic-bezier(.22,1,.36,1),
+               border-color .45s ease;
+  }
+  .stack.ready .card-inner{ opacity:1; transform:none; }
+  .stack.ready .card:hover .card-inner{
+    transform:translateY(-6px);
+    border-color:rgba(180,210,250,0.3);
+  }
+  .card:hover{ z-index:20; }
+
+  /* staggered reveal — the composition assembles itself */
+  .c-globe .card-inner{ transition-delay:.05s; }
+
+  .card-inner canvas.gl{ display:none; }
+  .card-inner canvas.hud{ position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+  .card-inner img.src{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+     z-index:0; display:block; filter:grayscale(1) contrast(1.1) brightness(1.25); }
+  .card-inner .recon-card{ display:none; }
+
+  /* slot 04 — image base (darker, dormant field) + coded traveler canvas */
+  .card-inner img.slot04-base{ filter:grayscale(1) contrast(1.05) brightness(0.95) !important; }
+  .card-inner canvas.anim04{ position:absolute; inset:0; width:100%; height:100%; z-index:1; display:block; pointer-events:none; }
+  .c-hard  .card-inner{ transition-delay:.13s; }
+  .c-slot1 .card-inner{ transition-delay:.21s; }
+  .c-mal   .card-inner{ transition-delay:.29s; }
+  .c-side  .card-inner{ transition-delay:.37s; }
+  .c-cyber .card-inner{ transition-delay:.45s; }
+  .c-slot2 .card-inner{ transition-delay:.53s; }
+  .c-slot3 .card-inner{ transition-delay:.61s; }
+
+  .card .label{ position:absolute; top:15px; left:17px; z-index:3; pointer-events:none; }
+  .card .label .a{ display:block; font-family:'Cormorant Garamond', serif; font-weight:500;
+    font-size:1.06rem; line-height:1.16; color:rgba(255,255,255,0.94); }
+  .card .label .b{ display:block; font-family:'Cormorant Garamond', serif; font-weight:300;
+    font-size:1.06rem; line-height:1.16; color:rgba(190,205,232,0.5); }
+  /* ── reserved windows: holding space until the footage lands ──
+     These rules used to sit on .card, which carries no border, no background
+     and no radius — the visual box is .card-inner. The dashed border simply
+     never rendered and the translucent fill was painted over. Retargeted. */
+  .card.empty .card-inner{
+    background:rgba(9,11,20,0.42);
+    border-color:rgba(255,255,255,0.06);
+    border-style:dashed;
+  }
+  .card.empty::before{ box-shadow:0 24px 50px -30px rgba(0,0,0,0.8); }
+  .card.empty::after{ box-shadow:0 34px 70px -32px rgba(0,0,0,0.85); }
+  .stack.ready .card.empty:hover .card-inner{ border-color:rgba(180,210,250,0.2); }
+  .card.empty .fill{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:7px; overflow:hidden;
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 10px);
+  }
+  .card.empty .fill .n{ font-family:'JetBrains Mono', monospace; font-size:1.35rem;
+    letter-spacing:0.12em; color:rgba(255,255,255,0.10); }
+  .card.empty .fill .r{ font-family:'JetBrains Mono', monospace; font-size:0.46rem;
+    letter-spacing:0.2em; text-transform:uppercase; color:rgba(170,195,235,0.26); }
+  /* a slow sweep, so an empty window still reads as a live channel */
+  /* animating `top` re-lays-out and repaints the card every frame, on three
+     cards at once. transform runs on the compositor for free. */
+  .card.empty .fill::after{
+    content:''; position:absolute; left:0; right:0; top:0; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(190,215,255,0.16), transparent)
+               top left / 100% 1px no-repeat;
+    will-change:transform;
+    animation:slotSweep 4.2s linear infinite;
+  }
+  /* full-height layer with the line drawn on its top edge, so translateY(100%)
+     walks the line the exact height of the card no matter what that height is */
+  @keyframes slotSweep{ from{ transform:translateY(0); } to{ transform:translateY(100%); } }
+  @media (prefers-reduced-motion: reduce){ .card.empty .fill::after{ animation:none; opacity:0; } }
+
+  /* the two portrait cards are narrow — tuck their type in */
+  .c-globe .label, .c-side .label{ top:13px; left:14px; }
+  .c-globe .label .a, .c-globe .label .b,
+  .c-side .label .a,  .c-side .label .b{ font-size:0.95rem; }
+  .c-side .tag, .c-cyber .tag{ font-size:0.46rem; letter-spacing:0.18em; }
+
+  .card .tag{ position:absolute; bottom:12px; left:17px; z-index:3; pointer-events:none;
+    font-family:'JetBrains Mono', monospace; font-size:0.5rem; letter-spacing:0.22em;
+    text-transform:uppercase; color:rgba(170,195,235,0.36); }
+
+  /* ── THE SCATTER — single source of truth ──────────────────────────────
+     This used to be declared twice: an 8-card layout followed by an older
+     5-card one, which won the cascade and left the three .empty slots sitting
+     in the geometry of a layout that no longer existed. One block now, all
+     eight windows, percentages so the composition holds at any size.
+     Sizes are deliberately unequal — two portraits, one big landscape anchor,
+     and a spread of smaller windows. The clips are 16:9 and crop via
+     object-fit:cover; the globe and the malware blob are centred subjects, so
+     they survive the crop. z-index climbs toward the centre of the cluster.
+     Drop a clip into a slot and delete its .empty class.                    */
+  .c-globe { left:0;   top:2%;  width:26%; height:52%; z-index:4; }  /* tall portrait  */
+  .c-hard  { left:29%; top:0;   width:46%; height:28%; z-index:3; }  /* wide           */
+  .c-slot1 { left:78%; top:4%;  width:22%; height:34%; z-index:2; }  /* reserved       */
+  .c-mal   { left:18%; top:30%; width:54%; height:36%; z-index:8; }  /* the anchor     */
+  .c-side  { left:69%; top:40%; width:22%; height:32%; z-index:7; }  /* small portrait */
+  .c-cyber { left:3%;  top:58%; width:36%; height:26%; z-index:6; }  /* small wide     */
+  .c-slot2 { left:41%; top:68%; width:26%; height:26%; z-index:7; }  /* reserved       */
+  .c-slot3 { left:62%; top:74%; width:34%; height:22%; z-index:5; }  /* reserved       */
+
+
+  /* ── THE CLIP ITSELF ───────────────────────────────────────────────────
+     This had NO rule at all. The <video> was sitting at its intrinsic size
+     inside the card, unstretched and uncropped — every comment in the file
+     described an object-fit:cover crop that the stylesheet never performed.
+     The poster is painted as the element's background, so the frame is
+     already there before a single byte of video is fetched.                */
+  .card .clip{
+    position:absolute; inset:0; display:block;
+    width:100%; height:100%;
+    object-fit:cover; object-position:center;
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    z-index:0;
+  }
+
+  /* ── TINT + SCRIM ──────────────────────────────────────────────────────
+     Both divs were in the markup on every card and neither had a rule, so
+     the labels were sitting on raw footage and the clips punched through the
+     page's dimmed palette. tint = duotone-ish cool wash that folds the
+     footage back into the #080814 world. scrim = the legibility gradient the
+     label and tag were relying on.                                          */
+  .card .tint{
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:rgba(10,14,28,0.20);
+    mix-blend-mode:multiply;
+  }
+  .card .scrim{
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(4,6,14,0.4) 0%, rgba(4,6,14,0) 34%),
+      linear-gradient(0deg,   rgba(4,6,14,0.38) 0%, rgba(4,6,14,0) 40%);
+  }
+  /* on hover the window opens up a little — the footage comes forward */
+  .card .tint, .card .scrim{ transition:opacity .5s ease; }
+  .stack.ready .card:hover .tint{ opacity:0.55; }
+
+  /* ── the form: no card, no frame — just type on the ground ── */
+  .form-panel{ width:100%; max-width:440px; justify-self:center; }
+  .stepper{ display:flex; gap:14px; align-items:baseline; margin-bottom:20px;
+    font-family:'JetBrains Mono', monospace; font-size:0.56rem; letter-spacing:0.22em;
+    text-transform:uppercase; }
+  .stepper .n{ color:rgba(255,255,255,0.6); }
+  .stepper .d{ color:rgba(170,195,235,0.38); }
+  .form-title{ font-family:'Cormorant Garamond', serif; font-weight:300;
+    font-size:clamp(1.9rem, 2.7vw, 2.6rem); line-height:1.06;
+    color:rgba(255,255,255,0.93); margin-bottom:7px; }
+  .form-title em{ font-style:italic; color:rgba(190,205,232,0.62); }
+  .form-sub{ font-family:'EB Garamond', serif; font-style:italic; font-size:1rem;
+    color:rgba(200,215,240,0.44); margin-bottom:30px; }
+  .field{ margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.13); transition:border-color .35s; }
+  .field:focus-within{ border-color:rgba(180,210,250,0.6); }
+  .field label{ display:block; font-family:'JetBrains Mono', monospace; font-size:0.5rem;
+    letter-spacing:0.22em; text-transform:uppercase; color:rgba(170,195,235,0.4); margin-bottom:5px; }
+  .field input, .field textarea{ width:100%; background:none; border:none; outline:none;
+    font-family:'EB Garamond', serif; font-size:1.08rem; color:rgba(233,236,247,0.95); padding:2px 0 9px; }
+  .field textarea{ min-height:56px; line-height:1.45; resize:none; display:block; }
+  .field input::placeholder, .field textarea::placeholder{ color:rgba(180,200,235,0.28); }
+  .cta{ width:100%; margin-top:6px; padding:14px; cursor:pointer;
+    background:rgba(255,255,255,0.94); color:#0a0c16; border:1px solid rgba(255,255,255,0.94);
+    border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.58rem;
+    letter-spacing:0.24em; text-transform:uppercase;
+    transition:background .3s, color .3s, transform .12s; }
+  .cta:hover{ background:transparent; color:rgba(255,255,255,0.95); }
+  .cta:active{ transform:translateY(1px); }
+  .cta.sent{ background:rgba(89,212,153,0.9); border-color:rgba(89,212,153,0.9); color:#06120c; }
+  .socials{ margin-top:22px; display:flex; flex-wrap:wrap; align-items:baseline; gap:15px;
+    font-family:'JetBrains Mono', monospace; font-size:0.58rem; letter-spacing:0.18em; }
+  .socials .lead{ color:rgba(170,195,235,0.35); text-transform:uppercase; letter-spacing:0.2em; }
+  .socials a{ color:rgba(215,226,245,0.72); text-decoration:none; position:relative; transition:color .3s; }
+  .socials a:hover{ color:#fff; }
+  .socials a::after{ content:''; position:absolute; left:0; bottom:-3px; height:1px; width:0;
+    background:rgba(180,210,250,0.7); transition:width .3s; }
+  .socials a:hover::after{ width:100%; }
+
+  /* ── validation + send status ──────────────────────────────────────────
+     The form had no error state and no live region: a screen reader user got
+     no signal at all that anything had happened when the button was pressed. */
+  .field.invalid{ border-color:rgba(232,120,120,0.75); }
+  .field .err{
+    display:none; margin:5px 0 6px;
+    font-family:'JetBrains Mono', monospace; font-size:0.5rem; letter-spacing:0.18em;
+    text-transform:uppercase; color:rgba(232,140,140,0.85);
+  }
+  .field.invalid .err{ display:block; }
+  .form-status{
+    min-height:1.1em; margin-top:11px;
+    font-family:'JetBrains Mono', monospace; font-size:0.55rem; letter-spacing:0.18em;
+    text-transform:uppercase; color:rgba(170,195,235,0.5);
+  }
+  .form-status.ok{ color:rgba(120,220,170,0.85); }
+  .form-status.bad{ color:rgba(232,140,140,0.85); }
+  .cta[disabled]{ opacity:0.6; cursor:default; }
+  .cta[disabled]:hover{ background:rgba(255,255,255,0.94); color:#0a0c16; }
+
+  /* keyboard users could not see where they were on this page at all */
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:1px solid rgba(180,210,250,0.85); outline-offset:3px; border-radius:2px;
+  }
+  .skip{
+    position:fixed; top:-60px; left:16px; z-index:10002; padding:9px 14px;
+    background:#0b0e1a; border:1px solid rgba(180,210,250,0.5); border-radius:8px;
+    color:#fff; text-decoration:none;
+    font-family:'JetBrains Mono', monospace; font-size:0.55rem; letter-spacing:0.2em;
+    text-transform:uppercase; transition:top .25s ease;
+  }
+  .skip:focus{ top:16px; }
+
+  /* ── narrow: the stack unpacks into a plain column, form beneath ── */
+  @media (prefers-reduced-motion: reduce){
+    .card-inner{ opacity:1; transform:none; transition:border-color .45s ease; }
+    .stack.ready .card:hover .card-inner{ transform:none; }
+  }
+
+  @media (max-width:1000px){
+    .field-wrap{ position:absolute; inset:auto 0 auto 0; display:block;
+      padding:92px 20px 48px; max-width:none; }
+    body{ overflow-y:auto; }
+    .stack{ height:auto; display:flex; flex-direction:column; gap:14px; margin-bottom:44px; }
+    .card{ position:relative; left:auto; top:auto; width:100%; height:200px; transform:none !important; }
+    .form-panel{ max-width:none; }
+  }
+
+
+
+
+
+#luna-portal {
+  position:fixed;
+  right:18px; top:min(calc(66vh + 80px), calc(100vh - 140px));   /* concentric with Luna's box */
+  width:120px; height:120px;
+  border-radius:50%;
+  z-index:998;
+  pointer-events:none; opacity:0;
+  background:radial-gradient(circle,
+    rgba(160,195,255,0.22) 0%,
+    rgba(130,170,245,0.10) 38%,
+    rgba(120,160,240,0.03) 58%,
+    transparent 72%);
+  box-shadow:0 0 18px 2px rgba(120,170,255,0.10);
+}
+#luna-portal.opening {
+  animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes lunaPortal {
+  0%   { opacity:0;    transform:scale(1.12); }
+  38%  { opacity:0.55; transform:scale(1.00); }
+  100% { opacity:0;    transform:scale(0.97); }
+}
+
+</style>
+<style is:global>
+  :global(#luna-wrap) { top: min(calc(66vh + 80px), calc(100vh - 140px)); }
+  :global(#luna-frame) { color-scheme: dark; }
+</style>
+<style is:global id="ldw-styles">
+  #ldw-root{
+    --ldw-void:#080814; --ldw-panel:#0a0a17;
+    --ldw-ink:#eaeaf2; --ldw-dim:rgba(234,234,242,.56); --ldw-faint:rgba(234,234,242,.30);
+    --ldw-hair:rgba(234,234,242,.09); --ldw-hair2:rgba(234,234,242,.18);
+    --ldw-ice:rgba(200,206,218,.9); --ldw-ice-soft:rgba(200,206,218,.14);
+    --ldw-serif:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    --ldw-body:"EB Garamond",Georgia,serif;
+    --ldw-mono:"JetBrains Mono",ui-monospace,monospace;
+    --ldw-w:min(420px,94vw);
+    --ldw-spring:cubic-bezier(.22,1,.32,1);
+  }
+  #ldw-scrim{position:fixed;inset:0;z-index:1190;background:rgba(4,4,12,.5);opacity:0;pointer-events:none;
+    transition:opacity .5s ease;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
+  #ldw-scrim.on{opacity:1;pointer-events:auto}
+  #ldw-drawer{position:fixed;top:0;right:0;bottom:0;z-index:1200;width:var(--ldw-w);
+    background:var(--ldw-panel);border-left:1px solid var(--ldw-hair);display:flex;flex-direction:column;
+    transform:translateX(calc(100% + 2px));transition:transform .6s var(--ldw-spring);overflow:hidden;
+    box-shadow:-40px 0 90px -30px rgba(0,0,0,.85);font-family:var(--ldw-body)}
+  #ldw-drawer.on{transform:translateX(0)}
+  #ldw-drawer *{box-sizing:border-box}
+  #ldw-drawer button{background:none;border:0;cursor:pointer;margin:0;padding:0}
+
+  .ldw-aurora{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ldw-aurora .ldw-haze{position:absolute;left:50%;bottom:-42%;width:190%;aspect-ratio:1;transform:translateX(-50%);
+    background:radial-gradient(closest-side,rgba(200,206,218,.22),transparent 62%),
+      radial-gradient(closest-side,rgba(120,124,140,.20),transparent 72%),
+      radial-gradient(closest-side,rgba(70,74,88,.34),transparent 80%);
+    filter:blur(28px);animation:ldw-breathe 13s ease-in-out infinite}
+  @keyframes ldw-breathe{0%,100%{opacity:.85;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}
+  .ldw-aurora::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--ldw-panel) 0%,transparent 30%)}
+
+  .ldw-head{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:16px 18px 14px;border-bottom:1px solid var(--ldw-hair)}
+  .ldw-head .ldw-dot{width:6px;height:6px;border-radius:50%;background:var(--ldw-ice);box-shadow:0 0 9px var(--ldw-ice);animation:ldw-pulse 2.4s ease-in-out infinite}
+  @keyframes ldw-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.2)}}
+  .ldw-head .ldw-who{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.22em;color:var(--ldw-dim);text-transform:uppercase}
+  .ldw-head.ldw-warming .ldw-dot{background:var(--ldw-faint);box-shadow:0 0 8px var(--ldw-faint)}
+  .ldw-head.ldw-offline .ldw-dot{background:var(--ldw-faint);box-shadow:none;animation:none}
+  .ldw-head .ldw-sp{flex:1}
+  #ldw-drawer.ldw-compact .ldw-head{padding-left:60px}
+  #ldw-drawer.ldw-compact .ldw-head .ldw-dot{display:none}
+  .ldw-head{transition:padding .5s var(--ldw-spring)}
+  .ldw-x{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ldw-faint);transition:.2s}
+  .ldw-x:hover{color:var(--ldw-ink);background:rgba(255,255,255,.05)} .ldw-x svg{width:15px;height:15px}
+
+  .ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
+  .ldw-body::-webkit-scrollbar{display:none}
+  .ldw-identity{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:200px;
+    transition:max-height .5s var(--ldw-spring),opacity .35s ease,padding .5s var(--ldw-spring);max-height:520px;overflow:hidden}
+  #ldw-drawer.ldw-compact .ldw-identity{max-height:0;opacity:0;padding-top:0}
+  .ldw-avatar{position:absolute;z-index:6;left:50%;top:70px;width:118px;height:118px;transform:translateX(-50%);
+    border-radius:50%;overflow:hidden;background:#0b0b16;border:1px solid rgba(200,206,218,.22);
+    box-shadow:0 18px 44px -16px rgba(0,0,0,.8),0 0 0 6px rgba(200,206,218,.04),0 0 40px -12px rgba(200,206,218,.18);
+    transition:left .55s var(--ldw-spring),top .55s var(--ldw-spring),width .55s var(--ldw-spring),height .55s var(--ldw-spring),transform .55s var(--ldw-spring),box-shadow .5s ease}
+  .ldw-avatar::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(200,206,218,.12);animation:ldw-halo 6s ease-in-out infinite;pointer-events:none;z-index:2}
+  .ldw-avatar iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;transform:scale(1.08)}
+  /* compact: Luna shrinks into the header, never disappears */
+  #ldw-drawer.ldw-compact .ldw-avatar{left:16px;top:11px;width:34px;height:34px;transform:translateX(0);box-shadow:0 0 0 1px rgba(200,206,218,.14),0 0 18px -6px rgba(200,206,218,.25)}
+  #ldw-drawer.ldw-compact .ldw-avatar::before{opacity:0}
+  @keyframes ldw-blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+  .ldw-greeting{margin-top:26px;font-family:var(--ldw-serif);font-weight:500;font-size:28px;line-height:1.1;color:var(--ldw-ink)}
+  .ldw-sub{margin-top:14px;font-family:var(--ldw-mono);font-weight:500;font-size:13px;line-height:2.0;letter-spacing:.02em;color:var(--ldw-dim);max-width:34ch}
+
+  .ldw-thread{display:flex;flex-direction:column;gap:16px;padding:22px 0 8px}
+  .ldw-msg{opacity:0;transform:translateY(8px);animation:ldw-in .45s var(--ldw-spring) forwards}
+  @keyframes ldw-in{to{opacity:1;transform:translateY(0)}}
+  .ldw-msg.ldw-you{align-self:flex-end;max-width:88%;font-family:var(--ldw-mono);font-weight:500;font-size:12.5px;color:var(--ldw-ink);
+    background:var(--ldw-ice-soft);border:1px solid rgba(200,206,218,.16);padding:9px 13px;border-radius:12px 12px 3px 12px}
+  .ldw-msg.ldw-luna{align-self:flex-start;max-width:94%;font-family:var(--ldw-body);font-size:15.5px;line-height:1.5;color:var(--ldw-ink);
+    border-left:1px solid rgba(200,206,218,.28);padding:1px 0 1px 14px}
+  .ldw-readout{margin-top:9px;font-family:var(--ldw-mono);font-weight:500;font-size:9.5px;letter-spacing:.14em;color:var(--ldw-faint);text-transform:uppercase;display:flex;align-items:center;gap:7px}
+  .ldw-readout .ldw-tick{color:var(--ldw-ice)}
+  .ldw-goto{margin-top:10px}
+  .ldw-goto button{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.06em;color:var(--ldw-ice);
+    border:1px solid rgba(200,206,218,.28);border-radius:8px;padding:7px 12px;transition:.2s}
+  .ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(200,206,218,.5)}
+  .ldw-guesses{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .ldw-guesses button{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);
+    background:var(--ldw-ice-soft);border:1px solid rgba(200,206,218,.14);padding:8px 13px;border-radius:999px;transition:.2s}
+  .ldw-guesses button:hover{background:rgba(200,206,218,.2);border-color:rgba(200,206,218,.32)}
+  .ldw-guesses .ldw-brk{color:rgba(200,206,218,.55)}
+
+  .ldw-chips{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 24px 12px}
+  .ldw-chips.ldw-hide{display:none}
+  .ldw-chip{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);background:var(--ldw-ice-soft);
+    border:1px solid rgba(200,206,218,.14);padding:8px 14px;border-radius:999px;transition:.2s}
+  .ldw-chip:hover{background:rgba(200,206,218,.2)} .ldw-chip .ldw-brk{color:rgba(200,206,218,.55)}
+
+  .ldw-cw{position:relative;z-index:2;padding:0 18px 18px}
+  .ldw-composer{position:relative;border-radius:18px;background:rgba(8,8,20,.62);border:1px solid rgba(200,206,218,.5);
+    box-shadow:0 0 26px -6px rgba(200,206,218,.28);padding:13px 15px 11px;transition:.25s}
+  .ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 32px -3px rgba(200,206,218,.42)}
+  .ldw-r1{display:flex;align-items:center;gap:5px}
+  .ldw-composer .ldw-brk{font-family:var(--ldw-mono);font-size:14px;color:rgba(200,206,218,.5)}
+  .ldw-composer input{flex:1;background:none;border:0;outline:0;font-family:var(--ldw-mono);font-weight:500;font-size:13.5px;color:var(--ldw-ink);padding:2px 6px;caret-color:var(--ldw-ice)}
+  .ldw-composer input::placeholder{color:var(--ldw-faint)}
+  .ldw-r2{display:flex;align-items:center;margin-top:11px;font-family:var(--ldw-mono);font-weight:500;font-size:10px;letter-spacing:.06em;color:var(--ldw-faint)}
+  .ldw-r2 .ldw-sp{flex:1}
+  .ldw-send{flex:0 0 auto;width:38px;height:32px;display:grid;place-items:center;border-radius:11px;background:rgba(200,206,218,.10);border:1px solid rgba(200,206,218,.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
+  .ldw-send svg{width:15px;height:15px}
+  .ldw-send.on{opacity:1;background:linear-gradient(160deg,#e8ebf1,#c3c8d2);border-color:transparent;color:#12121c}
+  .ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(200,206,218,.5)}
+
+  @media (prefers-reduced-motion:reduce){
+    #ldw-drawer *,.ldw-aurora .ldw-haze{animation:none !important}
+    #ldw-drawer,#ldw-scrim{transition:opacity .2s ease,transform .2s ease !important}
+  }
+
+  body.ldw-drawer-open #menu-trigger{opacity:0 !important;pointer-events:none;}
+
+  .ldw-followups{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+  .ldw-fu{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.02em;color:var(--ldw-dim);
+    background:rgba(200,206,218,.06);border:1px solid rgba(200,206,218,.12);border-radius:999px;padding:6px 12px;transition:.18s;cursor:pointer}
+  .ldw-fu:hover{color:var(--ldw-ink);background:rgba(200,206,218,.14);border-color:rgba(200,206,218,.28)}
+  .ldw-fu .ldw-plus{color:rgba(200,206,218,.5);margin-right:5px}
+
+  /* ── Luna's speech: a small quip card that docks directly over #luna-wrap
+     (same right:18px anchor, positioned by "bottom" so it always clears her
+     regardless of viewport). ── */
+  #luna-quip{
+    position:fixed; right:18px; top:auto; bottom:calc(34vh - 70px);
+    z-index:999; max-width:min(180px,60vw); text-align:right; pointer-events:none;
+    font-family:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-size:12.5px; line-height:1.45; letter-spacing:0.01em;
+    color:rgba(226,232,240,0.92);
+    background:rgba(10,11,16,0.82); border:1px solid rgba(205,214,226,0.14);
+    border-radius:12px; padding:9px 13px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    opacity:0; transform:translateY(6px) scale(0.98);
+    transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
+  }
+  #luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
+  #luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
+  #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
+  #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
+  @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#nm">Skip to the form</a>
+
+<PortfolioLunaShell />
+<div id="luna-portal"></div>
+<div id="luna-quip" aria-hidden="true"></div>
+
+<NebulaBackground />
+
+<SiteMenu currentPath="/contact" />
+
+
+
+
+<div class="field-wrap">
+
+  <!-- LEFT — the clips, overlapping like open windows -->
+  <div class="stack">
+    <div class="card c-globe" data-depth="0.55">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-globe.webp">
+        <div class="recon-card" data-seq="1" data-mode="SCAN" data-aspect="26,52" data-mask="" data-auto="0"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">The perimeter,</span><span class="b">before anyone knocks</span></div>
+        <div class="tag">Recon · Attack surface</div>
+      </div>
+    </div>
+    <div class="card c-hard" data-depth="0.35">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-hard.webp">
+        <div class="recon-card" data-seq="2" data-mode="BREACH" data-aspect="46,28" data-mask="0.4,0.3,0.75,0.7" data-auto="7"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">A request,</span><span class="b">that should have failed</span></div>
+        <div class="tag">CVE-2025-24813 · Tomcat</div>
+      </div>
+    </div>
+    <div class="card c-slot1" data-depth="0.25">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-slot1.webp">
+        <div class="recon-card" data-seq="3" data-mode="DRIFT" data-aspect="22,34" data-mask="" data-auto="0"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">Malware,</span><span class="b">taken apart</span></div>
+        <div class="tag">Reversing · Ghidra</div>
+      </div>
+    </div>
+    <div class="card c-mal" data-depth="1.00">
+      <div class="card-inner">
+        <img class="src slot04-base" alt="" src="/images/contact-card-mal.webp">
+        <canvas class="anim04" aria-hidden="true"></canvas>
+        <canvas class="hud" aria-hidden="true"></canvas>
+        <div class="recon-card" data-seq="4"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">Four identities,</span><span class="b">one intruder</span></div>
+        <div class="tag">Lateral · Credential chain</div>
+      </div>
+    </div>
+    <div class="card c-side" data-depth="0.80">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-side.webp">
+        <div class="recon-card" data-seq="5" data-mode="DRIFT" data-aspect="22,32" data-mask="0.55,0.0,1.0,0.25" data-auto="9"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">The machine,</span><span class="b">learns its baseline</span></div>
+        <div class="tag">PRISM · Modbus / DNP3</div>
+      </div>
+    </div>
+    <div class="card c-cyber" data-depth="0.65">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-cyber.webp">
+        <div class="recon-card" data-seq="6" data-mode="SCAN" data-aspect="36,26" data-mask="0.55,0.45,0.72,0.68" data-auto="8"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">The rule,</span><span class="b">fires</span></div>
+        <div class="tag">Sentinel · Sigma · SPL</div>
+      </div>
+    </div>
+    <div class="card c-slot2" data-depth="0.75">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-slot2.webp">
+        <div class="recon-card" data-seq="7" data-mode="DRIFT" data-aspect="26,26" data-mask="0.0,0.35,0.35,0.65" data-auto="10"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">Risk,</span><span class="b">answered with friction</span></div>
+        <div class="tag">Axon · NIST 800-63B</div>
+      </div>
+    </div>
+    <div class="card c-slot3" data-depth="0.45">
+      <div class="card-inner">
+        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
+        <img class="src" alt="" src="/images/contact-card-slot3.webp">
+        <div class="recon-card" data-seq="8" data-mode="DRIFT" data-aspect="34,22" data-mask="" data-auto="0"></div>
+        <div class="tint"></div><div class="scrim"></div>
+        <div class="label"><span class="a">Quiet,</span><span class="b">is the deliverable</span></div>
+        <div class="tag">Containment · Telemetry</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — the form, standing on its own.
+       Now a real <form>: Enter submits, the browser autofills, password
+       managers and screen readers understand it, and the h1 gives the page an
+       actual heading (it had none — the title was a bare div). -->
+  <div class="form-panel">
+    <div class="stepper"><span class="n">0001</span><span class="d">Get in touch</span></div>
+    <h1 class="form-title">Say something<br /><em>worth decoding.</em></h1>
+    <p class="form-sub">Roles, findings, or anything that runs on a network.</p>
+    <form id="contact-form" novalidate>
+      <div class="field" data-field="nm">
+        <label for="nm">Name</label>
+        <input id="nm" name="name" type="text" placeholder="Your name" autocomplete="name" required aria-describedby="nm-err" />
+        <div class="err" id="nm-err">Your name, please</div>
+      </div>
+      <div class="field" data-field="em">
+        <label for="em">Email</label>
+        <input id="em" name="email" type="email" placeholder="Your email address" autocomplete="email" required aria-describedby="em-err" />
+        <div class="err" id="em-err">That address doesn’t look routable</div>
+      </div>
+      <div class="field" data-field="ms">
+        <label for="ms">Message</label>
+        <textarea id="ms" name="message" rows="2" placeholder="Whatever you’d like to say" required aria-describedby="ms-err"></textarea>
+        <div class="err" id="ms-err">Say a little more</div>
+      </div>
+      <!-- honeypot: bots fill it, humans never see it -->
+      <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true"
+             style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
+      <!-- Cloudflare Turnstile — replace data-sitekey below with your real site key
+           from the Cloudflare dashboard (Turnstile > add site). Verified server-side
+           in functions/api/contact.js against TURNSTILE_SECRET_KEY. -->
+      <div id="turnstile-widget" class="cf-turnstile" data-sitekey="REPLACE_WITH_TURNSTILE_SITE_KEY" data-theme="dark"></div>
+      <button class="cta" id="send" type="submit">Send Message</button>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+    </form>
+    <div class="socials">
+      <span class="lead">Or reach me on</span>
+      <!-- TODO: drop real profile URL for X in here -->
+      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a><a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a><a href="#" rel="me noopener">X</a>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+(function(){
+  "use strict";
+  /* ══════════ WINDOW STACK: loading, depth, motion ══════════
+     Three jobs, all of them things the naive version got wrong.
+
+     1. TRUE LAZY LOADING.  The clips are real files with preload="none" and
+        NO src attribute — the browser fetches nothing until we hand it one.
+        Previously they were base64 data URIs, which meant every visitor
+        downloaded ~780KB of video inside the HTML whether they ever saw a
+        card or not, and none of it could be cached separately from the page.
+        A poster frame (~5KB) paints instantly as the card background, so a
+        window is never an empty black rectangle.
+
+     2. COMPOSITOR-ONLY MOTION.  Hover animates transform and opacity only.
+        The resting and hover shadows are two static layers; we cross-fade
+        their opacity instead of transitioning box-shadow, which is a paint
+        operation and janks badly across eight overlapping cards.
+
+     3. POINTER PARALLAX.  Each card carries a data-depth; the pointer offsets
+        it proportionally, so the cluster resolves into real space instead of
+        a flat pile. Lerped toward the target every frame — no easing library,
+        no per-event layout. */
+
+  var stack = document.querySelector('.stack');
+  if(!stack) return;
+  var cards = Array.prototype.slice.call(stack.querySelectorAll('.card'));
+  var vids  = Array.prototype.slice.call(stack.querySelectorAll('video.clip'));
+  var RM    = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var FINE  = matchMedia('(pointer: fine)').matches;
+  var NARROW= matchMedia('(max-width: 1000px)').matches;
+
+  /* ── posters first: instant paint, ~5KB each ── */
+  vids.forEach(function(v){
+    if(v.dataset.poster) v.style.backgroundImage = 'url(' + v.dataset.poster + ')';
+  });
+
+  /* ── entrance: reveal once the first poster is decoded, so the stack
+        assembles onto something rather than onto nothing ── */
+  var revealed = false;
+  function reveal(){
+    if(revealed) return;                 /* the poster race and the 900ms
+                                            safety net both call this */
+    revealed = true;
+    requestAnimationFrame(function(){ stack.classList.add('ready'); });
+  }
+  var first = vids[0] && vids[0].dataset.poster;
+  if(first){
+    var img = new Image();
+    img.onload = img.onerror = reveal;
+    img.src = first;
+    setTimeout(reveal, 900);           /* never let a slow poster hold the page hostage */
+  } else { reveal(); }
+
+  /* ── lazy load + decode budget: a card only fetches when it is on screen,
+        and only decodes while it stays there ── */
+  function activate(v){
+    if(!v.src && v.dataset.src){ v.src = v.dataset.src; v.load(); }
+    if(!RM){
+      var p = v.play();
+      if(p && p.catch) p.catch(function(){
+        var resume = function(){ v.play().catch(function(){}); document.removeEventListener('pointerdown', resume); };
+        document.addEventListener('pointerdown', resume);
+      });
+    } else if(!v.dataset.held){
+      v.dataset.held = '1';
+      v.addEventListener('loadeddata', function(){ v.currentTime = 1; v.pause(); }, {once:true});
+    }
+  }
+
+  /* Remember which clips are actually on screen. The old visibilitychange
+     handler restarted EVERY loaded video on tab-return, including the ones the
+     observer had deliberately paused off-screen — which quietly undid the whole
+     decode budget the observer exists to enforce. */
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        e.target.dataset.onscreen = e.isIntersecting ? '1' : '';
+        if(e.isIntersecting) activate(e.target);
+        else e.target.pause();
+      });
+    }, { threshold:0.05, rootMargin:'200px' });   /* fetch just before it lands */
+    vids.forEach(function(v){ io.observe(v); });
+  } else {
+    vids.forEach(function(v){ v.dataset.onscreen = '1'; activate(v); });
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    vids.forEach(function(v){
+      if(document.hidden) v.pause();
+      else if(!RM && v.src && v.dataset.onscreen) v.play().catch(function(){});
+    });
+  });
+
+  /* ── pointer parallax ── */
+  if(RM || !FINE || NARROW) return;
+
+  var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+  var AMP = 26;                                   /* px of travel at depth 1.0 */
+
+  window.addEventListener('pointermove', function(e){
+    var r = stack.getBoundingClientRect();
+    tx = ((e.clientX - (r.left + r.width  / 2)) / (r.width  / 2)) || 0;
+    ty = ((e.clientY - (r.top  + r.height / 2)) / (r.height / 2)) || 0;
+    tx = Math.max(-1, Math.min(1, tx));
+    ty = Math.max(-1, Math.min(1, ty));
+    if(!raf) raf = requestAnimationFrame(tick);
+  }, { passive:true });
+
+  function tick(){
+    raf = null;
+    cx += (tx - cx) * 0.075;                      /* lerp — the whole trick */
+    cy += (ty - cy) * 0.075;
+    for(var i = 0; i < cards.length; i++){
+      var d = parseFloat(cards[i].dataset.depth) || 0.5;
+      cards[i].style.transform =
+        'translate3d(' + (-cx * AMP * d).toFixed(2) + 'px,' +
+                         (-cy * AMP * d).toFixed(2) + 'px,0)';
+    }
+    if(Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) raf = requestAnimationFrame(tick);
+  }
+
+  /* Let the stack drift back to rest when the pointer leaves.
+     This was bound to `document`, which is not an element and never receives
+     pointerleave — the cluster stayed frozen wherever the cursor last was.
+     documentElement does fire it; window.blur covers alt-tab. */
+  function rest(){ tx = 0; ty = 0; if(!raf) raf = requestAnimationFrame(tick); }
+  document.documentElement.addEventListener('pointerleave', rest);
+  window.addEventListener('blur', rest);
+})();
+</script>
+<!-- Cloudflare Turnstile widget script — deliberately no SRI/integrity: Cloudflare
+     serves this from a rotating, frequently-updated URL and explicitly recommends
+     against pinning it (https://developers.cloudflare.com/turnstile/). -->
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script is:inline>
+/* ══════════ CONTACT FORM ══════════
+   The old handler was a lie: it printed "✓ Message sent" after a 700ms
+   timeout, with no validation, no backend, and no way for anyone to tell that
+   nothing had been sent. It also fired on every click, so a bored visitor could
+   stack a dozen "sends".
+
+   Now: validate, block double-submit, announce the result to a live region,
+   and POST for real, to the Cloudflare Pages Function at /api/contact (see
+   functions/api/contact.js), which relays via Resend. Sends JSON and treats
+   any 2xx as success; on failure it falls back to showing FALLBACK so the
+   visitor still has a way to reach out.                                       */
+(function(){
+  "use strict";
+
+  var ENDPOINT = '/api/contact';
+  var FALLBACK = 'samuelabhinav37@gmail.com';
+
+  var form   = document.getElementById('contact-form');
+  var btn    = document.getElementById('send');
+  var status = document.getElementById('form-status');
+  if(!form || !btn || !status) return;
+
+  var F = {
+    nm: document.getElementById('nm'),
+    em: document.getElementById('em'),
+    ms: document.getElementById('ms')
+  };
+  var busy = false;
+
+  /* deliberately permissive — the server is the real validator; this is only
+     here to catch the obvious typo before it costs a round trip */
+  function emailish(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+
+  function mark(key, bad){
+    var wrap = form.querySelector('[data-field="' + key + '"]');
+    if(wrap) wrap.classList.toggle('invalid', !!bad);
+    F[key].setAttribute('aria-invalid', bad ? 'true' : 'false');
+  }
+  function say(msg, cls){
+    status.textContent = msg;
+    status.className = 'form-status' + (cls ? ' ' + cls : '');
+  }
+
+  function validate(){
+    var bad = null;
+    var nm = F.nm.value.trim(), em = F.em.value.trim(), ms = F.ms.value.trim();
+    mark('nm', !nm);            if(!nm) bad = bad || F.nm;
+    mark('em', !emailish(em));  if(!emailish(em)) bad = bad || F.em;
+    mark('ms', ms.length < 2);  if(ms.length < 2) bad = bad || F.ms;
+    if(bad){ bad.focus(); say('Three fields, that\u2019s all.', 'bad'); return null; }
+    var turnstileToken = (window.turnstile && window.turnstile.getResponse) ? window.turnstile.getResponse() : '';
+    return { name:nm, email:em, message:ms, company:(form.company ? form.company.value : ''), turnstileToken:turnstileToken };
+  }
+
+  /* clear an error the moment the visitor starts fixing it */
+  Object.keys(F).forEach(function(k){
+    F[k].addEventListener('input', function(){
+      var wrap = form.querySelector('[data-field="' + k + '"]');
+      if(wrap && wrap.classList.contains('invalid')) mark(k, false);
+    });
+  });
+
+  function done(ok, msg){
+    busy = false;
+    btn.disabled = false;
+    btn.classList.toggle('sent', ok);
+    btn.textContent = ok ? '\u2713 Message sent' : 'Send Message';
+    say(msg, ok ? 'ok' : 'bad');
+    if(window.turnstile && window.turnstile.reset) window.turnstile.reset();  /* tokens are single-use */
+    if(ok) setTimeout(function(){
+      btn.classList.remove('sent');
+      btn.textContent = 'Send Message';
+    }, 3200);
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(busy) return;
+
+    var data = validate();
+    if(!data) return;
+    if(data.company){ done(true, 'Received.'); return; }   /* honeypot: silent no-op */
+    if(!data.turnstileToken){ say('Please complete the verification check.', 'bad'); return; }
+
+    busy = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending\u2026';
+    say('Sending\u2026');
+
+    if(!ENDPOINT){
+      /* No backend wired. Say so, honestly, and give them the address. */
+      setTimeout(function(){
+        busy = false; btn.disabled = false; btn.textContent = 'Send Message';
+        say('Channel not wired yet \u2014 mail ' + FALLBACK, 'bad');
+      }, 500);
+      return;
+    }
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      form.reset();
+      done(true, 'Received. I\u2019ll come back to you.');
+    }).catch(function(){
+      done(false, 'Didn\u2019t get through \u2014 mail ' + FALLBACK);
+    });
+  });
+})();
+</script>
+<script is:inline>
+/* The case-file cards cluster on the left; the form column (mostly thin
+   text/underlines, no opaque blocks) plus the margins are genuinely open —
+   mark them so background craft spawn where they're actually visible. */
+window.NEBULA_SAFE_ZONES = [
+  {x0:0.58, y0:0.05, x1:1, y1:0.9 },  // form column + right margin
+  {x0:0,    y0:0,    x1:1, y1:0.1},   // top strip
+  {x0:0,    y0:0.88, x1:1, y1:1  },   // bottom strip
+];
+</script>
+<script is:inline src="/scripts/nebula-engine.js"></script>
+<script is:inline>
+/* The Contact page has no 6.4s intro choreography. Boot the ported network
+   immediately and settle it to its final lit state (mirrors the homepage
+   intro's returning-visitor fast-path). */
+(function(){
+  window._introRevealReady = true;
+  window._introFullyDone   = true;
+  /* Matched to the homepage's settled brightness (was dimmed lower here
+     for form legibility) so the background reads the same across pages. */
+  window._bgBoost = 0.95;
+  try { if (window.U && U.uBright) U.uBright.value = 0.6; } catch(e){}
+  try { startBootSeq(); }
+  catch(e){ try { window.NS && window.NS.startBootSeq && window.NS.startBootSeq(); } catch(_){} }
+})();
+</script>
+<script is:inline>
+/* ──────────────────────────────────────────────────────────────────
+   PAGE VISIBILITY HARD-PAUSE
+   The browser already throttles requestAnimationFrame in hidden tabs
+   to ~1Hz, but rAF callbacks still fire and accumulate state (U.uTime,
+   freighter/asteroid drift, satellite paths). When the user returns
+   they see "the network has been busy" — correct creative read but
+   wastes battery. We discard the accumulated threeClock delta on
+   show so scene time stands still while the tab is in the background.
+   ────────────────────────────────────────────────────────────────── */
+(function(){
+  'use strict';
+  if(typeof threeClock === 'undefined') return;
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && threeClock && typeof threeClock.getDelta === 'function'){
+      threeClock.getDelta(); /* drop the accumulated background dt */
+    }
+  });
+})();
+</script>
+<script is:inline>
+(function(){
+  var f = document.getElementById('luna-frame');
+  /* Parent → Luna iframe bridge.
+     Two jobs:
+       1. Forward every page-level mousemove to the iframe (translated to
+          iframe-local coords) so Luna's gaze tracks across the whole page,
+          not only when the user is hovering directly over her.
+       2. Fire a random subtle action every 7-14s once she's arrived so
+          she doesn't just sit there blinking. Skips when the document is
+          hidden so she doesn't burn cycles in a background tab.            */
+
+  var wrap = document.getElementById('luna-wrap');
+  if(f && wrap){
+    /* Cache the wrap rect and refresh it only when layout can actually
+       change (resize/scroll), instead of reading it on every mousemove —
+       a per-event getBoundingClientRect forces a layout flush. */
+    var _lunaRect = wrap.getBoundingClientRect();
+    function _refreshLunaRect(){ _lunaRect = wrap.getBoundingClientRect(); }
+    addEventListener('resize', _refreshLunaRect, {passive:true});
+    addEventListener('scroll', _refreshLunaRect, {passive:true});
+    /* Luna arrives ~5s in and the layout settles after the intro, so
+       refresh once it's done to capture her final position. */
+    setTimeout(_refreshLunaRect, 6500);
+
+    /* Coalesce gaze updates to at most one message per animation frame.
+       Raw mousemove can fire dozens of times per frame; without this each
+       one paid a structured-clone postMessage across the iframe boundary. */
+    var _lmX=0, _lmY=0, _lmQueued=false;
+    /* pointermove covers mouse hover AND touch-drag, so Luna's gaze tracks
+       on phones/tablets too (mousemove never fires for touch). */
+    document.addEventListener('pointermove', function(e){
+      _lmX = e.clientX; _lmY = e.clientY;
+      if(_lmQueued) return;
+      _lmQueued = true;
+      requestAnimationFrame(function(){
+        _lmQueued = false;
+        if(f.contentWindow){
+          try{
+            f.contentWindow.postMessage(
+              {type:'lunaMouse', x: _lmX - _lunaRect.left, y: _lmY - _lunaRect.top}, location.origin);
+          }catch(_){}
+        }
+      });
+    }, {passive:true});
+
+    /* 'stretch' joins the gentle rotation; the sharper set-pieces (startle,
+       signal, patrol) run on their own slower scheduler below so they read
+       as punctuation rather than tics. */
+    var IDLE_ACTIONS = ['blink','wink','nod','wiggle','glitch','yawn','stretch'];
+    var _perfRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var _perfBusy = false;
+    function perform(name, ms){
+      if(_perfRM || _perfBusy || !window._introFullyDone || document.hidden) return false;
+      _perfBusy = true;
+      try{ f.contentWindow && f.contentWindow.postMessage({type:'lunaAction', name:name}, location.origin); }catch(_){}
+      setTimeout(function(){ _perfBusy = false; }, ms || 1600);
+      return true;
+    }
+    function pickIdle(){ return IDLE_ACTIONS[Math.floor(Math.random()*IDLE_ACTIONS.length)]; }
+    function scheduleIdle(){
+      var ms = 7000 + Math.random()*7000;
+      setTimeout(function(){
+        if(!document.hidden && window._introFullyDone && !_perfBusy && f.contentWindow){
+          try{
+            f.contentWindow.postMessage({type:'lunaAction', name: pickIdle()}, location.origin);
+          }catch(_){}
+        }
+        scheduleIdle();
+      }, ms);
+    }
+    /* ── Performance triggers: dwell, not scroll ──
+       This page is a fixed single viewport (body overflow:hidden), so scrollY
+       never moves and the homepage's scroll-depth milestones cannot fire here.
+       A slow dwell cadence stands in: she settles, then punctuates. */
+    var _perfPieces = ['signal','patrol','startle'], _perfIdx = 0;
+    (function schedulePerform(){
+      setTimeout(function(){
+        var name = _perfPieces[_perfIdx % _perfPieces.length];
+        if(perform(name, name === 'patrol' ? 4200 : 1600)) _perfIdx++;
+        schedulePerform();
+      }, 38000 + Math.random()*32000);
+    })();
+
+    /* First idle waits past intro + Luna's arrival */
+    setTimeout(scheduleIdle, 7000);
+
+    /* ---------- context-driven costume + emotes:  costume = f(page, time, dwell) ----------
+       Persistent COSTUME is resolved from real page signals and pushed only when it
+       changes; momentary EMOTES fire on events. (Page-specific costumes — Reader on the
+       blog, Comms on contact, Guide on the globe tour — get wired where those sections live;
+       here we drive the homepage from time, dwell and scroll depth.) */
+    var _lunaStart = Date.now(), _lastCostume = null;
+    function _send(msg){ if(f.contentWindow){ try{ f.contentWindow.postMessage(msg, location.origin); }catch(_){ } } }
+    /* This came over from the homepage unchanged, and its first real test was
+       `scrollY < innerHeight * 0.5` — on a page with overflow:hidden, scrollY is
+       permanently 0, so Luna wore the homepage greeter's BOWTIE on the contact
+       page, forever. The engine has had a 'comms' role (the headset — "Contact ·
+       Comms") sitting unused this whole time. She wears it here now, and still
+       settles in with the mug on a long dwell. */
+    function resolveCostume(){
+      if(Date.now() - _lunaStart > 300000) return 'settled';      // dwell > 5 min: settled in
+      return 'comms';                                             // this is the contact page — headset on
+    }
+    function updateCostume(){
+      if(!window._introFullyDone) return;
+      var c = resolveCostume();
+      if(c !== _lastCostume){ _lastCostume = c; _send({type:'lunaCostume', key:c}); }
+    }
+    /* No scroll on this page, so the scroll-driven costume refresh is dead
+       weight; the 30s interval catches the dwell crossing on its own. */
+    setInterval(updateCostume, 30000);                            // catch the dwell crossing
+
+    /* Arrival: once she's through the portal, dress for context + a small delighted hello. */
+    var _greeted=false;
+    (function waitArrival(){
+      if(window._introFullyDone && !_greeted){
+        _greeted=true;
+        updateCostume();
+        setTimeout(function(){ _send({type:'lunaEmote', name:'sparkle', hold:1800}); }, 400);
+        setTimeout(function(){ _send({type:'lunaAction', name:'wave'}); }, 750);
+        return;
+      }
+      setTimeout(waitArrival, 600);
+    })();
+
+    /* ── Discovery: the corner companion is silent otherwise, so this quip is
+         the invitation to ask her something. Mentions it once shortly after
+         arriving, then repeats a fresh line every ~65s (clicking the quip
+         opens the chat) until the visitor actually opens it once, at which
+         point she stops nudging for the rest of the visit. ── */
+    var _quipEl = document.getElementById('luna-quip'), _quipT = null, _quipTopic = null;
+    function showQuip(text, topic, ms){
+      if(!_quipEl || !text) return;
+      _quipTopic = topic || null;
+      _quipEl.innerHTML = text + (topic ? '<span class="lq-hint">tap to chat</span>' : '');
+      _quipEl.classList.toggle('lq-clickable', !!topic);
+      _quipEl.classList.add('show');
+      clearTimeout(_quipT);
+      _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, ms || 6000);
+    }
+    if(_quipEl){
+      _quipEl.addEventListener('click', function(){
+        if(!_quipTopic) return;
+        clearTimeout(_quipT); _quipEl.classList.remove('show');
+        if(window.LunaChat && window.LunaChat.askTopic){ window.LunaChat.askTopic(_quipTopic); }
+      });
+      _quipEl.addEventListener('mouseenter', function(){ clearTimeout(_quipT); });
+      _quipEl.addEventListener('mouseleave', function(){ clearTimeout(_quipT); _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, 1500); });
+    }
+    var NUDGE_LINES = [
+      "hi, i'm Luna! ask me anything.",
+      "need a hand? just ask.",
+      "curious about something here? ask away.",
+      "happy to help you find your way around."
+    ];
+    var _nudgeI = 0, _nudgeCount = 0, NUDGE_INTERVAL = 65000, MAX_NUDGES = 5;
+    function scheduleNudge(){
+      setTimeout(function(){
+        if(!window.__lunaEverOpened && _nudgeCount < MAX_NUDGES
+           && !(window.LunaChat && window.LunaChat.isOpen())){
+          showQuip(NUDGE_LINES[_nudgeI % NUDGE_LINES.length], 'greeting', 7000);
+          _nudgeI++; _nudgeCount++;
+        }
+        if(!window.__lunaEverOpened && _nudgeCount < MAX_NUDGES) scheduleNudge();
+      }, NUDGE_INTERVAL);
+    }
+    setTimeout(function(){
+      showQuip(NUDGE_LINES[0], 'greeting', 7000);
+      _nudgeI = 1; _nudgeCount = 1;
+      scheduleNudge();
+    }, 1250);
+  }
+})();
+</script>
+
+<script is:inline>
+/* Luna arrival on the Contact page — no intro timeline here, so fire the
+   portal bloom once shortly after load; the greet (wave + sparkle) inside
+   the Luna embed self-triggers off window._introFullyDone. */
+(function(){
+  var portal = document.getElementById('luna-portal');
+  if(!portal) return;
+  setTimeout(function(){ portal.classList.add('opening'); }, 600);
+})();
+</script>
+<script is:inline>
+var THREE = {}; /* particle engine disabled; stub keeps class parseable */
+
+/* ════════════════════════════════════════════════════════════════════════
+   RECONSTRUCTION ENGINE  ·  config-driven, one module for all 8 cards
+   ------------------------------------------------------------------------
+   Usage:
+     const card = new ReconCard(rootEl, CONFIG);
+   Where CONFIG defines the still, aspect, motion type, event and HUD.
+
+   Motion types (mode uniform):
+     0 DRIFT  — baseline orbit + event pushes the anomaly mask outward
+     1 SCAN   — a reveal line sweeps; particles light as it passes; mask ignites
+     2 BREACH — surface held; event bursts the mask region forward
+     3 TRACK  — figure stays formed; motion is in the HUD, not the points
+   ════════════════════════════════════════════════════════════════════════ */
+
+const MODE = { DRIFT:0, SCAN:1, BREACH:2, TRACK:3 };
+
+/* ---------- sampling: still -> home positions + anomaly mask ---------- */
+function sampleImage(img, target, cfg){
+  const nw = img.naturalWidth || img.width || 0;
+  const nh = img.naturalHeight || img.height || 0;
+  if(!nw || !nh){ throw new Error('image not decoded (nat '+nw+'x'+nh+')'); }
+  const cw = 520, ch = Math.max(2, Math.round(cw * nh / nw));
+  const cv = document.createElement('canvas'); cv.width=cw; cv.height=ch;
+  const c = cv.getContext('2d',{willReadFrequently:true});
+  c.drawImage(img,0,0,cw,ch);
+  const data = c.getImageData(0,0,cw,ch).data;
+  const mask = cfg.anomalyMask; // {x0,y0,x1,y1} in normalized coords or null
+
+  const cand=[];
+  for (let y=0;y<ch;y++) for (let x=0;x<cw;x++){
+    const i=(y*cw+x)*4;
+    const l=(data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114)/255;
+    if (l>0.10){
+      const keep = Math.min(0.7, l*0.85);
+      if (Math.random()<keep) cand.push([x/cw, y/ch, l]);
+    }
+  }
+  for (let i=cand.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [cand[i],cand[j]]=[cand[j],cand[i]]; }
+
+  const N = Math.min(target, cand.length);
+  const side = Math.max(2, Math.ceil(Math.sqrt(N)));
+  const total = side*side;
+  const home = new Float32Array(total*4);
+  const seed = new Float32Array(total*4);
+  const aspect = ch/cw;
+
+  for (let k=0;k<total;k++){
+    const src = cand[k % cand.length];
+    const wx = (src[0]-0.5)*2.0;
+    const wy = (0.5-src[1])*2.0*aspect;
+    const wz = (Math.random()-0.5)*0.10;
+    let isAnom = 0.0;
+    if (mask && src[0]>=mask.x0 && src[0]<=mask.x1 && src[1]>=mask.y0 && src[1]<=mask.y1) isAnom=1.0;
+    home[k*4]=wx; home[k*4+1]=wy; home[k*4+2]=wz; home[k*4+3]=isAnom;
+    seed[k*4]=Math.random(); seed[k*4+1]=Math.random(); seed[k*4+2]=Math.random(); seed[k*4+3]=src[2];
+  }
+  return { side, total, home, seed, aspect };
+}
+
+/* ---------- shaders ---------- */
+const simVert = `
+  attribute vec2 uvRef; varying vec2 vUv;
+  void main(){ vUv=uvRef; gl_Position=vec4(position.xy,0.,1.); }`;
+
+const simFrag = `
+  precision highp float;
+  uniform sampler2D uHome, uSeed;
+  uniform float uTime, uDrift, uEvent, uPush, uMode;
+  varying vec2 vUv;
+  vec3 hash3(vec3 p){
+    p=vec3(dot(p,vec3(127.1,311.7,74.7)),dot(p,vec3(269.5,183.3,246.1)),dot(p,vec3(113.5,271.9,124.6)));
+    return fract(sin(p)*43758.5453)*2.0-1.0;
+  }
+  void main(){
+    vec4 h=texture2D(uHome,vUv); vec4 s=texture2D(uSeed,vUv);
+    vec3 home=h.xyz; float anom=h.w;
+    float t=uTime*0.25 + s.x*6.28;
+    vec3 n=hash3(home*3.0 + s.xyz*10.0);
+    vec3 orbit=vec3(sin(t+n.x*6.28),cos(t*1.1+n.y*6.28),sin(t*0.7+n.z*6.28))
+               *(0.02+0.05*uDrift)*(0.5+s.w);
+    vec3 pos=home+orbit;
+    float reveal=1.0; // for SCAN: dim particles the sweep hasn't reached
+
+    // ---- DRIFT (0): anomaly mask flees outward on event ----
+    if (uMode < 0.5){
+      if (anom>0.5){
+        vec3 dir=normalize(home+vec3(0.4,0.4,0.0));
+        pos+=dir*uEvent*uPush*(0.35+0.4*s.y);
+        pos+=hash3(home*7.0+uTime*0.5)*uEvent*0.06;
+      }
+    }
+    // ---- SCAN (1): a horizontal line sweeps bottom->top each event ----
+    else if (uMode < 1.5){
+      float sweepY = mix(-1.2, 1.4, fract(uTime*0.12));
+      float d = home.y - sweepY;
+      float lit = smoothstep(0.35,0.0,abs(d));
+      reveal = 0.35 + 0.65*step(home.y, sweepY+0.05); // revealed once passed
+      pos += vec3(0.0,0.0,lit*0.15);                   // slight pop as scanned
+      if (anom>0.5){ // the flagged cell ignites when scanned
+        pos += hash3(home*9.0)*uEvent*0.05;
+      }
+    }
+    // ---- BREACH (2): mask region bursts forward on event ----
+    else if (uMode < 2.5){
+      if (anom>0.5){
+        vec3 dir=normalize(vec3(0.6,0.1,0.8)+n*0.3);
+        pos+=dir*uEvent*uPush*(0.5+0.6*s.y);
+      }
+    }
+    // ---- TRACK (3): figure holds; only gentle drift ----
+    // (points barely move; the story is in the HUD)
+
+    gl_FragColor=vec4(pos, anom + reveal*0.001); // pack reveal in tiny w offset
+  }`;
+
+const renderVert = `
+  precision highp float;
+  uniform sampler2D uPos; uniform float uSize, uDpr;
+  attribute vec2 uvRef; varying float vAnom, vDepth, vReveal;
+  void main(){
+    vec4 p=texture2D(uPos,uvRef);
+    vAnom=floor(p.w);
+    vReveal=fract(p.w)*1000.0;
+    vec4 mv=modelViewMatrix*vec4(p.xyz,1.0);
+    vDepth=-mv.z;
+    gl_Position=projectionMatrix*mv;
+    gl_PointSize=uSize*uDpr*(2.6/-mv.z*3.15);
+  }`;
+
+const renderFrag = `
+  precision highp float;
+  varying float vAnom, vDepth, vReveal;
+  uniform float uEventProg;
+  void main(){
+    vec2 d=gl_PointCoord-0.5; float r=length(d);
+    if(r>0.5) discard;
+    float a=smoothstep(0.5,0.28,r)*0.85;
+    vec3 base=vec3(0.82,0.87,0.96);
+    vec3 hot=vec3(1.0,0.29,0.11);
+    vec3 col=mix(base,hot, vAnom*uEventProg);
+    // gentle lift as the wave passes — soft, no hard flash
+    col += vec3(0.05,0.07,0.10) * uEventProg;
+    float df=clamp(1.4-vDepth*0.5,0.30,1.0);
+    float rev = mix(1.0, clamp(vReveal,0.35,1.0), step(0.001, vReveal)); // SCAN dim
+    float surge = 1.0 + 0.18*uEventProg;   // subtle opacity lift on the wave
+    gl_FragColor=vec4(col, a*df*rev*surge);
+  }`;
+
+/* ---------- a single card instance ---------- */
+class ReconCard {
+  constructor(root, cfg){
+    this.root = root; this.cfg = Object.assign({
+      mode:MODE.DRIFT, count:50, drift:0.5, size:0.9, push:1.0,
+      aspect:[5,7], anomalyMask:null, autoEvery:10, eventHold:1.6
+    }, cfg);
+    this.DPR = Math.min(2, window.devicePixelRatio||1);
+    this.eventProg=0; this.eventTarget=0; this.autoTimer=0;
+    this.running=false; this.visible=false;
+    this._build();
+  }
+
+  _build(){
+    const glc = this.root.querySelector('canvas.gl');
+    const hud = this.root.querySelector('canvas.hud');
+    this.glc=glc; this.hud=hud; this.hctx=hud.getContext('2d');
+    this.img = this.root.querySelector('img.src');
+
+    this.renderer=new THREE.WebGLRenderer({canvas:glc,alpha:true,antialias:false,powerPreference:'high-performance'});
+    this.renderer.setClearColor(0x000000,0);
+    this.renderer.setPixelRatio(this.DPR);
+
+    const s=sampleImage(this.img, this.cfg.count*1000, this.cfg);
+    this.side=s.side; this.count=s.total;
+    this.homeTex=this._tex(s.home,s.side);
+    this.seedTex=this._tex(s.seed,s.side);
+
+    this.rt=new THREE.WebGLRenderTarget(s.side,s.side,{type:THREE.FloatType,format:THREE.RGBAFormat,
+      minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false});
+
+    this.simScene=new THREE.Scene();
+    this.simCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+    const quad=new THREE.PlaneGeometry(2,2);
+    quad.setAttribute('uvRef',new THREE.BufferAttribute(new Float32Array([0,0,1,0,0,1,1,1]),2));
+    this.simMat=new THREE.ShaderMaterial({vertexShader:simVert,fragmentShader:simFrag,uniforms:{
+      uHome:{value:this.homeTex},uSeed:{value:this.seedTex},uTime:{value:0},
+      uDrift:{value:this.cfg.drift},uEvent:{value:0},uPush:{value:this.cfg.push},uMode:{value:this.cfg.mode}
+    }});
+    this.simScene.add(new THREE.Mesh(quad,this.simMat));
+
+    this.scene=new THREE.Scene();
+    this.cam=new THREE.PerspectiveCamera(45, this.cfg.aspect[0]/this.cfg.aspect[1], 0.1, 20);
+    this.cam.position.z=3.15;
+
+    const geo=new THREE.BufferGeometry();
+    const refs=new Float32Array(this.count*2), dummy=new Float32Array(this.count*3);
+    for(let i=0;i<this.count;i++){ refs[i*2]=(i%this.side+0.5)/this.side; refs[i*2+1]=(Math.floor(i/this.side)+0.5)/this.side; }
+    geo.setAttribute('position',new THREE.BufferAttribute(dummy,3));
+    geo.setAttribute('uvRef',new THREE.BufferAttribute(refs,2));
+    this.posMat=new THREE.ShaderMaterial({vertexShader:renderVert,fragmentShader:renderFrag,uniforms:{
+      uPos:{value:this.rt.texture},uSize:{value:this.cfg.size},uDpr:{value:this.DPR},uEventProg:{value:0}
+    },transparent:true,depthTest:false,depthWrite:false,blending:THREE.NormalBlending});
+    this.points=new THREE.Points(geo,this.posMat);
+    this.scene.add(this.points);
+
+    this.resize();
+    // cards may animate in with a transition-delay; re-measure once settled
+    setTimeout(()=>this.resize(), 400);
+    setTimeout(()=>this.resize(), 1000);
+    window.addEventListener('resize',()=>this.resize());
+    this._observe();
+  }
+
+  _tex(data,side){ const t=new THREE.DataTexture(data,side,side,THREE.RGBAFormat,THREE.FloatType); t.needsUpdate=true; return t; }
+
+  resize(){
+    const r=this.root.getBoundingClientRect();
+    const w=Math.max(1,r.width), h=Math.max(1,r.height);
+    this.renderer.setSize(w,h,false);
+    this.cam.aspect=w/h; this.cam.updateProjectionMatrix();
+    this.hud.width=Math.round(w*this.DPR); this.hud.height=Math.round(h*this.DPR);
+  }
+
+  // only run while on screen (Phase-4 performance contract)
+  _observe(){
+    // start running immediately; the observer only PAUSES when off-screen.
+    this.visible = true;
+    this.running = true;
+    this._loop();
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(es=>{
+        const on = es[0].isIntersecting;
+        this.visible = on;
+        if(on && !this.running){ this.running=true; this._loop(); }
+      },{threshold:0});
+      io.observe(this.root);
+    }
+  }
+
+  trigger(){ this.eventTarget=1; clearTimeout(this._evT); this._evT=setTimeout(()=>this.eventTarget=0, this.cfg.eventHold*1000); }
+
+  // continuous wave energy (0..1) from the conductor — smoothly sets the target
+  setWave(e){ this._wave = e; }
+
+  _loop(){
+    if(!this.visible){ this.running=false; return; } // stop when off-screen
+    const now=performance.now(); if(!this.t0)this.t0=now;
+    const t=(now-this.t0)/1000;
+
+    if(this.cfg.autoEvery){
+      this.autoTimer+=1/60;
+      if(this.autoTimer>this.cfg.autoEvery){ this.autoTimer=0; this.trigger(); }
+    }
+    // The wave conductor sets this._wave (0..1) as a smooth, flowing target.
+    // eventProg eases toward it gently so motion is continuous, never snappy.
+    var target = (this._wave != null) ? this._wave : this.eventTarget;
+    this.eventProg += (target - this.eventProg) * 0.08;
+
+    this.simMat.uniforms.uTime.value=t;
+    this.simMat.uniforms.uEvent.value=this.eventProg;
+    this.renderer.setRenderTarget(this.rt);
+    this.renderer.render(this.simScene,this.simCam);
+    this.renderer.setRenderTarget(null);
+
+    this.posMat.uniforms.uEventProg.value=this.eventProg;
+    this.renderer.render(this.scene,this.cam);
+
+    if(this.cfg.drawHUD) this.cfg.drawHUD(this.hctx, this.hud, this.eventProg, t, this.DPR);
+
+    requestAnimationFrame(()=>this._loop());
+  }
+}
+
+const hudGeneric=(ctx,cv,ev,t,dpr)=>{
+  const W=cv.width,H=cv.height,S=dpr; ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(190,215,255,0.20)';ctx.lineWidth=1*S;
+  ctx.beginPath();ctx.moveTo(W-15*S,H-6*S);ctx.lineTo(W-6*S,H-6*S);ctx.lineTo(W-6*S,H-15*S);ctx.stroke();
+  if(ev>0.06){const a=Math.min(1,ev*1.5);
+    ctx.fillStyle='rgba(255,90,40,'+a+')';ctx.textAlign='right';
+    ctx.font=(8*S)+"px 'JetBrains Mono',monospace";
+    ctx.fillText('\u25CF EVENT',W-15*S,18*S);}
+};
+function mountAll(){
+  var stack=document.querySelector('.stack'); if(stack) stack.classList.add('ready');
+  window._dbg=function(){};
+  return; // particles disabled — cards use the real image base + HUD
+  document.querySelectorAll('.recon-card').forEach(function(marker){
+    const inner=marker.closest('.card-inner');
+    const img=inner.querySelector('img.src');
+    const ap=marker.dataset.aspect.split(',').map(Number);
+    const maskStr=marker.dataset.mask; let mask=null;
+    if(maskStr){const m=maskStr.split(',').map(Number);mask={x0:m[0],y0:m[1],x1:m[2],y1:m[3]};}
+    const mode=MODE[marker.dataset.mode]!=null?MODE[marker.dataset.mode]:MODE.DRIFT;
+    const start=function(){try{
+      const r=inner.getBoundingClientRect();
+      const c=new ReconCard(inner,{mode:mode,aspect:ap,anomalyMask:mask,
+        autoEvery:0,drift:0.45,push:1.0,size:1.0,drawHUD:hudGeneric});
+      const seq=Number(marker.dataset.seq)||99;
+      window._RC=window._RC||[]; window._RC.push({seq:seq, card:c});
+      window._dbg && window._dbg(marker.dataset.mode+' seq'+seq+' pts='+(c.count||'?')+' vis='+c.visible);
+    }catch(e){console.error('card mount failed',e); window._dbg && window._dbg('FAIL '+marker.dataset.mode+': '+e.message);}};
+    if(img.decode){ img.decode().then(start).catch(function(){ window._dbg && window._dbg('decode fail '+marker.dataset.mode); start(); }); }
+    else if(img.complete&&img.naturalWidth)start();
+    else { img.onload=start; img.onerror=function(){ window._dbg && window._dbg('img ERROR '+marker.dataset.mode+' src='+(img.getAttribute('src')||'').slice(-24)); }; }
+  });
+}
+if(document.readyState!=='loading')mountAll(); else document.addEventListener('DOMContentLoaded',mountAll);
+
+/* ── HUD LAYER + GENTLE SYNC ─────────────────────────────────────────────
+   Each card gets its own data readout matching its story beat, drawn sharp
+   on the .hud canvas above the particles. A single slow global phase gives
+   the whole board a shared, gentle breath (the "sync") without hard beats.  */
+
+// slow global breath 0..1, shared by every HUD so the board feels unified
+window._phase = 0;
+(function breathe(){ window._phase = (performance.now()/1000); requestAnimationFrame(breathe); })();
+
+// helper: standard corner ticks + shared breath glow
+function hudChrome(ctx,W,H,S,t){
+  ctx.strokeStyle='rgba(190,215,255,0.28)';ctx.lineWidth=1*S;
+  ctx.beginPath();ctx.moveTo(W-15*S,H-6*S);ctx.lineTo(W-6*S,H-6*S);ctx.lineTo(W-6*S,H-15*S);ctx.stroke();
+}
+function mono(ctx,S){ ctx.font=(8*S)+"px 'JetBrains Mono',monospace"; }
+
+// ---- per-card HUD draw functions, keyed by seq ----
+var HUDS = {
+  1: function(ctx,W,H,S,t){ // RECON — scan line, dead node, subnet
+    mono(ctx,S);
+    var sy=H*(0.16+0.46*(0.5+0.5*Math.sin(t*0.4)));
+    ctx.strokeStyle='rgba(140,180,255,0.5)';ctx.lineWidth=1*S;
+    ctx.beginPath();ctx.moveTo(W*0.46,sy);ctx.lineTo(W*0.93,sy);ctx.stroke();
+    ctx.fillStyle='rgba(140,180,255,0.62)';ctx.textAlign='left';
+    ctx.fillText('SCAN \u25b8 '+Math.floor(210+40*Math.sin(t*0.7))+' HOSTS',W*0.47,sy-5*S);
+    var dx=W*0.82,dy=H*0.11,p=0.5+0.5*Math.sin(t*2);
+    ctx.strokeStyle='rgba(255,74,28,'+(0.55+0.4*p)+')';ctx.lineWidth=1*S;
+    ctx.beginPath();ctx.arc(dx,dy,(8+p*4)*S,0,6.28);ctx.stroke();
+    ctx.beginPath();ctx.arc(dx,dy,2.3*S,0,6.28);ctx.fillStyle='rgba(255,74,28,'+(0.7+0.3*p)+')';ctx.fill();
+    ctx.fillStyle='rgba(255,95,45,0.95)';ctx.textAlign='left';
+    ctx.fillText('DANGLING CNAME',W*0.26,dy-5*S);
+    ctx.fillStyle='rgba(255,95,45,0.6)';ctx.fillText('\u2192 NXDOMAIN',W*0.26,dy+7*S);
+    ctx.fillStyle='rgba(140,180,255,0.4)';ctx.textAlign='right';
+    ctx.fillText('10.4.0.0/16',W-10*S,H-12*S);
+    hudChrome(ctx,W,H,S,t);
+  },
+  2: function(ctx,W,H,S,t){ // ACCESS — breach box, PUT->200
+    mono(ctx,S);
+    var bx=W*0.6,by=H*0.5,p=0.5+0.5*Math.sin(t*2.2);
+    ctx.strokeStyle='rgba(255,74,28,'+(0.55+0.4*p)+')';ctx.lineWidth=1.2*S;
+    ctx.strokeRect(bx-22*S,by-20*S,44*S,40*S);
+    ctx.beginPath();ctx.moveTo(bx-22*S,by);ctx.lineTo(W*0.4,by-H*0.06);ctx.strokeStyle='rgba(255,74,28,0.4)';ctx.lineWidth=1*S;ctx.stroke();
+    ctx.fillStyle='rgba(255,95,45,0.95)';ctx.textAlign='left';
+    ctx.fillText('PUT /x.jsp \u2192 200',W*0.14,by-H*0.06-4*S);
+    ctx.fillStyle='rgba(140,180,255,0.45)';ctx.textAlign='right';
+    ctx.fillText('PARTIAL PUT',W-10*S,20*S);
+    ctx.fillText('BREACH \u25b8 :8080',W-10*S,H-12*S);
+    hudChrome(ctx,W,H,S,t);
+  },
+  3: function(ctx,W,H,S,t){ // PAYLOAD — section markers, C2
+    mono(ctx,S);
+    ctx.strokeStyle='rgba(140,180,255,0.4)';ctx.lineWidth=1*S;ctx.textAlign='left';
+    var secs=[['0x00 .text',0.32],['0x40 .rdata',0.5],['main.init()',0.68]];
+    for(var k=0;k<secs.length;k++){var y=H*secs[k][1];
+      ctx.beginPath();ctx.moveTo(W*0.5,y);ctx.lineTo(W*0.6,y);ctx.stroke();
+      ctx.fillStyle='rgba(140,180,255,0.5)';ctx.fillText(secs[k][0],W*0.62,y+3*S);}
+    var p=0.5+0.5*Math.sin(t*2);
+    ctx.fillStyle='rgba(255,95,45,'+(0.7+0.3*p)+')';ctx.textAlign='left';
+    ctx.fillText('C2 \u25b8 :443',W*0.5,H*0.84);
+    ctx.beginPath();ctx.arc(W*0.46,H*0.835,2.5*S,0,6.28);ctx.fillStyle='rgba(255,74,28,'+(0.7+0.3*p)+')';ctx.fill();
+    ctx.fillStyle='rgba(140,180,255,0.4)';ctx.textAlign='right';ctx.fillText('GHIDRA',W-10*S,20*S);
+    hudChrome(ctx,W,H,S,t);
+  },
+  5: function(ctx,W,H,S,t){ // ANOMALY — baseline ellipse, outlier box
+    mono(ctx,S);
+    ctx.strokeStyle='rgba(140,180,255,0.32)';ctx.lineWidth=1*S;ctx.setLineDash([3*S,3*S]);
+    ctx.beginPath();ctx.ellipse(W*0.64,H*0.6,W*0.28,H*0.26,0,0,6.28);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(140,180,255,0.5)';ctx.textAlign='left';ctx.fillText('BASELINE \u03c3',W*0.4,H*0.3);
+    var ox=W*0.82,oy=H*0.12,p=0.5+0.5*Math.sin(t*1.8);
+    ctx.strokeStyle='rgba(255,74,28,'+(0.55+0.35*p)+')';ctx.lineWidth=1*S;
+    ctx.strokeRect(ox-15*S,oy-13*S,30*S,26*S);
+    ctx.fillStyle='rgba(255,95,45,0.95)';ctx.textAlign='right';ctx.fillText('ANOMALY',ox-19*S,oy-3*S);
+    ctx.fillStyle='rgba(255,95,45,0.65)';ctx.fillText('\u03c3 4.7',ox-19*S,oy+8*S);
+    ctx.fillStyle='rgba(140,180,255,0.4)';ctx.textAlign='right';
+    ctx.fillText('PKT/S '+Math.floor(1200+180*Math.sin(t*3)),W-10*S,H-12*S);
+    hudChrome(ctx,W,H,S,t);
+  },
+  6: function(ctx,W,H,S,t){ // DETECTION — match box, rule
+    mono(ctx,S);
+    var mx=W*0.63,my=H*0.55,p=0.5+0.5*Math.sin(t*2.4);
+    ctx.strokeStyle='rgba(255,74,28,'+(0.55+0.4*p)+')';ctx.lineWidth=1.2*S;
+    ctx.strokeRect(mx-16*S,my-14*S,32*S,28*S);
+    ctx.fillStyle='rgba(255,95,45,0.95)';ctx.textAlign='left';ctx.fillText('1 MATCH',mx+22*S,my);
+    ctx.fillStyle='rgba(140,180,255,0.5)';ctx.textAlign='left';
+    ctx.fillText('rule: proc_create',W*0.42,H*0.24);
+    ctx.fillStyle='rgba(140,180,255,0.4)';ctx.textAlign='right';ctx.fillText('SIGMA \u25b8 SPL',W-10*S,H-12*S);
+    hudChrome(ctx,W,H,S,t);
+  },
+  7: function(ctx,W,H,S,t){ // IDENTITY — gate, step-up denied
+    mono(ctx,S);
+    ctx.strokeStyle='rgba(140,180,255,0.4)';ctx.lineWidth=1*S;
+    ctx.beginPath();ctx.moveTo(W*0.5,H*0.2);ctx.lineTo(W*0.5,H*0.8);ctx.stroke();
+    ctx.fillStyle='rgba(140,180,255,0.5)';ctx.textAlign='left';ctx.fillText('GATE',W*0.53,H*0.24);
+    var p=0.5+0.5*Math.sin(t*2);
+    ctx.fillStyle='rgba(255,95,45,'+(0.7+0.3*p)+')';ctx.textAlign='right';
+    ctx.fillText('STEP-UP \u25b8 DENIED',W-10*S,H*0.55);
+    ctx.fillStyle='rgba(140,180,255,0.4)';ctx.fillText('RISK 0.91',W-10*S,H-12*S);
+    hudChrome(ctx,W,H,S,t);
+  },
+  8: function(ctx,W,H,S,t){ // CONTAINMENT — flatline, host isolated
+    mono(ctx,S);
+    ctx.strokeStyle='rgba(140,180,255,0.5)';ctx.lineWidth=1*S;
+    var y=H*0.55;ctx.beginPath();ctx.moveTo(W*0.44,y);
+    for(var x=W*0.44;x<W*0.94;x+=4*S){var n=(x<W*0.6)?(Math.sin(x*0.3+t*4)*6*S):0;ctx.lineTo(x,y+n);}
+    ctx.stroke();
+    ctx.fillStyle='rgba(140,180,255,0.55)';ctx.textAlign='left';ctx.fillText('HOST ISOLATED',W*0.44,H*0.4);
+    ctx.fillStyle='rgba(140,180,255,0.4)';ctx.textAlign='right';ctx.fillText('72H \u25b8 CLEAN',W-10*S,H-12*S);
+    hudChrome(ctx,W,H,S,t);
+  }
+};
+
+// attach a HUD loop to each card's .hud canvas
+function attachHUD(inner, seq){
+  var cv = inner.querySelector('canvas.hud');
+  if(!cv || !HUDS[seq]) return;
+  var ctx = cv.getContext('2d');
+  var DPR = Math.min(2, window.devicePixelRatio||1);
+  function size(){ var r=inner.getBoundingClientRect(); cv.width=Math.max(1,r.width*DPR); cv.height=Math.max(1,r.height*DPR); }
+  size(); window.addEventListener('resize', size); setTimeout(size,500);
+  var fn = HUDS[seq];
+  (function loop(now){ var W=cv.width,H=cv.height,S=DPR,t=now/1000; ctx.clearRect(0,0,W,H); fn(ctx,W,H,S,t); requestAnimationFrame(loop); })(performance.now());
+}
+
+/* ── SLOT 04 — coded traveler over image base ──────────────────────────── */
+function startSlot04(){
+  var card=document.querySelector('.c-mal');
+  if(!card) return;
+  var inner=card.querySelector('.card-inner');
+  var ac=inner.querySelector('canvas.anim04');
+  var hc=inner.querySelector('canvas.hud');
+  if(!ac||!hc) return;
+  var ax=ac.getContext('2d'), hx=hc.getContext('2d');
+  var DPR=Math.min(2,window.devicePixelRatio||1);
+  var NAMES=['leo.sanders','kate.wilson','charlie','henry'];
+  var NX=[0.32,0.52,0.70,0.87], NY=[0.55,0.42,0.62,0.47];
+  var nodes=[];
+  function size(){
+    var r=inner.getBoundingClientRect();
+    ac.width=Math.max(1,r.width*DPR); ac.height=Math.max(1,r.height*DPR);
+    hc.width=ac.width; hc.height=ac.height;
+    nodes=NAMES.map(function(n,i){return {x:NX[i]*ac.width,y:NY[i]*ac.height,name:n,lit:0};});
+  }
+  size(); window.addEventListener('resize',size); setTimeout(size,500);
+  var LOOP=14, t0=performance.now();
+  function travel(phase,W,H){
+    if(!nodes.length) return {x:W*0.5,y:H*0.5};
+    var pts=[{x:-0.1*W,y:0.52*H}]; nodes.forEach(function(n){pts.push({x:n.x,y:n.y});}); pts.push({x:1.1*W,y:0.5*H});
+    var segs=pts.length-1, ph=((phase%1)+1)%1, p=ph*segs;
+    var i=Math.max(0,Math.min(segs-1,Math.floor(p))), f=p-i; f=f*f*(3-2*f);
+    var a=pts[i],b=pts[i+1];
+    return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f};
+  }
+  function loop(now){
+    var t=(now-t0)/1000, phase=(t%LOOP)/LOOP;
+    var W=ac.width,H=ac.height,S=DPR;
+    var trav=travel(phase,W,H);
+    ax.clearRect(0,0,W,H);
+    var wake=ax.createRadialGradient(trav.x,trav.y,0,trav.x,trav.y,55*S);
+    wake.addColorStop(0,'rgba(150,185,255,0.28)'); wake.addColorStop(1,'rgba(150,185,255,0)');
+    ax.fillStyle=wake; ax.beginPath(); ax.arc(trav.x,trav.y,55*S,0,6.28); ax.fill();
+    for(var j=0;j<nodes.length;j++){ var n=nodes[j];
+      var d=Math.hypot(n.x-trav.x,n.y-trav.y);
+      n.lit += ((d<26*S?1:0)-n.lit)*0.06;
+      if(n.lit>0.05){
+        var g=ax.createRadialGradient(n.x,n.y,0,n.x,n.y,(10+n.lit*10)*S);
+        g.addColorStop(0,'rgba(210,228,255,'+(n.lit*0.7)+')'); g.addColorStop(1,'rgba(210,228,255,0)');
+        ax.fillStyle=g; ax.beginPath(); ax.arc(n.x,n.y,(10+n.lit*10)*S,0,6.28); ax.fill();
+        ax.beginPath(); ax.arc(n.x,n.y,2.4*S,0,6.28); ax.fillStyle='rgba(235,244,255,'+(0.5+n.lit*0.5)+')'; ax.fill();
+      }
+    }
+    for(var k=1;k<=8;k++){ var pp=travel(((phase-k*0.006)+1)%1,W,H);
+      ax.beginPath(); ax.arc(pp.x,pp.y,(1.5-k*0.14)*S,0,6.28);
+      ax.fillStyle='rgba(225,238,255,'+(0.45-k*0.045)+')'; ax.fill(); }
+    var grd=ax.createRadialGradient(trav.x,trav.y,0,trav.x,trav.y,7*S);
+    grd.addColorStop(0,'rgba(255,255,255,0.95)'); grd.addColorStop(0.4,'rgba(205,225,255,0.5)'); grd.addColorStop(1,'rgba(205,225,255,0)');
+    ax.fillStyle=grd; ax.beginPath(); ax.arc(trav.x,trav.y,7*S,0,6.28); ax.fill();
+    ax.beginPath(); ax.arc(trav.x,trav.y,1.4*S,0,6.28); ax.fillStyle='#fff'; ax.fill();
+    // HUD
+    hx.clearRect(0,0,W,H);
+    hx.font=(8*S)+"px 'JetBrains Mono',monospace";
+    var rx=trav.x,ry=trav.y,rs=12*S;
+    hx.strokeStyle='rgba(140,180,255,0.7)'; hx.lineWidth=1*S; hx.strokeRect(rx-rs,ry-rs,rs*2,rs*2);
+    hx.beginPath();
+    hx.moveTo(rx-rs,ry-rs+4*S);hx.lineTo(rx-rs,ry-rs);hx.lineTo(rx-rs+4*S,ry-rs);
+    hx.moveTo(rx+rs-4*S,ry+rs);hx.lineTo(rx+rs,ry+rs);hx.lineTo(rx+rs,ry+rs-4*S); hx.stroke();
+    hx.fillStyle='rgba(140,180,255,0.75)'; hx.textAlign='left'; hx.fillText('TRACK 04',rx+rs+4*S,ry-2*S);
+    var cur=''; for(var m=0;m<nodes.length;m++){ if(nodes[m].lit>0.5) cur=nodes[m].name; }
+    if(cur){ hx.fillStyle='rgba(255,95,45,0.9)'; hx.textAlign='left'; hx.fillText('\u25b8 '+cur,W*0.14,H*0.86); }
+    hx.fillStyle='rgba(140,180,255,0.45)'; hx.textAlign='right'; hx.fillText('CRED CHAIN 4/4',W-10*S,20*S);
+    hx.strokeStyle='rgba(190,215,255,0.28)'; hx.beginPath(); hx.moveTo(W-15*S,H-6*S);hx.lineTo(W-6*S,H-6*S);hx.lineTo(W-6*S,H-15*S); hx.stroke();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+function startHUDs(){
+  document.querySelectorAll('.recon-card').forEach(function(marker){
+    var seq = Number(marker.dataset.seq)||0;
+    attachHUD(marker.closest('.card-inner'), seq);
+  });
+}
+if(document.readyState!=='loading'){ startHUDs(); startSlot04(); } else document.addEventListener('DOMContentLoaded', function(){ startHUDs(); startSlot04(); });
+</script>
+
+<!-- ══ Luna assistant drawer (injected) ══ -->
+<div id="ldw-root">
+  <div id="ldw-scrim"></div>
+  <aside id="ldw-drawer" role="dialog" aria-label="Ask Luna" aria-hidden="true">
+    <div class="ldw-aurora"><div class="ldw-haze"></div></div>
+    <header class="ldw-head">
+      <span class="ldw-dot"></span><span class="ldw-who">Luna · <span id="ldw-status">archive</span></span><span class="ldw-sp"></span>
+      <button class="ldw-x" id="ldw-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </header>
+    <div class="ldw-avatar" id="ldw-avatar"></div>
+    <div class="ldw-body" id="ldw-dbody">
+      <div class="ldw-identity" id="ldw-identity">
+        <div class="ldw-greeting" id="ldw-greeting">Good evening</div>
+        <div class="ldw-sub">i keep watch over this archive.<br/>ask about the work, the labs, or the writing.</div>
+      </div>
+      <div class="ldw-thread" id="ldw-thread" aria-live="polite" aria-atomic="false"></div>
+    </div>
+    <div class="ldw-chips" id="ldw-chips">
+      <button class="ldw-chip" data-id="sentinel">what is sentinel?</button>
+      <button class="ldw-chip" data-id="bounty">show me the bounty findings</button>
+      <button class="ldw-chip" data-id="about">are you hiring?</button>
+    </div>
+    <div class="ldw-cw">
+      <div class="ldw-composer">
+        <div class="ldw-r1">
+          <input id="ldw-ask" type="text" autocomplete="off" spellcheck="false" placeholder="ask, search, or explain…" aria-label="Ask Luna"/>
+          <button class="ldw-send" id="ldw-send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+        </div>
+        <div class="ldw-r2">matched against the archive</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script is:inline id="ldw-engine">
+/* ───────── shared archive (single source of truth for both engines) ───────── */
+  const KB = [
+    { id:'sentinel', title:'Sentinel',
+      keywords:['sentinel','soc','siem','splunk','spl','wazuh','security onion','soar','shuffle','detection','detections','blue team','log analysis'],
+      reply:"Sentinel is the multi-SIEM SOC lab: Wazuh, Splunk and Security Onion feeding detections, with Shuffle wiring the SOAR playbooks. It is where the detections happen.",
+      detail:"Under the hood: log sources stream into all three SIEMs in parallel, detections are authored per platform, and Shuffle playbooks handle triage and enrichment automatically. Ask about splunk, wazuh, or soar for a closer look.",
+      target:null },
+
+    { id:'prism', title:'PRISM',
+      keywords:['prism','federated','federated learning','machine learning','ml','anomaly','anomaly detection','ot','ics','industrial','flower','fedprox','temporal vae','vae','nodes'],
+      reply:"PRISM does federated anomaly detection for OT and ICS: Flower with FedProx and a Temporal VAE, trained across seven simulated industrial nodes so raw telemetry never leaves a site.",
+      detail:"The clue is in the split: each node trains locally on its own telemetry, FedProx keeps drifting nodes honest, and only model weights travel. The Temporal VAE learns normal rhythm, so anomalies surface as reconstruction error.",
+      target:null },
+
+    { id:'axon', title:'Axon',
+      keywords:['axon','auth','authentication','nist','800-63b','risk adaptive','risk-adaptive','mfa','step up','identity','login'],
+      reply:"Axon is risk-adaptive authentication aligned to NIST 800-63B. It scores each attempt and steps up assurance only when the risk earns it.",
+      detail:"Each login gets a live risk score from device, location and behavior signals. Low risk sails through; high risk triggers step-up to a stronger authenticator, per the 800-63B assurance levels.",
+      target:null },
+
+    { id:'bounty', title:'Bug bounty',
+      keywords:['bug bounty','bounty','hackerone','vulnerability','vuln','idor','s3','bucket','subdomain','takeover','subdomain takeover','cname','dangling','pii','disclosure','findings','hacking','recon'],
+      reply:"The bug bounty work: accepted findings on HackerOne, including an S3 bucket leaking PII, an IDOR, and a dangling-CNAME subdomain takeover. Real disclosures, not lab targets.",
+      detail:"Each finding came from methodical recon: bucket enumeration for the S3 exposure, request tampering for the IDOR, and DNS record auditing for the dangling CNAME. Writeups live on the blog.",
+      target:null },
+
+    { id:'labs', title:'Labs',
+      keywords:['labs','lab','ctf','overthewire','bandit','offsec','oscp','incident response','forensics','ghidra','reverse engineering','malware','pcap','evtx','arctic howl','gauntlet','grimoire'],
+      reply:"The labs: OverTheWire and OffSec ranges, plus incident-response reconstructions with attack chains rebuilt from EVTX, PCAP and portal logs. Ghidra when the binaries get stubborn.",
+      detail:"Recent chains include a Tomcat partial-PUT RCE traced to first compromise, a cloud pivot from a leaked .git to an assumed IAM role, and a Go phishing framework pulled apart in Ghidra.",
+      target:null },
+
+    { id:'blog', title:'Writing',
+      keywords:['blog','writing','write ups','writeups','articles','posts','threat intel','threat intelligence','intelligence','ioc','mitre','att&ck','case file','astro'],
+      reply:"The writing lives on the threat-intel blog: IOC breakdowns, MITRE ATT&CK mappings, case files. Built in Astro, deployed on Cloudflare.",
+      detail:"Posts follow a case-file format: the chain, the IOCs, the ATT&CK mapping, then detection ideas you could actually deploy. Start with the supply-chain anatomy post.",
+      target:{type:'url', value:'https://samuelabhinav.com'} },
+
+    { id:'skills', title:'Stack',
+      keywords:['skills','stack','tools','tooling','technologies','kql','sentinel kql','python','powershell','languages','experience with'],
+      reply:"The stack: Splunk SPL, Microsoft Sentinel KQL, Wazuh, Security Onion, MITRE ATT&CK for detection, plus Python and PowerShell for the glue.",
+      detail:"Certifications behind it: Security+, Network+, ISC2 CC, AWS CCP, AZ-900 and HTB CJCA. The projects are where the stack gets exercised for real.",
+      target:null },
+
+    { id:'about', title:'About Samuel',
+      keywords:['about','who','samuel','background','resume','cv','education','degree','masters','opt','hire','hiring','job','jobs','open to work','soc analyst','detection engineer','security engineer'],
+      reply:"Samuel got into security by getting curious about how interconnected everything really is — and what it takes to keep that trust intact. He thinks like an attacker first, then builds the defense; that's Sentinel, PRISM, and Axon in one line. MS in cybersecurity, on OPT, open to SOC analyst and security engineering roles. I'm the companion he built to keep watch over the archive.",
+      detail:"The short pitch: three shipped security projects, accepted bounty findings, a threat-intel blog, and hands-on IR labs. If you are hiring for blue-team work, the contact page has the direct line.",
+      target:{type:'focus', value:'#nm'} },
+
+    { id:'contact', title:'Contact',
+      keywords:['contact','email','reach','reach out','connect','linkedin','github','message','talk','get in touch','dm'],
+      reply:"Want to reach him? The contact page has the direct line: email, GitHub, and the usual channels.",
+      detail:"Fastest route is email from the contact page. GitHub shows the code side; the blog shows the thinking.",
+      target:{type:'focus', value:'#nm'} },
+
+    { id:'greeting', title:'Say hi',
+      keywords:['hi','hey','hello','yo','luna','who are you','what are you','greetings'],
+      reply:"I am Luna. I keep watch over this archive. Ask about the work, the labs, or the writing.",
+      detail:"I match what you ask against Samuel's real work and take you to the right section. Soon he is training a small model of me to answer in fuller sentences.",
+      target:null },
+  ];
+
+  const DEFAULT_GUESS_IDS = ['sentinel','prism','bounty','about'];
+  const byId = id => KB.find(t=>t.id===id);
+
+/* ───────── keyword matcher (the offline brain) ───────── */
+const KeywordEngine = (() => {
+  const MATCH_MIN = 3;
+  const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9&\s-]/g,' ').replace(/\s+/g,' ').trim();
+  const toks = s => norm(s).split(' ').filter(Boolean);
+  function lev(a,b){
+    if(Math.abs(a.length-b.length)>1) return 2;
+    const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+    for(let j=0;j<=n;j++) d[0][j]=j;
+    for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+      d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    return d[m][n];
+  }
+  function score(query, topic){
+    const q=' '+norm(query)+' ', qt=toks(query); let s=0;
+    for(const raw of topic.keywords){
+      const k=norm(raw); if(!k) continue;
+      if(k.includes(' ')||k.includes('-')){ if(q.includes(' '+k+' ')) s += 3 + k.split(/[\s-]/).length; }
+      else for(const t of qt){
+        if(t===k) s+=3;
+        else if(t.length>3 && k.length>3 && (t.startsWith(k)||k.startsWith(t))) s+=1;
+        else if(t.length>3 && k.length>3 && lev(t,k)===1) s+=1;
+      }
+    }
+    return s;
+  }
+  function retrieve(query){                       // shared with the LLM (picks grounding section)
+    if(!norm(query)) return null;
+    const ranked = KB.map(t=>({t,s:score(query,t)})).sort((a,b)=>b.s-a.s);
+    return ranked[0] && ranked[0].s>0 ? ranked[0] : null;
+  }
+  async function answer(query, onToken, lastCiteId){
+    /* FIX: follow-up context. "how does it work", "tell me more" etc. carry
+       no keywords, but they are about whatever was just discussed. */
+    const FOLLOWUP=/^(how (does|do) (it|that|this) work|how it works?|tell me more|more|details?|why|explain( that| this| it)?|go on|what else|and\??|elaborate)$/;
+    const nq=norm(query);
+    if(lastCiteId && FOLLOWUP.test(nq)){
+      const t=byId(lastCiteId);
+      if(t){
+        const reply=t.detail||t.reply;
+        onToken && onToken(reply, true);
+        return { grounded:true, reply, citeId:t.id, target:t.target, signals:null,
+                 engine:'keyword', followup:true };
+      }
+    }
+    const best = retrieve(query);
+    if(best && best.s>=MATCH_MIN){
+      onToken && onToken(best.t.reply, true);
+      return { grounded:true, reply:best.t.reply, citeId:best.t.id, target:best.t.target,
+               signals:best.s, engine:'keyword' };
+    }
+    const ranked = KB.map(t=>({t,s:score(query,t)})).sort((a,b)=>b.s-a.s);
+    let pool = ranked.filter(r=>r.s>0).slice(0,3).map(r=>r.t);
+    if(!pool.length) pool = DEFAULT_GUESS_IDS.map(byId);
+    const reply = "Hm — I don't have a note on that. Did you mean:";
+    onToken && onToken(reply, true);
+    return { grounded:false, reply, guesses:pool.map(t=>({id:t.id,label:t.title})),
+             signals:best?best.s:0, engine:'keyword' };
+  }
+  function topic(id){ const t=byId(id); return t
+    ? { grounded:true, reply:t.reply, citeId:t.id, target:t.target, signals:null, engine:'keyword' }
+    : answer(id); }
+  return { answer, topic, retrieve, ready:()=>true, status:()=>'ready' };
+})();
+
+/* ───────── grounding prompt (feeds the trained LLM) ───────── */
+function buildSystemPrompt(){
+  const lines = KB.filter(t=>t.id!=='greeting').map(t =>
+    '- ['+t.id+'] '+t.title+': '+t.reply);
+  return [
+    "You are Luna, a terse, warm companion guarding Samuel's security portfolio.",
+    "Answer ONLY from the archive below, in 1-2 sentences, in a calm lowercase machine voice.",
+    "After your answer, on a new line, cite the single most relevant section as [[cite: <id>]].",
+    "If the question isn't covered by the archive, reply exactly: UNKNOWN",
+    "",
+    "ARCHIVE (allowed cite ids in brackets):",
+    lines.join('\n')
+  ].join('\n');
+}
+function parseCitation(text){
+  const m = text.match(/\[\[cite:\s*([a-z]+)\s*\]\]/i);
+  const id = m ? m[1].toLowerCase() : null;
+  const clean = text.replace(/\[\[cite:[^\]]*\]\]/ig,'').trim();
+  return { id, clean };
+}
+
+/* ───────── LLM engine (in-browser WebLLM) ─────────
+   The real wiring is below, commented. Because model weights can't be
+   downloaded in this sandbox, a labelled MockLLM runs instead — it produces
+   a grounded, streamed, citation-tagged answer so the whole pipeline (status,
+   streaming, fallback, cite→jump) is real and swap-ready. Set USE_REAL_LLM
+   true and drop in your MLC-converted model id / URL to go live. */
+const LLMEngine = (() => {
+  const USE_REAL_LLM = false;
+  const MODEL_ID = "Llama-3.2-1B-Instruct-q4f32_1-MLC";   // ← replace with your trained MLC model
+  let engine=null, status='idle', progress=0, sys=buildSystemPrompt();
+
+  const webgpuOK = () => (typeof navigator!=='undefined' && 'gpu' in navigator);
+
+  async function load(onProgress){
+    if(status==='ready'||status==='warming') return;
+    if(USE_REAL_LLM && !webgpuOK()){ status='unsupported'; return; }
+    status='warming';
+    try{
+      if(USE_REAL_LLM){
+        /* ── real WebLLM (uncomment; npm i @mlc-ai/web-llm) ──
+        const { CreateMLCEngine } = await import('https://esm.run/@mlc-ai/web-llm');
+        engine = await CreateMLCEngine(MODEL_ID, { initProgressCallback: p => {
+          progress = p.progress||0; onProgress && onProgress(progress);
+        }});
+        */
+      } else {
+        /* mock warm-up so the loading UX is visible */
+        for(let p=0;p<=1;p+=0.08){ progress=p; onProgress && onProgress(p); await sleep(90); }
+      }
+      status='ready';
+    }catch(e){ console.error('LLM load failed',e); status='error'; }
+  }
+
+  async function answer(query, onToken, lastCiteId){
+    if(status!=='ready') throw new Error('llm-not-ready');
+    let raw='';
+    if(USE_REAL_LLM){
+      /* ── real streamed completion ──
+      const stream = await engine.chat.completions.create({
+        messages:[{role:'system',content:sys},{role:'user',content:query}],
+        stream:true, temperature:0.3, max_tokens:160
+      });
+      for await (const c of stream){
+        const d = c.choices[0]?.delta?.content || ''; raw+=d;
+        const shown = parseCitation(raw).clean; onToken && onToken(shown, false);
+      }
+      */
+      raw='';
+    } else {
+      raw = await mockGenerate(query, onToken, lastCiteId);
+    }
+    // UNKNOWN → not grounded → hand back for keyword-style guesses
+    if(/^\s*UNKNOWN\s*$/i.test(parseCitation(raw).clean)) throw new Error('llm-unknown');
+    const { id, clean } = parseCitation(raw);
+    const t = id ? byId(id) : null;
+    return { grounded:true, reply:clean, citeId:t?t.id:null, target:t?t.target:null,
+             signals:null, engine:'llm' };
+  }
+
+  /* MockLLM: retrieves the grounding section, lightly re-voices it, streams it,
+     and appends the citation — mirroring the trained model's output shape. */
+  async function mockGenerate(query, onToken, lastCiteId){
+    const FOLLOWUP=/^(how (does|do) (it|that|this) work|how it works?|tell me more|more|details?|why|explain( that| this| it)?|go on|what else|and\??|elaborate)$/;
+    const nq=(query||'').toLowerCase().trim();
+    let t=null, useDetail=false;
+    if(lastCiteId && FOLLOWUP.test(nq)){ t=byId(lastCiteId); useDetail=true; }
+    if(!t){ const hit=KeywordEngine.retrieve(query); if(!hit||hit.s<2) return 'UNKNOWN'; t=hit.t; }
+    const body = (useDetail && t.detail) ? t.detail : t.reply;
+    for(let i=0;i<=body.length;i+=2){ onToken && onToken(body.slice(0,i), false); await sleep(12); }
+    onToken && onToken(body, false);
+    return body + '\n[[cite: '+t.id+']]';
+  }
+
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  return { load, answer, ready:()=>status==='ready', status:()=>status, progress:()=>progress, webgpuOK };
+})();
+
+/* ───────── router: LLM-if-ready, else keyword; fallback on error ───────── */
+const Router = (() => {
+  let mode='auto', lastCiteId=null;                              // auto | keyword | (dev-forced states)
+  function setMode(m){ mode=m; }
+  function activeStatus(){
+    if(mode==='keyword') return 'offline';
+    if(mode==='warming') return 'warming';
+    if(mode==='llm')     return 'online';
+    // auto:
+    const s=LLMEngine.status();
+    if(s==='ready')   return 'online';
+    if(s==='warming') return 'warming';
+    return 'offline';                            // idle/unsupported/error → keyword serves
+  }
+  async function answer(query, onToken){
+    const useLLM = (mode==='llm') || (mode==='auto' && LLMEngine.ready());
+    let result;
+    if(useLLM){
+      try{ result = await LLMEngine.answer(query, onToken, lastCiteId); }
+      catch(e){ /* llm-unknown or error: fall through to keyword */ }
+    }
+    if(!result) result = await KeywordEngine.answer(query, onToken, lastCiteId);
+    if(result.grounded && result.citeId) lastCiteId = result.citeId;
+    return result;
+  }
+  function topic(id){ const r=KeywordEngine.topic(id); if(r.citeId) lastCiteId=r.citeId; return r; }  // quick chips: instant, deterministic
+  return { answer, topic, setMode, activeStatus, getMode:()=>mode };
+})();
+
+/* ═══════════ DRAWER (site integration — namespaced, opens on Luna click) ═══════════ */
+(() => {
+  const $=id=>document.getElementById(id);
+  const drawer=$('ldw-drawer'), scrim=$('ldw-scrim'), ask=$('ldw-ask'), send=$('ldw-send'),
+        thread=$('ldw-thread'), dbody=$('ldw-dbody'), chips=$('ldw-chips'), identity=$('ldw-identity'),
+        head=drawer.querySelector('.ldw-head'), statusEl=$('ldw-status'),
+        avatarEl=$('ldw-avatar');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let open=false, busy=false, lunaBlobURL=null;
+
+  /* live Luna in the avatar — same document as the corner companion,
+     lazy-mounted so it only runs while the drawer is open */
+  let avatarWin=null, avatarIdleT=null;
+  const GENTLE=['blink','wink','nod','wiggle','stretch','yawn'];
+  function sendAvatarAction(name){ try{ avatarWin && avatarWin.postMessage({type:'lunaAction',name:name}, location.origin); }catch(e){} }
+  function startAvatarIdle(){
+    clearTimeout(avatarIdleT);
+    const loop=()=>{ sendAvatarAction(GENTLE[Math.floor(Math.random()*GENTLE.length)]);
+                     avatarIdleT=setTimeout(loop, 5000+Math.random()*4500); };
+    avatarIdleT=setTimeout(loop, 4000+Math.random()*3000);
+  }
+  function stopAvatarIdle(){ clearTimeout(avatarIdleT); avatarIdleT=null; avatarWin=null; }
+  function mountLuna(){
+    if(!avatarEl || avatarEl.firstChild) return;
+    try{
+      const html=window.__LUNA_HTML; if(!html) return;
+      lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+      const fr=document.createElement('iframe');
+      fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
+      fr.setAttribute('title','Luna');
+      fr.addEventListener('load', ()=>{ avatarWin=fr.contentWindow;
+        setTimeout(()=>sendAvatarAction('wave'), 550);   // a little hello
+        startAvatarIdle();                                // gentle life inside the bubble
+      }, {once:true});
+      fr.src=lunaBlobURL; avatarEl.appendChild(fr);
+    }catch(e){ console.error('luna avatar mount failed',e); }
+  }
+  function unmountLuna(){
+    stopAvatarIdle();
+    if(avatarEl) avatarEl.innerHTML='';
+    if(lunaBlobURL){ try{ URL.revokeObjectURL(lunaBlobURL); }catch(_){} lunaBlobURL=null; }
+  }
+
+  /* related topics for the follow-up chips */
+  const RELATED={
+    sentinel:['prism','skills','labs'], prism:['sentinel','axon','skills'],
+    axon:['prism','skills','about'],   bounty:['labs','blog','about'],
+    labs:['bounty','blog','sentinel'], blog:['bounty','labs','about'],
+    skills:['sentinel','prism','about'],about:['bounty','skills','contact'],
+    contact:['about','blog','bounty'], greeting:['sentinel','bounty','about']
+  };
+
+  /* typewriter placeholder — cycles example prompts into the search bar */
+  const TW=['what is sentinel?','how does prism work?','show me the bounty findings','are you hiring?','where should i start?'];
+  let twI=0,twJ=0,twDel=false,twTimer=null,twOn=false;
+  function twStep(){
+    if(!twOn) return;
+    const word=TW[twI]; twJ+=twDel?-1:1;
+    ask.setAttribute('placeholder', word.slice(0,twJ)+'\u2588');
+    let d=twDel?38:70;
+    if(!twDel&&twJ===word.length){ twDel=true; d=1500; }
+    else if(twDel&&twJ===0){ twDel=false; twI=(twI+1)%TW.length; d=250; }
+    twTimer=setTimeout(twStep,d);
+  }
+  function startTypewriter(){ if(twOn||document.activeElement===ask||ask.value||drawer.classList.contains('ldw-compact')) return; twOn=true; twI=0;twJ=0;twDel=false; twStep(); }
+  function stopTypewriter(){ twOn=false; clearTimeout(twTimer); ask.setAttribute('placeholder','ask, search, or explain\u2026'); }
+  ask.addEventListener('focus',stopTypewriter);
+  ask.addEventListener('blur',()=>{ if(!ask.value && !drawer.classList.contains('ldw-compact')) startTypewriter(); });
+
+  function refreshStatus(){
+    const st=Router.activeStatus();
+    head.classList.remove('ldw-warming','ldw-offline','ldw-online');
+    head.classList.add('ldw-'+st);
+    statusEl.textContent = st==='online'?'online':st==='warming'?('warming · '+Math.round(LLMEngine.progress()*100)+'%'):'offline mode';
+  }
+  setInterval(refreshStatus,400); refreshStatus();
+
+  function openD(){ if(open)return; open=true;
+    window.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
+    drawer.classList.add('on'); scrim.classList.add('on');
+    document.body.classList.add('ldw-drawer-open'); drawer.setAttribute('aria-hidden','false');
+    mountLuna(); startTypewriter();
+    if(Router.getMode()==='auto') LLMEngine.load(()=>refreshStatus()); }
+  function closeD(){ if(!open)return; open=false; drawer.classList.remove('on'); scrim.classList.remove('on');
+    document.body.classList.remove('ldw-drawer-open'); drawer.setAttribute('aria-hidden','true'); ask.blur();
+    setTimeout(unmountLuna, reduce?0:650); stopTypewriter(); }   // unmount after the slide-out finishes
+
+  // OPEN PATH: Luna lives in an iframe; her document posts this on click/tap.
+  addEventListener('message', e=>{ if(e.origin===location.origin && e.data && e.data.type==='lunaOpenChat') open?closeD():openD(); });
+  // also allow Ctrl/Cmd+L from the page
+  addEventListener('keydown', e=>{
+    if(e.key==='Escape' && open) closeD();
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='l'){ e.preventDefault(); open?ask.focus():openD(); }
+  });
+  $('ldw-close').addEventListener('click',closeD);
+  scrim.addEventListener('click',closeD);
+
+  const arm=()=>send.classList.toggle('on',ask.value.trim().length>0);
+  ask.addEventListener('input',arm);
+
+  function bubble(role){ const el=document.createElement('div'); el.className='ldw-msg ldw-'+role;
+    thread.appendChild(el); dbody.scrollTop=dbody.scrollHeight; return el; }
+
+  /* jump target resolution (project → globe tour, scroll → anchor, url → new tab) */
+  function navigate(target){
+    if(!target) return null;
+    if(target.type==='focus'){ const n=document.querySelector(target.value);
+      return n?{label:'Start a message',run:()=>{closeD();
+        n.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});
+        setTimeout(()=>n.focus({preventScroll:true}), reduce?0:420);}}:null; }
+    if(target.type==='scroll'){ const n=document.querySelector(target.value);
+      return n?{label:'Take me there',run:()=>{closeD();n.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}}:null; }
+    if(target.type==='url') return {label:'Open '+target.value.replace(/^https?:\/\//,''),run:()=>window.open(target.value,'_blank','noopener')};
+    return null;
+  }
+
+  function decorate(el,result){
+    if(result.grounded){
+      const r=document.createElement('div'); r.className='ldw-readout';
+      r.innerHTML = result.engine==='llm'
+        ? '<span class="ldw-tick">◇</span> inferred · '+(result.citeId||'archive')+' · luna'
+        : '<span class="ldw-tick">▸</span> matched · '+result.citeId+(result.signals!=null?(' · '+result.signals+' signal'+(result.signals===1?'':'s')):'');
+      el.appendChild(r);
+      const nav=navigate(result.target);
+      if(nav){ const g=document.createElement('div'); g.className='ldw-goto';
+        const b=document.createElement('button'); b.textContent='→ '+nav.label; b.onclick=nav.run; g.appendChild(b); el.appendChild(g); }
+      /* follow-up suggestions under the answer */
+      if(result.citeId){
+        const fu=document.createElement('div'); fu.className='ldw-followups';
+        const t=KB.find(k=>k.id===result.citeId);
+        if(t && t.detail){
+          const more=document.createElement('button'); more.className='ldw-fu';
+          more.innerHTML='<span class="ldw-plus">+</span>tell me more';
+          more.onclick=()=>query('tell me more'); fu.appendChild(more);
+        }
+        (RELATED[result.citeId]||[]).slice(0,2).forEach(rid=>{
+          const rt=KB.find(k=>k.id===rid); if(!rt) return;
+          const b=document.createElement('button'); b.className='ldw-fu';
+          b.innerHTML='<span class="ldw-plus">+</span>'+rt.title.toLowerCase();
+          b.onclick=()=>query(rt.keywords[0]); fu.appendChild(b);
+        });
+        if(fu.children.length) el.appendChild(fu);
+      }
+    } else if(result.guesses){
+      const wrap=document.createElement('div'); wrap.className='ldw-guesses';
+      result.guesses.forEach(gs=>{ const b=document.createElement('button');
+        b.textContent=gs.label;
+        b.onclick=()=>surface(Router.topic(gs.id)); wrap.appendChild(b); });
+      el.appendChild(wrap);
+    }
+    dbody.scrollTop=dbody.scrollHeight;
+  }
+
+  async function query(text){
+    if(!text.trim()||busy) return; busy=true;
+    drawer.classList.add('ldw-compact'); chips.classList.add('ldw-hide'); stopTypewriter();
+    bubble('you').textContent=text; ask.value=''; arm();
+    const el=bubble('luna'), txt=document.createElement('span'); el.appendChild(txt);
+    const onToken=p=>{ txt.textContent=p; dbody.scrollTop=dbody.scrollHeight; };
+    try{ const result=await Router.answer(text,onToken); txt.textContent=result.reply; decorate(el,result);
+         sendAvatarAction(result.grounded?'nod':'wiggle'); }
+    catch(err){ console.error('luna query failed',err); txt.textContent='Signal dropped mid-answer. Ask me again?';
+      const r=document.createElement('div'); r.className='ldw-readout'; r.innerHTML='<span class="ldw-tick">▸</span> error · recovered'; el.appendChild(r); }
+    finally{ refreshStatus(); busy=false; }
+  }
+  function surface(result){ drawer.classList.add('ldw-compact'); chips.classList.add('ldw-hide'); stopTypewriter();
+    const el=bubble('luna'); el.textContent=result.reply; decorate(el,result); }
+
+  send.addEventListener('click',()=>query(ask.value));
+  ask.addEventListener('keydown',e=>{ if(e.key==='Enter') query(ask.value); });
+  chips.querySelectorAll('.ldw-chip').forEach(c=>c.addEventListener('click',()=>surface(Router.topic(c.dataset.id))));
+
+  /* Public handle: lets the quip nudge (and the corner companion) open the chat and answer the clicked topic. */
+  window.LunaChat = {
+    open: openD, close: closeD, isOpen: function(){ return open; },
+    ask: function(text){ var was=open; openD(); setTimeout(function(){ query(text); }, was?0:180); },
+    askTopic: function(id){
+      var was=open, t=Router.topic ? Router.topic(id) : null;
+      openD();
+      if(t) setTimeout(function(){ surface(t); }, was?0:180);
+    }
+  };
+
+})();
+
+</script>
+
+<script src="../scripts/luna-greeting.js"></script>
+
+</body>
+</html>

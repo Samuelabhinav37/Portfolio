@@ -1,0 +1,341 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import { SITE } from '../config';
+import Faq from '../components/Faq.astro';
+import MoreStories from '../components/MoreStories.astro';
+import Luna from '../components/Luna.astro';
+import '../styles/blog.css';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  headings: MarkdownHeading[];
+  relatedPosts: CollectionEntry<'blog'>[];
+  /** Auto word count used when readTime is not set in frontmatter. */
+  words: number;
+}
+
+const { post, headings, relatedPosts, words } = Astro.props;
+const d = post.data;
+
+/* ── Derived, never hand-edited ─────────────────────────────────────── */
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+/* Share image: explicit ogImage, else the card crop (also used as the "More
+   stories" thumbnail), else the hero crop. No hardcoded /og/ path — that
+   folder was never populated, so it silently broke every share preview. */
+const ogImageSrc = d.ogImage ?? d.cardImage ?? d.heroImage;
+const ogImage = ogImageSrc ? new URL(ogImageSrc, Astro.site).href : undefined;
+const readTime = d.readTime ?? Math.max(1, Math.round(words / 220));
+const pubIso = d.pubDate.toISOString().slice(0, 10);
+const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
+const dateLabel = d.pubDate
+  .toLocaleString('en-US', { month: 'short', year: 'numeric' })
+  .toUpperCase();
+
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+const shareX =
+  'https://x.com/intent/post?url=' +
+  encodeURIComponent(canonicalUrl) +
+  '&text=' +
+  encodeURIComponent(`${d.title} — ${SITE.author}`);
+const shareLi =
+  'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(canonicalUrl);
+
+/* ── JSON-LD: Article + Breadcrumb + FAQPage from the same frontmatter ── */
+const stripHtml = (s: string) => s.replace(/<[^>]+>/g, '');
+const graph: object[] = [
+  {
+    '@type': 'Article',
+    headline: d.title,
+    description: d.description,
+    author: { '@type': 'Person', name: SITE.author, url: SITE.links.portfolio },
+    publisher: { '@type': 'Person', name: SITE.author },
+    datePublished: pubIso,
+    dateModified: modIso,
+    mainEntityOfPage: canonicalUrl,
+    image: ogImage,
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Blog', item: new URL('/blog', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: d.category },
+      { '@type': 'ListItem', position: 3, name: d.title },
+    ],
+  },
+];
+if (d.faqs.length) {
+  graph.push({
+    '@type': 'FAQPage',
+    mainEntity: d.faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: stripHtml(f.a) },
+    })),
+  });
+}
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {d.draft && <meta name="robots" content="noindex, nofollow" />}
+    <title>{d.title} — {SITE.author}</title>
+
+    <meta name="description" content={d.description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={d.title} />
+    <meta property="og:description" content={d.description} />
+    <meta property="og:site_name" content={`${SITE.author} · ${SITE.publication}`} />
+    <meta property="og:url" content={canonicalUrl} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={d.title} />
+    <meta name="twitter:description" content={d.description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <link rel="canonical" href={canonicalUrl} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@300;400;500&family=Inter:wght@400;500&family=Hanken+Grotesk:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json" set:html={jsonLd} />
+    <style is:global>
+      /* Copy/selection deterrent — requested explicitly. Doesn't stop a
+         determined visitor (view-source, reader mode, screenshots all still
+         work), but it does stop casual drag-select and Ctrl+C. Form fields are
+         exempted so the contact form stays usable. */
+      body{ -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+      input, textarea, [contenteditable], [contenteditable] *{
+        -webkit-user-select:text; -moz-user-select:text; user-select:text;
+      }
+    </style>
+    <script is:inline>
+    (function(){
+      document.addEventListener('copy', function(e){ e.preventDefault(); });
+      document.addEventListener('cut', function(e){ e.preventDefault(); });
+    })();
+    </script>
+
+  </head>
+
+  <body>
+    <svg id="bg-grain" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">
+      <filter id="bg-grain-noise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="2"/><feGaussianBlur stdDeviation="0.45"/><feColorMatrix values="0 0 0 0 0.6  0 0 0 0 0.6  0 0 0 0 0.65  0.9 0 0 0 -0.2"/></filter>
+      <rect width="100%" height="100%" filter="url(#bg-grain-noise)"/>
+    </svg>
+
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <div id="read-progress"></div>
+
+    <button id="back-to-top" aria-label="Back to top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+
+    <!-- Site identity (fixed corner; swaps to the Threat Intel Blog mark on scroll) -->
+    <div id="site-identity">
+      <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
+      <div class="nav-brand" id="navBrand" aria-hidden="true">
+        <div class="nav-brand-mark">&ldquo;</div>
+        <div class="nav-brand-text">Threat<br />Intel Blog</div>
+      </div>
+    </div>
+
+    <button type="button" id="menu-trigger" aria-label="Open menu" aria-expanded="false">Menu</button>
+    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
+      <ul id="menu-list">
+        <li><a href={SITE.links.about}><span>About</span></a></li>
+        <li><a href={SITE.links.blogIndex}><span>Blog</span></a></li>
+        <li><a href={SITE.links.contact}><span>Contact</span></a></li>
+      </ul>
+      <div id="menu-meta">
+        <div id="menu-weather" class="meta-block"><span class="mw-load">— —</span></div>
+        <div id="menu-clock" class="meta-block"></div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="hero" id="hero">
+      <div class="hero-left">
+        <div class="hero-corner-br"></div>
+        <div class="hero-brand">
+          <div class="hero-brand-mark">&ldquo;</div>
+          <div class="hero-brand-label">Threat<br />Intel<br />Blog</div>
+        </div>
+        <div class="hero-content">
+          <div class="hero-breadcrumb">
+            <a href={SITE.links.blogIndex}>Blog</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
+          </div>
+          <h1 class="hero-title">{d.title}</h1>
+          <p class="hero-subtitle">{d.description}</p>
+          <div class="hero-tags">
+            {d.mitre.map((t) => <span class="hero-tag mitre">{t}</span>)}
+            {d.tags.map((t) => <span class="hero-tag">{t}</span>)}
+          </div>
+        </div>
+      </div>
+      <div class="hero-right">
+        {d.heroImage
+          ? <div class="hero-art"><img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} /></div>
+          : <div class="hero-art hero-art--placeholder" aria-hidden="true"></div>}
+        <div class="hero-art-fade"></div>
+        {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Author bar -->
+      <div class="author-bar">
+        <div class="author-bar-left">
+          <div class="author-photo-wrap">
+            <div class="author-photo"><span>{SITE.initials}</span></div>
+            <div class="author-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+          </div>
+          <div>
+            <div class="author-info-row">
+              <span class="author-info-name">{SITE.author}</span>
+              <span class="author-info-sep">//</span>
+              <span class="author-info-role">{SITE.role}</span>
+            </div>
+          </div>
+        </div>
+        <div class="author-bar-meta">
+          <span class="live-dot" aria-hidden="true"></span><strong><time datetime={pubIso}>{dateLabel}</time></strong>
+          &nbsp;·&nbsp; {readTime} MIN READ
+        </div>
+      </div>
+
+      <!-- Icon rail — share URLs derive from the canonical URL at build time -->
+      <div class="icon-rail">
+        <a class="social-icon" id="shareX" title="Share on X" aria-label="Share on X" target="_blank" rel="noopener" href={shareX}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
+        <a class="social-icon" id="shareLi" title="Share on LinkedIn" aria-label="Share on LinkedIn" target="_blank" rel="noopener" href={shareLi}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <button class="social-icon" id="shareCopy" type="button" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        <a class="social-icon" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      </div>
+
+      <!-- 2-col grid -->
+      <div class="page-grid">
+        <main class="article-col" id="main-content" tabindex="-1">
+          <!-- Inline TOC — fallback for viewports below 1580px -->
+          {toc.length > 0 && (
+            <details class="toc-inline">
+              <summary>On this page</summary>
+              <ol class="toc-list" id="tocListInline">
+                {toc.map((h) => (
+                  <li class={h.depth === 3 ? 'toc-sub' : undefined}>
+                    <a href={'#' + h.slug} data-target={h.slug}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+
+          <slot />
+
+          <div class="grad-line"></div>
+        </main>
+
+        <!-- Side rail (right, sticky content) -->
+        <aside class="left-sidebar">
+          <div class="rail-sticky">
+            {toc.length > 0 && (
+              <nav class="toc" aria-label="Table of contents">
+                <div class="left-sidebar-heading">On this page</div>
+                <ol class="toc-list" id="tocList">
+                  {toc.map((h) => (
+                    <li class={h.depth === 3 ? 'toc-sub' : undefined}>
+                      <a href={'#' + h.slug} data-target={h.slug}>{h.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
+
+            {d.alsoBy && (
+              <a href={d.alsoBy.href} class="also-by">
+                <div class="also-by-label">{d.alsoBy.label}</div>
+                <div class="also-by-thumb">
+                  {d.alsoBy.image
+                    ? <img src={d.alsoBy.image} alt={d.alsoBy.imageAlt ?? ''} loading="lazy" />
+                    : <div class="story-image-ph" aria-hidden="true"></div>}
+                  <div class="story-shimmer"></div>
+                </div>
+                <div class="also-by-title">{d.alsoBy.title}</div>
+                <div class="also-by-meta">{d.alsoBy.meta}</div>
+              </a>
+            )}
+          </div>
+        </aside>
+      </div><!-- /.page-grid -->
+
+      <Faq faqs={d.faqs as { q: string; a: string }[]} />
+
+      <MoreStories posts={relatedPosts} />
+
+      <!-- Mission / About publication -->
+      <div class="mission-section">
+        <div class="mission-grid">
+          <div class="mission-left">
+            <div class="mission-eyebrow">About the publication</div>
+            <h2 class="mission-heading">{SITE.publication}</h2>
+            <div class="mission-body">
+              <p>Most security writing falls into two buckets: vendor whitepapers selling something, or post-incident reports written for executives. Threat Intel Blog tries to sit somewhere else — closer to the lab notebook, where the work actually gets done.</p>
+              <p>Every post here is grounded in hands-on practice: real detections, real tooling, real labs. The writing is for SOC analysts, detection engineers, and anyone trying to make their environment harder to compromise. If a piece doesn't survive a coffee with a working defender, it doesn't run.</p>
+            </div>
+            <div class="mission-follow">
+              <div class="mission-follow-label">Follow:</div>
+              <div class="mission-follow-icons">
+                <a class="social-icon" title="X / Twitter" href={SITE.links.x} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
+                <a class="social-icon" title="LinkedIn" href={SITE.links.linkedin} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+                <a class="social-icon" title="GitHub" href={SITE.links.github} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
+                <a class="social-icon" title="RSS" href={SITE.links.rss}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5" fill="rgba(255,255,255,0.55)"/></svg></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="mission-card">
+            <a href={SITE.links.contact} class="mission-cta">
+              <div class="mission-cta-title">Nominate a topic <span class="chev">›</span></div>
+              <div class="mission-cta-desc">Suggest attacks or detection problems you want covered. Real cases preferred over hypotheticals.</div>
+            </a>
+            <a href={SITE.links.rss} class="mission-cta">
+              <div class="mission-cta-title">Subscribe via RSS <span class="chev">›</span></div>
+              <div class="mission-cta-desc">Get new posts in the reader of your choice. No middleware, no tracking.</div>
+            </a>
+            <a href={SITE.links.contact} class="mission-cta">
+              <div class="mission-cta-title">Sign up for the newsletter <span class="chev">›</span></div>
+              <div class="mission-cta-desc">Monthly drop with the new piece, plus what I've been reading. No filler.</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div><!-- /.container -->
+
+    <div class="site-footer-wrap">
+      <div class="site-footer">
+        <div class="footer-mark" aria-hidden="true">
+          <svg viewBox="0 0 36 36" fill="none">
+            <rect width="36" height="36" rx="6" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <text x="4" y="25" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="400" fill="rgba(255,255,255,0.28)">&gt;_</text>
+          </svg>
+        </div>
+        <div class="footer-copy">© {d.pubDate.getFullYear()} {SITE.author} · {SITE.publication}</div>
+      </div>
+    </div>
+
+    <Luna post={post} headings={headings} />
+
+    <script src="../scripts/blog-client.js"></script>
+  </body>
+</html>

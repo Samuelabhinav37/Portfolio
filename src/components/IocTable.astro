@@ -1,0 +1,26 @@
+---
+/**
+ * <IocTable id="eof-2026-04" rows={[
+ *   { type: 'Domain', value: 'cdn-assets-delivery[.]net', fanged: 'cdn-assets-delivery.net' },
+ * ]} />
+ * The copy button prefers `fanged` (the live form) when present.
+ */
+interface Props {
+  id: string;
+  rows: { type: string; value: string; fanged?: string }[];
+}
+const { id, rows } = Astro.props;
+---
+
+<div class="ioc-block">
+  <div class="ioc-head"><span>Indicators of compromise</span><span>{id}</span></div>
+  <table class="ioc-table">
+    {rows.map((r) => (
+      <tr>
+        <td class="ioc-type">{r.type}</td>
+        <td class="ioc-val" data-fanged={r.fanged}>{r.value}</td>
+        <td class="ioc-act"><button class="ioc-copy" type="button" aria-label={`Copy ${r.type} indicator: ${r.value}`}>Copy</button></td>
+      </tr>
+    ))}
+  </table>
+</div>

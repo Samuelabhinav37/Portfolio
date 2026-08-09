@@ -1,0 +1,22 @@
+---
+title: "Building a Honeypot Lab in AWS for Threat Intel"
+description: "A weekend project that turned into a live threat intelligence feed: T-Pot on EC2, CloudWatch pipelines, and what 30 days of internet background radiation looks like."
+category: "Threat Intel"
+pubDate: 2026-01-20
+readTime: 6
+tags: ["AWS", "Honeypot", "Threat Intel"]
+mitre: []
+draft: false
+---
+
+Every public IP on the internet gets scanned within minutes of coming online. Instead of treating that as noise, a honeypot turns it into a personal threat intelligence feed: fresh IOCs, live malware samples, and a ground-truth view of what automated attack traffic actually looks like.
+
+## The stack
+
+A single t3.medium running T-Pot covers a surprising amount of ground: Cowrie for SSH/Telnet, Dionaea for SMB and databases, and an ELK front end that makes 30 days of attack data explorable in an afternoon.
+
+## What the data taught me
+
+Credential stuffing lists are older than you think, Mirai variants never died, and the gap between a CVE dropping and mass exploitation attempts hitting the honeypot is now measured in hours, not days.
+
+This is a stub post. Full writeup coming soon.

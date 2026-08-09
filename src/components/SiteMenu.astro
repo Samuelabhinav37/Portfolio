@@ -1,0 +1,230 @@
+---
+/**
+ * Shared site chrome: fixed-corner site identity + the collapsed hamburger
+ * menu (trigger, overlay, GMT clock, Open-Meteo weather). Extracted from
+ * 4 near-byte-identical copies (one per portfolio page) — this is the
+ * single source of truth going forward.
+ *
+ * `hasIntro` is only true on the home page, which gates identity/trigger
+ * behind its own GSAP intro timeline (that timeline lives in index.astro
+ * itself, untouched — it just needs these elements to exist with these
+ * ids so its direct `.style.opacity` writes still find them).
+ */
+interface Props {
+  currentPath: '/' | '/about' | '/blog' | '/contact';
+  hasIntro?: boolean;
+}
+const { currentPath, hasIntro = false } = Astro.props;
+
+const links = [
+  { href: '/about', label: 'About' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+
+<a class="sr-only sr-only-focusable" href="#menu-trigger">Skip to navigation</a>
+
+<div id="site-identity">
+  {currentPath === '/'
+    ? <div class="name">Samuel Abhinav</div>
+    : <a href="/" class="name">Samuel Abhinav</a>}
+</div>
+
+<button id="menu-trigger" aria-label="Open menu" aria-expanded="false">Menu</button>
+<nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
+  <ul id="menu-list">
+    {links.map((l) => (
+      <li><a href={l.href} class={l.href === currentPath ? 'current' : undefined}><span>{l.label}</span></a></li>
+    ))}
+  </ul>
+  <div id="menu-meta">
+    <div id="menu-weather" class="meta-block"><span class="mw-load">— —</span></div>
+    <div id="menu-clock" class="meta-block"></div>
+  </div>
+</nav>
+
+<style>
+  /* Screen-reader-only: visually hidden but available to assistive tech.
+     The focusable variant becomes visible when tabbed to (the skip link).
+     Lives here rather than relying on each host page defining it globally,
+     since the skip link itself is part of this component's own markup. */
+  .sr-only {
+    position: absolute !important; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+  .sr-only-focusable:focus,
+  .sr-only-focusable:focus-visible {
+    position: fixed !important; top: 10px; left: 10px;
+    width: auto; height: auto; margin: 0; padding: 8px 14px; clip: auto;
+    z-index: 100000; background: #030307; color: #d6e0f4;
+    border: 1px solid rgba(214,224,244,.4); border-radius: 6px;
+    font: 13px/1 'Hanken Grotesk', system-ui, -apple-system, sans-serif; letter-spacing: .04em;
+  }
+
+  #site-identity {
+    position: fixed;
+    top: 14px; left: 28px;
+    z-index: 1002;
+    line-height: 1.3;
+    transition: left 0.55s cubic-bezier(0.22,1,0.36,1),
+                top  0.55s cubic-bezier(0.22,1,0.36,1);
+  }
+  #site-identity :global(.name) {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.90);
+    letter-spacing: 0.01em;
+    line-height: 1;
+    user-select: none;
+    text-decoration: none;
+  }
+
+  #menu-trigger {
+    position: fixed; top: 16px; right: 28px; z-index: 10001;
+    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-size: 1.1rem;
+    color: rgba(255,255,255,0.85); background: none; border: none; cursor: pointer;
+    padding: 4px 2px; letter-spacing: 0.01em;
+    transition: color 0.3s ease;
+  }
+  #menu-trigger:hover { color: rgba(255,255,255,1); }
+
+  #menu-overlay {
+    position: fixed; top: 56px; right: 22px; z-index: 10000;
+    width: min(270px, 74vw); height: auto; max-height: min(74vh, 520px);
+    background: #050509; border: 1px solid rgba(255,255,255,0.07); border-radius: 15px;
+    box-shadow: 0 20px 55px rgba(0,0,0,0.6);
+    padding: 24px 22px 20px; display: flex; flex-direction: column; gap: 30px;
+    transform: scale(0.96); opacity: 0; transform-origin: top right;
+    transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
+    pointer-events: none;
+  }
+  #menu-overlay.open { transform: scale(1); opacity: 1; pointer-events: all; }
+  #menu-list { list-style: none; margin: 0; padding: 0; }
+  #menu-list li { overflow: hidden; margin-bottom: 11px; }
+  #menu-list a {
+    display: inline-block; text-decoration: none;
+    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-weight: 500; font-size: 1.2rem;
+    letter-spacing: 0.01em; color: rgba(255,255,255,0.5);
+    transition: color 0.3s ease;
+  }
+  #menu-list a span {
+    display: inline-block; transform: translateY(120%); opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
+  }
+  #menu-overlay.open #menu-list a span { transform: translateY(0); opacity: 1; }
+  #menu-overlay.open #menu-list li:nth-child(1) a span { transition-delay: 0.04s; }
+  #menu-overlay.open #menu-list li:nth-child(2) a span { transition-delay: 0.08s; }
+  #menu-overlay.open #menu-list li:nth-child(3) a span { transition-delay: 0.12s; }
+  #menu-list a:hover { color: rgba(255,255,255,1); }
+  #menu-list a.current { color: rgba(255,255,255,0.78); }
+
+  #menu-meta { display: flex; flex-direction: column; gap: 12px; }
+  .meta-block {
+    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-size: 11px; line-height: 1.6;
+    color: rgba(255,255,255,0.5); letter-spacing: 0.05em;
+  }
+  #menu-weather :global(.mw-city) { color: rgba(255,255,255,0.8); text-transform: uppercase; }
+  #menu-weather :global(.mw-icon) { opacity: 0.7; margin-right: 4px; }
+  #menu-clock :global(.d1) { color: rgba(255,255,255,0.8); }
+  #menu-clock { font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #menu-overlay, #menu-list a span { transition: opacity 0.3s ease; transform: none; }
+  }
+</style>
+
+{hasIntro && (
+  <style>
+    #site-identity, #menu-trigger { opacity: 0; transition: opacity 0.55s cubic-bezier(0.22,1,0.36,1); }
+    body.intro-done #menu-trigger { opacity: 1; }
+  </style>
+)}
+
+<script>
+  (function(){
+    "use strict";
+    var trigger = document.getElementById('menu-trigger');
+    var overlay = document.getElementById('menu-overlay');
+    if(!trigger || !overlay) return;
+
+    var idleTimer: any = null;
+    function armIdle(){
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(function(){ setOpen(false); }, 10000); // auto-close after 10s idle
+    }
+    function setOpen(open: boolean){
+      overlay!.classList.toggle('open', open);
+      trigger!.textContent = open ? 'Close' : 'Menu';
+      trigger!.setAttribute('aria-expanded', open ? 'true' : 'false');
+      /* the label must flip too — otherwise a screen reader is told to
+         "open" a menu that's already open */
+      trigger!.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      overlay!.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if(open){ armIdle(); } else { clearTimeout(idleTimer); }
+    }
+    trigger.addEventListener('click', function(){ setOpen(!overlay!.classList.contains('open')); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && overlay!.classList.contains('open')) setOpen(false); });
+    ['mousemove','click','keydown','wheel','touchstart'].forEach(function(ev){
+      overlay!.addEventListener(ev, function(){ if(overlay!.classList.contains('open')) armIdle(); }, {passive:true});
+    });
+    overlay.querySelectorAll('#menu-list a').forEach(function(a){
+      a.addEventListener('click', function(){ setOpen(false); });
+    });
+
+    /* live GMT (UTC) clock — single line: GMT DD MON YY  HH:MM:SS */
+    var clock = document.getElementById('menu-clock');
+    if(clock){
+      var MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      function pad(n: number){ return (n<10?'0':'')+n; }
+      function upd(){
+        var d = new Date();
+        var u = new Date(d.getTime() + d.getTimezoneOffset()*60000); // -> UTC/GMT
+        clock!.innerHTML =
+          '<span class="d1">GMT</span> '+pad(u.getDate())+' '+MON[u.getMonth()]+' '+
+          String(u.getFullYear()).slice(2)+' '+
+          pad(u.getHours())+':'+pad(u.getMinutes())+':'+pad(u.getSeconds());
+      }
+      upd(); setInterval(upd, 1000);
+    }
+
+    /* live weather — Open-Meteo (no API key), fixed to California. */
+    var weather = document.getElementById('menu-weather');
+    if(weather){
+      var WMO: Record<number,string> = {
+        0:'CLEAR',1:'MAINLY CLEAR',2:'PARTLY CLOUDY',3:'OVERCAST',
+        45:'FOG',48:'RIME FOG',51:'LIGHT DRIZZLE',53:'DRIZZLE',55:'HEAVY DRIZZLE',
+        61:'LIGHT RAIN',63:'RAIN',65:'HEAVY RAIN',71:'LIGHT SNOW',73:'SNOW',75:'HEAVY SNOW',
+        80:'RAIN SHOWERS',81:'RAIN SHOWERS',82:'VIOLENT SHOWERS',
+        95:'THUNDERSTORM',96:'THUNDERSTORM',99:'THUNDERSTORM'
+      };
+      function iconFor(code: number){
+        if(code===0||code===1) return '☀';
+        if(code===2) return '⛅';
+        if(code===3||code===45||code===48) return '☁';
+        if(code>=51&&code<=65) return '☂';
+        if(code>=71&&code<=75) return '❄';
+        if(code>=80&&code<=82) return '☂';
+        if(code>=95) return '⚡';
+        return '☁';
+      }
+      function render(city: string, tempF: number, code: number){
+        weather!.innerHTML =
+          '<span class="mw-icon">'+iconFor(code)+'</span> '+
+          '<span class="mw-city">'+city+'</span><br>'+
+          Math.round(tempF)+'° '+(WMO[code]||'—');
+      }
+      function load(lat: number, lon: number, city: string){
+        var url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+                '&current=temperature_2m,weather_code&temperature_unit=fahrenheit';
+        fetch(url).then(function(r){ return r.json(); }).then(function(j){
+          var c=j && j.current;
+          if(c){ render(city, c.temperature_2m, c.weather_code); }
+        }).catch(function(){ weather!.innerHTML='<span class="mw-city">'+city+'</span>'; });
+      }
+      load(36.78, -119.42, 'CALIFORNIA');
+    }
+  })();
+</script>

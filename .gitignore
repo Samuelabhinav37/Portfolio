@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.claude/
+node_modules/
+dev-pid.txt
+
+# Astro
+dist/
+.astro/
+.env
+.env.production
+
+# Cloudflare local dev state
+.wrangler/

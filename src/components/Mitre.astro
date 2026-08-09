@@ -1,0 +1,14 @@
+---
+/**
+ * <Mitre id="T1195.002" /> renders a linked ATT&CK chip.
+ * Optional slot overrides the label: <Mitre id="T1567">T1567 (exfiltration)</Mitre>
+ */
+interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+const href = 'https://attack.mitre.org/techniques/' + id.replace('.', '/') + '/';
+const hasLabel = Astro.slots.has('default');
+---
+
+<a class="mitre-chip" href={href} target="_blank" rel="noopener">{hasLabel ? <slot /> : id}</a>

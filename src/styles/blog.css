@@ -1,0 +1,1606 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { background: #080814; }
+/* smooth anchor scrolling only for people who haven't asked for reduced motion */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+body {
+  background: #080814;   /* near-black, not true black — avoids halation (text glow) on dark bg */
+  color: rgba(240,240,240,0.78);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: rgba(255,255,255,0.78); text-decoration: none; transition: color 0.3s; }
+a:hover { color: rgba(255,255,255,1); }
+
+/* ── Keyboard focus — visible ring on every interactive element, only for
+      keyboard navigation (focus-visible), so mouse clicks stay clean ── */
+a:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 1px solid rgba(255,255,255,0.60);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+/* skip-link lands here; suppress the ring on the container itself */
+#main-content:focus { outline: none; }
+
+.container { max-width: 1440px; margin: 0 auto; padding: 0 48px; }
+
+/* ── Reading progress ── */
+#read-progress {
+  position: fixed; top: 0; left: 0; z-index: 300;
+  height: 1px; width: 0%;
+  background: linear-gradient(90deg, rgba(80,80,80,1) 0%, rgba(255,255,255,1) 100%);
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── Site identity (fixed corner) — swaps "Samuel Abhinav" for the Threat
+   Intel Blog mark on scroll (see blog-client.js's navName/navBrand toggle). ── */
+#site-identity {
+  position: fixed;
+  top: 14px; left: 28px;
+  z-index: 1002;
+  line-height: 1.3;
+}
+.nav-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500; font-size: 1.5rem;
+  color: rgba(255,255,255,0.90); text-decoration: none;
+  transition: opacity 0.4s;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  display: block;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  opacity: 0; pointer-events: none;
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  transition: opacity 0.4s;
+}
+.nav-brand.visible { opacity: 1; pointer-events: all; }
+.nav-brand-mark {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300; font-size: 1.95rem;
+  color: rgba(255,255,255,0.42); line-height: 0.7;
+}
+.nav-brand-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.62); line-height: 1.2;
+  text-transform: uppercase;
+}
+.nav-name.hidden { opacity: 0; pointer-events: none; }
+
+/* ── Collapsed menu — plain-text trigger + black floating card ── */
+#menu-trigger {
+  position: fixed; top: 16px; right: 28px; z-index: 10001;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-size: 1.1rem;
+  color: rgba(255,255,255,0.85); background: none; border: none; cursor: pointer;
+  padding: 4px 2px; letter-spacing: 0.01em;
+  transition: color 0.3s ease;
+}
+#menu-trigger:hover { color: rgba(255,255,255,1); }
+
+#menu-overlay {
+  position: fixed; top: 56px; right: 22px; z-index: 10000;
+  width: min(270px, 74vw); height: auto; max-height: min(74vh, 520px);
+  background: #030307; border: 1px solid rgba(255,255,255,0.07); border-radius: 15px;
+  box-shadow: 0 20px 55px rgba(0,0,0,0.6);
+  padding: 24px 22px 20px; display: flex; flex-direction: column; gap: 30px;
+  transform: scale(0.96); opacity: 0; transform-origin: top right;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
+  pointer-events: none;
+}
+#menu-overlay.open { transform: scale(1); opacity: 1; pointer-events: all; }
+#menu-list { list-style: none; margin: 0; padding: 0; }
+#menu-list li { overflow: hidden; margin-bottom: 11px; }
+#menu-list a {
+  display: inline-block; text-decoration: none;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-weight: 500; font-size: 1.2rem;
+  letter-spacing: 0.01em; color: rgba(255,255,255,0.5);
+  transition: color 0.3s ease;
+}
+#menu-list a span {
+  display: inline-block; transform: translateY(120%); opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
+}
+#menu-overlay.open #menu-list a span { transform: translateY(0); opacity: 1; }
+#menu-overlay.open #menu-list li:nth-child(1) a span { transition-delay: 0.04s; }
+#menu-overlay.open #menu-list li:nth-child(2) a span { transition-delay: 0.08s; }
+#menu-overlay.open #menu-list li:nth-child(3) a span { transition-delay: 0.12s; }
+#menu-list a:hover { color: rgba(255,255,255,1); }
+#menu-list a.active { color: rgba(255,255,255,0.78); }
+
+#menu-meta { display: flex; flex-direction: column; gap: 12px; }
+.meta-block {
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-size: 11px; line-height: 1.6;
+  color: rgba(255,255,255,0.5); letter-spacing: 0.05em;
+}
+#menu-weather .mw-city { color: rgba(255,255,255,0.8); text-transform: uppercase; }
+#menu-weather .mw-icon { opacity: 0.7; margin-right: 4px; }
+#menu-clock .d1 { color: rgba(255,255,255,0.8); }
+#menu-clock { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  #menu-overlay, #menu-list a span { transition: opacity 0.3s ease; transform: none; }
+}
+
+/* ── Hero ── */
+.hero {
+  display: grid;
+  grid-template-columns: 43% 57%;
+  min-height: 86vh;
+}
+.hero-left {
+  background: #000;
+  padding: 72px;
+  display: flex; flex-direction: column;
+  justify-content: flex-end;
+  position: relative; overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+/* Noise grain overlay */
+.hero-left::before {
+  content: ''; position: absolute; inset: 0; opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  background-size: 200px 200px; pointer-events: none; z-index: 0;
+}
+/* Corner brackets on hero-left */
+.hero-left::after {
+  content: ''; position: absolute;
+  top: 20px; left: 20px;
+  width: 22px; height: 22px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  border-left: 1px solid rgba(255,255,255,0.10);
+  pointer-events: none; z-index: 2;
+}
+.hero-corner-br {
+  position: absolute; bottom: 20px; right: 20px;
+  width: 22px; height: 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none; z-index: 2;
+}
+.hero-brand {
+  position: absolute;
+  top: 72px; left: 72px;
+  display: flex; align-items: flex-start; gap: 14px;
+  z-index: 1;
+  animation: fadeIn 1s ease 0.2s both;
+}
+.hero-brand-mark {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300; font-size: 5rem;
+  color: rgba(255,255,255,0.20); line-height: 0.65;
+}
+.hero-brand-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.05rem; letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.62); line-height: 1.3;
+  text-transform: uppercase;
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-right {
+  background: #000;
+  position: relative; overflow: hidden;
+}
+/* CRT scanlines on hero art panel */
+.hero-right::after {
+  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
+  );
+}
+/* CRT vignette */
+.hero-right::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+}
+
+/* Hero artwork image — bleeds to panel edges, dimmed, stepped silhouette, fades in.
+   .hero-art has the silhouette; .hero-art-fade has its own smaller-bounds variant
+   because it only covers the bottom band of the panel. */
+.hero-art {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1;
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% 84%,
+    74% 84%,
+    74% 92%,
+    44% 92%,
+    44% 100%,
+    20% 100%,
+    20% 90%,
+    0 90%
+  );
+}
+/* The photo itself sits inset within the flush-edged .hero-art frame above —
+   keeps it a touch pulled back ("zoomed out") instead of full-bleed, while the
+   clip-path notch still cuts flush against the panel's true edge. */
+.hero-art-img {
+  width: 90%; height: 90%;
+  object-fit: cover;
+  object-position: center top;
+  filter: brightness(0.78) saturate(0.84) contrast(1.04);
+  display: block;
+  opacity: 0;
+  animation: heroArtIn 1.4s cubic-bezier(0.22,1,0.36,1) 0.7s forwards;
+}
+@keyframes heroArtIn {
+  from { opacity: 0; transform: scale(1.02); filter: brightness(0.55) saturate(0.84) contrast(1.04); }
+  to { opacity: 1; transform: scale(1); filter: brightness(0.78) saturate(0.84) contrast(1.04); }
+}
+/* Stand-in for posts with no heroImage yet — keeps the same clip-path silhouette. */
+.hero-art--placeholder {
+  background:
+    radial-gradient(at 50% 32%, rgba(132,132,146,0.30) 0%, rgba(70,70,80,0.18) 38%, transparent 70%),
+    linear-gradient(165deg, rgba(36,36,42,0.95) 0%, rgba(10,10,12,0.98) 100%);
+}
+/* Bottom fade so any remaining edge artifacts dissolve into the panel.
+   Clip-path follows the stepped silhouette, scaled to this element's smaller height. */
+.hero-art-fade {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 22%; z-index: 2;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.92) 100%);
+  pointer-events: none;
+  animation: fadeIn 1.4s ease 0.7s both;
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% 40%,
+    74% 40%,
+    74% 76%,
+    44% 76%,
+    44% 100%,
+    20% 100%,
+    20% 55%,
+    0 55%
+  );
+}
+
+/* Hero tags */
+.hero-tags {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 24px;
+  animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 1.1s both;
+}
+/* Matte pill chips — Linear/Vercel style.
+   Solid surface (no gradient), soft single-color border, barely-there shadow.
+   Inter sans-serif, sentence case. Hierarchy from font-weight, not surface treatment. */
+.hero-tag {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.80rem; font-weight: 400;
+  letter-spacing: 0;
+  padding: 9px 18px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.78);
+  background: rgba(16,16,20,0.92);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  transition: border-color 0.25s, color 0.25s, transform 0.25s;
+  cursor: default;
+}
+.hero-tag:hover {
+  border-color: rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.95);
+  transform: translateY(-1px);
+}
+/* MITRE technique IDs — same chip construction, slightly heavier weight + tabular figures
+   so alphanumeric codes (T1195.002) read crisply inside a proportional sans */
+.hero-tag.mitre {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.005em;
+  color: rgba(255,255,255,0.92);
+  border-color: rgba(255,255,255,0.14);
+}
+.hero-tag.mitre:hover {
+  border-color: rgba(255,255,255,0.26);
+}
+
+/* ── Hero typography ── */
+.hero-breadcrumb {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.20em;
+  color: rgba(255,255,255,0.55);  /* interactive: raised from 0.42 for contrast */
+  text-transform: uppercase;
+  margin-bottom: 22px;
+  animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+}
+.hero-breadcrumb a {
+  color: rgba(255,255,255,0.55); text-decoration: none;
+  transition: color 0.2s;
+}
+.hero-breadcrumb a:hover { color: rgba(255,255,255,0.85); }
+.hero-breadcrumb .bc-sep { color: rgba(255,255,255,0.18); margin: 0 10px; }
+.hero-title {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-style: italic;
+  font-size: 5.0rem; color: rgba(255,255,255,0.96);
+  line-height: 1.04; margin-bottom: 28px;
+  letter-spacing: -0.01em;
+  animation: fadeUp 1.2s cubic-bezier(0.22,1,0.36,1) 0.4s both;
+}
+.hero-subtitle {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-style: italic;
+  font-size: 1.30rem; letter-spacing: 0.005em;
+  color: rgba(245,245,245,0.62);
+  line-height: 1.55; max-width: 480px;
+  animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.8s both;
+}
+
+/* ── Author Bar ── */
+.author-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 22px; padding-top: 32px; padding-bottom: 28px;
+  animation: fadeUp 0.8s ease 1.0s both;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.author-bar-left { display: flex; align-items: center; gap: 18px; }
+.author-bar-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.10em; text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+  text-align: right; line-height: 2.0;
+}
+.author-bar-meta strong { color: rgba(255,255,255,0.44); }
+.author-photo-wrap { position: relative; flex-shrink: 0; }
+.author-photo {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.90));
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: 1px solid rgba(255,255,255,0.13);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.author-photo span {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.82rem; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.40);
+}
+.author-badge {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(12,12,12,0.96);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 8px rgba(48,205,96,0.10);
+}
+.author-badge svg { width: 10px; height: 10px; }
+/* pulsing live dot */
+.live-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(48,205,96,0.90);
+  box-shadow: 0 0 0 2px rgba(48,205,96,0.12), 0 0 8px rgba(48,205,96,0.50);
+  animation: livepulse 7s ease-in-out infinite;
+  vertical-align: middle; margin-right: 6px;
+}
+@keyframes livepulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(48,205,96,0.12), 0 0 8px rgba(48,205,96,0.50); opacity: 0.90; }
+  50%      { box-shadow: 0 0 0 2px rgba(48,205,96,0.03), 0 0 3px rgba(48,205,96,0.15); opacity: 0.35; }
+}
+.author-info-name {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-size: 1.12rem;
+  color: rgba(255,255,255,0.90);
+}
+.author-info-sep {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; color: rgba(255,255,255,0.12); margin: 0 10px;
+  letter-spacing: 0.05em;
+}
+.author-info-role {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.26);
+}
+
+/* ── Page grid (single column — right rail is now fixed-floating, see .left-sidebar) ── */
+.page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+/* ── Icon rail (fixed, fades in when article column starts) ── */
+.icon-rail {
+  position: fixed;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column;
+  gap: 18px; align-items: center;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.icon-rail.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Right floating rail (fixed; fades in past author bar, mirrors .icon-rail pattern) ── */
+.left-sidebar {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 220px;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.left-sidebar.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.rail-sticky { /* container is now fixed; this is just a passive wrapper */ }
+.left-sidebar-heading {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: rgba(255,255,255,0.50); margin-bottom: 12px;
+}
+.left-sidebar-desc {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-size: 1.10rem;
+  color: rgba(240,240,240,0.62);
+  line-height: 1.55; margin-bottom: 0;
+  letter-spacing: 0.005em;
+}
+.left-sidebar-desc em {
+  font-style: italic; color: rgba(240,240,240,0.78);
+}
+.social-icon {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(145deg, rgba(28,28,28,0.90), rgba(18,18,18,0.88));
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.social-icon:hover {
+  border-color: rgba(255,255,255,0.28);
+  transform: scale(1.08);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.social-icon svg { width: 16px; height: 16px; }
+
+/* ── Article ── */
+.article-col {
+  padding: 36px 48px 0;
+  /* Capped to keep body text around 65-70 characters per line (the readable sweet spot) rather than the ~90ch the old 1040px gave. */
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.dropcap-block { display: flex; margin-bottom: 36px; }
+.dropcap-block .body-text { margin-bottom: 0; }
+.author-info-row { display: flex; align-items: baseline; flex-wrap: wrap; }
+.dropcap-letter {
+  width: 80px; height: 80px;
+  background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.90));
+  border: 1px solid rgba(255,255,255,0.22);
+  border-top: 1px solid rgba(255,255,255,0.32);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-right: 24px; margin-top: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.dropcap-letter span {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-size: 3.2rem;
+  color: rgba(255,255,255,0.50);
+}
+
+.body-text {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-size: 1.38rem;
+  color: rgba(248,248,248,0.92);
+  line-height: 1.85; margin-bottom: 30px;
+  letter-spacing: 0.005em;
+}
+.body-text strong { font-weight: 600; color: rgba(255,255,255,0.98); }
+.body-text em { font-style: italic; color: rgba(255,255,255,0.94); }
+.body-text a {
+  color: rgba(255,255,255,0.85);
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.25);
+  text-underline-offset: 3px;
+}
+.body-text a:hover { text-decoration-color: rgba(255,255,255,0.60); }
+a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their ATT&CK pages */
+
+/* ── Bold-lead list (Fortinet pattern): each item opens with a bolded
+      phrase + dash, so the list scans as a summary on its own. ── */
+.lead-list { list-style: none; margin: 0 0 30px; padding: 0; }
+.lead-list li {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.32rem; line-height: 1.72;
+  color: rgba(248,248,248,0.90);
+  padding: 9px 0 9px 28px; position: relative;
+}
+.lead-list li::before {
+  content: ''; position: absolute; left: 2px; top: 1.06em;
+  width: 10px; height: 1px; background: rgba(255,255,255,0.42);
+}
+.lead-list li strong { font-weight: 600; color: rgba(255,255,255,0.97); }
+
+/* ── Inline aside box (GitHub-blog pattern): quiet bordered mid-article
+      pointer — italic serif line + mono arrow-link. ── */
+.aside-cta {
+  margin: 34px 0; padding: 18px 24px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+  background: rgba(18,18,24,0.60);
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 1.14rem; line-height: 1.6; color: rgba(255,255,255,0.72);
+}
+.aside-cta a {
+  font-style: normal; font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+  white-space: nowrap; text-decoration: none;
+  color: rgba(255,255,255,0.82);
+  border-bottom: 1px solid rgba(255,255,255,0.30); padding-bottom: 2px;
+  transition: color 0.25s, border-color 0.25s;
+}
+.aside-cta a:hover { color: #fff; border-color: #fff; }
+
+/* Marker-pen highlight for key sentences — soft green wash, multi-line safe.
+   Usage: <span class="highlight">key sentence here</span> */
+.highlight {
+  background: rgba(72,215,145,0.13);
+  color: rgba(255,255,255,0.96);
+  padding: 0.08em 0.30em;
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Inline keyword pills — small chip for tagging technical terms in prose.
+   Usage: <span class="keyword-pill">postinstall hook</span>
+   Different from .highlight (sentence emphasis) — pills mark specific terms. */
+.keyword-pill {
+  display: inline-block;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.78em;
+  font-weight: 500;
+  letter-spacing: 0;
+  padding: 1px 9px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.88);
+  vertical-align: 0.06em;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.heading-2 {
+  font-family: 'EB Garamond', serif;
+  font-weight: 500; font-size: 1.95rem;
+  color: rgba(255,255,255,0.92);
+  margin-top: 64px; margin-bottom: 24px; line-height: 1.22;
+  letter-spacing: 0.005em;
+}
+.heading-3 {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-top: 40px; margin-bottom: 18px;
+}
+
+/* MITRE chip — matches portfolio badge style */
+.mitre-chip {
+  display: inline-flex; align-items: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.06em;
+  padding: 3px 8px; border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.20);
+  color: rgba(255,255,255,0.78);
+  background: rgba(255,255,255,0.06);
+  margin: 0 2px; vertical-align: middle;
+  cursor: default;
+  transition: background 0.2s, border-color 0.2s;
+}
+.mitre-chip:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.35); }
+
+/* Code blocks */
+.code-wrap { position: relative; margin: 32px 0; }
+.code-block {
+  background: linear-gradient(145deg, rgba(18,18,18,0.98), rgba(12,12,12,0.95));
+  border: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px; padding: 22px 24px;
+  margin: 0;
+  overflow-x: auto;
+  transition: border-color 0.3s;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.03);
+  position: relative;
+}
+/* corner bracket on code block */
+.code-block::before, .code-block::after {
+  content: ''; position: absolute; width: 12px; height: 12px;
+  border-color: rgba(255,255,255,0.07); border-style: solid;
+  pointer-events: none;
+}
+.code-block::before { top: 9px; left: 9px; border-width: 1px 0 0 1px; }
+.code-block::after  { bottom: 9px; right: 9px; border-width: 0 1px 1px 0; }
+.code-block:hover { border-color: rgba(255,255,255,0.09); }
+.code-block code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 300; font-size: 0.84rem;
+  color: rgba(72,215,145,0.82); line-height: 1.80;
+  white-space: pre;
+}
+.copy-btn {
+  position: absolute; top: 10px; right: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.50rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 3px; padding: 4px 10px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.copy-btn:hover { color: rgba(72,215,145,0.80); border-color: rgba(72,215,145,0.22); background: rgba(72,215,145,0.04); }
+.copy-btn.copied { color: rgba(72,215,145,0.90); border-color: rgba(72,215,145,0.28); }
+
+.code-inline {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.84rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  padding: 2px 7px; border-radius: 3px;
+  color: rgba(238,238,238,0.80);
+}
+
+/* Pull quote */
+.pull-quote {
+  border-left: 1px solid rgba(255,255,255,0.25);
+  padding: 18px 0 18px 28px; margin: 48px 0;
+  transition: border-color 0.4s;
+  position: relative;
+}
+.pull-quote::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; width: 1px; height: 18px;
+  background: rgba(255,255,255,0.50);
+}
+.pull-quote:hover { border-color: rgba(255,255,255,0.42); }
+.pull-quote p {
+  font-family: 'EB Garamond', serif;
+  font-style: italic; font-size: 1.65rem;
+  color: rgba(255,255,255,0.58); line-height: 1.50;
+  letter-spacing: 0.005em;
+}
+
+.grad-line {
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(190,190,190,0.60), rgba(60,185,145,0.60), transparent);
+}
+
+/* ── FAQ ── */
+.faq-section { padding: 72px 0; border-top: 1px solid rgba(255,255,255,0.04); }
+.faq-heading {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-style: italic; font-size: 2.4rem;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 52px; text-align: center; line-height: 1.2;
+}
+.faq-list { max-width: 820px; margin: 0 auto; }
+.faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); }
+.faq-q {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 22px 0; cursor: pointer; gap: 16px;
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-size: 1.12rem;
+  color: rgba(240,240,240,0.72); line-height: 1.4;
+  transition: color 0.2s;
+}
+.faq-q:hover { color: rgba(255,255,255,0.90); }
+.faq-icon {
+  font-size: 1.1rem; font-weight: 300;
+  color: rgba(255,255,255,0.45); flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s;
+  line-height: 1;
+  font-family: 'Share Tech Mono', monospace;
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); color: rgba(255,255,255,0.80); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1); }
+.faq-a-inner {
+  padding-bottom: 22px;
+  font-family: 'EB Garamond', serif;
+  font-size: 1.02rem; color: rgba(240,240,240,0.48);
+  line-height: 1.85; letter-spacing: 0.01em;
+}
+.faq-item.open .faq-a { max-height: 900px; }
+
+/* ── More Stories ── */
+.more-stories { border-top: 1px solid rgba(255,255,255,0.04); padding: 56px 0 80px; }
+.more-stories-heading {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-size: 1.40rem;
+  color: rgba(255,255,255,0.80); margin-bottom: 10px;
+  letter-spacing: 0.01em;
+}
+.more-stories-rule { height: 1px; background: rgba(255,255,255,0.05); margin-bottom: 40px; }
+.stories-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+.story-card {
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.story-card:hover { transform: translateY(-4px); }
+.story-image {
+  width: 100%; aspect-ratio: 1/1;
+  background: linear-gradient(145deg, rgba(22,22,22,0.94), rgba(14,14,14,0.90));
+  border-radius: 8px; margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(255,255,255,0.10);
+  transition: border-color 0.3s, box-shadow 0.3s;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.story-image canvas, .story-image img { display: block; width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+/* Editorial desat — story images are B&W at rest, color returns on hover (with the shimmer sweep) */
+.story-image img {
+  filter: grayscale(100%) brightness(0.88);
+  transition: filter 0.85s cubic-bezier(0.22,1,0.36,1);
+}
+.story-card:hover .story-image img {
+  filter: grayscale(0%) brightness(1);
+}
+/* Hover shimmer — diagonal light sweep across the image, ~1s, runs once per hover */
+.story-shimmer {
+  position: absolute;
+  top: 0; bottom: 0; left: -45%;
+  width: 38%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+}
+.story-card:hover .story-shimmer,
+.also-by:hover .story-shimmer {
+  animation: storyShimmer 1.0s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes storyShimmer {
+  0%   { left: -45%; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 115%; opacity: 0; }
+}
+/* Corner brackets on story cards */
+.story-image::before, .story-image::after {
+  content: ''; position: absolute; width: 12px; height: 12px;
+  border-color: rgba(255,255,255,0.10); border-style: solid; z-index: 2;
+  pointer-events: none;
+}
+.story-image::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.story-image::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+.story-card:hover .story-image {
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 6px 32px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.story-category {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(255,255,255,0.48); margin-bottom: 10px;
+}
+.story-title {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-style: italic;
+  font-size: 1.58rem; color: rgba(240,240,240,0.80);
+  line-height: 1.26; margin-bottom: 18px;
+  transition: color 0.2s;
+  letter-spacing: 0.005em;
+}
+.story-card:hover .story-title { color: rgba(255,255,255,0.95); }
+.story-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.story-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.18); display: flex; gap: 8px; align-items: center;
+}
+.story-meta-sep { color: rgba(255,255,255,0.08); }
+
+/* ── Footer ── */
+.site-footer-wrap {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(10,10,10,0.80);
+}
+.site-footer {
+  max-width: 1440px; margin: 0 auto;
+  padding: 36px 48px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-mark svg { width: 36px; height: 36px; }
+.footer-copy {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem; letter-spacing: 0.10em; text-transform: uppercase;
+  color: rgba(255,255,255,0.12);
+}
+
+/* ── Back to Top ── */
+#back-to-top {
+  position: fixed; bottom: 36px; right: 36px; z-index: 150;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.92));
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s, border-color 0.2s;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.60), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+#back-to-top.visible { opacity: 1; pointer-events: all; }
+#back-to-top:hover {
+  border-color: rgba(255,255,255,0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+#back-to-top svg { width: 14px; height: 14px; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+/* ── Ambient background grain — a single fixed full-viewport noise texture,
+   replacing what used to be the old dotted gutter grid. ── */
+#bg-grain {
+  position: fixed; inset: 0; z-index: -1; opacity: 0.55; pointer-events: none;
+}
+
+/* ── Respect reduced-motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Hero artwork credit (small corner tag inside hero-right) ── */
+.hero-credit-tag {
+  position: absolute;
+  bottom: 18px;
+  left: 22px;
+  z-index: 3;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.34);
+  pointer-events: none;
+  animation: fadeIn 1.6s ease 1.4s both;
+}
+
+/* ── Also-by callout (right rail) ── */
+.also-by {
+  margin-top: 22px; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: block; text-decoration: none;
+  transition: opacity 0.25s;
+}
+.also-by:hover { opacity: 0.88; }
+.also-by-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 12px;
+}
+.also-by-thumb {
+  width: 68%; aspect-ratio: 4/3;
+  background: linear-gradient(145deg, rgba(22,22,22,0.94), rgba(14,14,14,0.90));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255,255,255,0.10);
+  border-radius: 6px; margin-bottom: 12px;
+  overflow: hidden; position: relative;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.45);
+}
+.also-by-thumb::before, .also-by-thumb::after {
+  content: ''; position: absolute; width: 9px; height: 9px;
+  border-color: rgba(255,255,255,0.10); border-style: solid; z-index: 2;
+  pointer-events: none;
+}
+.also-by-thumb::before { top: 6px; left: 6px; border-width: 1px 0 0 1px; }
+.also-by-thumb::after  { bottom: 6px; right: 6px; border-width: 0 1px 1px 0; }
+.also-by-thumb canvas, .also-by-thumb img { display: block; width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+/* Editorial desat — rail thumb is B&W at rest, color on hover. No shimmer, faster reveal. */
+.also-by-thumb img {
+  filter: grayscale(100%) brightness(0.88);
+  transition: filter 0.5s ease;
+}
+.also-by:hover .also-by-thumb img {
+  filter: grayscale(0%) brightness(1);
+}
+.also-by-title {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-style: italic;
+  font-size: 1.18rem;
+  color: rgba(240,240,240,0.85);
+  line-height: 1.34; margin-bottom: 8px;
+  letter-spacing: 0.005em;
+}
+.also-by-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.10em; text-transform: uppercase;
+  color: rgba(255,255,255,0.26);
+}
+
+/* ── Mission section (2-col: text + CTA card) ── */
+.mission-section {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 96px 0 88px;
+  background: linear-gradient(180deg, rgba(18,18,18,0.0) 0%, rgba(32,32,32,0.45) 100%);
+}
+.mission-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 56px;
+  align-items: start;
+}
+.mission-left { max-width: 560px; }
+.mission-eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(255,255,255,0.62);
+  margin-bottom: 22px;
+}
+.mission-heading {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400; font-style: italic;
+  font-size: 3.6rem;
+  color: rgba(255,255,255,0.94);
+  margin-bottom: 36px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.mission-body p {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.18rem;
+  color: rgba(248,248,248,0.78);
+  line-height: 1.78;
+  margin-bottom: 22px;
+  letter-spacing: 0.005em;
+}
+.mission-body p:last-child { margin-bottom: 0; }
+.mission-follow {
+  margin-top: 44px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center;
+  gap: 22px;
+}
+.mission-follow-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+}
+.mission-follow-icons {
+  display: flex; gap: 14px; align-items: center;
+}
+.mission-follow-icons .social-icon { width: 32px; height: 32px; }
+
+/* Right column — solid dark elevated CTA panel (high visual weight, B/W palette) */
+.mission-card {
+  background: rgba(20,20,22,0.96);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-top: 1px solid rgba(255,255,255,0.18);
+  border-radius: 6px;
+  padding: 44px 44px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.mission-card::before {
+  content: ''; position: absolute;
+  top: 14px; left: 14px;
+  width: 16px; height: 16px;
+  border-top: 1px solid rgba(255,255,255,0.20);
+  border-left: 1px solid rgba(255,255,255,0.20);
+  pointer-events: none;
+}
+.mission-card::after {
+  content: ''; position: absolute;
+  bottom: 14px; right: 14px;
+  width: 16px; height: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  border-right: 1px solid rgba(255,255,255,0.18);
+  pointer-events: none;
+}
+.mission-cta {
+  display: block; text-decoration: none;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.mission-cta:first-child { padding-top: 4px; }
+.mission-cta:last-child { border-bottom: none; padding-bottom: 4px; }
+.mission-cta:hover { opacity: 0.92; transform: translateX(2px); }
+.mission-cta-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.88rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.96);
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.mission-cta-title .chev {
+  display: inline-block;
+  font-family: serif; font-size: 1.15rem; font-weight: 300;
+  color: rgba(255,255,255,0.78);
+  transition: transform 0.25s;
+}
+.mission-cta:hover .chev { transform: translateX(4px); }
+.mission-cta-desc {
+  font-family: 'EB Garamond', serif;
+  font-style: italic; font-size: 1.06rem;
+  color: rgba(248,248,248,0.62);
+  line-height: 1.55;
+  letter-spacing: 0.005em;
+}
+
+/* ── Hide floating right rail on viewports too narrow to clear the article ── */
+@media (max-width: 1580px) {
+  .left-sidebar { display: none; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-left { padding: 48px 32px; min-height: 65vw; }
+  .hero-brand { top: 36px; left: 32px; }
+  .hero-right { min-height: 56vw; }
+  .hero-title { font-size: 3.0rem; }
+  .hero-brand-mark { font-size: 3.6rem; }
+  .hero-brand-label { font-size: 0.85rem; }
+  #site-identity { top: 12px; left: 20px; }
+  .nav-name { font-size: 1.3rem; }
+  #menu-trigger { top: 14px; right: 20px; }
+  .mission-section { padding: 56px 0 48px; }
+  .mission-grid { grid-template-columns: 1fr; gap: 36px; }
+  .mission-heading { font-size: 2.2rem; }
+  .mission-card { padding: 28px 28px; }
+  .container { padding: 0 24px; }
+  .page-grid { grid-template-columns: 1fr; }
+  .icon-rail { display: none; }
+  .article-col { padding: 28px 0 0; max-width: none; }
+  .author-bar-meta { display: none; }
+  .stories-grid { grid-template-columns: 1fr; gap: 36px; }
+  .faq-heading { font-size: 1.9rem; }
+  .site-footer { flex-direction: column; gap: 14px; padding: 28px 24px; }
+}
+@media (max-width: 600px) {
+  .hero-title { font-size: 2.4rem; }
+  .hero-left { padding: 36px 24px; }
+  .body-text { font-size: 1.16rem; }
+  #back-to-top { bottom: 22px; right: 18px; }
+  .luna-slot { right: 18px; bottom: 72px; }
+}
+
+/* ── Table of contents (auto-built from the post's own headings) ── */
+.toc { margin: 26px 0 30px; }
+.toc-list { list-style: none; margin: 0; padding: 0; }
+.toc-list li { margin: 0; }
+.toc-list a {
+  display: block; padding: 5px 0 5px 14px;
+  font-family: 'EB Garamond', serif; font-size: 1.02rem; line-height: 1.35;
+  color: rgba(255,255,255,0.46); text-decoration: none;
+  border-left: 1px solid rgba(255,255,255,0.10);
+  transition: color 0.25s, border-color 0.25s;
+}
+.toc-list li.toc-sub a { padding-left: 28px; font-size: 0.94rem; }
+.toc-list a:hover { color: rgba(255,255,255,0.85); }
+.toc-list a.toc-active {
+  color: rgba(255,255,255,0.95);
+  border-left-color: rgba(255,255,255,0.75);
+}
+
+/* ── Heading anchor links (hover a heading, get a shareable # link) ── */
+.hlink {
+  display: inline-block; margin-left: 12px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.72em;
+  color: rgba(255,255,255,0.30); text-decoration: none;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity 0.25s, transform 0.25s, color 0.25s;
+}
+.heading-2:hover .hlink, .heading-3:hover .hlink { opacity: 1; transform: translateX(0); }
+.hlink:hover { color: rgba(255,255,255,0.80); }
+
+/* ── FAQ questions are now real <button>s (keyboard + screen-reader operable) ── */
+button.faq-q {
+  width: 100%; text-align: left;
+  background: none; border: none;
+}
+button.faq-q:focus-visible { outline: 1px solid rgba(255,255,255,0.6); outline-offset: 4px; }
+
+/* ── Share rail items work as links/buttons now ── */
+a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-family: inherit; }
+.social-icon.copied { border-color: rgba(255,255,255,0.45); }
+
+/* ── Detection Opportunity callout — the defender's-notebook signature block ── */
+.callout-detect {
+  margin: 38px 0; padding: 26px 30px 24px;
+  background: linear-gradient(145deg, rgba(24,24,28,0.90), rgba(14,14,18,0.88));
+  border: 1px solid rgba(255,255,255,0.10);
+  border-left: 2px solid rgba(255,255,255,0.55);
+  border-radius: 4px;
+}
+.callout-detect-label {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(255,255,255,0.62); margin-bottom: 14px;
+}
+.callout-detect-label::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+}
+.callout-detect p {
+  font-family: 'EB Garamond', serif; font-size: 1.22rem; line-height: 1.75;
+  color: rgba(244,244,246,0.88); margin: 0;
+}
+.callout-detect p + p { margin-top: 14px; }
+
+/* ── IOC block — mono table with per-row copy (analysts paste these into SIEMs) ── */
+.ioc-block {
+  margin: 38px 0;
+  border: 1px solid rgba(255,255,255,0.10); border-radius: 4px;
+  background: rgba(12,12,16,0.72); overflow: hidden;
+}
+.ioc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+.ioc-table { width: 100%; border-collapse: collapse; }
+.ioc-table td {
+  padding: 11px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.80rem;
+  vertical-align: middle;
+}
+.ioc-table tr:last-child td { border-bottom: none; }
+.ioc-type { color: rgba(255,255,255,0.38); width: 130px; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.68rem; }
+.ioc-val { color: rgba(235,238,244,0.88); word-break: break-all; user-select: all; }
+.ioc-copy {
+  background: none; border: 1px solid rgba(255,255,255,0.14); border-radius: 3px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.10em;
+  color: rgba(255,255,255,0.50); padding: 4px 9px; cursor: pointer;
+  transition: color 0.25s, border-color 0.25s;
+}
+.ioc-copy:hover { color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.40); }
+.ioc-copy.copied { color: rgba(255,255,255,0.95); border-color: rgba(255,255,255,0.55); }
+td.ioc-act { width: 70px; text-align: right; }
+
+/* ── Case file — at-a-glance incident summary. Same chassis as the IOC block
+      (mono header strip, hairline rows) so the two read as one family. ── */
+.case-file {
+  margin: 0 0 44px;
+  border: 1px solid rgba(255,255,255,0.10); border-radius: 4px;
+  background: rgba(12,12,16,0.72); overflow: hidden;
+}
+.case-file-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+.case-file-grid { margin: 0; }
+.case-file-row {
+  display: flex; gap: 18px;
+  padding: 11px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.case-file-row:last-child { border-bottom: none; }
+.case-file-row dt {
+  flex: 0 0 108px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(255,255,255,0.38); padding-top: 4px;
+}
+.case-file-row dd {
+  margin: 0;
+  font-family: 'EB Garamond', serif; font-size: 1.10rem; line-height: 1.55;
+  color: rgba(244,244,246,0.88);
+}
+@media (max-width: 600px) {
+  .case-file-row { flex-direction: column; gap: 3px; }
+  .case-file-row dt { flex: none; padding-top: 0; }
+}
+
+/* ── Inline TOC — <details> fallback shown only when the floating rail
+      (and its TOC) is hidden below 1580px. Collapsed by default. ── */
+.toc-inline {
+  display: none;
+  margin: 0 0 40px;
+  border: 1px solid rgba(255,255,255,0.10); border-radius: 4px;
+  background: rgba(12,12,16,0.60);
+}
+.toc-inline summary {
+  cursor: pointer; list-style: none;
+  padding: 13px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.2s;
+}
+.toc-inline summary:hover { color: rgba(255,255,255,0.85); }
+.toc-inline summary::-webkit-details-marker { display: none; }
+.toc-inline summary::after {
+  content: '+';
+  font-size: 1.05rem; line-height: 1;
+  color: rgba(255,255,255,0.45);
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.toc-inline[open] summary::after { transform: rotate(45deg); }
+.toc-inline summary:focus-visible { outline-offset: -4px; }
+.toc-inline .toc-list { padding: 2px 18px 16px; }
+@media (max-width: 1580px) { .toc-inline { display: block; } }
+
+/* ── Figure with caption ── */
+.figure-block { margin: 38px 0; }
+.figure-block img { width: 100%; display: block; border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; }
+.figure-block figcaption {
+  margin-top: 12px;
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 0.98rem; color: rgba(255,255,255,0.45); line-height: 1.5;
+}
+
+/* ── Margin notes — Tufte-style sidenotes in the left margin. A <span
+      class="mnote"> at the start of any paragraph is positioned out beside it.
+      The label line takes anything: DAY N for the incident clock, KEY STAT,
+      TERM, THE LOOT — whatever deserves the margin. Sub-line and MITRE tag
+      are optional. Collapses inline below 1300px. ── */
+.article-col .body-text { position: relative; }
+.mnote {
+  position: absolute; top: 0.45em; right: calc(100% + 46px);
+  width: 160px; text-align: right; line-height: 1.4;
+}
+.mnote::after { /* tick connecting the note to its paragraph */
+  content: ''; position: absolute; top: 0.55em; right: -30px;
+  width: 18px; height: 1px; background: rgba(255,255,255,0.20);
+}
+.mnote-day {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.66);
+}
+.mnote-sub {
+  display: block; margin-top: 5px;
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 0.98rem; color: rgba(255,255,255,0.42);
+}
+.mnote-tag {
+  display: inline-block; margin-top: 9px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.60rem; letter-spacing: 0.08em;
+  padding: 2px 7px; border: 1px solid rgba(255,255,255,0.16); border-radius: 3px;
+  color: rgba(255,255,255,0.48);
+}
+@media (max-width: 1300px) {
+  /* narrow screens: the note folds inline above its paragraph as a label */
+  .mnote {
+    position: static; display: block; width: auto; text-align: left;
+    margin: 0 0 10px; padding-left: 12px;
+    border-left: 1px solid rgba(255,255,255,0.20);
+  }
+  .mnote::after { display: none; }
+  .mnote-day, .mnote-sub { display: inline; }
+  .mnote-sub { margin: 0 0 0 10px; }
+  .mnote-tag { margin: 0 0 0 10px; vertical-align: 1px; }
+}
+
+/* ── Code token colors — the ONE place green is allowed, per the palette
+      rule. Everything else stays grey. (Astro port replaces this with Shiki
+      at build time; this is the preview stopgap.) ── */
+.tk-str { color: rgba(146,196,148,0.92); }
+.tk-kw  { color: rgba(255,255,255,0.88); }
+.tk-cm  { color: rgba(255,255,255,0.30); font-style: italic; }
+.tk-num { color: rgba(206,214,232,0.85); }
+.tk-pr  { color: rgba(255,255,255,0.34); }
+
+/* ── Skip link — first tab stop for keyboard users ── */
+.skip-link {
+  position: fixed; top: 10px; left: 10px; z-index: 20000;
+  padding: 10px 16px; border-radius: 6px;
+  background: #101018; border: 1px solid rgba(255,255,255,0.35);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.9);
+  transform: translateY(-200%); transition: transform 0.2s;
+}
+.skip-link:focus { transform: translateY(0); }
+
+/* ── Reduced motion: calm everything that pulses, breathes or glides ── */
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+  .hero-art { animation: none; opacity: 1; }
+  #read-progress { transition: none; }
+  .hlink { transition: none; transform: none; }
+}
+
+/* ══════════ ASTRO PORT BRIDGE ══════════
+   Additions for the Astro build: Shiki code palette (build-time highlighting
+   replaces the runtime tokenizer), link resets for cards that became real
+   links, and an image placeholder for posts without card art. */
+
+/* Shiki css-variables theme — mapped to the template's tk-* palette */
+:root {
+  --astro-code-foreground: rgba(72,215,145,0.82);
+  --astro-code-background: transparent;
+  --astro-code-token-keyword: rgba(255,255,255,0.88);
+  --astro-code-token-string: rgba(146,196,148,0.92);
+  --astro-code-token-string-expression: rgba(146,196,148,0.92);
+  --astro-code-token-comment: rgba(255,255,255,0.30);
+  --astro-code-token-constant: rgba(206,214,232,0.85);
+  --astro-code-token-function: rgba(255,255,255,0.80);
+  --astro-code-token-parameter: rgba(255,255,255,0.70);
+  --astro-code-token-punctuation: rgba(255,255,255,0.55);
+  --astro-code-token-link: rgba(146,196,148,0.92);
+  /* legacy var names used by older Shiki versions */
+  --astro-code-color-text: rgba(72,215,145,0.82);
+  --astro-code-color-background: transparent;
+}
+.code-block.astro-code { background: linear-gradient(145deg, rgba(18,18,18,0.98), rgba(12,12,12,0.95)); }
+.code-block.astro-code span[style*="token-comment"] { font-style: italic; }
+.code-block .line { line-height: 1.80; }
+
+/* Cards that are now real links */
+a.story-card, a.also-by { text-decoration: none; color: inherit; display: block; }
+a.social-icon { text-decoration: none; color: inherit; }
+
+/* Placeholder art when a post has no cardImage / alsoBy image yet */
+.story-image-ph {
+  width: 100%; height: 100%; min-height: 120px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(145deg, rgba(20,20,28,1), rgba(10,10,16,1));
+}
+
+/* ── Luna companion — pinned to the viewport (bottom-right corner) so she's
+   always present regardless of scroll position, independent of the TOC /
+   "Also in Lab Notes" rail stack she used to be grouped with.
+   Redesigned trigger: the creature is decorative only; the labeled pill
+   below it is the real (keyboard + screen-reader reachable) control that
+   opens the chat. Both fade in together shortly after load — no cinematic
+   portal sequence, since this isn't a first-load homepage moment.
+   bottom offset raised to 86px (72px on mobile) to clear this project's
+   pre-existing #back-to-top button, which shares the same corner. ── */
+.luna-slot {
+  position: fixed;
+  right: 20px; bottom: 86px;
+  z-index: 140;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
+}
+.luna-slot.luna-in { opacity: 1; transform: translateY(0); }
+#luna-wrap {
+  width: 96px; height: 96px;
+  transition: opacity 0.35s ease;
+}
+#luna-frame {
+  width: 100%; height: 100%;
+  border: 0; background: transparent; display: block;
+  /* Luna's body renders as a solid shape with a crisp stroked edge, which
+     read as a hard black square against the page's near-black background.
+     Feathering the frame's edges with a mask lets her fade into the page
+     instead of sitting in a visible box. */
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 55%, transparent 80%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 55%, transparent 80%);
+}
+/* No visible button by design — the creature and her periodic quip are the
+   only things a mouse user ever sees. But a mouse click and "wait for a
+   hint" aren't reachable by keyboard or screen-reader users, so the same
+   control still exists in the DOM, taken out of flow and invisible/
+   unclickable by default, and revealed only on keyboard focus (:focus-visible)
+   — the same pattern a "skip to content" link uses. Tabbing to it is the
+   keyboard-equivalent discovery path to the mouse user seeing a quip. */
+.luna-pill {
+  /* Above the creature, not below: the slot is bottom-anchored near the
+     viewport edge, so "below" would often render off-screen. */
+  position: absolute; right: 0; bottom: 100%; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+  color: rgba(238,241,247,0.94);
+  background: rgba(10,11,16,0.88); border: 1px solid rgba(205,214,226,0.20);
+  border-radius: 999px; padding: 10px 16px 10px 14px;
+  min-height: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  cursor: pointer;
+  opacity: 0; pointer-events: none; transform: translateY(6px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.luna-pill:focus-visible {
+  opacity: 1; pointer-events: auto; transform: translateY(0);
+  outline: 2px solid rgba(226,232,244,0.85); outline-offset: 2px;
+}
+.luna-pill .lp-icon { font-size: 15px; line-height: 1; }
+.luna-pill .lp-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: rgba(120,225,170,0.95);
+  box-shadow: 0 0 6px 1px rgba(120,225,170,0.55);
+}
+@media (prefers-reduced-motion: reduce) { .luna-pill { transition: opacity .15s ease; transform: none !important; } }
+
+/* Speech bubble — a one-time greeting hint. Used to anchor beside the stack
+   on roomy viewports (only reflowing above it on narrow ones), but sitting
+   beside her ate horizontal space and clashed with nearby content — so it
+   now docks above her at every viewport width instead. */
+#luna-quip {
+  position: absolute; right: 0; bottom: calc(100% + 10px); left: auto; top: auto;
+  transform: translateY(6px) scale(0.98);
+  z-index: 5; max-width: min(200px, 62vw); text-align: left; pointer-events: none;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  font-size: 13px; line-height: 1.5; letter-spacing: 0.005em;
+  color: rgba(226,232,240,0.92);
+  background: rgba(10,11,16,0.88); border: 1px solid rgba(205,214,226,0.14);
+  border-radius: 14px; padding: 11px 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
+}
+#luna-quip.show { opacity: 1; transform: translateY(0) scale(1); }
+#luna-quip.lq-clickable { pointer-events: auto; cursor: pointer; }
+#luna-quip.lq-clickable:hover { border-color: rgba(205,214,226,0.30); background: rgba(14,16,22,0.92); }
+#luna-quip .lq-hint { display: block; margin-top: 6px; font-size: 11px; font-style: italic; font-weight: 400; color: rgba(202,210,226,0.55); }
+@media (prefers-reduced-motion: reduce) { #luna-quip { transition: opacity .3s ease; transform: none; } }
+
+/* ── Ask Luna drawer — ported from the portfolio's chat widget, hardened for
+   accessibility (focus management/trap handled in JS) and re-themed with
+   generic blog-assistant content instead of portfolio project content. ── */
+#ldw-root{
+  --ldw-void:#030307; --ldw-panel:#0a0a17;
+  --ldw-ink:#eaeaf2; --ldw-dim:rgba(234,234,242,.56); --ldw-faint:rgba(234,234,242,.30);
+  --ldw-hair:rgba(234,234,242,.09); --ldw-hair2:rgba(234,234,242,.18);
+  --ldw-ice:rgba(200,206,218,.9); --ldw-ice-soft:rgba(200,206,218,.14);
+  --ldw-serif:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --ldw-body:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --ldw-mono:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --ldw-w:min(420px,94vw);
+  --ldw-spring:cubic-bezier(.22,1,.32,1);
+}
+#ldw-scrim{position:fixed;inset:0;z-index:1190;background:rgba(4,4,12,.5);opacity:0;pointer-events:none;
+  transition:opacity .5s ease;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
+#ldw-scrim.on{opacity:1;pointer-events:auto}
+#ldw-drawer{position:fixed;top:0;right:0;bottom:0;z-index:1200;width:var(--ldw-w);
+  background:var(--ldw-panel);border-left:1px solid var(--ldw-hair);display:flex;flex-direction:column;
+  transform:translateX(calc(100% + 2px));transition:transform .6s var(--ldw-spring);overflow:hidden;
+  box-shadow:-40px 0 90px -30px rgba(0,0,0,.85);font-family:var(--ldw-body)}
+#ldw-drawer.on{transform:translateX(0)}
+#ldw-drawer *{box-sizing:border-box}
+#ldw-drawer button{background:none;border:0;cursor:pointer;margin:0;padding:0}
+#ldw-drawer:focus-visible, #ldw-drawer button:focus-visible, #ldw-drawer input:focus-visible{
+  outline:2px solid rgba(226,232,244,0.85); outline-offset:2px;
+}
+
+.ldw-aurora{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ldw-aurora .ldw-haze{position:absolute;left:50%;bottom:-42%;width:190%;aspect-ratio:1;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(200,206,218,.22),transparent 62%),
+    radial-gradient(closest-side,rgba(120,124,140,.20),transparent 72%),
+    radial-gradient(closest-side,rgba(70,74,88,.34),transparent 80%);
+  filter:blur(28px);animation:ldw-breathe 13s ease-in-out infinite}
+@keyframes ldw-breathe{0%,100%{opacity:.85;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}
+.ldw-aurora::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--ldw-panel) 0%,transparent 30%)}
+
+.ldw-head{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:16px 18px 14px;border-bottom:1px solid var(--ldw-hair)}
+.ldw-head .ldw-dot{width:6px;height:6px;border-radius:50%;background:var(--ldw-ice);box-shadow:0 0 9px var(--ldw-ice);animation:ldw-pulse 2.4s ease-in-out infinite}
+@keyframes ldw-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.2)}}
+.ldw-head .ldw-who{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.22em;color:var(--ldw-dim);text-transform:uppercase}
+.ldw-head.ldw-warming .ldw-dot{background:var(--ldw-faint);box-shadow:0 0 8px var(--ldw-faint)}
+.ldw-head.ldw-offline .ldw-dot{background:var(--ldw-faint);box-shadow:none;animation:none}
+.ldw-head .ldw-sp{flex:1}
+#ldw-drawer.ldw-compact .ldw-head{padding-left:60px}
+#ldw-drawer.ldw-compact .ldw-head .ldw-dot{display:none}
+.ldw-head{transition:padding .5s var(--ldw-spring)}
+.ldw-x{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ldw-faint);transition:.2s}
+.ldw-x:hover{color:var(--ldw-ink);background:rgba(255,255,255,.05)} .ldw-x svg{width:15px;height:15px}
+
+.ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
+.ldw-body::-webkit-scrollbar{display:none}
+.ldw-identity{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:200px;
+  transition:max-height .5s var(--ldw-spring),opacity .35s ease,padding .5s var(--ldw-spring);max-height:520px;overflow:hidden}
+#ldw-drawer.ldw-compact .ldw-identity{max-height:0;opacity:0;padding-top:0}
+.ldw-avatar{position:absolute;z-index:6;left:50%;top:70px;width:118px;height:118px;transform:translateX(-50%);
+  border-radius:50%;overflow:hidden;background:#0b0b16;border:1px solid rgba(200,206,218,.22);
+  box-shadow:0 18px 44px -16px rgba(0,0,0,.8),0 0 0 6px rgba(200,206,218,.04),0 0 40px -12px rgba(200,206,218,.18);
+  transition:left .55s var(--ldw-spring),top .55s var(--ldw-spring),width .55s var(--ldw-spring),height .55s var(--ldw-spring),transform .55s var(--ldw-spring),box-shadow .5s ease}
+.ldw-avatar::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(200,206,218,.12);animation:ldw-halo 6s ease-in-out infinite;pointer-events:none;z-index:2}
+.ldw-avatar iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;transform:scale(1.08)}
+/* compact: Luna shrinks into the header, never disappears */
+#ldw-drawer.ldw-compact .ldw-avatar{left:16px;top:11px;width:34px;height:34px;transform:translateX(0);box-shadow:0 0 0 1px rgba(200,206,218,.14),0 0 18px -6px rgba(200,206,218,.25)}
+#ldw-drawer.ldw-compact .ldw-avatar::before{opacity:0}
+@keyframes ldw-blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+@keyframes ldw-halo{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.9;transform:scale(1.06)}}
+.ldw-greeting{margin-top:26px;font-family:var(--ldw-serif);font-weight:500;font-size:28px;line-height:1.1;color:var(--ldw-ink)}
+.ldw-sub{margin-top:14px;font-family:var(--ldw-mono);font-weight:500;font-size:13px;line-height:2.0;letter-spacing:.02em;color:var(--ldw-dim);max-width:34ch}
+
+.ldw-thread{display:flex;flex-direction:column;gap:16px;padding:22px 0 8px}
+.ldw-msg{opacity:0;transform:translateY(8px);animation:ldw-in .45s var(--ldw-spring) forwards}
+@keyframes ldw-in{to{opacity:1;transform:translateY(0)}}
+.ldw-msg.ldw-you{align-self:flex-end;max-width:88%;font-family:var(--ldw-mono);font-weight:500;font-size:12.5px;color:var(--ldw-ink);
+  background:var(--ldw-ice-soft);border:1px solid rgba(200,206,218,.16);padding:9px 13px;border-radius:12px 12px 3px 12px}
+.ldw-msg.ldw-luna{align-self:flex-start;max-width:94%;font-family:var(--ldw-body);font-size:15.5px;line-height:1.5;color:var(--ldw-ink);
+  border-left:1px solid rgba(200,206,218,.28);padding:1px 0 1px 14px}
+.ldw-readout{margin-top:9px;font-family:var(--ldw-mono);font-weight:500;font-size:9.5px;letter-spacing:.14em;color:var(--ldw-faint);text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.ldw-readout .ldw-tick{color:var(--ldw-ice)}
+.ldw-goto{margin-top:10px}
+.ldw-goto button{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.06em;color:var(--ldw-ice);
+  border:1px solid rgba(200,206,218,.28);border-radius:8px;padding:7px 12px;transition:.2s}
+.ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(200,206,218,.5)}
+.ldw-guesses{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.ldw-guesses button{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);
+  background:var(--ldw-ice-soft);border:1px solid rgba(200,206,218,.14);padding:8px 13px;border-radius:999px;transition:.2s}
+.ldw-guesses button:hover{background:rgba(200,206,218,.2);border-color:rgba(200,206,218,.32)}
+.ldw-guesses .ldw-brk{color:rgba(200,206,218,.55)}
+
+.ldw-chips{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 24px 12px}
+.ldw-chips.ldw-hide{display:none}
+.ldw-chip{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);background:var(--ldw-ice-soft);
+  border:1px solid rgba(200,206,218,.14);padding:8px 14px;border-radius:999px;transition:.2s}
+.ldw-chip:hover{background:rgba(200,206,218,.2)} .ldw-chip .ldw-brk{color:rgba(200,206,218,.55)}
+
+.ldw-cw{position:relative;z-index:2;padding:0 18px 18px}
+.ldw-composer{position:relative;border-radius:18px;background:rgba(8,8,20,.62);border:1px solid rgba(200,206,218,.5);
+  box-shadow:0 0 26px -6px rgba(200,206,218,.28);padding:13px 15px 11px;transition:.25s}
+.ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 32px -3px rgba(200,206,218,.42)}
+.ldw-r1{display:flex;align-items:center;gap:5px}
+.ldw-composer .ldw-brk{font-family:var(--ldw-mono);font-size:14px;color:rgba(200,206,218,.5)}
+.ldw-composer input{flex:1;background:none;border:0;outline:0;font-family:var(--ldw-mono);font-weight:500;font-size:13.5px;color:var(--ldw-ink);padding:2px 6px;caret-color:var(--ldw-ice)}
+.ldw-composer input::placeholder{color:var(--ldw-faint)}
+.ldw-r2{display:flex;align-items:center;margin-top:11px;font-family:var(--ldw-mono);font-weight:500;font-size:10px;letter-spacing:.06em;color:var(--ldw-faint)}
+.ldw-r2 .ldw-sp{flex:1}
+.ldw-send{flex:0 0 auto;width:38px;height:32px;display:grid;place-items:center;border-radius:11px;background:rgba(200,206,218,.10);border:1px solid rgba(200,206,218,.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
+.ldw-send svg{width:15px;height:15px}
+.ldw-send.on{opacity:1;background:linear-gradient(160deg,#e8ebf1,#c3c8d2);border-color:transparent;color:#12121c}
+.ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(200,206,218,.5)}
+
+@media (prefers-reduced-motion:reduce){
+  #ldw-drawer *,.ldw-aurora .ldw-haze{animation:none !important}
+  #ldw-drawer,#ldw-scrim{transition:opacity .2s ease,transform .2s ease !important}
+}
+
+/* When the drawer is closed it only slides off-screen (transform), it is not
+   removed — so its animations keep ticking. The aurora especially runs a
+   scale keyframe under a 28px blur, recompositing every frame for a panel
+   nobody is looking at. Freeze the decorative loops until the drawer opens. */
+#ldw-drawer:not(.on) .ldw-haze,
+#ldw-drawer:not(.on) .ldw-head .ldw-dot,
+#ldw-drawer:not(.on) .ldw-avatar::before{ animation-play-state:paused; }
+
+.ldw-followups{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.ldw-fu{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.02em;color:var(--ldw-dim);
+  background:rgba(200,206,218,.06);border:1px solid rgba(200,206,218,.12);border-radius:999px;padding:6px 12px;transition:.18s;cursor:pointer}
+.ldw-fu:hover{color:var(--ldw-ink);background:rgba(200,206,218,.14);border-color:rgba(200,206,218,.28)}
+.ldw-fu .ldw-plus{color:rgba(200,206,218,.5);margin-right:5px}
+@media (max-width: 640px){ #ldw-drawer{ --ldw-w: 100vw; } }

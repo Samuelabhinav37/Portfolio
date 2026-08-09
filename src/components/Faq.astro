@@ -1,0 +1,23 @@
+---
+/** Renders the visible accordion from the same frontmatter that feeds FAQPage JSON-LD. */
+interface Props {
+  faqs: { q: string; a: string }[];
+}
+const { faqs } = Astro.props;
+---
+
+{faqs.length > 0 && (
+  <div class="faq-section" id="section-faq">
+    <h2 class="faq-heading">Frequently asked questions</h2>
+    <div class="faq-list">
+      {faqs.map((f) => (
+        <div class="faq-item">
+          <button class="faq-q" type="button" aria-expanded="false">
+            {f.q}<span class="faq-icon" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner" set:html={f.a} /></div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}

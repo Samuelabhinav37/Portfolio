@@ -1,0 +1,129 @@
+---
+title: "Anatomy of a supply chain attack"
+description: "How a compromised npm maintainer account silently backdoored 14,000 production endpoints for 47 days — and what defenders missed."
+category: "Threat Intel"
+pubDate: 2026-04-01
+readTime: 9
+mitre: ["T1195.002", "T1567"]
+tags: ["Supply Chain", "Node.js", "Detection Eng"]
+heroImage: /images/supply-chain-hero.jpg
+heroImageAlt: "Engineering-blueprint diagram of a broken steel chain link, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
+heroCredit: "Generated illustration · Meta AI"
+cardImage: /images/supply-chain-card.jpg
+cardImageAlt: "Engineering-blueprint diagram of a broken steel chain link on graph paper, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
+related:
+  - detecting-lateral-movement-active-directory
+  - honeypot-lab-aws-threat-intel
+alsoBy:
+  label: "Also in Lab Notes"
+  title: "OffSec Lab 3 — anatomy of a JIT spray chain"
+  meta: "Lab Notes · 14 Min"
+  href: "#"
+faqs:
+  - q: "What is a software supply chain attack?"
+    a: "Instead of attacking you directly, the attacker goes after something you already trust — a dependency, a build tool, the pipeline that ships your code. Compromise that one upstream piece and you get malicious code running in every downstream project that pulled it in, without touching those projects yourself. That's what makes it so efficient: one compromised maintainer account can outperform thousands of individual attacks."
+  - q: "How do you detect a compromised npm package?"
+    a: "I watch for the same handful of signals every time: a <span class=\"code-inline\">postinstall</span> script that showed up out of nowhere, a build process suddenly making outbound network calls, a version bump with no changelog to explain it, or code reaching for environment variables it never touched before. None of these prove compromise on their own, but they're exactly what egress monitoring, lockfile integrity checks, and SCA tooling are built to catch."
+  - q: "What MITRE ATT&CK techniques apply to supply chain attacks?"
+    a: "The core technique is <a class=\"mitre-chip\" href=\"https://attack.mitre.org/techniques/T1195/002/\" target=\"_blank\" rel=\"noopener\">T1195.002</a> — Compromise Software Supply Chain — but it rarely shows up alone. The maintainer usually gets phished first (T1566.001 or T1566.002), whatever gets stolen exfiltrates under T1567, and if the attacker needs to get past MFA along the way, that's T1621."
+  - q: "What is the difference between a supply chain attack and a zero-day?"
+    a: "A zero-day needs a real, unpatched vulnerability to exploit. A supply chain attack doesn't need a vulnerability at all — it just needs your trust. The malicious code shows up looking exactly like a legitimate update, signed and everything, because as far as your tooling can tell, it is one."
+  - q: "How can you harden npm package publishing against account compromise?"
+    a: "If I were locking this down, I'd start by requiring hardware security keys — FIDO2/WebAuthn — on every publishing account, no exceptions. Then scope access tokens to individual packages instead of blanket publish rights, add provenance with Sigstore so a build's origin is verifiable, and alert on every new publish event so nobody finds out about a rogue release 47 days later."
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import IocTable from '../../components/IocTable.astro';
+import AsideCta from '../../components/AsideCta.astro';
+import Mitre from '../../components/Mitre.astro';
+
+<Dropcap letter="I">n March 2026, a routine dependency update in a widely-used Node.js package introduced a backdoor that went undetected for nearly seven weeks. The attack exploited the trust model inherent in open source package management, targeting a maintainer's compromised credentials to push malicious code through what appeared to be a legitimate version bump.</Dropcap>
+
+<Mnote sub="one compromised account &rarr; 14,000 endpoints" />The incident affected over 14,000 production endpoints across financial services, healthcare, and SaaS companies — many of which had robust security programs but lacked visibility into their dependency trees beyond the first level.
+
+<CaseFile
+  id="eof-2026-04"
+  rows={[
+    { term: 'Vector', desc: 'Phished npm maintainer &rarr; malicious patch release (2.14.1 &rarr; 2.14.2)' },
+    { term: 'Dwell', desc: '47 days undetected' },
+    { term: 'Impact', desc: '14,000+ production endpoints; cloud keys, CI secrets and npm tokens exfiltrated' },
+    { term: 'Caught by', desc: 'Anomalous egress flagged by a Zeek sensor during a routine weekly review' },
+    { term: 'Techniques', desc: 'T1566.002 &middot; T1195.002 &middot; T1552 &middot; T1567 &middot; T1621' },
+  ]}
+/>
+
+## Initial access and lateral movement
+
+<Mnote day="Day 2" sub="backdoored 4.2.1 ships" tag="T1195.002" />The attacker established persistence through a modified <span class="code-inline">postinstall</span> hook. The hook only ran under specific runtime conditions: it checked for CI environment variables, and if it detected them, stayed dormant. That's how it survived every automated test the maintainers had ever written.
+
+<Mnote day="The loot" sub="cloud keys, CI secrets, npm tokens" tag="T1552" />Once inside the build pipeline, the payload harvested environment variables — cloud provider credentials, API keys, database connection strings. These were exfiltrated to a rotating set of command-and-control servers *masquerading as CDN endpoints*.
+
+```bash
+$ grep -r "postinstall" node_modules/.hooks/
+postinstall: "node scripts/telemetry.js"
+
+$ cat scripts/telemetry.js | head -20
+const os = require('os');
+const https = require('https');
+const env = JSON.stringify(process.env);
+const buf = Buffer.from(env).toString('base64');
+```
+
+<Mnote day="Day 12" sub="first exfil beacon" tag="T1567" />The exfiltration mechanism was elegant in its simplicity. Rather than opening new connections, it piggy-backed on existing HTTPS traffic by embedding base64-encoded payloads as query parameters in requests to legitimate-looking analytics endpoints.
+
+> The breach went undetected for 47 days — exposing the fundamental gap between dependency trust and dependency verification.
+
+## Detection and response
+
+<DetectionOpportunity>The dormant-in-CI behavior is itself a signal. A package whose <span class="code-inline">postinstall</span> hook branches on CI environment variables has no legitimate reason to do so — alert on environment-variable enumeration inside install scripts, and this backdoor surfaces on day one instead of day 47.</DetectionOpportunity>
+
+<Mnote day="Day 47" sub="Zeek flags the egress" />Detection ultimately came from an anomalous egress traffic pattern flagged by a Zeek sensor monitoring outbound connections. A junior SOC analyst noticed repeated connections to an unregistered AS number during a routine review of weekly traffic summaries — <span class="highlight">a reminder that human pattern recognition still catches what automated rules miss</span>.
+
+### Credential harvesting via phishing
+
+<Mnote day="Day 0" sub="maintainer phished" tag="T1566.002" />The initial compromise vector was a targeted phishing email sent to the package maintainer. Using a spoofed npm security notification — complete with a cloned login page hosted on a typosquatted domain — the attacker obtained the maintainer's two-factor recovery codes alongside their primary credentials.
+
+<Mnote day="Term" sub="real-time phishing proxy &mdash; relays MFA codes as they're typed" tag="T1621" />This allowed them to bypass MFA and gain full publishing rights to the package. The malicious update was tagged as a patch version (<span class="code-inline">2.14.1</span> to <span class="code-inline">2.14.2</span>), ensuring automatic adoption by any project using a caret range in their <span class="code-inline">package.json</span>.
+
+### Indicators of compromise
+
+The MITRE ATT&CK mapping spans <Mitre id="T1195.002" /> (supply chain compromise) through <Mitre id="T1567" /> (exfiltration over web service). Key IOCs included outbound connections to three IP ranges rotated on a 72-hour cycle.
+
+<IocTable
+  id="eof-2026-04"
+  rows={[
+    { type: 'SHA-256', value: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' },
+    { type: 'Domain', value: 'cdn-assets-delivery[.]net', fanged: 'cdn-assets-delivery.net' },
+    { type: 'IPv4', value: '185.220.101[.]47', fanged: '185.220.101.47' },
+    { type: 'npm pkg', value: 'event-stream-utils@4.2.1' },
+  ]}
+/>
+
+```text
+IOC-001: 45.33.xx.0/24  (Linode, Frankfurt)
+IOC-002: 167.71.xx.0/24 (DigitalOcean, AMS3)
+IOC-003: 104.248.xx.0/24 (DigitalOcean, SFO2)
+
+YARA rule: supply_chain_postinstall_hook
+SHA256: 9f86d081884c7d659a2feaa0...
+```
+
+<AsideCta href="#">The complete IOC set and Sigma detections for this incident live in the companion repository.</AsideCta>
+
+## Lessons for defenders
+
+<Mnote day="Key stat" sub="47-day dwell is not an outlier &mdash; it's the industry median" />This incident reinforces several uncomfortable truths about modern software supply chains. **Lockfiles are not optional** — any project relying on floating version ranges is accepting implicit trust in every upstream maintainer's operational security. There's no neutral default here. Either you've pinned, or you've delegated.
+
+<Mnote day="Day 49" sub="package pulled, postmortem begins" />Most importantly, this attack succeeded not because of sophisticated zero-day exploitation, but because of *basic credential compromise applied to a high-leverage target*. The maintainer's account had no hardware security key requirement, no IP allowlisting, no anomaly detection on publishing activity. None of those are exotic controls.
+
+> The most dangerous attacks don't break in through the front door. They arrive as a trusted package update at 2am on a Tuesday.
+
+<Mnote day="Checklist" sub="start with publish provenance" />For organizations hardening their supply chain posture, the immediate priorities sort cleanly:
+
+- **Lockfile-only installs** — install exactly what's been pinned and verified, refuse anything else.
+- **Egress baselining** — know what your build pipeline normally talks to, and alert the moment that changes.
+- **Hardware MFA** — for every account with publish permission, no carve-outs.
+- **First-party mirrors** — with integrity verification for the dependencies you can't afford to inherit blindly.

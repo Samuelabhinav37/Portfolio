@@ -1,0 +1,21 @@
+---
+/**
+ * At-a-glance incident summary. One per post, right after the lede.
+ *   <CaseFile id="eof-2026-04" rows={[{ term: 'Vector', desc: '...' }, ...]} />
+ * desc accepts inline HTML (entities, arrows, chips).
+ */
+interface Props {
+  id: string;
+  rows: { term: string; desc: string }[];
+}
+const { id, rows } = Astro.props;
+---
+
+<div class="case-file">
+  <div class="case-file-head"><span>Case file</span><span>{id}</span></div>
+  <dl class="case-file-grid">
+    {rows.map((r) => (
+      <div class="case-file-row"><dt>{r.term}</dt><dd set:html={r.desc} /></div>
+    ))}
+  </dl>
+</div>

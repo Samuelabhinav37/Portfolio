@@ -1,0 +1,43 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { SITE } from '../config';
+
+interface Props {
+  posts: CollectionEntry<'blog'>[];
+}
+const { posts } = Astro.props;
+
+const fmt = (d: Date) =>
+  d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+---
+
+{posts.length > 0 && (
+  <div class="more-stories">
+    <h2 class="more-stories-heading">More stories</h2>
+    <div class="more-stories-rule"></div>
+    <div class="stories-grid">
+      {posts.map((p) => (
+        <a class="story-card" href={`/blog/${p.id}/`}>
+          <div class="story-image">
+            {p.data.cardImage
+              ? <img src={p.data.cardImage} alt={p.data.cardImageAlt ?? ''} loading="lazy" />
+              : <div class="story-image-ph" aria-hidden="true"></div>}
+            <div class="story-shimmer"></div>
+          </div>
+          <div class="story-category">{p.data.category}</div>
+          <h3 class="story-title">{p.data.title}</h3>
+          <div class="story-keywords">
+            {[...p.data.mitre, ...p.data.tags].slice(0, 3).map((t) => (
+              <span class="keyword-pill">{t}</span>
+            ))}
+          </div>
+          <div class="story-meta">
+            <span>{SITE.author}</span><span class="story-meta-sep">/</span>
+            <span>{fmt(p.data.pubDate)}</span>
+            {p.data.readTime && <><span class="story-meta-sep">/</span><span>{p.data.readTime} Min</span></>}
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+)}

@@ -1,0 +1,16 @@
+---
+/**
+ * Quiet mid-article pointer:
+ *   <AsideCta href="https://github.com/...">The complete IOC set lives in the companion repository.</AsideCta>
+ */
+interface Props {
+  href: string;
+  linkText?: string;
+}
+const { href, linkText = 'View on GitHub \u2192' } = Astro.props;
+---
+
+<div class="aside-cta">
+  <span><slot /></span>
+  <a href={href} target="_blank" rel="noopener">{linkText}</a>
+</div>

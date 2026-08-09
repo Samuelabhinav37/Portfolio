@@ -1,0 +1,227 @@
+---
+# ══════════════════════════════════════════════════════════════════════════
+#  THE BLUEPRINT — a complete, real, working post with every field and every
+#  content block explained inline. Copy _template.mdx to start a blank post;
+#  come back to THIS file whenever you forget what a field does or how a
+#  block is supposed to look.
+#
+#  Because this file has draft: true, it never appears in "All Work", never
+#  appears in sitemap.xml, and Google will never see it — but it still gets
+#  a real, working page. Run `bun run dev` and open:
+#      http://localhost:4321/blog/_blueprint
+#  to see everything below actually rendered, styled, for real.
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── Required fields — the build fails without these ────────────────────────
+title: "Anatomy of a supply chain attack"
+# The <title> tag, the big hero heading, the OG/Twitter share title, and the
+# JSON-LD headline all come from this one field.
+
+description: "How a compromised npm maintainer account silently backdoored 14,000 production endpoints for 47 days — and what defenders missed."
+# One or two sentences. Used as: the hero subtitle, the <meta description>,
+# the OG/Twitter card description text, and the JSON-LD description. Because
+# it's reused in so many places, keep it a plain sentence with no HTML/MDX —
+# no <span> tags, no components. Just text.
+
+pubDate: 2026-04-01
+# Any date string Astro can parse (e.g. "2026-04-01" or "April 1 2026").
+# Drives sort order on the blog index, the visible date label, and the
+# JSON-LD datePublished.
+
+# ── Optional, but recommended on every post ─────────────────────────────────
+category: "Threat Intel"
+# Shown in the breadcrumb and the hero tag row. Defaults to "Threat Intel"
+# if you omit it entirely, so only set this if a post needs something else.
+
+readTime: 9
+# Minutes, shown next to the date. Omit this line entirely and the site
+# computes it automatically from word count (roughly 220 words/minute) —
+# only set it by hand if the auto-estimate feels wrong for a code-heavy post.
+
+# updatedDate: 2026-04-15
+# Optional. Only add this line if you go back and materially revise a post
+# after publishing — it shows a small "Updated" note and changes the JSON-LD
+# dateModified. Leave it out for a normal edit/typo fix.
+
+tags: ["Supply Chain", "Node.js", "Detection Eng"]
+# Free-form chips shown in the hero. Just short label strings — these are
+# NOT MITRE technique IDs (that's the `mitre` field below), just topic tags.
+
+mitre: ["T1195.002", "T1567"]
+# MITRE ATT&CK technique IDs relevant to the whole post — rendered as
+# clickable pills in the hero, separate from any <Mitre id="..." /> chips
+# you drop inline in the body text (see the body section below). Omit this
+# line if the post isn't security-technique-specific.
+
+# ── Images — READ THIS: the site now uses a "two crop" convention ──────────
+# One photo/illustration, cropped twice:
+#   • a WIDE crop (roughly 16:9, e.g. 2192×1152) → the big hero banner
+#   • a TALL crop (roughly 4:5, e.g. 1408×1760)  → BOTH the small thumbnail
+#     card on the blog index page AND the image shown when this post gets
+#     shared on iMessage/Slack/Twitter/LinkedIn
+# You only need to produce two image files per post, never three.
+heroImage: /images/supply-chain-hero.jpg
+heroImageAlt: "Engineering-blueprint diagram of a broken steel chain link, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
+# heroImageAlt is REQUIRED the moment heroImage is set — the build will
+# refuse to compile without it (screen readers get nothing otherwise).
+# Describe what's actually IN the image, not just "chain" — a screen-reader
+# user should get the same picture in their head that a sighted visitor gets.
+heroCredit: "Generated illustration · Meta AI"
+# Optional small credit tag overlaid on the hero image. Omit if there's
+# nothing to credit.
+
+cardImage: /images/supply-chain-card.jpg
+cardImageAlt: "Engineering-blueprint diagram of a broken steel chain link on graph paper, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
+# Same rule: cardImageAlt is REQUIRED once cardImage is set.
+#
+# Don't set `ogImage` by hand — leave it out entirely. The site automatically
+# uses cardImage (the tall crop) as the share-preview image, falling back to
+# heroImage if there's no cardImage, so one pair of files covers card +
+# thumbnail + share preview with zero extra work. Only add an explicit
+# `ogImage:` line if you want the share preview to be a genuinely different
+# image from the card thumbnail.
+#
+# No images ready yet? Just delete/comment out all four lines above. The
+# post still builds fine — it gets a plain gradient placeholder instead of a
+# photo, and no share-image tag gets written at all (no broken-image risk
+# either way). Add the real images later whenever they're ready.
+
+# ── FAQs — powers BOTH the visible accordion AND the FAQPage rich-result ───
+faqs:
+  - q: "What is a software supply chain attack?"
+    a: "Instead of attacking you directly, the attacker goes after something you already trust — a dependency, a build tool, the pipeline that ships your code."
+  - q: "How do you detect a compromised npm package?"
+    a: "Watch for a <span class=\"code-inline\">postinstall</span> script that showed up out of nowhere, or a build process suddenly making outbound network calls. Inline HTML like that code-styled span, or a MITRE chip like <a class=\"mitre-chip\" href=\"https://attack.mitre.org/techniques/T1195/002/\" target=\"_blank\" rel=\"noopener\">T1195.002</a>, is allowed inside an answer."
+# Each entry needs both `q` and `a`. Answers accept a little inline HTML
+# (the two examples above show the two patterns actually used elsewhere on
+# the site) — but keep it to inline styling, not new components; this text
+# also gets stripped down to plain text for the JSON-LD FAQPage schema.
+# Zero FAQs is fine too — just leave `faqs: []` or omit the field.
+
+# ── Cross-linking other posts (both optional) ───────────────────────────────
+related:
+  - detecting-lateral-movement-active-directory
+  - honeypot-lab-aws-threat-intel
+# Slugs (= filenames without .mdx) of other posts to show under "More
+# stories" at the bottom of this post. Leave empty/omit for none.
+
+# alsoBy:
+#   label: "Also in Lab Notes"
+#   title: "OffSec Lab 3 — anatomy of a JIT spray chain"
+#   meta: "Lab Notes · 14 Min"
+#   href: "#"
+#   # image: /images/also-by-thumb.jpg   # optional — omit for a placeholder
+# A single side-rail card pointing somewhere outside the blog entirely
+# (a GitHub repo, a write-up on another site, etc). Whole block is optional.
+
+# ── The publish switch ──────────────────────────────────────────────────────
+draft: true
+# true  = never shows up anywhere a visitor or Google would see it, but
+#         still gets a real, direct-link-only URL — perfect for previewing.
+# false = actually goes live: appears in "All Work", in sitemap.xml, and is
+#         real from a link/SEO perspective.
+# When you're happy with a real post, this is the one line you flip.
+---
+
+{/* Every post starts by importing whichever of these blocks it actually
+    uses — copy only the imports for the ones you need, or all seven like
+    this file does, since it demonstrates every one of them. */}
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import IocTable from '../../components/IocTable.astro';
+import AsideCta from '../../components/AsideCta.astro';
+import Mitre from '../../components/Mitre.astro';
+
+{/* ═══ DROPCAP — use exactly once, as the very first thing in the post.
+    Makes the opening letter large, magazine-style. `letter` is that one
+    letter; everything else you write is the rest of that first sentence. */}
+<Dropcap letter="I">n March 2026, a routine dependency update in a widely-used Node.js package introduced a backdoor that went undetected for nearly seven weeks. The attack exploited the trust model inherent in open source package management, targeting a maintainer's compromised credentials to push malicious code through what appeared to be a legitimate version bump.</Dropcap>
+
+{/* ═══ MARGIN NOTE — a small sticky-note-style timestamp/label that sits in
+    the left margin next to a paragraph. Place it glued to the very start of
+    the paragraph's text (no line break in between), and it'll anchor to
+    that paragraph. `day`/`sub`/`tag` are all optional — use whichever apply. */}
+<Mnote day="Day 0" sub="one compromised account → 14,000 endpoints" />The incident affected over 14,000 production endpoints across financial services, healthcare, and SaaS companies — many of which had robust security programs but lacked visibility into their dependency trees beyond the first level.
+
+{/* ═══ CASE FILE — the "at a glance" summary box. Use once, right after the
+    opening paragraph(s). `rows` is a list of term/description pairs — five
+    rows (Vector / Dwell / Impact / Caught by / Techniques) is the pattern
+    used elsewhere on this site, but the list can be any length. `desc`
+    accepts inline HTML entities like &rarr; and &middot;. */}
+<CaseFile
+  id="blueprint-example"
+  rows={[
+    { term: 'Vector', desc: 'Phished npm maintainer &rarr; malicious patch release' },
+    { term: 'Dwell', desc: '47 days undetected' },
+    { term: 'Impact', desc: '14,000+ production endpoints affected' },
+    { term: 'Caught by', desc: 'Anomalous egress flagged during a routine review' },
+    { term: 'Techniques', desc: 'T1566.002 &middot; T1195.002 &middot; T1567' },
+  ]}
+/>
+
+## A section heading
+
+Regular paragraphs are just plain Markdown — no component needed for
+ordinary body text. **Bold**, *italic*, and normal [links](https://example.com)
+all work exactly like you'd expect.
+
+{/* ═══ HIGHLIGHT — wrap a phrase in a highlight span to visually call it
+    out mid-paragraph without breaking into a whole new box/callout. Use it
+    sparingly — once or twice a post, for the single most important line. */}
+The detection ultimately came down to one analyst's instinct: <span class="highlight">a reminder that human pattern recognition still catches what automated rules miss</span>.
+
+{/* ═══ DETECTION OPPORTUNITY — the signature callout box. Use once per
+    post, right after the section where you explain what actually happened,
+    to answer "so what should a defender actually go build after reading
+    this?" Whatever you put in here (including other inline components) is
+    allowed. */}
+<DetectionOpportunity>The dormant-in-CI behavior is itself a signal — alert on environment-variable enumeration inside install scripts, and this kind of backdoor surfaces on day one instead of day 47.</DetectionOpportunity>
+
+{/* ═══ CODE BLOCK — plain Markdown fenced code, no component needed. The
+    language after the triple-backtick controls syntax highlighting. */}
+```bash
+$ grep -r "postinstall" node_modules/.hooks/
+postinstall: "node scripts/telemetry.js"
+```
+
+{/* ═══ IOC TABLE — a formatted table of indicators of compromise. `type`
+    is the IOC category (Domain / IPv4 / SHA-256 / npm pkg / etc.), `value`
+    is what's shown and copied by default. Add `fanged` for anything you
+    want defanged for display (e.g. "evil[.]com") but copied as the real,
+    live value — the copy button prefers `fanged` when it's present. */}
+<IocTable
+  id="blueprint-example"
+  rows={[
+    { type: 'Domain', value: 'cdn-assets-delivery[.]net', fanged: 'cdn-assets-delivery.net' },
+    { type: 'IPv4', value: '185.220.101[.]47', fanged: '185.220.101.47' },
+    { type: 'npm pkg', value: 'event-stream-utils@4.2.1' },
+  ]}
+/>
+
+{/* ═══ ASIDE CTA — a quiet "go look at this" pointer, usually to an
+    external repo or resource. `linkText` is optional and defaults to
+    "View on GitHub →". */}
+<AsideCta href="https://github.com/">The complete IOC set and Sigma detections for this incident live in the companion repository.</AsideCta>
+
+{/* ═══ MITRE CHIP — an inline, clickable ATT&CK technique badge, dropped
+    directly into a sentence (different from the `mitre:` list in the
+    frontmatter, which is the hero-row pills for the post as a whole). */}
+The MITRE ATT&CK mapping spans <Mitre id="T1195.002" /> (supply chain compromise) through <Mitre id="T1567" /> (exfiltration over web service).
+
+{/* ═══ BLOCKQUOTE — plain Markdown `>`, no component. Used sparingly for a
+    single punchy pull-quote line. */}
+> The most dangerous attacks don't break in through the front door. They arrive as a trusted package update at 2am on a Tuesday.
+
+## Lessons for defenders
+
+A closing section, checklist, or takeaways — plain Markdown lists work fine:
+
+- **Lockfile-only installs** — install exactly what's been pinned and verified.
+- **Egress baselining** — know what your build pipeline normally talks to.
+- **Hardware MFA** — for every account with publish permission, no carve-outs.
+
+{/* That's every block this site has. If a new post only needs three of
+    these seven components, that's completely normal — this file uses all
+    of them once each purely so it doubles as a reference. */}

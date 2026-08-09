@@ -1,0 +1,15 @@
+---
+/**
+ * Opening paragraph with a drop capital:
+ *   <Dropcap letter="I">n March 2026, a routine dependency update...</Dropcap>
+ */
+interface Props {
+  letter: string;
+}
+const { letter } = Astro.props;
+---
+
+<div class="dropcap-block">
+  <div class="dropcap-letter"><span>{letter}</span></div>
+  <p class="body-text"><slot /></p>
+</div>
