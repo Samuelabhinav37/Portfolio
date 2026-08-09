@@ -1,0 +1,15 @@
+name = "samuel-portfolio-site"
+compatibility_date = "2026-08-06"
+pages_build_output_dir = "dist"
+
+# This project deploys as Cloudflare Pages (static build + Pages Functions
+# under functions/), not a standalone Worker — pages_build_output_dir is
+# what puts wrangler in Pages mode. Build command is `bun run build`
+# (astro build + the postbuild obfuscation pass), set the same way in the
+# Cloudflare dashboard's Pages project settings.
+#
+# functions/api/contact.js requires two secrets, set via the Cloudflare
+# dashboard (Pages project > Settings > Environment variables) or
+# `wrangler pages secret put <NAME>` — never committed here:
+#   RESEND_API_KEY       — sends the contact-form email via Resend
+#   TURNSTILE_SECRET_KEY — server-side verification for the Turnstile widget
