@@ -47,8 +47,14 @@ for (const path of PAGES) {
       errors.push(msg.text());
     });
 
-    const response = await page.goto(path, { waitUntil: 'networkidle' });
+    // 'networkidle' is flaky here under parallel load — several pages poll
+    // external APIs (weather, RSS) on a timer that never goes fully quiet,
+    // and 8 workers hitting one preview server at once can push response
+    // times past a networkidle wait. 'load' + a short fixed settle is
+    // deterministic and still gives any load-time errors time to surface.
+    const response = await page.goto(path, { waitUntil: 'load' });
     expect(response?.ok(), `${path} should return a successful response`).toBeTruthy();
+    await page.waitForTimeout(1500);
 
     const unexpected = errors.filter((e) => !KNOWN_ERRORS.some((known) => known.test(e)));
     expect(unexpected, `unexpected console errors on ${path}:\n${unexpected.join('\n')}`).toEqual([]);
