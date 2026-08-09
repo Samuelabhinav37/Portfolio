@@ -2,6 +2,7 @@
 import SiteMenu from '../components/SiteMenu.astro';
 import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
+import '../styles/tokens.css';
 ---
 
 <!DOCTYPE html>
@@ -422,7 +423,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
      the craft are the only thing meant to hold light here, so the floor drops
      to near-black and lets them burn against it. */
   body{
-    background:#030307; color:rgba(233,236,247,0.92);
+    background:var(--c-bg); color:rgba(233,236,247,0.92);
     font-family:'EB Garamond', Georgia, serif;
     overflow:hidden; -webkit-font-smoothing:antialiased;
   }
@@ -469,7 +470,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
 
   .card-inner{
     position:absolute; inset:0; overflow:hidden; border-radius:14px;
-    border:1px solid rgba(255,255,255,0.16);
+    border:1px solid rgba(var(--c-white),0.16);
     background:rgba(26,29,44,0.72);
     /* entrance state — cards settle in rather than snapping on */
     opacity:0; transform:translateY(26px) scale(0.985);
@@ -506,7 +507,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
 
   .card .label{ position:absolute; top:15px; left:17px; z-index:3; pointer-events:none; }
   .card .label .a{ display:block; font-family:'Cormorant Garamond', serif; font-weight:500;
-    font-size:1.06rem; line-height:1.16; color:rgba(255,255,255,0.94); }
+    font-size:1.06rem; line-height:1.16; color:rgba(var(--c-white),0.94); }
   .card .label .b{ display:block; font-family:'Cormorant Garamond', serif; font-weight:300;
     font-size:1.06rem; line-height:1.16; color:rgba(190,205,232,0.5); }
   /* ── reserved windows: holding space until the footage lands ──
@@ -515,7 +516,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
      never rendered and the translucent fill was painted over. Retargeted. */
   .card.empty .card-inner{
     background:rgba(9,11,20,0.42);
-    border-color:rgba(255,255,255,0.06);
+    border-color:rgba(var(--c-white),0.06);
     border-style:dashed;
   }
   .card.empty::before{ box-shadow:0 24px 50px -30px rgba(0,0,0,0.8); }
@@ -524,10 +525,10 @@ import NebulaBackground from '../components/NebulaBackground.astro';
   .card.empty .fill{
     position:absolute; inset:0; display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:7px; overflow:hidden;
-    background:repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 10px);
+    background:repeating-linear-gradient(45deg, rgba(var(--c-white),0.012) 0 1px, transparent 1px 10px);
   }
   .card.empty .fill .n{ font-family:'JetBrains Mono', monospace; font-size:1.35rem;
-    letter-spacing:0.12em; color:rgba(255,255,255,0.10); }
+    letter-spacing:0.12em; color:rgba(var(--c-white),0.10); }
   .card.empty .fill .r{ font-family:'JetBrains Mono', monospace; font-size:0.46rem;
     letter-spacing:0.2em; text-transform:uppercase; color:rgba(170,195,235,0.26); }
   /* a slow sweep, so an empty window still reads as a live channel */
@@ -615,15 +616,15 @@ import NebulaBackground from '../components/NebulaBackground.astro';
   .stepper{ display:flex; gap:14px; align-items:baseline; margin-bottom:20px;
     font-family:'JetBrains Mono', monospace; font-size:0.56rem; letter-spacing:0.22em;
     text-transform:uppercase; }
-  .stepper .n{ color:rgba(255,255,255,0.6); }
+  .stepper .n{ color:rgba(var(--c-white),0.6); }
   .stepper .d{ color:rgba(170,195,235,0.38); }
   .form-title{ font-family:'Cormorant Garamond', serif; font-weight:300;
     font-size:clamp(1.9rem, 2.7vw, 2.6rem); line-height:1.06;
-    color:rgba(255,255,255,0.93); margin-bottom:7px; }
+    color:rgba(var(--c-white),0.93); margin-bottom:7px; }
   .form-title em{ font-style:italic; color:rgba(190,205,232,0.62); }
   .form-sub{ font-family:'EB Garamond', serif; font-style:italic; font-size:1rem;
     color:rgba(200,215,240,0.44); margin-bottom:30px; }
-  .field{ margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.13); transition:border-color .35s; }
+  .field{ margin-bottom:20px; border-bottom:1px solid rgba(var(--c-white),0.13); transition:border-color .35s; }
   .field:focus-within{ border-color:rgba(180,210,250,0.6); }
   .field label{ display:block; font-family:'JetBrains Mono', monospace; font-size:0.5rem;
     letter-spacing:0.22em; text-transform:uppercase; color:rgba(170,195,235,0.4); margin-bottom:5px; }
@@ -632,11 +633,11 @@ import NebulaBackground from '../components/NebulaBackground.astro';
   .field textarea{ min-height:56px; line-height:1.45; resize:none; display:block; }
   .field input::placeholder, .field textarea::placeholder{ color:rgba(180,200,235,0.28); }
   .cta{ width:100%; margin-top:6px; padding:14px; cursor:pointer;
-    background:rgba(255,255,255,0.94); color:#0a0c16; border:1px solid rgba(255,255,255,0.94);
+    background:rgba(var(--c-white),0.94); color:#0a0c16; border:1px solid rgba(var(--c-white),0.94);
     border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.58rem;
     letter-spacing:0.24em; text-transform:uppercase;
     transition:background .3s, color .3s, transform .12s; }
-  .cta:hover{ background:transparent; color:rgba(255,255,255,0.95); }
+  .cta:hover{ background:transparent; color:rgba(var(--c-white),0.95); }
   .cta:active{ transform:translateY(1px); }
   .cta.sent{ background:rgba(89,212,153,0.9); border-color:rgba(89,212,153,0.9); color:#06120c; }
   .socials{ margin-top:22px; display:flex; flex-wrap:wrap; align-items:baseline; gap:15px;
@@ -666,7 +667,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
   .form-status.ok{ color:rgba(120,220,170,0.85); }
   .form-status.bad{ color:rgba(232,140,140,0.85); }
   .cta[disabled]{ opacity:0.6; cursor:default; }
-  .cta[disabled]:hover{ background:rgba(255,255,255,0.94); color:#0a0c16; }
+  .cta[disabled]:hover{ background:rgba(var(--c-white),0.94); color:#0a0c16; }
 
   /* keyboard users could not see where they were on this page at all */
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
@@ -733,7 +734,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
     --ldw-void:#080814; --ldw-panel:#0a0a17;
     --ldw-ink:#eaeaf2; --ldw-dim:rgba(234,234,242,.56); --ldw-faint:rgba(234,234,242,.30);
     --ldw-hair:rgba(234,234,242,.09); --ldw-hair2:rgba(234,234,242,.18);
-    --ldw-ice:rgba(200,206,218,.9); --ldw-ice-soft:rgba(200,206,218,.14);
+    --ldw-ice:rgba(var(--c-ice),.9); --ldw-ice-soft:rgba(var(--c-ice),.14);
     --ldw-serif:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
     --ldw-body:"EB Garamond",Georgia,serif;
     --ldw-mono:"JetBrains Mono",ui-monospace,monospace;
@@ -753,7 +754,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
 
   .ldw-aurora{position:absolute;inset:0;pointer-events:none;overflow:hidden}
   .ldw-aurora .ldw-haze{position:absolute;left:50%;bottom:-42%;width:190%;aspect-ratio:1;transform:translateX(-50%);
-    background:radial-gradient(closest-side,rgba(200,206,218,.22),transparent 62%),
+    background:radial-gradient(closest-side,rgba(var(--c-ice),.22),transparent 62%),
       radial-gradient(closest-side,rgba(120,124,140,.20),transparent 72%),
       radial-gradient(closest-side,rgba(70,74,88,.34),transparent 80%);
     filter:blur(28px);animation:ldw-breathe 13s ease-in-out infinite}
@@ -771,7 +772,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
   #ldw-drawer.ldw-compact .ldw-head .ldw-dot{display:none}
   .ldw-head{transition:padding .5s var(--ldw-spring)}
   .ldw-x{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ldw-faint);transition:.2s}
-  .ldw-x:hover{color:var(--ldw-ink);background:rgba(255,255,255,.05)} .ldw-x svg{width:15px;height:15px}
+  .ldw-x:hover{color:var(--ldw-ink);background:rgba(var(--c-white),.05)} .ldw-x svg{width:15px;height:15px}
 
   .ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
   .ldw-body::-webkit-scrollbar{display:none}
@@ -779,13 +780,13 @@ import NebulaBackground from '../components/NebulaBackground.astro';
     transition:max-height .5s var(--ldw-spring),opacity .35s ease,padding .5s var(--ldw-spring);max-height:520px;overflow:hidden}
   #ldw-drawer.ldw-compact .ldw-identity{max-height:0;opacity:0;padding-top:0}
   .ldw-avatar{position:absolute;z-index:6;left:50%;top:70px;width:118px;height:118px;transform:translateX(-50%);
-    border-radius:50%;overflow:hidden;background:#0b0b16;border:1px solid rgba(200,206,218,.22);
-    box-shadow:0 18px 44px -16px rgba(0,0,0,.8),0 0 0 6px rgba(200,206,218,.04),0 0 40px -12px rgba(200,206,218,.18);
+    border-radius:50%;overflow:hidden;background:#0b0b16;border:1px solid rgba(var(--c-ice),.22);
+    box-shadow:0 18px 44px -16px rgba(0,0,0,.8),0 0 0 6px rgba(var(--c-ice),.04),0 0 40px -12px rgba(var(--c-ice),.18);
     transition:left .55s var(--ldw-spring),top .55s var(--ldw-spring),width .55s var(--ldw-spring),height .55s var(--ldw-spring),transform .55s var(--ldw-spring),box-shadow .5s ease}
-  .ldw-avatar::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(200,206,218,.12);animation:ldw-halo 6s ease-in-out infinite;pointer-events:none;z-index:2}
+  .ldw-avatar::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(var(--c-ice),.12);animation:ldw-halo 6s ease-in-out infinite;pointer-events:none;z-index:2}
   .ldw-avatar iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;transform:scale(1.08)}
   /* compact: Luna shrinks into the header, never disappears */
-  #ldw-drawer.ldw-compact .ldw-avatar{left:16px;top:11px;width:34px;height:34px;transform:translateX(0);box-shadow:0 0 0 1px rgba(200,206,218,.14),0 0 18px -6px rgba(200,206,218,.25)}
+  #ldw-drawer.ldw-compact .ldw-avatar{left:16px;top:11px;width:34px;height:34px;transform:translateX(0);box-shadow:0 0 0 1px rgba(var(--c-ice),.14),0 0 18px -6px rgba(var(--c-ice),.25)}
   #ldw-drawer.ldw-compact .ldw-avatar::before{opacity:0}
   @keyframes ldw-blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
   .ldw-greeting{margin-top:26px;font-family:var(--ldw-serif);font-weight:500;font-size:28px;line-height:1.1;color:var(--ldw-ink)}
@@ -795,41 +796,41 @@ import NebulaBackground from '../components/NebulaBackground.astro';
   .ldw-msg{opacity:0;transform:translateY(8px);animation:ldw-in .45s var(--ldw-spring) forwards}
   @keyframes ldw-in{to{opacity:1;transform:translateY(0)}}
   .ldw-msg.ldw-you{align-self:flex-end;max-width:88%;font-family:var(--ldw-mono);font-weight:500;font-size:12.5px;color:var(--ldw-ink);
-    background:var(--ldw-ice-soft);border:1px solid rgba(200,206,218,.16);padding:9px 13px;border-radius:12px 12px 3px 12px}
+    background:var(--ldw-ice-soft);border:1px solid rgba(var(--c-ice),.16);padding:9px 13px;border-radius:12px 12px 3px 12px}
   .ldw-msg.ldw-luna{align-self:flex-start;max-width:94%;font-family:var(--ldw-body);font-size:15.5px;line-height:1.5;color:var(--ldw-ink);
-    border-left:1px solid rgba(200,206,218,.28);padding:1px 0 1px 14px}
+    border-left:1px solid rgba(var(--c-ice),.28);padding:1px 0 1px 14px}
   .ldw-readout{margin-top:9px;font-family:var(--ldw-mono);font-weight:500;font-size:9.5px;letter-spacing:.14em;color:var(--ldw-faint);text-transform:uppercase;display:flex;align-items:center;gap:7px}
   .ldw-readout .ldw-tick{color:var(--ldw-ice)}
   .ldw-goto{margin-top:10px}
   .ldw-goto button{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.06em;color:var(--ldw-ice);
-    border:1px solid rgba(200,206,218,.28);border-radius:8px;padding:7px 12px;transition:.2s}
-  .ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(200,206,218,.5)}
+    border:1px solid rgba(var(--c-ice),.28);border-radius:8px;padding:7px 12px;transition:.2s}
+  .ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(var(--c-ice),.5)}
   .ldw-guesses{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
   .ldw-guesses button{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);
-    background:var(--ldw-ice-soft);border:1px solid rgba(200,206,218,.14);padding:8px 13px;border-radius:999px;transition:.2s}
-  .ldw-guesses button:hover{background:rgba(200,206,218,.2);border-color:rgba(200,206,218,.32)}
-  .ldw-guesses .ldw-brk{color:rgba(200,206,218,.55)}
+    background:var(--ldw-ice-soft);border:1px solid rgba(var(--c-ice),.14);padding:8px 13px;border-radius:999px;transition:.2s}
+  .ldw-guesses button:hover{background:rgba(var(--c-ice),.2);border-color:rgba(var(--c-ice),.32)}
+  .ldw-guesses .ldw-brk{color:rgba(var(--c-ice),.55)}
 
   .ldw-chips{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 24px 12px}
   .ldw-chips.ldw-hide{display:none}
   .ldw-chip{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);background:var(--ldw-ice-soft);
-    border:1px solid rgba(200,206,218,.14);padding:8px 14px;border-radius:999px;transition:.2s}
-  .ldw-chip:hover{background:rgba(200,206,218,.2)} .ldw-chip .ldw-brk{color:rgba(200,206,218,.55)}
+    border:1px solid rgba(var(--c-ice),.14);padding:8px 14px;border-radius:999px;transition:.2s}
+  .ldw-chip:hover{background:rgba(var(--c-ice),.2)} .ldw-chip .ldw-brk{color:rgba(var(--c-ice),.55)}
 
   .ldw-cw{position:relative;z-index:2;padding:0 18px 18px}
-  .ldw-composer{position:relative;border-radius:18px;background:rgba(8,8,20,.62);border:1px solid rgba(200,206,218,.5);
-    box-shadow:0 0 26px -6px rgba(200,206,218,.28);padding:13px 15px 11px;transition:.25s}
-  .ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 32px -3px rgba(200,206,218,.42)}
+  .ldw-composer{position:relative;border-radius:18px;background:rgba(8,8,20,.62);border:1px solid rgba(var(--c-ice),.5);
+    box-shadow:0 0 26px -6px rgba(var(--c-ice),.28);padding:13px 15px 11px;transition:.25s}
+  .ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 32px -3px rgba(var(--c-ice),.42)}
   .ldw-r1{display:flex;align-items:center;gap:5px}
-  .ldw-composer .ldw-brk{font-family:var(--ldw-mono);font-size:14px;color:rgba(200,206,218,.5)}
+  .ldw-composer .ldw-brk{font-family:var(--ldw-mono);font-size:14px;color:rgba(var(--c-ice),.5)}
   .ldw-composer input{flex:1;background:none;border:0;outline:0;font-family:var(--ldw-mono);font-weight:500;font-size:13.5px;color:var(--ldw-ink);padding:2px 6px;caret-color:var(--ldw-ice)}
   .ldw-composer input::placeholder{color:var(--ldw-faint)}
   .ldw-r2{display:flex;align-items:center;margin-top:11px;font-family:var(--ldw-mono);font-weight:500;font-size:10px;letter-spacing:.06em;color:var(--ldw-faint)}
   .ldw-r2 .ldw-sp{flex:1}
-  .ldw-send{flex:0 0 auto;width:38px;height:32px;display:grid;place-items:center;border-radius:11px;background:rgba(200,206,218,.10);border:1px solid rgba(200,206,218,.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
+  .ldw-send{flex:0 0 auto;width:38px;height:32px;display:grid;place-items:center;border-radius:11px;background:rgba(var(--c-ice),.10);border:1px solid rgba(var(--c-ice),.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
   .ldw-send svg{width:15px;height:15px}
   .ldw-send.on{opacity:1;background:linear-gradient(160deg,#e8ebf1,#c3c8d2);border-color:transparent;color:#12121c}
-  .ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(200,206,218,.5)}
+  .ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(var(--c-ice),.5)}
 
   @media (prefers-reduced-motion:reduce){
     #ldw-drawer *,.ldw-aurora .ldw-haze{animation:none !important}
@@ -840,9 +841,9 @@ import NebulaBackground from '../components/NebulaBackground.astro';
 
   .ldw-followups{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
   .ldw-fu{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.02em;color:var(--ldw-dim);
-    background:rgba(200,206,218,.06);border:1px solid rgba(200,206,218,.12);border-radius:999px;padding:6px 12px;transition:.18s;cursor:pointer}
-  .ldw-fu:hover{color:var(--ldw-ink);background:rgba(200,206,218,.14);border-color:rgba(200,206,218,.28)}
-  .ldw-fu .ldw-plus{color:rgba(200,206,218,.5);margin-right:5px}
+    background:rgba(var(--c-ice),.06);border:1px solid rgba(var(--c-ice),.12);border-radius:999px;padding:6px 12px;transition:.18s;cursor:pointer}
+  .ldw-fu:hover{color:var(--ldw-ink);background:rgba(var(--c-ice),.14);border-color:rgba(var(--c-ice),.28)}
+  .ldw-fu .ldw-plus{color:rgba(var(--c-ice),.5);margin-right:5px}
 
   /* ── Luna's speech: a small quip card that docks directly over #luna-wrap
      (same right:18px anchor, positioned by "bottom" so it always clears her

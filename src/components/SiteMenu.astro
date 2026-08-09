@@ -58,7 +58,7 @@ const links = [
   .sr-only-focusable:focus-visible {
     position: fixed !important; top: 10px; left: 10px;
     width: auto; height: auto; margin: 0; padding: 8px 14px; clip: auto;
-    z-index: 100000; background: #030307; color: #d6e0f4;
+    z-index: 100000; background: var(--c-bg); color: #d6e0f4;
     border: 1px solid rgba(214,224,244,.4); border-radius: 6px;
     font: 13px/1 'Hanken Grotesk', system-ui, -apple-system, sans-serif; letter-spacing: .04em;
   }
@@ -75,7 +75,7 @@ const links = [
     font-family: 'Cormorant Garamond', serif;
     font-size: 1.5rem;
     font-weight: 500;
-    color: rgba(255,255,255,0.90);
+    color: rgba(var(--c-white),0.90);
     letter-spacing: 0.01em;
     line-height: 1;
     user-select: none;
@@ -85,16 +85,16 @@ const links = [
   #menu-trigger {
     position: fixed; top: 16px; right: 28px; z-index: 10001;
     font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-size: 1.1rem;
-    color: rgba(255,255,255,0.85); background: none; border: none; cursor: pointer;
+    color: rgba(var(--c-white),0.85); background: none; border: none; cursor: pointer;
     padding: 4px 2px; letter-spacing: 0.01em;
     transition: color 0.3s ease;
   }
-  #menu-trigger:hover { color: rgba(255,255,255,1); }
+  #menu-trigger:hover { color: rgba(var(--c-white),1); }
 
   #menu-overlay {
     position: fixed; top: 56px; right: 22px; z-index: 10000;
     width: min(270px, 74vw); height: auto; max-height: min(74vh, 520px);
-    background: #050509; border: 1px solid rgba(255,255,255,0.07); border-radius: 15px;
+    background: #050509; border: 1px solid rgba(var(--c-white),0.07); border-radius: 15px;
     box-shadow: 0 20px 55px rgba(0,0,0,0.6);
     padding: 24px 22px 20px; display: flex; flex-direction: column; gap: 30px;
     transform: scale(0.96); opacity: 0; transform-origin: top right;
@@ -107,7 +107,7 @@ const links = [
   #menu-list a {
     display: inline-block; text-decoration: none;
     font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-weight: 500; font-size: 1.2rem;
-    letter-spacing: 0.01em; color: rgba(255,255,255,0.5);
+    letter-spacing: 0.01em; color: rgba(var(--c-white),0.5);
     transition: color 0.3s ease;
   }
   #menu-list a span {
@@ -118,17 +118,17 @@ const links = [
   #menu-overlay.open #menu-list li:nth-child(1) a span { transition-delay: 0.04s; }
   #menu-overlay.open #menu-list li:nth-child(2) a span { transition-delay: 0.08s; }
   #menu-overlay.open #menu-list li:nth-child(3) a span { transition-delay: 0.12s; }
-  #menu-list a:hover { color: rgba(255,255,255,1); }
-  #menu-list a.current { color: rgba(255,255,255,0.78); }
+  #menu-list a:hover { color: rgba(var(--c-white),1); }
+  #menu-list a.current { color: rgba(var(--c-white),0.78); }
 
   #menu-meta { display: flex; flex-direction: column; gap: 12px; }
   .meta-block {
     font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-size: 11px; line-height: 1.6;
-    color: rgba(255,255,255,0.5); letter-spacing: 0.05em;
+    color: rgba(var(--c-white),0.5); letter-spacing: 0.05em;
   }
-  #menu-weather :global(.mw-city) { color: rgba(255,255,255,0.8); text-transform: uppercase; }
+  #menu-weather :global(.mw-city) { color: rgba(var(--c-white),0.8); text-transform: uppercase; }
   #menu-weather :global(.mw-icon) { opacity: 0.7; margin-right: 4px; }
-  #menu-clock :global(.d1) { color: rgba(255,255,255,0.8); }
+  #menu-clock :global(.d1) { color: rgba(var(--c-white),0.8); }
   #menu-clock { font-variant-numeric: tabular-nums; }
 
   @media (prefers-reduced-motion: reduce) {

@@ -1,0 +1,26 @@
+/* Shared design tokens — the site's actual, already-in-use color system,
+   named once instead of repeated as raw numbers across every page.
+
+   Colors are stored as bare "R,G,B" triplets (no rgb()/rgba() wrapper) so
+   they can be composed at any opacity: rgba(var(--c-ice), .14) instead of
+   hand-writing rgba(200,206,218,.14) — same rendered pixels, one place to
+   change the base color from now on.
+
+   Scope note: this file only needs to be imported once per top-level page
+   (index/about/contact/blog index/BlogPost layout) — CSS custom properties
+   defined at :root cascade to every component rendered inside that page
+   automatically, including Astro's scoped component styles, so components
+   don't need their own import. */
+
+:root {
+  /* Cool ice-grey — the site's primary border/secondary-text color.
+     Used at ~15 different opacities across about/contact/index/blog/blog.css. */
+  --c-ice: 200, 206, 218;
+
+  /* White — the primary on-dark foreground color, used at a wide range of
+     opacities for text, borders, and highlights throughout every page. */
+  --c-white: 255, 255, 255;
+
+  /* The site's actual page background — near-black, not pure #000. */
+  --c-bg: #030307;
+}

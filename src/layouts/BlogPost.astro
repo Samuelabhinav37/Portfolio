@@ -5,6 +5,7 @@ import { SITE } from '../config';
 import Faq from '../components/Faq.astro';
 import MoreStories from '../components/MoreStories.astro';
 import Luna from '../components/Luna.astro';
+import '../styles/tokens.css';
 import '../styles/blog.css';
 
 interface Props {
@@ -138,7 +139,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <div id="read-progress"></div>
 
     <button id="back-to-top" aria-label="Back to top">
-      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
 
     <!-- Site identity (fixed corner; swaps to the Threat Intel Blog mark on scroll) -->
@@ -199,7 +200,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div class="author-photo-wrap">
             <div class="author-photo"><span>{SITE.initials}</span></div>
             <div class="author-badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
           </div>
           <div>
@@ -218,10 +219,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
       <!-- Icon rail — share URLs derive from the canonical URL at build time -->
       <div class="icon-rail">
-        <a class="social-icon" id="shareX" title="Share on X" aria-label="Share on X" target="_blank" rel="noopener" href={shareX}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
-        <a class="social-icon" id="shareLi" title="Share on LinkedIn" aria-label="Share on LinkedIn" target="_blank" rel="noopener" href={shareLi}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-        <button class="social-icon" id="shareCopy" type="button" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
-        <a class="social-icon" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
+        <a class="social-icon" id="shareX" title="Share on X" aria-label="Share on X" target="_blank" rel="noopener" href={shareX}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
+        <a class="social-icon" id="shareLi" title="Share on LinkedIn" aria-label="Share on LinkedIn" target="_blank" rel="noopener" href={shareLi}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <button class="social-icon" id="shareCopy" type="button" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        <a class="social-icon" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
       </div>
 
       <!-- 2-col grid -->
@@ -296,10 +297,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
             <div class="mission-follow">
               <div class="mission-follow-label">Follow:</div>
               <div class="mission-follow-icons">
-                <a class="social-icon" title="X / Twitter" href={SITE.links.x} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
-                <a class="social-icon" title="LinkedIn" href={SITE.links.linkedin} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-                <a class="social-icon" title="GitHub" href={SITE.links.github} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
-                <a class="social-icon" title="RSS" href={SITE.links.rss}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5" fill="rgba(255,255,255,0.55)"/></svg></a>
+                <a class="social-icon" title="X / Twitter" href={SITE.links.x} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
+                <a class="social-icon" title="LinkedIn" href={SITE.links.linkedin} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+                <a class="social-icon" title="GitHub" href={SITE.links.github} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
+                <a class="social-icon" title="RSS" href={SITE.links.rss}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5" fill="rgba(var(--c-white),0.55)"/></svg></a>
               </div>
             </div>
           </div>
@@ -326,8 +327,8 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <div class="site-footer">
         <div class="footer-mark" aria-hidden="true">
           <svg viewBox="0 0 36 36" fill="none">
-            <rect width="36" height="36" rx="6" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-            <text x="4" y="25" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="400" fill="rgba(255,255,255,0.28)">&gt;_</text>
+            <rect width="36" height="36" rx="6" fill="rgba(var(--c-white),0.015)" stroke="rgba(var(--c-white),0.06)" stroke-width="1"/>
+            <text x="4" y="25" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="400" fill="rgba(var(--c-white),0.28)">&gt;_</text>
           </svg>
         </div>
         <div class="footer-copy">© {d.pubDate.getFullYear()} {SITE.author} · {SITE.publication}</div>
