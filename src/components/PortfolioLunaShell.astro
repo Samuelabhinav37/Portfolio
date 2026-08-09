@@ -1267,7 +1267,7 @@ function frame(now){
   _fLast=now;
   const dt=Math.min(now-last,50); last=now;
   update(now,dt);
-  if(window.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
+  if(window.SITE.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
   draw(now);
 }
 requestAnimationFrame(frame);
@@ -1292,7 +1292,7 @@ try{ document.documentElement.style.cursor='pointer';
   if(f){
     try{
       var _lunaURL = URL.createObjectURL(new Blob([LUNA_HTML],{type:"text/html"}));
-      try{ window.__LUNA_HTML = LUNA_HTML; }catch(_){}
+      try{ window.SITE.__LUNA_HTML = LUNA_HTML; }catch(_){}
       /* Release the blob once the iframe has parsed it — the document is
          already live in memory, so the URL handle is no longer needed. */
       f.addEventListener('load', function(){

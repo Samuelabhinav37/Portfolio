@@ -21,6 +21,7 @@ const recentPosts = (await getCollection('blog', ({ data }) => !data.draft))
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script is:inline>window.SITE=window.SITE||{};</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
@@ -62,7 +63,7 @@ console.log('%cbuild v9.6 — docked terminal footer, xl','color:#8fb8ff');
 //  from the filename — drop this same script into other pages and they
 //  pick up their correct title automatically.
 //
-//  Public API:  window.titleManager.setPage(p) / fireGlitch() / snapshot()
+//  Public API:  window.SITE.titleManager.setPage(p) / fireGlitch() / snapshot()
 //  Pages:       home, about, work, contact
 // ════════════════════════════════════════════════════════════════════
 (function(){
@@ -410,7 +411,7 @@ console.log('%cbuild v9.6 — docked terminal footer, xl','color:#8fb8ff');
   }
 
   // ── PUBLIC API ───────────────────────────────────────────────────
-  window.titleManager = {
+  window.SITE.titleManager = {
     setPage:    function(p){ navigateFlow(p); },
     fireGlitch: function(){
       if (state === 'resting' && isVisible){
@@ -2213,8 +2214,8 @@ var BG_PACE  = 0.55;
    nebula/starfield, so pushing ATMO_DIM down would dim them right along
    with everything else. This boosts their aura/hull alpha at the source
    (drawChaseShip, drawSatBody) so they stay hot against a darker sky.
-   Live-tunable: window.CRAFT.boost / .halo in devtools. */
-var CRAFT = window.CRAFT = { boost: 2.05, halo: 1.45 };
+   Live-tunable: window.SITE.CRAFT.boost / .halo in devtools. */
+var CRAFT = window.SITE.CRAFT = { boost: 2.05, halo: 1.45 };
 function cA(a){ a *= CRAFT.boost; return a > 1 ? 1 : a; }
 
 /* ── Constellation drift (live-tunable) ─────────────────────────────────
@@ -2467,7 +2468,7 @@ var threeClock;
 
   /* Devtools control surface — toggle from console if you ever need to
      diagnose a regression. Defaults are "all optimizations on". */
-  window.NEBULA_CACHE = {
+  window.SITE.NEBULA_CACHE = {
     isEnabled: function(){ return cacheEnabled; },
     setEnabled: function(b){
       cacheEnabled = !!b;
@@ -3254,8 +3255,8 @@ var _budget = {
 };
 
 /* Devtools control surface — all optimizations on by default; flip
-   from console (window.PERF.grainBakeEnabled = false, etc) to A/B. */
-window.PERF = {
+   from console (window.SITE.PERF.grainBakeEnabled = false, etc) to A/B. */
+window.SITE.PERF = {
   nebulaCacheEnabled: true,
   grainBakeEnabled:   true,
   adaptiveEnabled:    true
@@ -3444,7 +3445,7 @@ function drawCrosshairGrid(){
 var revealAlpha=0, revealDone=false;
 var REVEAL_DUR=1.8;
 function updReveal(dt){
-  if(!window._introRevealReady||revealDone)return;
+  if(!window.SITE._introRevealReady||revealDone)return;
   revealAlpha=Math.min(1,revealAlpha+dt/REVEAL_DUR);
   for(var i=0;i<nodes.length;i++){
     var n=nodes[i];if(!n.discovered||n.tier==='tiny')continue;
@@ -3985,7 +3986,7 @@ function drawGrain(t){
   /* Cached path: 1 drawImage + globalAlpha modulation, replacing 500
      arcs + 9-neighbour lookups per frame. Per-point flicker mean
      (~0.637) is folded into the global alpha. */
-  if(window.PERF && window.PERF.grainBakeEnabled){
+  if(window.SITE.PERF && window.SITE.PERF.grainBakeEnabled){
     if(!_grainLayer) _bakeGrain();
     if(!_grainLayer) return;
     var breathe=0.80+0.20*Math.sin(t*.4);
@@ -4042,7 +4043,7 @@ function computeActivity(){var sum=0,wt=0;for(var i=0;i<nodes.length;i++){var n=
 function updReactiveGlow(dt,t){
   /* Network activity drives the #bg-bloom layer (and only that — the window
      frame and titlebar are gone). The post-Luna brightness lift multiplies
-     the bloom intensity via window._bgBoost (default 1.0, lifted to ~1.5
+     the bloom intensity via window.SITE._bgBoost (default 1.0, lifted to ~1.5
      when Luna arrives). The bloom anchors to whichever hub is brightest, so
      the glow visibly follows the most active part of the network.
 
@@ -4061,7 +4062,7 @@ function updReactiveGlow(dt,t){
   var r=Math.round((40+hShift*25+a*30)/8)*8;
   var g=Math.round((70+hShift*30+a*20)/8)*8;
   var b=Math.round((160+hShift*35+a*40)/8)*8;
-  var boost=window._bgBoost||1.0;
+  var boost=window.SITE._bgBoost||1.0;
   var innerAlpha=(Math.round((0.08+a*.20+p*.18)*boost*ATMO_DIM*50)/50).toFixed(3);
   var bx=50,by=55,maxG=0;
   for(var i=0;i<nodes.length;i++){
@@ -4138,7 +4139,7 @@ function updPathGlows(dt){for(var i=activePathGlows.length-1;i>=0;i--){activePat
 function drawPathGlows(){for(var i=0;i<activePathGlows.length;i++){var g=activePathGlows[i];var gl=lg(g.ax,g.ay,g.bx,g.by);if(!gl)continue;gl.addColorStop(0,'rgba(160,210,255,'+(g.alpha*.6).toFixed(3)+')');gl.addColorStop(0.5,'rgba(180,220,255,'+(g.alpha*.9).toFixed(3)+')');gl.addColorStop(1,'rgba(160,210,255,'+(g.alpha*.6).toFixed(3)+')');ctx.beginPath();ctx.moveTo(g.ax,g.ay);ctx.lineTo(g.bx,g.by);ctx.strokeStyle=gl;ctx.lineWidth=1.4;ctx.stroke();}}
 
 var parallaxOX=0, parallaxOY=0;
-window._setParallax=function(px,py){parallaxOX=px;parallaxOY=py;};
+window.SITE._setParallax=function(px,py){parallaxOX=px;parallaxOY=py;};
 function drawStarsParallax(t){
   ctx.save();
   ctx.translate(parallaxOX*0.3, parallaxOY*0.3);
@@ -4196,7 +4197,7 @@ ast.x=-80;ast.y=CH*.28;
 _bakeGrain();
 
 /* ── Globe interaction: swing-by + depth ───────────────────────────────
-   The globe module publishes its screen-space disk as window.__globeScreen
+   The globe module publishes its screen-space disk as window.SITE.__globeScreen
    ({x,y,r} in CSS px, on:true while visible). The 2D layer sits at (OX,OY)
    at 1:1 px scale, so a screen point maps to canvas space by subtracting
    OX/OY.
@@ -4234,7 +4235,7 @@ function _swingXY(o, XK,YK,VXK,VYK, gx,gy,R){
   o[VYK]=nvy/nsp*sp;
 }
 function steerBodiesAroundGlobe(){
-  var g=window.__globeScreen;
+  var g=window.SITE.__globeScreen;
   if(!g||!g.on) return;
   var gx=g.x-OX, gy=g.y-OY, R=g.r+GLOBE_AVOID_PAD;
   // Fleets: steer the formation CENTRE (the ships follow it), not each ship.
@@ -4261,7 +4262,7 @@ function steerBodiesAroundGlobe(){
 /* Depth fade: 1 outside the globe disk, dropping toward GLOBE_BEHIND_MIN at the
    centre, so a craft passing over the globe dims as if going behind it. */
 function _depthAlpha(x,y){
-  var g=window.__globeScreen; if(!g||!g.on) return 1;
+  var g=window.SITE.__globeScreen; if(!g||!g.on) return 1;
   var gx=g.x-OX, gy=g.y-OY, R=g.r;
   var dx=x-gx, dy=y-gy, d2=dx*dx+dy*dy;
   if(d2>=R*R) return 1;
@@ -4330,14 +4331,14 @@ function loop(ts){
        entire 2D scene draw — they're invisible underneath it. Updates still run
        below so nothing freezes or snaps when you scroll back up. clearRect stays
        (cheap on the 1.65x surface) so no stale frame flashes at the handoff. */
-    var _globeOwns = (window.__globeOwnsScreen === true);
+    var _globeOwns = (window.SITE.__globeOwnsScreen === true);
     /* Scroll choreography removed: the CRT, globe and footer are normal-flow
        sections now. The background stays at constant brightness (no scroll-driven
        dimming), and the footer's reveal + render gate are handled by an
        IntersectionObserver near the footer script rather than by scroll progress. */
-    window.__netAlpha = 0.5;
+    window.SITE.__netAlpha = 0.5;
     var _calm = 0, _busy = 1, _netA = 1;
-    window.__footerCalm = 0;
+    window.SITE.__footerCalm = 0;
     if(renderer && !_bgIntroOver) renderer.render();   // nebula renders in every phase (globe + tour sit over it), until the intro window ends
     ctx.clearRect(0,0,CW,CH);
     ctx.lineCap='round';
@@ -4417,7 +4418,7 @@ function loop(ts){
        traceroutes belong to the intro; the globe's own formation brings the
        dots back for beat 2's second half. */
     /* renamed: v9 already has a _netA in this scope for the footer fade */
-    var _netGate=(window.__netAlpha===undefined)?1:window.__netAlpha;
+    var _netGate=(window.SITE.__netAlpha===undefined)?1:window.SITE.__netAlpha;
     if(_netGate>0.004 && !_bgIntroOver){
     ctx.save(); ctx.globalAlpha*=_netGate;
     drawGalaxy();
@@ -4508,7 +4509,7 @@ function _doResize(){
   buildNebulae();
   /* Grain mask depends on node positions — rebake to match new layout. */
   _bakeGrain();
-  window.__bfTop = undefined;   // force _calm to re-measure the beat-footer offset next frame
+  window.SITE.__bfTop = undefined;   // force _calm to re-measure the beat-footer offset next frame
 }
 window.addEventListener('resize', function(){
   if(_resizeT) clearTimeout(_resizeT);
@@ -4547,8 +4548,8 @@ window.addEventListener('resize', function(){
   var portal   = document.getElementById('luna-portal');
   var damp     = document.getElementById('chrome-damp');
 
-  window._introRevealReady = false;
-  window._bgBoost = 0.85;   // multiplier on #bg-bloom intensity; lifted on Luna's arrival
+  window.SITE._introRevealReady = false;
+  window.SITE._bgBoost = 0.85;   // multiplier on #bg-bloom intensity; lifted on Luna's arrival
 
   /* Snap everything to its final settled state with no animation. Used by
      both the returning-visitor fast path and the reduced-motion path. */
@@ -4560,11 +4561,11 @@ window.addEventListener('resize', function(){
     if(logo)     logo.style.display = 'none';
     document.body.classList.add('chrome-in');
     document.body.classList.add('intro-done');
-    window._introFullyDone = true;
-    window._introRevealReady = true;
+    window.SITE._introFullyDone = true;
+    window.SITE._introRevealReady = true;
     try { startBootSeq(); } catch(_) {}
     try { if(window.U && U.uBright){ U.uBright.value = 0.6; } } catch(_) {}   /* dimmer (was 0.85) */
-    window._bgBoost = 0.95;
+    window.SITE._bgBoost = 0.95;
     try { sessionStorage.setItem('introSeen', '1'); } catch(_) {}
   }
 
@@ -4582,7 +4583,7 @@ window.addEventListener('resize', function(){
   }
 
   /* ── main intro beats ──
-     Driven by a single GSAP timeline (exposed as window._introTL so it's
+     Driven by a single GSAP timeline (exposed as window.SITE._introTL so it's
      seekable and killable) instead of a fan of absolute setTimeouts. One
      source of truth: if a beat needs to move, you change one number and the
      rest stay anchored. Offsets below are absolute seconds, matching the
@@ -4595,10 +4596,10 @@ window.addEventListener('resize', function(){
        4.5  body.intro-done
        5.0  Luna fades in                                                 */
   var introTL = gsap.timeline();
-  window._introTL = introTL;
+  window.SITE._introTL = introTL;
 
   introTL
-    .call(function(){ window._introRevealReady=true; startBootSeq(); }, null, 0.2)
+    .call(function(){ window.SITE._introRevealReady=true; startBootSeq(); }, null, 0.2)
     .call(function(){ logo.classList.add('in'); }, null, 0.7)
     .call(function(){
       logo.style.transition='opacity 0.5s cubic-bezier(0.4,0,0.6,1), transform 0.5s cubic-bezier(0.4,0,0.6,1)';
@@ -4621,9 +4622,9 @@ window.addEventListener('resize', function(){
       liftBrightness(0.6, 0.95, 850);   /* dimmer settled atmosphere (was 0.85) */
     }, null, 4.2)
     .call(function(){
-      window._introFullyDone = true;
+      window.SITE._introFullyDone = true;
       document.body.classList.add('intro-done');
-      window._introRevealReady = true;
+      window.SITE._introRevealReady = true;
       /* Do NOT reset revealAlpha/revealDone here — the boot reveal already
          finished, and resetting it caused a stall where nodes briefly faded
          back to invisible. */
@@ -4642,13 +4643,13 @@ window.addEventListener('resize', function(){
      intensity multiplier (_bgBoost) together. easeOutCubic over `ms`. */
   function liftBrightness(uBrightTo, bgBoostTo, ms){
     if(!window.U || !U.uBright) return;
-    var uFrom = U.uBright.value, bFrom = window._bgBoost || 1.0;
+    var uFrom = U.uBright.value, bFrom = window.SITE._bgBoost || 1.0;
     var start = performance.now();
     (function step(now){
       var k = Math.min(1, (now - start) / ms);
       var e = 1 - Math.pow(1 - k, 3);
       U.uBright.value  = uFrom + (uBrightTo  - uFrom) * e;
-      window._bgBoost  = bFrom + (bgBoostTo  - bFrom) * e;
+      window.SITE._bgBoost  = bFrom + (bgBoostTo  - bFrom) * e;
       if(k < 1) requestAnimationFrame(step);
     })(start);
   }
@@ -4709,7 +4710,7 @@ window.addEventListener('resize', function(){
     function scheduleIdle(){
       var ms = 7000 + Math.random()*7000;
       setTimeout(function(){
-        if(!document.hidden && window._introFullyDone && f.contentWindow){
+        if(!document.hidden && window.SITE._introFullyDone && f.contentWindow){
           try{
             f.contentWindow.postMessage({type:'lunaAction', name: pickIdle()}, location.origin);
           }catch(_){}
@@ -4745,7 +4746,7 @@ window.addEventListener('resize', function(){
       _quipEl.addEventListener('click', function(){
         if(!_quipTopic) return;
         clearTimeout(_quipT); _quipEl.classList.remove('show');
-        if(window.LunaChat && window.LunaChat.askTopic){ window.LunaChat.askTopic(_quipTopic); }
+        if(window.SITE.LunaChat && window.SITE.LunaChat.askTopic){ window.SITE.LunaChat.askTopic(_quipTopic); }
       });
       _quipEl.addEventListener('mouseenter', function(){ clearTimeout(_quipT); });
       _quipEl.addEventListener('mouseleave', function(){ clearTimeout(_quipT); _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, 1500); });
@@ -4822,8 +4823,8 @@ window.addEventListener('resize', function(){
       return _activeSection;
     }
     function maybeSpeak(){
-      if(!window._introFullyDone || document.hidden) return;
-      if(window.LunaChat && window.LunaChat.isOpen && window.LunaChat.isOpen()) return;
+      if(!window.SITE._introFullyDone || document.hidden) return;
+      if(window.SITE.LunaChat && window.SITE.LunaChat.isOpen && window.SITE.LunaChat.isOpen()) return;
       var now=Date.now();
       if(!_scrolledSince) return;                                   // nothing new since she last spoke
       if(now-_lastScroll < READ_PAUSE) return;                      // still scrolling → let them read
@@ -4846,7 +4847,7 @@ window.addEventListener('resize', function(){
       return (h >= 6 && h < 18) ? 'day' : 'night';                // base: day-analyst / night-moon
     }
     function updateCostume(){
-      if(!window._introFullyDone) return;
+      if(!window.SITE._introFullyDone) return;
       var c = resolveCostume();
       if(c !== _lastCostume){ _lastCostume = c; _send({type:'lunaCostume', key:c}); }   // dress silently; she talks on the reading pause
     }
@@ -4861,7 +4862,7 @@ window.addEventListener('resize', function(){
     /* Arrival: once she's through the portal, dress for context + a small delighted hello. */
     var _greeted=false;
     (function waitArrival(){
-      if(window._introFullyDone && !_greeted){
+      if(window.SITE._introFullyDone && !_greeted){
         _greeted=true;
         updateCostume();
         setTimeout(function(){ _send({type:'lunaEmote', name:'sparkle', hold:1800}); }, 400);
@@ -4878,7 +4879,7 @@ window.addEventListener('resize', function(){
     var _perfRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
     var _firedSignal=false, _firedFooter=false, _perfBusy=false, _pQ=false;
     function _perf(name, ms){
-      if(_perfRM || _perfBusy || !window._introFullyDone) return;
+      if(_perfRM || _perfBusy || !window.SITE._introFullyDone) return;
       _perfBusy=true;
       _send({type:'lunaAction', name:name});
       setTimeout(function(){ _perfBusy=false; }, ms||1600);
@@ -5012,7 +5013,7 @@ window.addEventListener('resize', function(){
      scrolled (bootGlobe is idempotent via _booted). */
   (function _warmGate(){
     if(_booted) return;
-    if(window._introFullyDone){
+    if(window.SITE._introFullyDone){
       var ric = window.requestIdleCallback || function(cb){ return setTimeout(function(){ cb(); }, 200); };
       ric(function(){ if(!_booted) bootGlobe(); }, { timeout: 3000 });
     } else {
@@ -5643,7 +5644,7 @@ window.addEventListener('resize', function(){
       /* rail is names only — the case detail renders inside the terminal */
       if(_gtEl && changed && !RM){ _gtEl.classList.remove('sweep'); void _gtEl.offsetWidth; _gtEl.classList.add('sweep'); }
     }
-    window.__csSelect=csSelect;
+    window.SITE.__csSelect=csSelect;
     csSelect(0);
     var _qFace   = new THREE.Quaternion();
     var _qRoll   = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), GLOBE_ROLL);
@@ -5779,29 +5780,29 @@ window.addEventListener('resize', function(){
       var pj=PROJECTS[idx]; if(!pj) return;
       var t=document.getElementById('pv-title');
       if(t){
-        if(window.__twTO){ clearTimeout(window.__twTO); }
-        var twFull=pj.title, twI=0, twGen=(window.__twGen=(window.__twGen||0)+1);
+        if(window.SITE.__twTO){ clearTimeout(window.SITE.__twTO); }
+        var twFull=pj.title, twI=0, twGen=(window.SITE.__twGen=(window.SITE.__twGen||0)+1);
         t.textContent='';
         (function typeName(){
-          if(twGen!==window.__twGen) return;
+          if(twGen!==window.SITE.__twGen) return;
           t.textContent=twFull.slice(0,twI);
-          if(twI<=twFull.length){ twI++; window.__twTO=setTimeout(typeName, 55); }
+          if(twI<=twFull.length){ twI++; window.SITE.__twTO=setTimeout(typeName, 55); }
         })();
       }
       var im=document.getElementById('pv-img');
       if(im){
-        if(window.__pvSlide){ clearInterval(window.__pvSlide); window.__pvSlide=null; }
-        if(window.__pvTO){ clearTimeout(window.__pvTO); window.__pvTO=null; }
-        var gen=(window.__pvGen=(window.__pvGen||0)+1);   // invalidates any in-flight fade from the previous project
+        if(window.SITE.__pvSlide){ clearInterval(window.SITE.__pvSlide); window.SITE.__pvSlide=null; }
+        if(window.SITE.__pvTO){ clearTimeout(window.SITE.__pvTO); window.SITE.__pvTO=null; }
+        var gen=(window.SITE.__pvGen=(window.SITE.__pvGen||0)+1);   // invalidates any in-flight fade from the previous project
         var imgs=(pj.imgL && pj.imgL.length) ? pj.imgL : (pj.img ? [pj.img] : []);
         if(imgs.length){
           var si=0;
-          var showImg=function(n){ if(gen!==window.__pvGen) return; im.onload=function(){ if(gen===window.__pvGen) im.style.opacity='1'; }; im.src=imgs[n]; if(im.complete && gen===window.__pvGen) im.style.opacity='1'; };
+          var showImg=function(n){ if(gen!==window.SITE.__pvGen) return; im.onload=function(){ if(gen===window.SITE.__pvGen) im.style.opacity='1'; }; im.src=imgs[n]; if(im.complete && gen===window.SITE.__pvGen) im.style.opacity='1'; };
           im.style.opacity='0'; showImg(0);
-          if(imgs.length>1){ window.__pvSlide=setInterval(function(){
-            if(gen!==window.__pvGen){ clearInterval(window.__pvSlide); return; }
+          if(imgs.length>1){ window.SITE.__pvSlide=setInterval(function(){
+            if(gen!==window.SITE.__pvGen){ clearInterval(window.SITE.__pvSlide); return; }
             im.style.opacity='0';
-            window.__pvTO=setTimeout(function(){ if(gen!==window.__pvGen) return; si=(si+1)%imgs.length; showImg(si); }, 320);
+            window.SITE.__pvTO=setTimeout(function(){ if(gen!==window.SITE.__pvGen) return; si=(si+1)%imgs.length; showImg(si); }, 320);
           }, 3600); }
         }
       }
@@ -5858,7 +5859,7 @@ window.addEventListener('resize', function(){
       }
     }
     function updateConstellation(dtI){
-      var want=(typeof window.__globeFocus==='number')?window.__globeFocus:-1;
+      var want=(typeof window.SITE.__globeFocus==='number')?window.SITE.__globeFocus:-1;
       if(want<0) want=_cCur;
       if(want>=0 && want<CFIG.length){
         if(want!==_cCur && _cState!=='out'){
@@ -5885,21 +5886,21 @@ window.addEventListener('resize', function(){
       }
       positionLabels();
     }
-    window.__setConstellation=function(i){ window.__globeFocus=i; };
+    window.SITE.__setConstellation=function(i){ window.SITE.__globeFocus=i; };
 
     var _gLast=0, _tourCleared=false, _lastFocus=-1;
     function frame(t){
       // ── REACTIVE IDLE GLOBE ────────────────────────────────────────────────
       // Decorative + reactive: free-spins at rest, and rotates to face the active
-      // project's node while the projects sticky-split is in view (window.__globeFocus
+      // project's node while the projects sticky-split is in view (window.SITE.__globeFocus
       // is set 0/1/2 by the IntersectionObserver on the .proj blocks). A wave ripples
       // from the node each time the focus changes. Legacy choreography below is dead.
       if(document.hidden) return;                        // pause on hidden tab
-      if(window.__globeInView===false) return;           // skip render while off-screen
+      if(window.SITE.__globeInView===false) return;           // skip render while off-screen
       if((t-_gLast) < ARC_IDLE) return;                  // ~30fps idle cap
       var _dtI=Math.min(0.05,(t-_gLast)/1000); _gLast=t;
 
-      var _want=(typeof window.__globeFocus==='number')?window.__globeFocus:-1;
+      var _want=(typeof window.SITE.__globeFocus==='number')?window.SITE.__globeFocus:-1;
       if(_want<0){
         drift += 0.05*_dtI;                                       // free resting spin (no project selected)
         _eRest.set(0, drift, GLOBE_ROLL);
@@ -5917,9 +5918,9 @@ window.addEventListener('resize', function(){
       dotPoints.material.opacity  = 0.3;
       lineSeg.material.opacity    = 0.078;
       if(glowMesh && glowMesh.material.uniforms) glowMesh.material.uniforms.uIntensity.value = 0.0;
-      window.__globeOwnsScreen = false;                  // never a full-screen overlay now
-      window.__globeScreen = null;
-      window.__arcProgress = 1;
+      window.SITE.__globeOwnsScreen = false;                  // never a full-screen overlay now
+      window.SITE.__globeScreen = null;
+      window.SITE.__arcProgress = 1;
       if(canvas.style.visibility==='hidden') canvas.style.visibility='';
       renderer.render(scene, camera);
       return;
@@ -5928,7 +5929,7 @@ window.addEventListener('resize', function(){
       var tourT=computeTourP();
       // While the arc or tour is engaged, render EVERY frame (smooth scroll-linked
       // motion). Only throttle to 30fps when idle, to save battery.
-      var _fCalm = window.__footerCalm||0;
+      var _fCalm = window.SITE.__footerCalm||0;
       var engaged = (target>0.005 && target<0.995) || (tourT>0.001 && tourT<0.999)
                     || (_fCalm>0.001 && _fCalm<0.999);   // stay live through the footer exit/enter beat
       if(!engaged && (t-_gLast) < ARC_IDLE) return;
@@ -5940,7 +5941,7 @@ window.addEventListener('resize', function(){
       if(renderProgress<0) renderProgress=target;
       renderProgress += (target-renderProgress)*(1-Math.exp(-SMOOTH_LAMBDA*dtS));
       progress=renderProgress;
-      window.__arcProgress = progress;   // published for additive beat layers
+      window.SITE.__arcProgress = progress;   // published for additive beat layers
 
       // ---- tour state (held globe rides a second scroll band) ----
       /* capP rides the tail of the arc, so beats 1-2 are visually untouched:
@@ -5955,7 +5956,7 @@ window.addEventListener('resize', function(){
            exit     calm 0.05 -> 0.50   (done before the footer enters at 0.55) */
       var capP = smooth(clamp01(tourT/0.30));
       var conP = smooth(clamp01((tourT-0.32)/0.38));
-      var outP = smooth(clamp01(((window.__footerCalm||0)-0.05)/0.45));
+      var outP = smooth(clamp01(((window.SITE.__footerCalm||0)-0.05)/0.45));
 
       /* tourP comes from the SELECTION now. It is the one scalar the tour reads
          (active index, per-cluster focus, globe scale, dirty check), so this
@@ -5973,7 +5974,7 @@ window.addEventListener('resize', function(){
       // Footer exit multiplier: 1 -> 0 over calm 0..0.42. EVERYTHING the tour owns
       // (globe canvas, labels, scrim, and the tile rv below) rides this one curve,
       // so no tour element can survive into the footer.
-      var _fcNow    = window.__footerCalm || 0;
+      var _fcNow    = window.SITE.__footerCalm || 0;
       // Exit timing: the old curve started ghosting the globe from the FIRST pixel of
       // footer-calm, leaving a long washed-out limbo where a dimmed globe sat under
       // still-readable text. Hold everything solid until calm 0.10, then leave
@@ -5986,8 +5987,8 @@ window.addEventListener('resize', function(){
       // the tour finishes (placeholder ending — globe simply clears for now).
       var live = (progress>0.02 && progress<0.995) || (formedHold && !tourComplete) || tourActive;
       if(!live){
-        window.__globeOwnsScreen=false;
-        window.__globeScreen=null;   // globe hidden: ships roam freely, no avoidance
+        window.SITE.__globeOwnsScreen=false;
+        window.SITE.__globeScreen=null;   // globe hidden: ships roam freely, no avoidance
         if(canvas.style.visibility!=='hidden'){ canvas.style.visibility='hidden'; }
         if(progress<=0.02){ tw.style.transform=''; tw.style.filter=''; tw.style.width='100vw'; tw.style.height='100vh'; tw.style.borderRadius='0'; tw.style.opacity='1'; }
         /* Hard-clear tour leftovers. A scroll JUMP (scrollbar drag, End key, a
@@ -6017,7 +6018,7 @@ window.addEventListener('resize', function(){
       // Constellations stay live at the top/rest, but clear out of the project area:
       // once the globe forms and through the whole tour the background stops drawing,
       // leaving the globe on a clean dark field.
-      window.__globeOwnsScreen = (progress>0.50 && progress<0.995) || formedHold || tourActive;
+      window.SITE.__globeOwnsScreen = (progress>0.50 && progress<0.995) || formedHold || tourActive;
 
       // rotation-to-present: free drift at rest; in the tour, ROTATE the globe so the
       // active project's node turns to front-centre (no translation, so the globe stays
@@ -6103,7 +6104,7 @@ window.addEventListener('resize', function(){
       _gEdge.set(worldGroup.position.x + SPHERE_R*worldGroup.scale.x, worldGroup.position.y, worldGroup.position.z).project(camera);
       var _gcx=(_gCenter.x*0.5+0.5)*W, _gcy=(-_gCenter.y*0.5+0.5)*H;
       var _gex=(_gEdge.x*0.5+0.5)*W,   _gey=(-_gEdge.y*0.5+0.5)*H;
-      window.__globeScreen={ x:_gcx, y:_gcy, r:Math.hypot(_gex-_gcx,_gey-_gcy), on:true };
+      window.SITE.__globeScreen={ x:_gcx, y:_gcy, r:Math.hypot(_gex-_gcx,_gey-_gcy), on:true };
 
       // per-project focus envelope (reused for the scrim, the globe dim, and the tiles)
       var focusArr=[], focusMax=0, activeIdx=0;
@@ -6113,7 +6114,7 @@ window.addEventListener('resize', function(){
         // mounted so its tiles animate OUT via the calm-driven reverse stagger. Gated on
         // _calm>0 so this only fires at the END (footer approaching), never at the start
         // where tourActive is also false but _calm is 0.
-        if(!tourActive && fz===NP-1 && (window.__footerCalm||0) > 0.001 && (window.__footerCalm||0) < 0.999){ ff = 1; }
+        if(!tourActive && fz===NP-1 && (window.SITE.__footerCalm||0) > 0.001 && (window.SITE.__footerCalm||0) < 0.999){ ff = 1; }
         focusArr.push(ff);
         if(ff>focusMax){ focusMax=ff; activeIdx=fz; }
       }
@@ -6727,7 +6728,7 @@ const Router = (() => {
   function mountLuna(){
     if(!avatarEl || avatarEl.firstChild) return;
     try{
-      const html=window.__LUNA_HTML; if(!html) return;
+      const html=window.SITE.__LUNA_HTML; if(!html) return;
       lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
       const fr=document.createElement('iframe');
       fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
@@ -6809,7 +6810,7 @@ const Router = (() => {
     if(target.type==='scroll'){ const n=document.querySelector(target.value);
       return n?{label:'Take me there',run:()=>{closeD();n.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}}:null; }
     if(target.type==='project'){
-      return {label:'Show me on the globe', run:()=>{ closeD(); jumpToProject(target.value); }}; }
+      return {label:'Show me on the globe', run:()=>{ closeD(); window.SITE.jumpToProject(target.value); }}; }
     if(target.type==='url') return {label:'Open '+target.value.replace(/^https?:\/\//,''),run:()=>window.open(target.value,'_blank','noopener')};
     return null;
   }
@@ -6872,7 +6873,7 @@ const Router = (() => {
 
   /* ── globe-tour jump: scroll #beat-tour to a project's focus band ──
      Order matches the PROJECTS array: sentinel=0, prism=1, axon=2. */
-  window.jumpToProject = function(id){
+  window.SITE.jumpToProject = function(id){
     const idx={sentinel:0,prism:1,axon:2}[id];
     const bt=document.getElementById('beat-tour');
     if(idx==null || !bt){ const a=document.getElementById('sec-'+id); a&&a.scrollIntoView({behavior:'smooth'}); return; }
@@ -6884,7 +6885,7 @@ const Router = (() => {
   };
 
   /* Public handle: lets the corner quips open the chat and answer the clicked topic. */
-  window.LunaChat = {
+  window.SITE.LunaChat = {
     open: openD, close: closeD, isOpen: function(){ return open; },
     ask: function(text){ var was=open; openD(); setTimeout(function(){ query(text); }, was?0:180); },
     askTopic: function(id){
@@ -6905,11 +6906,11 @@ const Router = (() => {
   var f=document.getElementById('site-footer');
   if(!f) return;
   if(!('IntersectionObserver' in window)){
-    f.classList.add('fpin','fenter'); window.__fPinOn=true; return;
+    f.classList.add('fpin','fenter'); window.SITE.__fPinOn=true; return;
   }
   var io=new IntersectionObserver(function(es){
     var vis=es[0].isIntersecting;
-    window.__fPinOn=vis;
+    window.SITE.__fPinOn=vis;
     f.classList.toggle('fpin',vis);
     f.classList.toggle('fenter',vis);
   },{threshold:0.12});
@@ -6942,7 +6943,7 @@ const Router = (() => {
   });
   if(!spans.length) return;
   setInterval(function(){
-    if(!window.__fPinOn || document.hidden) return;
+    if(!window.SITE.__fPinOn || document.hidden) return;
     var n = Math.max(1, Math.floor(spans.length * 0.012));
     for(var i=0;i<n;i++){
       var s = spans[(Math.random()*spans.length)|0];
@@ -7011,8 +7012,8 @@ const Router = (() => {
 </script>
 <script is:inline>
 /* Projects accordion: clicking a header opens it (single-open) and drives the
-   globe. The active index is published as window.__globeFocus and handed to the
-   globe module via window.__setConstellation(idx), which rotates to that project's
+   globe. The active index is published as window.SITE.__globeFocus and handed to the
+   globe module via window.SITE.__setConstellation(idx), which rotates to that project's
    cluster and redraws its constellation. A coarse observer gates the globe render
    to when the section is on-screen. */
 (function(){
@@ -7022,13 +7023,13 @@ const Router = (() => {
   var NAMES=['sentinel','prism','axon'];
   if(!accs.length) return;
   function open(idx){
-    window.__globeFocus=idx;
+    window.SITE.__globeFocus=idx;
     accs.forEach(function(a,i){
       var on=(i===idx);
       a.classList.toggle('is-open', on);
       var h=a.querySelector('.acc-head'); if(h) h.setAttribute('aria-expanded', on?'true':'false');
     });
-    if(typeof window.__setConstellation==='function') window.__setConstellation(idx);
+    if(typeof window.SITE.__setConstellation==='function') window.SITE.__setConstellation(idx);
   }
   accs.forEach(function(a){
     var h=a.querySelector('.acc-head');
@@ -7042,13 +7043,13 @@ const Router = (() => {
   }
   // section in-view gate (perf: don't render the globe when scrolled away)
   if('IntersectionObserver' in window && sec){
-    new IntersectionObserver(function(es){ window.__globeInView=es[0].isIntersecting; },
+    new IntersectionObserver(function(es){ window.SITE.__globeInView=es[0].isIntersecting; },
       {rootMargin:'200px 0px 200px 0px'}).observe(sec);
-  } else { window.__globeInView=true; }
+  } else { window.SITE.__globeInView=true; }
   // boot the first project once the globe module is ready
-  window.__globeFocus=0;
+  window.SITE.__globeFocus=0;
   (function waitReady(n){
-    if(typeof window.__setConstellation==='function'){ window.__setConstellation(0); return; }
+    if(typeof window.SITE.__setConstellation==='function'){ window.SITE.__setConstellation(0); return; }
     if(n>0) setTimeout(function(){ waitReady(n-1); }, 250);
   })(40);
 })();

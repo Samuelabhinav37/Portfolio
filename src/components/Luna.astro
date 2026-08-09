@@ -17,11 +17,11 @@ import type { MarkdownHeading } from 'astro';
  * Blob-iframe from a giant template literal (with a deliberately escaped
  * `<\/script>` inside it so the HTML parser doesn't prematurely close the
  * real tag) and cross-script communication happens via explicit `window.*`
- * assignments (`window.LunaChat`, `window.__LUNA_HTML`,
- * `window.__lunaEverOpened`) — Astro's default script bundling/ESM
+ * assignments (`window.SITE.LunaChat`, `window.SITE.__LUNA_HTML`,
+ * `window.SITE.__lunaEverOpened`) — Astro's default script bundling/ESM
  * treatment has no reason to touch any of that, so is:inline just keeps it
  * byte-for-byte identical to the tested standalone version. The one seam
- * between Astro-templated data and that literal JS is `window.__LUNA_POST`,
+ * between Astro-templated data and that literal JS is `window.SITE.__LUNA_POST`,
  * set by a small `define:vars` script right before the ldw-engine block.
  */
 interface Props {
@@ -1323,7 +1323,7 @@ function frame(now){
   _fLast=now;
   const dt=Math.min(now-last,50); last=now;
   update(now,dt);
-  if(window.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
+  if(window.SITE.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
   draw(now);
 }
 requestAnimationFrame(frame);
@@ -1348,7 +1348,7 @@ try{ document.documentElement.style.cursor='pointer';
   if(f){
     try{
       var _lunaURL = URL.createObjectURL(new Blob([LUNA_HTML],{type:"text/html"}));
-      try{ window.__LUNA_HTML = LUNA_HTML; }catch(_){}
+      try{ window.SITE.__LUNA_HTML = LUNA_HTML; }catch(_){}
       /* Release the blob once the iframe has parsed it — the document is
          already live in memory, so the URL handle is no longer needed. */
       f.addEventListener('load', function(){
@@ -1410,7 +1410,7 @@ try{ document.documentElement.style.cursor='pointer';
     function scheduleIdle(){
       var ms = 7000 + Math.random()*7000;
       setTimeout(function(){
-        if(!document.hidden && window._introFullyDone && f.contentWindow){
+        if(!document.hidden && window.SITE._introFullyDone && f.contentWindow){
           try{
             f.contentWindow.postMessage({type:'lunaAction', name: pickIdle()}, location.origin);
           }catch(_){}
@@ -1446,7 +1446,7 @@ try{ document.documentElement.style.cursor='pointer';
       _quipEl.addEventListener('click', function(){
         if(!_quipTopic) return;
         clearTimeout(_quipT); _quipEl.classList.remove('show');
-        if(window.LunaChat && window.LunaChat.askTopic){ window.LunaChat.askTopic(_quipTopic); }
+        if(window.SITE.LunaChat && window.SITE.LunaChat.askTopic){ window.SITE.LunaChat.askTopic(_quipTopic); }
       });
       _quipEl.addEventListener('mouseenter', function(){ clearTimeout(_quipT); });
       _quipEl.addEventListener('mouseleave', function(){ clearTimeout(_quipT); _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, 1500); });
@@ -1496,12 +1496,12 @@ try{ document.documentElement.style.cursor='pointer';
     var _nudgeI = 0, _nudgeCount = 0, NUDGE_INTERVAL = 65000, MAX_NUDGES = 5;
     function scheduleNudge(){
       setTimeout(function(){
-        if(!window.__lunaEverOpened && _nudgeCount < MAX_NUDGES
-           && !(window.LunaChat && window.LunaChat.isOpen())){
+        if(!window.SITE.__lunaEverOpened && _nudgeCount < MAX_NUDGES
+           && !(window.SITE.LunaChat && window.SITE.LunaChat.isOpen())){
           showQuip(NUDGE_LINES[_nudgeI % NUDGE_LINES.length], 'greeting', 7000);
           _nudgeI++; _nudgeCount++;
         }
-        if(!window.__lunaEverOpened && _nudgeCount < MAX_NUDGES) scheduleNudge();
+        if(!window.SITE.__lunaEverOpened && _nudgeCount < MAX_NUDGES) scheduleNudge();
       }, NUDGE_INTERVAL);
     }
     setTimeout(function(){
@@ -1523,19 +1523,19 @@ try{ document.documentElement.style.cursor='pointer';
   var pill = document.getElementById('luna-pill');
   if(pill){
     pill.addEventListener('click', function(){
-      if(!window.LunaChat) return;
-      if(window.LunaChat.isOpen()) window.LunaChat.close(); else window.LunaChat.open();
+      if(!window.SITE.LunaChat) return;
+      if(window.SITE.LunaChat.isOpen()) window.SITE.LunaChat.close(); else window.SITE.LunaChat.open();
     });
   }
 })();
 </script>
 
 <script define:vars={{ lunaPost }}>
-  window.__LUNA_POST = lunaPost;
+  window.SITE.__LUNA_POST = lunaPost;
 </script>
 
 <script is:inline id="ldw-engine">
-  const LP = window.__LUNA_POST || {};
+  const LP = window.SITE.__LUNA_POST || {};
   const LP_faqs = LP.faqs || [];
   const LP_headings = LP.headings || [];
   const LP_category = LP.category || 'this topic';
@@ -1795,7 +1795,7 @@ KB.forEach(function(entry, i){
   function mountLuna(){
     if(!avatarEl || avatarEl.firstChild) return;
     try{
-      const html=window.__LUNA_HTML; if(!html) return;
+      const html=window.SITE.__LUNA_HTML; if(!html) return;
       lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
       const fr=document.createElement('iframe');
       fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
@@ -1855,7 +1855,7 @@ KB.forEach(function(entry, i){
   }
 
   function openD(){ if(open)return; open=true;
-    window.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
+    window.SITE.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
     /* Clicking the (non-focusable) quip bubble or creature leaves
        document.activeElement on <body> — focusing that on close is a
        silent no-op, so fall back to the pill trigger in that case. */
@@ -1954,7 +1954,7 @@ KB.forEach(function(entry, i){
   chips.querySelectorAll('.ldw-chip').forEach(c=>c.addEventListener('click',()=>surface(Router.topic(c.dataset.id))));
 
   /* Public handle: lets the corner quip open the chat and answer the clicked topic. */
-  window.LunaChat = {
+  window.SITE.LunaChat = {
     open: openD, close: closeD, isOpen: function(){ return open; },
     ask: function(text){ var was=open; openD(); setTimeout(function(){ query(text); }, was?0:180); },
     askTopic: function(id){

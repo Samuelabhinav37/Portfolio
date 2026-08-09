@@ -8,6 +8,7 @@ import '../styles/tokens.css';
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script is:inline>window.SITE=window.SITE||{};</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Samuel Abhinav — Contact</title>
@@ -51,7 +52,7 @@ import '../styles/tokens.css';
 //  from the filename — drop this same script into other pages and they
 //  pick up their correct title automatically.
 //
-//  Public API:  window.titleManager.setPage(p) / fireGlitch() / snapshot()
+//  Public API:  window.SITE.titleManager.setPage(p) / fireGlitch() / snapshot()
 //  Pages:       home, about, work, contact
 // ════════════════════════════════════════════════════════════════════
 (function(){
@@ -399,7 +400,7 @@ import '../styles/tokens.css';
   }
 
   // ── PUBLIC API ───────────────────────────────────────────────────
-  window.titleManager = {
+  window.SITE.titleManager = {
     setPage:    function(p){ navigateFlow(p); },
     fireGlitch: function(){
       if (state === 'resting' && isVisible){
@@ -1264,7 +1265,7 @@ import '../styles/tokens.css';
 /* The case-file cards cluster on the left; the form column (mostly thin
    text/underlines, no opaque blocks) plus the margins are genuinely open —
    mark them so background craft spawn where they're actually visible. */
-window.NEBULA_SAFE_ZONES = [
+window.SITE.NEBULA_SAFE_ZONES = [
   {x0:0.58, y0:0.05, x1:1, y1:0.9 },  // form column + right margin
   {x0:0,    y0:0,    x1:1, y1:0.1},   // top strip
   {x0:0,    y0:0.88, x1:1, y1:1  },   // bottom strip
@@ -1276,11 +1277,11 @@ window.NEBULA_SAFE_ZONES = [
    immediately and settle it to its final lit state (mirrors the homepage
    intro's returning-visitor fast-path). */
 (function(){
-  window._introRevealReady = true;
-  window._introFullyDone   = true;
+  window.SITE._introRevealReady = true;
+  window.SITE._introFullyDone   = true;
   /* Matched to the homepage's settled brightness (was dimmed lower here
      for form legibility) so the background reads the same across pages. */
-  window._bgBoost = 0.95;
+  window.SITE._bgBoost = 0.95;
   try { if (window.U && U.uBright) U.uBright.value = 0.6; } catch(e){}
   try { startBootSeq(); }
   catch(e){ try { window.NS && window.NS.startBootSeq && window.NS.startBootSeq(); } catch(_){} }
@@ -1359,7 +1360,7 @@ window.NEBULA_SAFE_ZONES = [
     var _perfRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
     var _perfBusy = false;
     function perform(name, ms){
-      if(_perfRM || _perfBusy || !window._introFullyDone || document.hidden) return false;
+      if(_perfRM || _perfBusy || !window.SITE._introFullyDone || document.hidden) return false;
       _perfBusy = true;
       try{ f.contentWindow && f.contentWindow.postMessage({type:'lunaAction', name:name}, location.origin); }catch(_){}
       setTimeout(function(){ _perfBusy = false; }, ms || 1600);
@@ -1369,7 +1370,7 @@ window.NEBULA_SAFE_ZONES = [
     function scheduleIdle(){
       var ms = 7000 + Math.random()*7000;
       setTimeout(function(){
-        if(!document.hidden && window._introFullyDone && !_perfBusy && f.contentWindow){
+        if(!document.hidden && window.SITE._introFullyDone && !_perfBusy && f.contentWindow){
           try{
             f.contentWindow.postMessage({type:'lunaAction', name: pickIdle()}, location.origin);
           }catch(_){}
@@ -1411,7 +1412,7 @@ window.NEBULA_SAFE_ZONES = [
       return 'comms';                                             // this is the contact page — headset on
     }
     function updateCostume(){
-      if(!window._introFullyDone) return;
+      if(!window.SITE._introFullyDone) return;
       var c = resolveCostume();
       if(c !== _lastCostume){ _lastCostume = c; _send({type:'lunaCostume', key:c}); }
     }
@@ -1422,7 +1423,7 @@ window.NEBULA_SAFE_ZONES = [
     /* Arrival: once she's through the portal, dress for context + a small delighted hello. */
     var _greeted=false;
     (function waitArrival(){
-      if(window._introFullyDone && !_greeted){
+      if(window.SITE._introFullyDone && !_greeted){
         _greeted=true;
         updateCostume();
         setTimeout(function(){ _send({type:'lunaEmote', name:'sparkle', hold:1800}); }, 400);
@@ -1451,7 +1452,7 @@ window.NEBULA_SAFE_ZONES = [
       _quipEl.addEventListener('click', function(){
         if(!_quipTopic) return;
         clearTimeout(_quipT); _quipEl.classList.remove('show');
-        if(window.LunaChat && window.LunaChat.askTopic){ window.LunaChat.askTopic(_quipTopic); }
+        if(window.SITE.LunaChat && window.SITE.LunaChat.askTopic){ window.SITE.LunaChat.askTopic(_quipTopic); }
       });
       _quipEl.addEventListener('mouseenter', function(){ clearTimeout(_quipT); });
       _quipEl.addEventListener('mouseleave', function(){ clearTimeout(_quipT); _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, 1500); });
@@ -1465,12 +1466,12 @@ window.NEBULA_SAFE_ZONES = [
     var _nudgeI = 0, _nudgeCount = 0, NUDGE_INTERVAL = 65000, MAX_NUDGES = 5;
     function scheduleNudge(){
       setTimeout(function(){
-        if(!window.__lunaEverOpened && _nudgeCount < MAX_NUDGES
-           && !(window.LunaChat && window.LunaChat.isOpen())){
+        if(!window.SITE.__lunaEverOpened && _nudgeCount < MAX_NUDGES
+           && !(window.SITE.LunaChat && window.SITE.LunaChat.isOpen())){
           showQuip(NUDGE_LINES[_nudgeI % NUDGE_LINES.length], 'greeting', 7000);
           _nudgeI++; _nudgeCount++;
         }
-        if(!window.__lunaEverOpened && _nudgeCount < MAX_NUDGES) scheduleNudge();
+        if(!window.SITE.__lunaEverOpened && _nudgeCount < MAX_NUDGES) scheduleNudge();
       }, NUDGE_INTERVAL);
     }
     setTimeout(function(){
@@ -1485,7 +1486,7 @@ window.NEBULA_SAFE_ZONES = [
 <script is:inline>
 /* Luna arrival on the Contact page — no intro timeline here, so fire the
    portal bloom once shortly after load; the greet (wave + sparkle) inside
-   the Luna embed self-triggers off window._introFullyDone. */
+   the Luna embed self-triggers off window.SITE._introFullyDone. */
 (function(){
   var portal = document.getElementById('luna-portal');
   if(!portal) return;
@@ -1778,7 +1779,7 @@ const hudGeneric=(ctx,cv,ev,t,dpr)=>{
 };
 function mountAll(){
   var stack=document.querySelector('.stack'); if(stack) stack.classList.add('ready');
-  window._dbg=function(){};
+  window.SITE._dbg=function(){};
   return; // particles disabled — cards use the real image base + HUD
   document.querySelectorAll('.recon-card').forEach(function(marker){
     const inner=marker.closest('.card-inner');
@@ -1792,12 +1793,12 @@ function mountAll(){
       const c=new ReconCard(inner,{mode:mode,aspect:ap,anomalyMask:mask,
         autoEvery:0,drift:0.45,push:1.0,size:1.0,drawHUD:hudGeneric});
       const seq=Number(marker.dataset.seq)||99;
-      window._RC=window._RC||[]; window._RC.push({seq:seq, card:c});
-      window._dbg && window._dbg(marker.dataset.mode+' seq'+seq+' pts='+(c.count||'?')+' vis='+c.visible);
-    }catch(e){console.error('card mount failed',e); window._dbg && window._dbg('FAIL '+marker.dataset.mode+': '+e.message);}};
-    if(img.decode){ img.decode().then(start).catch(function(){ window._dbg && window._dbg('decode fail '+marker.dataset.mode); start(); }); }
+      window.SITE._RC=window.SITE._RC||[]; window.SITE._RC.push({seq:seq, card:c});
+      window.SITE._dbg && window.SITE._dbg(marker.dataset.mode+' seq'+seq+' pts='+(c.count||'?')+' vis='+c.visible);
+    }catch(e){console.error('card mount failed',e); window.SITE._dbg && window.SITE._dbg('FAIL '+marker.dataset.mode+': '+e.message);}};
+    if(img.decode){ img.decode().then(start).catch(function(){ window.SITE._dbg && window.SITE._dbg('decode fail '+marker.dataset.mode); start(); }); }
     else if(img.complete&&img.naturalWidth)start();
-    else { img.onload=start; img.onerror=function(){ window._dbg && window._dbg('img ERROR '+marker.dataset.mode+' src='+(img.getAttribute('src')||'').slice(-24)); }; }
+    else { img.onload=start; img.onerror=function(){ window.SITE._dbg && window.SITE._dbg('img ERROR '+marker.dataset.mode+' src='+(img.getAttribute('src')||'').slice(-24)); }; }
   });
 }
 if(document.readyState!=='loading')mountAll(); else document.addEventListener('DOMContentLoaded',mountAll);
@@ -1808,8 +1809,8 @@ if(document.readyState!=='loading')mountAll(); else document.addEventListener('D
    the whole board a shared, gentle breath (the "sync") without hard beats.  */
 
 // slow global breath 0..1, shared by every HUD so the board feels unified
-window._phase = 0;
-(function breathe(){ window._phase = (performance.now()/1000); requestAnimationFrame(breathe); })();
+window.SITE._phase = 0;
+(function breathe(){ window.SITE._phase = (performance.now()/1000); requestAnimationFrame(breathe); })();
 
 // helper: standard corner ticks + shared breath glow
 function hudChrome(ctx,W,H,S,t){
@@ -2324,7 +2325,7 @@ const Router = (() => {
   function mountLuna(){
     if(!avatarEl || avatarEl.firstChild) return;
     try{
-      const html=window.__LUNA_HTML; if(!html) return;
+      const html=window.SITE.__LUNA_HTML; if(!html) return;
       lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
       const fr=document.createElement('iframe');
       fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
@@ -2377,7 +2378,7 @@ const Router = (() => {
   setInterval(refreshStatus,400); refreshStatus();
 
   function openD(){ if(open)return; open=true;
-    window.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
+    window.SITE.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
     drawer.classList.add('on'); scrim.classList.add('on');
     document.body.classList.add('ldw-drawer-open'); drawer.setAttribute('aria-hidden','false');
     mountLuna(); startTypewriter();
@@ -2472,7 +2473,7 @@ const Router = (() => {
   chips.querySelectorAll('.ldw-chip').forEach(c=>c.addEventListener('click',()=>surface(Router.topic(c.dataset.id))));
 
   /* Public handle: lets the quip nudge (and the corner companion) open the chat and answer the clicked topic. */
-  window.LunaChat = {
+  window.SITE.LunaChat = {
     open: openD, close: closeD, isOpen: function(){ return open; },
     ask: function(text){ var was=open; openD(); setTimeout(function(){ query(text); }, was?0:180); },
     askTopic: function(id){

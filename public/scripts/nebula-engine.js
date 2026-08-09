@@ -17,15 +17,15 @@ var OX = -(CW - SW) / 2, OY = -(CH - SH) / 2;
    Each page knows its own layout (hero art, card grids, form columns) —
    craft that spawn or park underneath opaque foreground content just burn
    frames nobody sees, and by the time they drift into a gap the visitor
-   is often gone. Pages set window.NEBULA_SAFE_ZONES (screen-fraction
+   is often gone. Pages set window.SITE.NEBULA_SAFE_ZONES (screen-fraction
    rects, 0..1 of the viewport, before this script loads) to mark their
    known-open regions; spawn/target pickers below draw from these first.
    No zones set = the full visible band, same as before. Converted once
    to canvas space using the same OX/OY offset the mouse tracker uses. */
 function _toCanvasX(sf){ return OX + sf * SW; }
 function _toCanvasY(sf){ return OY + sf * SH; }
-var _safeZones = (window.NEBULA_SAFE_ZONES && window.NEBULA_SAFE_ZONES.length
-  ? window.NEBULA_SAFE_ZONES : [{x0:0,y0:0,x1:1,y1:1}]
+var _safeZones = (window.SITE.NEBULA_SAFE_ZONES && window.SITE.NEBULA_SAFE_ZONES.length
+  ? window.SITE.NEBULA_SAFE_ZONES : [{x0:0,y0:0,x1:1,y1:1}]
 ).map(function(z){ return { x0:_toCanvasX(z.x0), y0:_toCanvasY(z.y0), x1:_toCanvasX(z.x1), y1:_toCanvasY(z.y1) }; });
 function randomSafePoint(){
   var z = _safeZones[Math.random() * _safeZones.length | 0];
@@ -313,7 +313,7 @@ var threeClock;
 
   /* Devtools control surface — toggle from console if you ever need to
      diagnose a regression. Defaults are "all optimizations on". */
-  window.NEBULA_CACHE = {
+  window.SITE.NEBULA_CACHE = {
     isEnabled: function(){ return cacheEnabled; },
     setEnabled: function(b){
       cacheEnabled = !!b;
@@ -406,7 +406,7 @@ function rg(x0,y0,r0,x1,y1,r1){return fin(x0,y0,r0,x1,y1,r1)?ctx.createRadialGra
        CRAFT.trail = 3.0        // wake brightness
        CRAFT.satHalo = 0        // kill the new satellite glow
    Nothing is cached; the next frame picks it up.                          */
-var CRAFT = window.CRAFT = {
+var CRAFT = window.SITE.CRAFT = {
   boost:   2.05,   /* how much hotter the hulls and auras burn      */
   halo:    1.45,   /* how much further the aura bleeds into the dark */
   trail:   1.90,   /* how much brighter the wakes read              */
@@ -1134,8 +1134,8 @@ var _budget = {
 };
 
 /* Devtools control surface — all optimizations on by default; flip
-   from console (window.PERF.grainBakeEnabled = false, etc) to A/B. */
-window.PERF = {
+   from console (window.SITE.PERF.grainBakeEnabled = false, etc) to A/B. */
+window.SITE.PERF = {
   nebulaCacheEnabled: true,
   grainBakeEnabled:   true,
   adaptiveEnabled:    true
@@ -1324,7 +1324,7 @@ function drawCrosshairGrid(){
 var revealAlpha=0, revealDone=false;
 var REVEAL_DUR=1.8;
 function updReveal(dt){
-  if(!window._introRevealReady||revealDone)return;
+  if(!window.SITE._introRevealReady||revealDone)return;
   revealAlpha=Math.min(1,revealAlpha+dt/REVEAL_DUR);
   for(var i=0;i<nodes.length;i++){
     var n=nodes[i];if(!n.discovered||n.tier==='tiny')continue;
@@ -1838,7 +1838,7 @@ function drawGrain(t){
   /* Cached path: 1 drawImage + globalAlpha modulation, replacing 500
      arcs + 9-neighbour lookups per frame. Per-point flicker mean
      (~0.637) is folded into the global alpha. */
-  if(window.PERF && window.PERF.grainBakeEnabled){
+  if(window.SITE.PERF && window.SITE.PERF.grainBakeEnabled){
     if(!_grainLayer) _bakeGrain();
     if(!_grainLayer) return;
     var breathe=0.80+0.20*Math.sin(t*.4);
@@ -1895,7 +1895,7 @@ function computeActivity(){var sum=0,wt=0;for(var i=0;i<nodes.length;i++){var n=
 function updReactiveGlow(dt,t){
   /* Network activity drives the #bg-bloom layer (and only that — the window
      frame and titlebar are gone). The post-Luna brightness lift multiplies
-     the bloom intensity via window._bgBoost (default 1.0, lifted to ~1.5
+     the bloom intensity via window.SITE._bgBoost (default 1.0, lifted to ~1.5
      when Luna arrives). The bloom anchors to whichever hub is brightest, so
      the glow visibly follows the most active part of the network.
 
@@ -1914,7 +1914,7 @@ function updReactiveGlow(dt,t){
   var r=Math.round((40+hShift*25+a*30)/8)*8;
   var g=Math.round((70+hShift*30+a*20)/8)*8;
   var b=Math.round((160+hShift*35+a*40)/8)*8;
-  var boost=window._bgBoost||1.0;
+  var boost=window.SITE._bgBoost||1.0;
   var innerAlpha=(Math.round((0.08+a*.20+p*.18)*boost*ATMO_DIM*50)/50).toFixed(3);
   var bx=50,by=55,maxG=0;
   for(var i=0;i<nodes.length;i++){
@@ -1991,7 +1991,7 @@ function updPathGlows(dt){for(var i=activePathGlows.length-1;i>=0;i--){activePat
 function drawPathGlows(){for(var i=0;i<activePathGlows.length;i++){var g=activePathGlows[i];var gl=lg(g.ax,g.ay,g.bx,g.by);if(!gl)continue;gl.addColorStop(0,'rgba(160,210,255,'+(g.alpha*.6).toFixed(3)+')');gl.addColorStop(0.5,'rgba(180,220,255,'+(g.alpha*.9).toFixed(3)+')');gl.addColorStop(1,'rgba(160,210,255,'+(g.alpha*.6).toFixed(3)+')');ctx.beginPath();ctx.moveTo(g.ax,g.ay);ctx.lineTo(g.bx,g.by);ctx.strokeStyle=gl;ctx.lineWidth=1.4;ctx.stroke();}}
 
 var parallaxOX=0, parallaxOY=0;
-window._setParallax=function(px,py){parallaxOX=px;parallaxOY=py;};
+window.SITE._setParallax=function(px,py){parallaxOX=px;parallaxOY=py;};
 function drawStarsParallax(t){
   ctx.save();
   ctx.translate(parallaxOX*0.3, parallaxOY*0.3);
