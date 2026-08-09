@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "check": "astro check",
     "build": "astro build",
     "postbuild": "node scripts/obfuscate.mjs",
     "preview": "astro preview"
