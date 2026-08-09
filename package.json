@@ -8,7 +8,8 @@
     "check": "astro check",
     "build": "astro build",
     "postbuild": "node scripts/obfuscate.mjs",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "playwright test"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
@@ -17,6 +18,7 @@
     "typescript": "^5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "acorn": "^8.18.0",
     "terser": "^5.49.0"
   }

@@ -1267,7 +1267,7 @@ function frame(now){
   _fLast=now;
   const dt=Math.min(now-last,50); last=now;
   update(now,dt);
-  if(window.SITE.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
+  if(window.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
   draw(now);
 }
 requestAnimationFrame(frame);

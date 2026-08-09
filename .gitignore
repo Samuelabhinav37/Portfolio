@@ -14,3 +14,7 @@ dist/
 
 # Cloudflare local dev state
 .wrangler/
+
+# Playwright
+test-results/
+playwright-report/
