@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
-    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/mdx": "^6",
     "@studio-freight/lenis": "1.0.42",
-    "astro": "^5.0.0",
+    "astro": "^6",
     "gsap": "3.12.5",
     "lenis": "1.1.13",
     "typescript": "^5"
