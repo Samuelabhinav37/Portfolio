@@ -14,12 +14,16 @@
   "dependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/mdx": "^4.0.0",
+    "@studio-freight/lenis": "1.0.42",
     "astro": "^5.0.0",
+    "gsap": "3.12.5",
+    "lenis": "1.1.13",
     "typescript": "^5"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "acorn": "^8.18.0",
+    "sharp": "^0.35.3",
     "terser": "^5.49.0"
   }
 }
