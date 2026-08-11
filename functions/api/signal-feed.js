@@ -12,6 +12,13 @@ const NEWS_FEEDS = [
 ];
 const CACHE_TTL = 900; // 15 minutes
 const UA = 'Mozilla/5.0 (compatible; SignalFeedBot/1.0; +https://samuelabhinav.com)';
+const FETCH_TIMEOUT = 6000; // ms — a single slow/hanging upstream shouldn't stall the whole panel
+
+function fetchWithTimeout(url, opts) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -40,7 +47,7 @@ function tag(block, name) {
 }
 
 async function fetchFeed(f) {
-  const resp = await fetch(f.u, { headers: { 'User-Agent': UA } });
+  const resp = await fetchWithTimeout(f.u, { headers: { 'User-Agent': UA } });
   if (!resp.ok) throw new Error(f.n + ' ' + resp.status);
   const xml = await resp.text();
   const blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
@@ -73,7 +80,7 @@ async function fromNews() {
 async function fromCtf() {
   const now = Math.floor(Date.now() / 1000);
   const fin = now + 150 * 86400;
-  const resp = await fetch(
+  const resp = await fetchWithTimeout(
     `https://ctftime.org/api/v1/events/?limit=40&start=${now}&finish=${fin}`,
     { headers: { 'User-Agent': UA } }
   );

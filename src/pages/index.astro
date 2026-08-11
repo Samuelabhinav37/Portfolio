@@ -1754,7 +1754,10 @@ footer#site-footer{
     var a=document.createElement('a'); a.href='https://ctftime.org/event/list/upcoming'; a.target='_blank'; a.rel='noopener'; a.style.textDecoration='none';
     var nm=document.createElement('span'); nm.className='ctf-name'; nm.textContent='CTFtime';
     var mt=document.createElement('span'); mt.className='ctf-meta'; mt.textContent='live schedule →';
-    a.appendChild(nm); a.appendChild(mt); it.appendChild(a); ctfHost.appendChild(it);
+    /* .ctf-name and .ctf-meta must be direct children of .ctf-item (its flex-column+gap
+       CSS targets direct children only) — matching renderCtfs() below, which links just
+       the name and keeps meta as a sibling, not nested inside the <a>. */
+    a.appendChild(nm); it.appendChild(a); it.appendChild(mt); ctfHost.appendChild(it);
   }
 
   function renderNews(items){

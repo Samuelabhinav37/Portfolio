@@ -11,6 +11,13 @@
 const MISP_MANIFEST = 'https://www.circl.lu/doc/misp/feed-osint/manifest.json';
 const OTX_ACTIVITY = 'https://otx.alienvault.com/api/v1/pulses/activity?limit=6';
 const CACHE_TTL = 1800; // 30 minutes
+const FETCH_TIMEOUT = 6000; // ms — a single slow/hanging upstream shouldn't stall the whole panel
+
+function fetchWithTimeout(url, opts) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -23,7 +30,7 @@ function json(data, status = 200) {
 }
 
 async function fromMisp() {
-  const resp = await fetch(MISP_MANIFEST);
+  const resp = await fetchWithTimeout(MISP_MANIFEST);
   if (!resp.ok) throw new Error('misp manifest ' + resp.status);
   const manifest = await resp.json();
   return Object.entries(manifest)
@@ -41,7 +48,7 @@ async function fromMisp() {
 
 async function fromOtx(apiKey) {
   if (!apiKey) return [];
-  const resp = await fetch(OTX_ACTIVITY, { headers: { 'X-OTX-API-KEY': apiKey } });
+  const resp = await fetchWithTimeout(OTX_ACTIVITY, { headers: { 'X-OTX-API-KEY': apiKey } });
   if (!resp.ok) throw new Error('otx ' + resp.status);
   const data = await resp.json();
   const results = Array.isArray(data.results) ? data.results : [];
