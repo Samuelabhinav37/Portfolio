@@ -13,3 +13,15 @@ pages_build_output_dir = "dist"
 # `wrangler pages secret put <NAME>` — never committed here:
 #   RESEND_API_KEY       — sends the contact-form email via Resend
 #   TURNSTILE_SECRET_KEY — server-side verification for the Turnstile widget
+
+# Rate limits the /api/contact endpoint (5 requests/60s per IP). This binding
+# needs no dashboard provisioning and works whether or not the project has a
+# custom domain attached — unlike Cloudflare's dashboard WAF rate-limit
+# rules, which require a zone.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+[ratelimits.simple]
+limit = 5
+period = 60

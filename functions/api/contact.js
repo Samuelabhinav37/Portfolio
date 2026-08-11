@@ -22,7 +22,8 @@ async function verifyTurnstile(token, ip, secret) {
     });
     const data = await resp.json();
     return !!data.success;
-  } catch {
+  } catch (err) {
+    console.error('Turnstile verify failed:', err);
     return false;
   }
 }
@@ -50,7 +51,19 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'Too long' }, 400);
   }
 
+  if (env.RATE_LIMITER) {
+    const { success } = await env.RATE_LIMITER.limit({
+      key: request.headers.get('CF-Connecting-IP') || 'unknown',
+    });
+    if (!success) return json({ error: 'Too many requests' }, 429);
+  }
+
   if (!env.RESEND_API_KEY || !env.TURNSTILE_SECRET_KEY) {
+    console.error(
+      'contact.js misconfigured: missing',
+      !env.RESEND_API_KEY ? 'RESEND_API_KEY' : '',
+      !env.TURNSTILE_SECRET_KEY ? 'TURNSTILE_SECRET_KEY' : ''
+    );
     return json({ error: 'Not configured' }, 500);
   }
 
@@ -78,7 +91,10 @@ export async function onRequestPost({ request, env }) {
     }),
   });
 
-  if (!resendResp.ok) return json({ error: 'Send failed' }, 502);
+  if (!resendResp.ok) {
+    console.error('Resend send failed:', resendResp.status, await resendResp.text());
+    return json({ error: 'Send failed' }, 502);
+  }
 
   return json({ ok: true });
 }
