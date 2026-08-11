@@ -1223,7 +1223,9 @@ function sizeCanvas(){
 }
 sizeCanvas(); addEventListener('resize',sizeCanvas);
 
-let last=performance.now(), _fMin=1000/30, _fLast=0, _fPaused=false;
+/* LOW_POWER (set early in each page's <head>) drops the eye's frame cap from
+   30fps to 20fps on phones/tablets — same pause-on-hidden-tab mechanism below. */
+let last=performance.now(), _fMin=(window.SITE&&window.SITE.LOW_POWER)?1000/20:1000/30, _fLast=0, _fPaused=false;
 function frame(now){
   if(document.hidden){ _fPaused=true; return; }
   requestAnimationFrame(frame);

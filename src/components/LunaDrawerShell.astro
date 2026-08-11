@@ -1,0 +1,184 @@
+---
+// Shared Luna drawer shell — the <aside id="ldw-drawer"> markup and its
+// #ldw-styles CSS, extracted from 4 near-byte-identical inline copies in
+// index.astro, about.astro, contact.astro, and src/pages/blog/index.astro.
+// The only real differences between those four copies were 3 CSS custom
+// properties (index.astro runs a different void color + font stack) and a
+// perf rule that only index.astro had — see below. Everything else,
+// including the whole engine script and each page's own KB/mouse-bridge/
+// quip systems, stays page-local; this component is markup + CSS only.
+//
+// Not included here: #luna-quip (the small speech-bubble card). It's
+// genuinely page-specific — index.astro already styles it separately from
+// the drawer, with its own extra rules the other three pages don't share —
+// so it stays wherever each page already defines it.
+interface Props {
+  voidColor?: string;
+  bodyFont?: string;
+  monoFont?: string;
+}
+const {
+  voidColor = '#080814',
+  bodyFont = '"EB Garamond",Georgia,serif',
+  monoFont = '"JetBrains Mono",ui-monospace,monospace',
+} = Astro.props;
+---
+
+<!-- ══ Luna assistant drawer (injected) ══ -->
+<div id="ldw-root">
+  <div id="ldw-scrim"></div>
+  <aside id="ldw-drawer" role="dialog" aria-label="Ask Luna" aria-hidden="true">
+    <div class="ldw-aurora"><div class="ldw-haze"></div></div>
+    <header class="ldw-head">
+      <span class="ldw-dot"></span><span class="ldw-who">Luna · <span id="ldw-status">archive</span></span><span class="ldw-sp"></span>
+      <button class="ldw-x" id="ldw-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </header>
+    <div class="ldw-avatar" id="ldw-avatar"></div>
+    <div class="ldw-body" id="ldw-dbody">
+      <div class="ldw-identity" id="ldw-identity">
+        <div class="ldw-greeting" id="ldw-greeting">Good evening</div>
+        <div class="ldw-sub">i keep watch over this archive.<br/>ask about the work, the labs, or the writing.</div>
+      </div>
+      <div class="ldw-thread" id="ldw-thread" aria-live="polite" aria-atomic="false"></div>
+    </div>
+    <div class="ldw-chips" id="ldw-chips">
+      <button class="ldw-chip" data-id="sentinel">what is sentinel?</button>
+      <button class="ldw-chip" data-id="bounty">show me the bounty findings</button>
+      <button class="ldw-chip" data-id="about">are you hiring?</button>
+    </div>
+    <div class="ldw-cw">
+      <div class="ldw-composer">
+        <div class="ldw-r1">
+          <input id="ldw-ask" type="text" autocomplete="off" spellcheck="false" placeholder="ask, search, or explain…" aria-label="Ask Luna"/>
+          <button class="ldw-send" id="ldw-send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+        </div>
+        <div class="ldw-r2">matched against the archive</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<style is:global id="ldw-styles" define:vars={{ ldwVoidColor: voidColor, ldwBodyFont: bodyFont, ldwMonoFont: monoFont }}>
+  #ldw-root{
+    --ldw-void: var(--ldwVoidColor); --ldw-panel:#0a0a17;
+    --ldw-ink:#eaeaf2; --ldw-dim:rgba(234,234,242,.56); --ldw-faint:rgba(234,234,242,.30);
+    --ldw-hair:rgba(234,234,242,.09); --ldw-hair2:rgba(234,234,242,.18);
+    --ldw-ice:rgba(var(--c-ice),.9); --ldw-ice-soft:rgba(var(--c-ice),.14);
+    --ldw-serif:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    --ldw-body: var(--ldwBodyFont);
+    --ldw-mono: var(--ldwMonoFont);
+    --ldw-w:min(420px,94vw);
+    --ldw-spring:cubic-bezier(.22,1,.32,1);
+  }
+  #ldw-scrim{position:fixed;inset:0;z-index:1190;background:rgba(4,4,12,.5);opacity:0;pointer-events:none;
+    transition:opacity .5s ease;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
+  #ldw-scrim.on{opacity:1;pointer-events:auto}
+  #ldw-drawer{position:fixed;top:0;right:0;bottom:0;z-index:1200;width:var(--ldw-w);
+    background:var(--ldw-panel);border-left:1px solid var(--ldw-hair);display:flex;flex-direction:column;
+    transform:translateX(calc(100% + 2px));transition:transform .6s var(--ldw-spring);overflow:hidden;
+    box-shadow:-40px 0 90px -30px rgba(0,0,0,.85);font-family:var(--ldw-body)}
+  #ldw-drawer.on{transform:translateX(0)}
+  #ldw-drawer *{box-sizing:border-box}
+  #ldw-drawer button{background:none;border:0;cursor:pointer;margin:0;padding:0}
+
+  .ldw-aurora{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ldw-aurora .ldw-haze{position:absolute;left:50%;bottom:-42%;width:190%;aspect-ratio:1;transform:translateX(-50%);
+    background:radial-gradient(closest-side,rgba(var(--c-ice),.22),transparent 62%),
+      radial-gradient(closest-side,rgba(120,124,140,.20),transparent 72%),
+      radial-gradient(closest-side,rgba(70,74,88,.34),transparent 80%);
+    filter:blur(28px);animation:ldw-breathe 13s ease-in-out infinite}
+  @keyframes ldw-breathe{0%,100%{opacity:.85;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}
+  .ldw-aurora::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--ldw-panel) 0%,transparent 30%)}
+
+  .ldw-head{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:16px 18px 14px;border-bottom:1px solid var(--ldw-hair)}
+  .ldw-head .ldw-dot{width:6px;height:6px;border-radius:50%;background:var(--ldw-ice);box-shadow:0 0 9px var(--ldw-ice);animation:ldw-pulse 2.4s ease-in-out infinite}
+  @keyframes ldw-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.2)}}
+  .ldw-head .ldw-who{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.22em;color:var(--ldw-dim);text-transform:uppercase}
+  .ldw-head.ldw-warming .ldw-dot{background:var(--ldw-faint);box-shadow:0 0 8px var(--ldw-faint)}
+  .ldw-head.ldw-offline .ldw-dot{background:var(--ldw-faint);box-shadow:none;animation:none}
+  .ldw-head .ldw-sp{flex:1}
+  #ldw-drawer.ldw-compact .ldw-head{padding-left:60px}
+  #ldw-drawer.ldw-compact .ldw-head .ldw-dot{display:none}
+  .ldw-head{transition:padding .5s var(--ldw-spring)}
+  .ldw-x{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ldw-faint);transition:.2s}
+  .ldw-x:hover{color:var(--ldw-ink);background:rgba(var(--c-white),.05)} .ldw-x svg{width:15px;height:15px}
+
+  .ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
+  .ldw-body::-webkit-scrollbar{display:none}
+  .ldw-identity{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:200px;
+    transition:max-height .5s var(--ldw-spring),opacity .35s ease,padding .5s var(--ldw-spring);max-height:520px;overflow:hidden}
+  #ldw-drawer.ldw-compact .ldw-identity{max-height:0;opacity:0;padding-top:0}
+  .ldw-avatar{position:absolute;z-index:6;left:50%;top:70px;width:118px;height:118px;transform:translateX(-50%);
+    border-radius:50%;overflow:hidden;background:#0b0b16;border:1px solid rgba(var(--c-ice),.22);
+    box-shadow:0 18px 44px -16px rgba(0,0,0,.8),0 0 0 6px rgba(var(--c-ice),.04),0 0 40px -12px rgba(var(--c-ice),.18);
+    transition:left .55s var(--ldw-spring),top .55s var(--ldw-spring),width .55s var(--ldw-spring),height .55s var(--ldw-spring),transform .55s var(--ldw-spring),box-shadow .5s ease}
+  .ldw-avatar::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(var(--c-ice),.12);animation:ldw-halo 6s ease-in-out infinite;pointer-events:none;z-index:2}
+  .ldw-avatar iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;transform:scale(1.08)}
+  /* compact: Luna shrinks into the header, never disappears */
+  #ldw-drawer.ldw-compact .ldw-avatar{left:16px;top:11px;width:34px;height:34px;transform:translateX(0);box-shadow:0 0 0 1px rgba(var(--c-ice),.14),0 0 18px -6px rgba(var(--c-ice),.25)}
+  #ldw-drawer.ldw-compact .ldw-avatar::before{opacity:0}
+  @keyframes ldw-blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+  .ldw-greeting{margin-top:26px;font-family:'Cormorant Garamond',serif;font-weight:500;font-size:28px;line-height:1.1;color:var(--ldw-ink)}
+  .ldw-sub{margin-top:14px;font-family:'Cormorant Garamond',serif;font-weight:500;font-size:13px;line-height:2.0;letter-spacing:.02em;color:var(--ldw-dim);max-width:34ch}
+
+  .ldw-thread{display:flex;flex-direction:column;gap:16px;padding:22px 0 8px}
+  .ldw-msg{opacity:0;transform:translateY(8px);animation:ldw-in .45s var(--ldw-spring) forwards}
+  @keyframes ldw-in{to{opacity:1;transform:translateY(0)}}
+  .ldw-msg.ldw-you{align-self:flex-end;max-width:88%;font-family:var(--ldw-mono);font-weight:500;font-size:12.5px;color:var(--ldw-ink);
+    background:var(--ldw-ice-soft);border:1px solid rgba(var(--c-ice),.16);padding:9px 13px;border-radius:12px 12px 3px 12px}
+  .ldw-msg.ldw-luna{align-self:flex-start;max-width:94%;font-family:var(--ldw-body);font-size:15.5px;line-height:1.5;color:var(--ldw-ink);
+    border-left:1px solid rgba(var(--c-ice),.28);padding:1px 0 1px 14px}
+  .ldw-readout{margin-top:9px;font-family:var(--ldw-mono);font-weight:500;font-size:9.5px;letter-spacing:.14em;color:var(--ldw-faint);text-transform:uppercase;display:flex;align-items:center;gap:7px}
+  .ldw-readout .ldw-tick{color:var(--ldw-ice)}
+  .ldw-goto{margin-top:10px}
+  .ldw-goto button{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.06em;color:var(--ldw-ice);
+    border:1px solid rgba(var(--c-ice),.28);border-radius:8px;padding:7px 12px;transition:.2s}
+  .ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(var(--c-ice),.5)}
+  .ldw-guesses{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .ldw-guesses button{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);
+    background:var(--ldw-ice-soft);border:1px solid rgba(var(--c-ice),.14);padding:8px 13px;border-radius:999px;transition:.2s}
+  .ldw-guesses button:hover{background:rgba(var(--c-ice),.2);border-color:rgba(var(--c-ice),.32)}
+  .ldw-guesses .ldw-brk{color:rgba(var(--c-ice),.55)}
+
+  .ldw-chips{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 24px 12px}
+  .ldw-chips.ldw-hide{display:none}
+  .ldw-chip{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);background:var(--ldw-ice-soft);
+    border:1px solid rgba(var(--c-ice),.14);padding:8px 14px;border-radius:999px;transition:.2s}
+  .ldw-chip:hover{background:rgba(var(--c-ice),.2)} .ldw-chip .ldw-brk{color:rgba(var(--c-ice),.55)}
+
+  .ldw-cw{position:relative;z-index:2;padding:0 18px 18px}
+  .ldw-composer{position:relative;border-radius:18px;background:rgba(8,8,20,.62);border:1px solid rgba(var(--c-ice),.5);
+    box-shadow:0 0 26px -6px rgba(var(--c-ice),.28);padding:13px 15px 11px;transition:.25s}
+  .ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 32px -3px rgba(var(--c-ice),.42)}
+  .ldw-r1{display:flex;align-items:center;gap:5px}
+  .ldw-composer .ldw-brk{font-family:var(--ldw-mono);font-size:14px;color:rgba(var(--c-ice),.5)}
+  .ldw-composer input{flex:1;background:none;border:0;outline:0;font-family:var(--ldw-mono);font-weight:500;font-size:13.5px;color:var(--ldw-ink);padding:2px 6px;caret-color:var(--ldw-ice)}
+  .ldw-composer input::placeholder{color:var(--ldw-faint)}
+  .ldw-r2{display:flex;align-items:center;margin-top:11px;font-family:var(--ldw-mono);font-weight:500;font-size:10px;letter-spacing:.06em;color:var(--ldw-faint)}
+  .ldw-r2 .ldw-sp{flex:1}
+  .ldw-send{flex:0 0 auto;width:38px;height:32px;display:grid;place-items:center;border-radius:11px;background:rgba(var(--c-ice),.10);border:1px solid rgba(var(--c-ice),.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
+  .ldw-send svg{width:15px;height:15px}
+  .ldw-send.on{opacity:1;background:linear-gradient(160deg,#e8ebf1,#c3c8d2);border-color:transparent;color:#12121c}
+  .ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(var(--c-ice),.5)}
+
+  @media (prefers-reduced-motion:reduce){
+    #ldw-drawer *,.ldw-aurora .ldw-haze{animation:none !important}
+    #ldw-drawer,#ldw-scrim{transition:opacity .2s ease,transform .2s ease !important}
+  }
+
+  body.ldw-drawer-open #menu-trigger{opacity:0 !important;pointer-events:none;}
+
+  /* When the drawer is closed it only slides off-screen (transform), it is not
+     removed — so its animations keep ticking. The aurora especially runs a
+     scale keyframe under a 28px blur, recompositing every frame for a panel
+     nobody is looking at. Freeze the decorative loops until the drawer opens. */
+  #ldw-drawer:not(.on) .ldw-haze,
+  #ldw-drawer:not(.on) .ldw-head .ldw-dot,
+  #ldw-drawer:not(.on) .ldw-avatar::before{ animation-play-state:paused; }
+
+  .ldw-followups{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+  .ldw-fu{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.02em;color:var(--ldw-dim);
+    background:rgba(var(--c-ice),.06);border:1px solid rgba(var(--c-ice),.12);border-radius:999px;padding:6px 12px;transition:.18s;cursor:pointer}
+  .ldw-fu:hover{color:var(--ldw-ink);background:rgba(var(--c-ice),.14);border-color:rgba(var(--c-ice),.28)}
+  .ldw-fu .ldw-plus{color:rgba(var(--c-ice),.5);margin-right:5px}
+</style>
