@@ -65,7 +65,7 @@ const chipEntries = [
        the real, labeled, keyboard-reachable control that opens the chat. -->
   <div class="luna-slot" id="luna-slot">
     <div id="luna-wrap" aria-hidden="true">
-      <iframe id="luna-frame" title="Luna (decorative companion)" tabindex="-1" scrolling="no"></iframe>
+      <iframe id="luna-frame" title="Luna (decorative companion)" tabindex="-1" scrolling="no" sandbox="allow-scripts allow-same-origin"></iframe>
     </div>
     <div id="luna-quip" aria-hidden="true"></div>
     <button type="button" class="luna-pill" id="luna-pill"
@@ -554,7 +554,7 @@ KB.forEach(function(entry, i){
       lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
       const fr=document.createElement('iframe');
       fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
-      fr.setAttribute('title','Luna');
+      fr.setAttribute('title','Luna'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
       fr.addEventListener('load', ()=>{ avatarWin=fr.contentWindow;
         setTimeout(()=>sendAvatarAction('wave'), 550);
         startAvatarIdle();

@@ -243,7 +243,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
         lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
         const fr=document.createElement('iframe');
         fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
-        fr.setAttribute('title','Luna');
+        fr.setAttribute('title','Luna'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
         fr.addEventListener('load', ()=>{ avatarWin=fr.contentWindow;
           setTimeout(()=>sendAvatarAction('wave'), 550);   // a little hello
           startAvatarIdle();                                // gentle life inside the bubble
