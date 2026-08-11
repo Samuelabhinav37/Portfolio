@@ -82,6 +82,13 @@ var BG_PACE  = 0.55;
 var NET_WATER_AMP  = 6.0;    // multiplies each node's existing sway amplitude
 var NET_WATER_FREQ = 1.5;    // flow spatial scale (bigger = tighter eddies)
 var NET_WATER_TSC  = 0.16;   // flow time scale (how fast the water moves)
+var NET_QUIET = 1;           // constellation alpha multiplier — left neutral since the
+                              // constellation itself is disabled below (_constellationEnabled).
+                              // Turns out index.astro shuts its own constellation off after
+                              // its 6s intro window and never brings it back — its resting
+                              // background is just ships/satellites/grain/scanlines/dim/bloom,
+                              // no network-map geometry at all. Matching that here rather
+                              // than dimming a system index doesn't actually keep running.
 var NET_GLOBAL_AMP = 55;     // px — how far the whole cluster wanders
 var NET_GLOBAL_SPD = 0.045;  // global drift speed
 var NET_GLOBAL_ROT = 3.5;    // deg — gentle tumble amplitude
@@ -351,7 +358,12 @@ var W = CW, H = CH;
    glitch bands, fleets, patrols, chase, freighter, probe, asteroids, meteor
    shower, shooting stars). Hubs, districts, lines, traceroutes, and data
    streams still run so the page reads as a network, not a still image.    */
-var REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* LOW_POWER (set early in each page's <head>, viewport-width or reduced-motion
+   driven) folds into REDUCED_MOTION so every existing RM-gated optional system
+   below (grain, glitch, fleets, patrols, chase, freighter, probe, asteroids,
+   meteor shower, shooting stars) also backs off on phones/tablets, not just
+   under the accessibility preference. */
+var REDUCED_MOTION = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || !!(window.SITE && window.SITE.LOW_POWER);
 
 function positionCanvases(){
   /* cssText fully replaces the inline style, so if the nebula has already
@@ -1663,10 +1675,17 @@ function updFreighter(dt){freighter.ang+=dt*.08;freighter.x+=freighter.vx*dt*60;
 var probe={x:-10,y:_safeY(-10),vx:.012,vy:.003,ang:0,trail:[],mT:20,active:true};
 function updProbe(dt){if(!probe.active)return;probe.ang+=dt*.04;probe.x+=probe.vx*dt*60;probe.y+=probe.vy*dt*60;probe.trail.push({x:probe.x,y:probe.y});if(probe.trail.length>probe.mT)probe.trail.shift();if(probe.x>CW+20){probe.active=false;setTimeout(function(){probe.x=-10;probe.y=_safeY(-10);probe.active=true;},60000+Math.random()*60000);}}
 
-var robber={x:CW*.45,y:CH*.44,tx:CW*.55,ty:CH*.34,vx:0,vy:0,spd:.52,trail:[],mT:70,ang:0,pause:0};
-var cop={x:CW*.45,y:CH*.47,tx:0,ty:0,vx:0,vy:0,spd:.46,trail:[],mT:60,ang:0};
-var esc1={x:CW*.46,y:CH*.45,vx:0,vy:0,spd:.32,trail:[],mT:45,ang:0};
-var esc2={x:CW*.44,y:CH*.45,vx:0,vy:0,spd:.18,trail:[],mT:45,ang:0};
+/* Chase group spawns near the top-left of the ON-SCREEN band instead of dead
+   center. The canvas is 2x oversized for off-screen entries/exits (see
+   newWaypoint above) — only canvas fraction ~0.25-0.75 is actually visible,
+   so the anchor has to live inside that band (~0.30), not near 0 (which is
+   the off-screen margin and was why the ships went invisible). It still
+   roams the whole band via newWaypoint() within a few seconds; relative
+   spacing between the four craft is unchanged, just the cluster's anchor. */
+var robber={x:CW*.30,y:CH*.30,tx:CW*.45,ty:CH*.32,vx:0,vy:0,spd:.52,trail:[],mT:70,ang:0,pause:0};
+var cop={x:CW*.30,y:CH*.33,tx:0,ty:0,vx:0,vy:0,spd:.46,trail:[],mT:60,ang:0};
+var esc1={x:CW*.31,y:CH*.31,vx:0,vy:0,spd:.32,trail:[],mT:45,ang:0};
+var esc2={x:CW*.29,y:CH*.31,vx:0,vy:0,spd:.18,trail:[],mT:45,ang:0};
 var chLasers=[];
 function newWaypoint(){
   /* The hacker actively dives at a real Hub node — but the #sc canvas is 2x
@@ -1825,6 +1844,7 @@ var GRAIN_GX=8, GRAIN_GY=6, _grainBuckets=null;
 function _buildGrainBuckets(){
   if(!_grainBuckets){ _grainBuckets = []; for(var i=0;i<GRAIN_GX*GRAIN_GY;i++) _grainBuckets[i]=[]; }
   for(var i=0;i<_grainBuckets.length;i++) _grainBuckets[i].length=0;
+  if(!CW||!CH) return;   // guard div-by-zero -> NaN bucket index if called before layout has real dimensions
   for(var i=0;i<nodes.length;i++){
     var n=nodes[i];
     if(n.tier==='tiny'||!n.discovered||n.glow<0.08) continue;
@@ -2051,14 +2071,17 @@ _bakeGrain();
 /* ── MAIN LOOP ── */
 var RM = REDUCED_MOTION;
 /* This shared engine runs on About/Contact/Blog — none of which have
-   index.astro's "Samuel Abhinav" name-reveal intro. Both the nebula (WebGL
-   shader + 2D glow/starfield) and the interactive hub constellation are
-   exclusively an index-intro thing, so neither ever runs here at all —
-   these pages go straight to the plain solid background. Ships and
-   satellites are unaffected and keep animating forever. */
+   index.astro's "Samuel Abhinav" name-reveal intro. index itself runs its
+   nebula AND constellation only for a timed 6s intro flourish, then shuts
+   both off permanently — its real resting background is just ships,
+   satellites, grain, scanlines, dim and bloom, with no network-map geometry
+   at all. The nebula runs here as a permanent ambient backdrop instead of a
+   timed flourish (no intro to time a shutoff against), but the constellation
+   (nodes, connector lines, IP-style labels) stays off, matching index's own
+   actual resting state rather than a dimmed version of its intro-only look.
+   Ships and satellites are unaffected either way and keep animating forever. */
 var _constellationEnabled = false;
-var _bgIntroOver = true;
-if(glslCanvas) glslCanvas.style.display = 'none';
+var _bgIntroOver = false;
 /* Perf: cap the simulation to 30fps and fully pause when the tab is hidden,
    so this page stops competing for GPU/CPU with other tabs (e.g. video). */
 var _FRAME_MIN = 1000/30, _frameLast = 0, _loopPaused = false, _frameErrs = 0;
@@ -2079,7 +2102,8 @@ function loop(ts){
     ctx.clearRect(0,0,CW,CH);
     ctx.lineCap='round';
     if(!_bgIntroOver){ drawNebulae(t);drawStarsParallax(t); }
-    if(_constellationEnabled){ drawCrosshairGrid(); }
+    /* No crosshair grid here — it's a stark technical-grid overlay that reads
+       fine under index's hero/tour cinematic but not against body copy. */
     updReveal(dt);
     if(!RM) updGlitch(dt);
     updReactiveGlow(dt,t);
@@ -2126,6 +2150,7 @@ function loop(ts){
     // parallaxes against them.
     if(_constellationEnabled){
     ctx.save();
+    ctx.globalAlpha = NET_QUIET;
     ctx.translate(BIO_CX+_gDx, BIO_CY+_gDy); ctx.rotate(_gRot); ctx.translate(-BIO_CX, -BIO_CY);
     drawGalaxy();
     drawConstellationLines();
