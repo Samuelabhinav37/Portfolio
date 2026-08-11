@@ -16,6 +16,7 @@ const PAGES = [
   '/blog',
   '/blog/anatomy-of-a-supply-chain-attack',
   '/blog/detecting-lateral-movement-active-directory',
+  '/blog/detecting-lolbins-windows-event-logs',
   '/blog/honeypot-lab-aws-threat-intel',
   '/blog/_blueprint',
   '/blog/_template',
@@ -25,9 +26,7 @@ const PAGES = [
 // Errors known to be expected right now, not regressions to catch.
 // Keep this list short and specific — anything not matched here still fails
 // the test, which is the point.
-const KNOWN_ERRORS = [
-  /Turnstile.*400020/, // placeholder sitekey — see src/pages/contact.astro, needs a real key before launch
-];
+const KNOWN_ERRORS: RegExp[] = [];
 
 for (const path of PAGES) {
   test(`${path} loads with no console errors`, async ({ page }) => {
