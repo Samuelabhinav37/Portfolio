@@ -26,6 +26,10 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
    folder was never populated, so it silently broke every share preview. */
 const ogImageSrc = d.ogImage ?? d.cardImage ?? d.heroImage;
 const ogImage = ogImageSrc ? new URL(ogImageSrc, Astro.site).href : undefined;
+// Share dialog preview always shows the post's own hero image (what the
+// reader actually saw at the top of the article), independent of the
+// og:image fallback chain above.
+const shareImage = d.heroImage ? new URL(d.heroImage, Astro.site).href : ogImage;
 const readTime = d.readTime ?? Math.max(1, Math.round(words / 220));
 const pubIso = d.pubDate.toISOString().slice(0, 10);
 const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
@@ -42,6 +46,7 @@ const shareX =
   encodeURIComponent(`${d.title} — ${SITE.author}`);
 const shareLi =
   'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(canonicalUrl);
+const shareDomain = new URL(SITE.links.portfolio).hostname;
 
 /* ── JSON-LD: Article + Breadcrumb + FAQPage from the same frontmatter ── */
 const stripHtml = (s: string) => s.replace(/<[^>]+>/g, '');
@@ -82,7 +87,17 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 <!doctype html>
 <html lang="en">
   <head>
-    <script is:inline>window.SITE=window.SITE||{};</script>
+    <script is:inline>
+    window.SITE=window.SITE||{};
+    (function(){
+      function computeLowPower(){
+        window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
+      }
+      computeLowPower();
+      var _lpT;
+      addEventListener('resize', function(){ clearTimeout(_lpT); _lpT=setTimeout(computeLowPower, 150); }, {passive:true});
+    })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {d.draft && <meta name="robots" content="noindex, nofollow" />}
@@ -105,7 +120,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@300;400;500&family=Inter:wght@400;500&family=Hanken+Grotesk:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Share+Tech+Mono&family=Inter:wght@400;500&family=Hanken+Grotesk:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
@@ -130,11 +145,6 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
   </head>
 
   <body>
-    <svg id="bg-grain" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">
-      <filter id="bg-grain-noise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="2"/><feGaussianBlur stdDeviation="0.45"/><feColorMatrix values="0 0 0 0 0.6  0 0 0 0 0.6  0 0 0 0 0.65  0.9 0 0 0 -0.2"/></filter>
-      <rect width="100%" height="100%" filter="url(#bg-grain-noise)"/>
-    </svg>
-
     <a class="skip-link" href="#main-content">Skip to content</a>
 
     <div id="read-progress"></div>
@@ -169,10 +179,6 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <div class="hero" id="hero">
       <div class="hero-left">
         <div class="hero-corner-br"></div>
-        <div class="hero-brand">
-          <div class="hero-brand-mark">&ldquo;</div>
-          <div class="hero-brand-label">Threat<br />Intel<br />Blog</div>
-        </div>
         <div class="hero-content">
           <div class="hero-breadcrumb">
             <a href={SITE.links.blogIndex}>Blog</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
@@ -187,10 +193,13 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </div>
       <div class="hero-right">
         {d.heroImage
-          ? <div class="hero-art"><img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} /></div>
-          : <div class="hero-art hero-art--placeholder" aria-hidden="true"></div>}
-        <div class="hero-art-fade"></div>
-        {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
+          ? <div class="hero-art"><div class="hero-art-frame">
+              <img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} />
+              {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
+            </div></div>
+          : <div class="hero-art"><div class="hero-art-frame hero-art--placeholder" aria-hidden="true">
+              {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
+            </div></div>}
       </div>
     </div>
 
@@ -220,9 +229,9 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
       <!-- Icon rail — share URLs derive from the canonical URL at build time -->
       <div class="icon-rail">
-        <a class="social-icon" id="shareX" title="Share on X" aria-label="Share on X" target="_blank" rel="noopener" href={shareX}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
-        <a class="social-icon" id="shareLi" title="Share on LinkedIn" aria-label="Share on LinkedIn" target="_blank" rel="noopener" href={shareLi}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-        <button class="social-icon" id="shareCopy" type="button" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        <button class="social-icon" type="button" data-share-open="x" title="Share on X" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></button>
+        <button class="social-icon" type="button" data-share-open="linkedin" title="Share on LinkedIn" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></button>
+        <button class="social-icon" type="button" data-share-open="copy" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         <a class="social-icon" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
       </div>
 
@@ -284,55 +293,71 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <Faq faqs={d.faqs as { q: string; a: string }[]} />
 
       <MoreStories posts={relatedPosts} />
-
-      <!-- Mission / About publication -->
-      <div class="mission-section">
-        <div class="mission-grid">
-          <div class="mission-left">
-            <div class="mission-eyebrow">About the publication</div>
-            <h2 class="mission-heading">{SITE.publication}</h2>
-            <div class="mission-body">
-              <p>Most security writing falls into two buckets: vendor whitepapers selling something, or post-incident reports written for executives. Threat Intel Blog tries to sit somewhere else — closer to the lab notebook, where the work actually gets done.</p>
-              <p>Every post here is grounded in hands-on practice: real detections, real tooling, real labs. The writing is for SOC analysts, detection engineers, and anyone trying to make their environment harder to compromise. If a piece doesn't survive a coffee with a working defender, it doesn't run.</p>
-            </div>
-            <div class="mission-follow">
-              <div class="mission-follow-label">Follow:</div>
-              <div class="mission-follow-icons">
-                <a class="social-icon" title="X / Twitter" href={SITE.links.x} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></a>
-                <a class="social-icon" title="LinkedIn" href={SITE.links.linkedin} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-                <a class="social-icon" title="GitHub" href={SITE.links.github} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
-                <a class="social-icon" title="RSS" href={SITE.links.rss}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.55)" stroke-width="1.5"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5" fill="rgba(var(--c-white),0.55)"/></svg></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="mission-card">
-            <a href={SITE.links.contact} class="mission-cta">
-              <div class="mission-cta-title">Nominate a topic <span class="chev">›</span></div>
-              <div class="mission-cta-desc">Suggest attacks or detection problems you want covered. Real cases preferred over hypotheticals.</div>
-            </a>
-            <a href={SITE.links.rss} class="mission-cta">
-              <div class="mission-cta-title">Subscribe via RSS <span class="chev">›</span></div>
-              <div class="mission-cta-desc">Get new posts in the reader of your choice. No middleware, no tracking.</div>
-            </a>
-            <a href={SITE.links.contact} class="mission-cta">
-              <div class="mission-cta-title">Sign up for the newsletter <span class="chev">›</span></div>
-              <div class="mission-cta-desc">Monthly drop with the new piece, plus what I've been reading. No filler.</div>
-            </a>
-          </div>
-        </div>
-      </div>
     </div><!-- /.container -->
 
-    <div class="site-footer-wrap">
-      <div class="site-footer">
-        <div class="footer-mark" aria-hidden="true">
-          <svg viewBox="0 0 36 36" fill="none">
-            <rect width="36" height="36" rx="6" fill="rgba(var(--c-white),0.015)" stroke="rgba(var(--c-white),0.06)" stroke-width="1"/>
-            <text x="4" y="25" font-family="'IBM Plex Mono',monospace" font-size="14" font-weight="400" fill="rgba(var(--c-white),0.28)">&gt;_</text>
-          </svg>
+    <!-- Share dialog — tabbed per-platform preview, mirrors the blog index's
+         "See more" filter dialog (same centered-panel/backdrop/focus-trap
+         pattern) so it reads as one system instead of a bolted-on widget. -->
+    <div id="shareDialog" class="flt-dialog share-dialog" aria-hidden="true">
+      <div class="flt-dialog__backdrop" data-share-close></div>
+      <div class="flt-dialog__panel share-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+        <button type="button" class="flt-dialog__close" data-share-close aria-label="Close">&times;</button>
+        <h3 class="flt-dialog__title" id="shareTitle">Share this post</h3>
+        <p class="flt-dialog__sub share-dialog__sub">Preview how it'll look before you post it.</p>
+
+        <div class="share-tabs" role="tablist" aria-label="Share destination">
+          <button type="button" class="share-tab" data-share-tab="x" role="tab" aria-selected="false">X</button>
+          <button type="button" class="share-tab" data-share-tab="linkedin" role="tab" aria-selected="false">LinkedIn</button>
+          <button type="button" class="share-tab" data-share-tab="copy" role="tab" aria-selected="false">Copy link</button>
         </div>
-        <div class="footer-copy">© {d.pubDate.getFullYear()} {SITE.author} · {SITE.publication}</div>
+
+        <div class="share-preview" data-share-panel="x" hidden>
+          <div class="share-card share-card--x">
+            <div class="share-card__img-wrap">
+              {shareImage
+                ? <img src={shareImage} alt="" class="share-card__img" />
+                : <div class="share-card__img share-card__img--ph" aria-hidden="true"></div>}
+            </div>
+            <div class="share-card__body">
+              <div class="share-card__title">{d.title}</div>
+              <div class="share-card__domain">{shareDomain}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="share-preview" data-share-panel="linkedin" hidden>
+          <div class="share-card share-card--linkedin">
+            <div class="share-card__img-wrap">
+              {shareImage
+                ? <img src={shareImage} alt="" class="share-card__img" />
+                : <div class="share-card__img share-card__img--ph" aria-hidden="true"></div>}
+            </div>
+            <div class="share-card__body">
+              <div class="share-card__title">{d.title}</div>
+              <div class="share-card__desc">{d.description}</div>
+              <div class="share-card__domain">{shareDomain}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="share-preview" data-share-panel="copy" hidden>
+          <div class="share-copy-row">
+            <input type="text" class="share-copy-input" id="shareDialogUrl" readonly value={canonicalUrl} />
+            <button type="button" class="share-copy-btn" id="shareDialogCopyBtn">Copy</button>
+          </div>
+        </div>
+
+        <a
+          class="flt-dialog__apply share-dialog__go"
+          id="shareDialogGo"
+          href={shareX}
+          target="_blank"
+          rel="noopener"
+          data-x-href={shareX}
+          data-x-label="Share on X →"
+          data-linkedin-href={shareLi}
+          data-linkedin-label="Share on LinkedIn →"
+        >Share on X →</a>
       </div>
     </div>
 

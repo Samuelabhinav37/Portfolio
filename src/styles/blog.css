@@ -1,11 +1,11 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { background: #080814; }
+html { background: var(--c-bg); }
 /* smooth anchor scrolling only for people who haven't asked for reduced motion */
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 
 body {
-  background: #080814;   /* near-black, not true black — avoids halation (text glow) on dark bg */
+  background: var(--c-bg);   /* near-black, not true black — avoids halation (text glow) on dark bg */
   color: rgba(240,240,240,0.78);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -24,7 +24,14 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 /* skip-link lands here; suppress the ring on the container itself */
 #main-content:focus { outline: none; }
 
-.container { max-width: 1440px; margin: 0 auto; padding: 0 48px; }
+/* position:relative + z-index:1 (not just cosmetic): the fixed nebula
+   background (#window, from NebulaBackground) is a positioned element with
+   z-index:auto, which always paints above any non-positioned static content
+   regardless of DOM order. Every real-content wrapper needs to be a
+   positioned element too so it lands in the same z-index:auto stacking
+   bucket and wins on tree order — same pattern used on index/about/contact/
+   blog-index. Without this the nebula would render on top of the article. */
+.container { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 0 48px; }
 
 /* ── Reading progress ── */
 #read-progress {
@@ -44,7 +51,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   line-height: 1.3;
 }
 .nav-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'EB Garamond', serif;
   font-weight: 500; font-size: 1.5rem;
   color: rgba(var(--c-white),0.90); text-decoration: none;
   transition: opacity 0.4s;
@@ -61,7 +68,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 }
 .nav-brand.visible { opacity: 1; pointer-events: all; }
 .nav-brand-mark {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'EB Garamond', serif;
   font-weight: 300; font-size: 1.95rem;
   color: rgba(var(--c-white),0.42); line-height: 0.7;
 }
@@ -129,17 +136,16 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 
 /* ── Hero ── */
 .hero {
+  position: relative; z-index: 1;
   display: grid;
   grid-template-columns: 43% 57%;
   min-height: 86vh;
 }
 .hero-left {
-  background: #000;
   padding: 72px;
   display: flex; flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   position: relative; overflow: hidden;
-  border-right: 1px solid rgba(var(--c-white),0.05);
 }
 /* Noise grain overlay */
 .hero-left::before {
@@ -163,104 +169,64 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   border-right: 1px solid rgba(var(--c-white),0.08);
   pointer-events: none; z-index: 2;
 }
-.hero-brand {
-  position: absolute;
-  top: 72px; left: 72px;
-  display: flex; align-items: flex-start; gap: 14px;
-  z-index: 1;
-  animation: fadeIn 1s ease 0.2s both;
-}
-.hero-brand-mark {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 300; font-size: 5rem;
-  color: rgba(var(--c-white),0.20); line-height: 0.65;
-}
-.hero-brand-label {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 1.05rem; letter-spacing: 0.16em;
-  color: rgba(var(--c-white),0.62); line-height: 1.3;
-  text-transform: uppercase;
-}
 .hero-content { position: relative; z-index: 1; }
 .hero-right {
-  background: #000;
   position: relative; overflow: hidden;
 }
-/* CRT scanlines on hero art panel */
-.hero-right::after {
-  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px, transparent 3px,
-    rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
-  );
-}
-/* CRT vignette */
+/* Framed-plate treatment (mockup "Option A"), floating: no opaque backing
+   behind the card — .hero-right stays transparent so the nebula/ships show
+   through, same as the rest of the page, and the photo reads as a bordered
+   card floating over it rather than sitting on a black panel. The border/
+   shadow/radius live on the image (or the placeholder div) itself, sized to
+   less than 100% of .hero-art, so there's real transparent air around it —
+   not a bigger opaque box with the photo shrunk inside.
+   Same grain texture as .hero-left::before (no separate vignette) — both
+   panels now share identical brightness/overlay treatment. */
 .hero-right::before {
-  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  content: ''; position: absolute; inset: 0; opacity: 0.5; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
 }
 
-/* Hero artwork image — bleeds to panel edges, dimmed, stepped silhouette, fades in.
-   .hero-art has the silhouette; .hero-art-fade has its own smaller-bounds variant
-   because it only covers the bottom band of the panel. */
 .hero-art {
-  position: absolute; inset: 0;
-  overflow: hidden;
+  position: absolute; inset: 72px;
   display: flex; align-items: center; justify-content: center;
   z-index: 1;
-  clip-path: polygon(
-    0 0, 100% 0,
-    100% 84%,
-    74% 84%,
-    74% 92%,
-    44% 92%,
-    44% 100%,
-    20% 100%,
-    20% 90%,
-    0 90%
-  );
 }
-/* The photo itself sits inset within the flush-edged .hero-art frame above —
-   keeps it a touch pulled back ("zoomed out") instead of full-bleed, while the
-   clip-path notch still cuts flush against the panel's true edge. */
+/* .hero-art-frame is the actual visible card box — sizing, border, radius and
+   shadow all live here (not on the img), so anything positioned relative to
+   it (the credit tag) lines up with the real card edges regardless of how
+   big the card is inside .hero-art. */
+.hero-art-frame, .hero-art--placeholder {
+  position: relative;
+  width: 88%; height: 88%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--c-white),0.12);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.3),
+    0 8px 24px -8px rgba(0,0,0,0.4),
+    0 30px 60px -20px rgba(0,0,0,0.48),
+    inset 0 1px 0 rgba(var(--c-white),0.06);
+}
 .hero-art-img {
-  width: 90%; height: 90%;
+  width: 100%; height: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: brightness(0.78) saturate(0.84) contrast(1.04);
+  filter: grayscale(0.55) brightness(0.8) contrast(1.05);
   display: block;
   opacity: 0;
   animation: heroArtIn 1.4s cubic-bezier(0.22,1,0.36,1) 0.7s forwards;
 }
 @keyframes heroArtIn {
-  from { opacity: 0; transform: scale(1.02); filter: brightness(0.55) saturate(0.84) contrast(1.04); }
-  to { opacity: 1; transform: scale(1); filter: brightness(0.78) saturate(0.84) contrast(1.04); }
+  from { opacity: 0; transform: scale(0.97) translateY(6px); filter: grayscale(0.55) brightness(0.58) contrast(1.05); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: grayscale(0.55) brightness(0.8) contrast(1.05); }
 }
-/* Stand-in for posts with no heroImage yet — keeps the same clip-path silhouette. */
+/* Stand-in for posts with no heroImage yet. */
 .hero-art--placeholder {
   background:
     radial-gradient(at 50% 32%, rgba(132,132,146,0.30) 0%, rgba(70,70,80,0.18) 38%, transparent 70%),
     linear-gradient(165deg, rgba(36,36,42,0.95) 0%, rgba(10,10,12,0.98) 100%);
-}
-/* Bottom fade so any remaining edge artifacts dissolve into the panel.
-   Clip-path follows the stepped silhouette, scaled to this element's smaller height. */
-.hero-art-fade {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 22%; z-index: 2;
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.92) 100%);
-  pointer-events: none;
-  animation: fadeIn 1.4s ease 0.7s both;
-  clip-path: polygon(
-    0 0, 100% 0,
-    100% 40%,
-    74% 40%,
-    74% 76%,
-    44% 76%,
-    44% 100%,
-    20% 100%,
-    20% 55%,
-    0 55%
-  );
 }
 
 /* Hero tags */
@@ -273,7 +239,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
    Solid surface (no gradient), soft single-color border, barely-there shadow.
    Inter sans-serif, sentence case. Hierarchy from font-weight, not surface treatment. */
 .hero-tag {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 0.80rem; font-weight: 400;
   letter-spacing: 0;
   padding: 9px 18px;
@@ -309,7 +275,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   font-size: 0.62rem; letter-spacing: 0.20em;
   color: rgba(var(--c-white),0.55);  /* interactive: raised from 0.42 for contrast */
   text-transform: uppercase;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
   animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.3s both;
 }
 .hero-breadcrumb a {
@@ -321,15 +287,15 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .hero-title {
   font-family: 'EB Garamond', serif;
   font-weight: 400; font-style: italic;
-  font-size: 5.0rem; color: rgba(var(--c-white),0.96);
-  line-height: 1.04; margin-bottom: 28px;
+  font-size: 3.9rem; color: rgba(var(--c-white),0.96);
+  line-height: 1.08; margin-bottom: 24px;
   letter-spacing: -0.01em;
   animation: fadeUp 1.2s cubic-bezier(0.22,1,0.36,1) 0.4s both;
 }
 .hero-subtitle {
-  font-family: 'EB Garamond', serif;
-  font-weight: 400; font-style: italic;
-  font-size: 1.30rem; letter-spacing: 0.005em;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  font-weight: 300; font-style: normal;
+  font-size: 1.10rem; letter-spacing: 0.005em;
   color: rgba(245,245,245,0.62);
   line-height: 1.55; max-width: 480px;
   animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.8s both;
@@ -637,7 +603,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 .code-block::after  { bottom: 9px; right: 9px; border-width: 0 1px 1px 0; }
 .code-block:hover { border-color: rgba(var(--c-white),0.09); }
 .code-block code {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Share Tech Mono', monospace;
   font-weight: 300; font-size: 0.84rem;
   color: rgba(72,215,145,0.82); line-height: 1.80;
   white-space: pre;
@@ -657,7 +623,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 .copy-btn.copied { color: rgba(72,215,145,0.90); border-color: rgba(72,215,145,0.28); }
 
 .code-inline {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.84rem;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.84rem;
   background: rgba(var(--c-white),0.04);
   border: 1px solid rgba(var(--c-white),0.07);
   padding: 2px 7px; border-radius: 3px;
@@ -820,26 +786,9 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 }
 .story-meta-sep { color: rgba(var(--c-white),0.08); }
 
-/* ── Footer ── */
-.site-footer-wrap {
-  border-top: 1px solid rgba(var(--c-white),0.04);
-  background: rgba(10,10,10,0.80);
-}
-.site-footer {
-  max-width: 1440px; margin: 0 auto;
-  padding: 36px 48px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.footer-mark svg { width: 36px; height: 36px; }
-.footer-copy {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.52rem; letter-spacing: 0.10em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.12);
-}
-
-/* ── Back to Top ── */
+/* ── Back to Top — left corner, so the right corner (Luna's) stays clear ── */
 #back-to-top {
-  position: fixed; bottom: 36px; right: 36px; z-index: 150;
+  position: fixed; bottom: 36px; left: 36px; z-index: 150;
   width: 40px; height: 40px; border-radius: 50%;
   background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.92));
   border: 1px solid rgba(var(--c-white),0.07);
@@ -867,10 +816,20 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   from { opacity: 0; } to { opacity: 1; }
 }
 
-/* ── Ambient background grain — a single fixed full-viewport noise texture,
-   replacing what used to be the old dotted gutter grid. ── */
-#bg-grain {
-  position: fixed; inset: 0; z-index: -1; opacity: 0.55; pointer-events: none;
+/* Ambient grain now comes from the shared NebulaBackground component
+   (its own #bg-grain, scoped inside #screen) — this page no longer draws
+   its own separate copy.
+   Extra dark-glass pane over the ambient background: #bg-dim (shared
+   component) sits BELOW #sc by default, so it never re-darkens ships CRAFT
+   already brightened. Without the homepage's intro choreography running
+   here, that restraint reads as thin — moving this page's copy above #sc
+   (z-index 2, tied with #bg-grain but later in DOM so it wins) puts a real
+   dim pane in front of the whole scene, ships included. Tuned to match the
+   rest of the site: light tint + a soft blur rather than a flat dark wash,
+   so the ships stay visible through it. */
+#bg-dim {
+  z-index: 2; background: rgba(6,6,8,0.34);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 
 /* ── Respect reduced-motion preference ── */
@@ -883,17 +842,24 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   }
 }
 
-/* ── Hero artwork credit (small corner tag inside hero-right) ── */
+/* ── Hero artwork credit — a small pill sitting on the framed card's own
+   bottom-right corner. Nested inside .hero-art-frame so it's positioned
+   relative to the actual visible card, not guessed via a fixed offset from
+   the outer panel (which broke once the card's own size changed). ── */
 .hero-credit-tag {
   position: absolute;
-  bottom: 18px;
-  left: 22px;
+  bottom: 16px;
+  right: 16px;
   z-index: 3;
   font-family: 'Share Tech Mono', monospace;
   font-size: 0.56rem;
   letter-spacing: 0.20em;
   text-transform: uppercase;
-  color: rgba(var(--c-white),0.34);
+  color: rgba(var(--c-white),0.55);
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(var(--c-white),0.1);
+  border-radius: 100px;
+  padding: 5px 10px;
   pointer-events: none;
   animation: fadeIn 1.6s ease 1.4s both;
 }
@@ -951,118 +917,6 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   color: rgba(var(--c-white),0.26);
 }
 
-/* ── Mission section (2-col: text + CTA card) ── */
-.mission-section {
-  border-top: 1px solid rgba(var(--c-white),0.04);
-  padding: 96px 0 88px;
-  background: linear-gradient(180deg, rgba(18,18,18,0.0) 0%, rgba(32,32,32,0.45) 100%);
-}
-.mission-grid {
-  display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: 56px;
-  align-items: start;
-}
-.mission-left { max-width: 560px; }
-.mission-eyebrow {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.62);
-  margin-bottom: 22px;
-}
-.mission-heading {
-  font-family: 'EB Garamond', serif;
-  font-weight: 400; font-style: italic;
-  font-size: 3.6rem;
-  color: rgba(var(--c-white),0.94);
-  margin-bottom: 36px;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-}
-.mission-body p {
-  font-family: 'EB Garamond', serif;
-  font-size: 1.18rem;
-  color: rgba(248,248,248,0.78);
-  line-height: 1.78;
-  margin-bottom: 22px;
-  letter-spacing: 0.005em;
-}
-.mission-body p:last-child { margin-bottom: 0; }
-.mission-follow {
-  margin-top: 44px;
-  padding-top: 28px;
-  border-top: 1px solid rgba(var(--c-white),0.06);
-  display: flex; align-items: center;
-  gap: 22px;
-}
-.mission-follow-label {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.42);
-}
-.mission-follow-icons {
-  display: flex; gap: 14px; align-items: center;
-}
-.mission-follow-icons .social-icon { width: 32px; height: 32px; }
-
-/* Right column — solid dark elevated CTA panel (high visual weight, B/W palette) */
-.mission-card {
-  background: rgba(20,20,22,0.96);
-  border: 1px solid rgba(var(--c-white),0.10);
-  border-top: 1px solid rgba(var(--c-white),0.18);
-  border-radius: 6px;
-  padding: 44px 44px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(var(--c-white),0.04);
-}
-.mission-card::before {
-  content: ''; position: absolute;
-  top: 14px; left: 14px;
-  width: 16px; height: 16px;
-  border-top: 1px solid rgba(var(--c-white),0.20);
-  border-left: 1px solid rgba(var(--c-white),0.20);
-  pointer-events: none;
-}
-.mission-card::after {
-  content: ''; position: absolute;
-  bottom: 14px; right: 14px;
-  width: 16px; height: 16px;
-  border-bottom: 1px solid rgba(var(--c-white),0.18);
-  border-right: 1px solid rgba(var(--c-white),0.18);
-  pointer-events: none;
-}
-.mission-cta {
-  display: block; text-decoration: none;
-  padding: 22px 0;
-  border-bottom: 1px solid rgba(var(--c-white),0.07);
-  transition: opacity 0.2s, transform 0.2s;
-}
-.mission-cta:first-child { padding-top: 4px; }
-.mission-cta:last-child { border-bottom: none; padding-bottom: 4px; }
-.mission-cta:hover { opacity: 0.92; transform: translateX(2px); }
-.mission-cta-title {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.88rem; letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.96);
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 10px;
-}
-.mission-cta-title .chev {
-  display: inline-block;
-  font-family: serif; font-size: 1.15rem; font-weight: 300;
-  color: rgba(var(--c-white),0.78);
-  transition: transform 0.25s;
-}
-.mission-cta:hover .chev { transform: translateX(4px); }
-.mission-cta-desc {
-  font-family: 'EB Garamond', serif;
-  font-style: italic; font-size: 1.06rem;
-  color: rgba(248,248,248,0.62);
-  line-height: 1.55;
-  letter-spacing: 0.005em;
-}
-
 /* ── Hide floating right rail on viewports too narrow to clear the article ── */
 @media (max-width: 1580px) {
   .left-sidebar { display: none; }
@@ -1072,33 +926,27 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-left { padding: 48px 32px; min-height: 65vw; }
-  .hero-brand { top: 36px; left: 32px; }
   .hero-right { min-height: 56vw; }
+  .hero-art { inset: 28px; }
+  .hero-art-frame, .hero-art--placeholder { border-radius: 10px; }
   .hero-title { font-size: 3.0rem; }
-  .hero-brand-mark { font-size: 3.6rem; }
-  .hero-brand-label { font-size: 0.85rem; }
   #site-identity { top: 12px; left: 20px; }
   .nav-name { font-size: 1.3rem; }
   #menu-trigger { top: 14px; right: 20px; }
-  .mission-section { padding: 56px 0 48px; }
-  .mission-grid { grid-template-columns: 1fr; gap: 36px; }
-  .mission-heading { font-size: 2.2rem; }
-  .mission-card { padding: 28px 28px; }
   .container { padding: 0 24px; }
-  .page-grid { grid-template-columns: 1fr; }
+  .page-grid { grid-template-columns: minmax(0, 1fr); }
   .icon-rail { display: none; }
   .article-col { padding: 28px 0 0; max-width: none; }
   .author-bar-meta { display: none; }
   .stories-grid { grid-template-columns: 1fr; gap: 36px; }
   .faq-heading { font-size: 1.9rem; }
-  .site-footer { flex-direction: column; gap: 14px; padding: 28px 24px; }
 }
 @media (max-width: 600px) {
   .hero-title { font-size: 2.4rem; }
   .hero-left { padding: 36px 24px; }
   .body-text { font-size: 1.16rem; }
-  #back-to-top { bottom: 22px; right: 18px; }
-  .luna-slot { right: 18px; bottom: 72px; }
+  #back-to-top { bottom: 22px; left: 18px; }
+  .luna-slot { right: 18px; bottom: 22px; }
 }
 
 /* ── Table of contents (auto-built from the post's own headings) ── */
@@ -1178,6 +1026,7 @@ a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-fami
   font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
   color: rgba(var(--c-white),0.55);
 }
+.ioc-table-wrap { overflow-x: auto; }
 .ioc-table { width: 100%; border-collapse: collapse; }
 .ioc-table td {
   padding: 11px 18px; border-bottom: 1px solid rgba(var(--c-white),0.05);
@@ -1338,12 +1187,93 @@ td.ioc-act { width: 70px; text-align: right; }
 }
 .skip-link:focus { transform: translateY(0); }
 
+/* ── Share dialog — tabbed per-platform preview. Same centered-panel /
+   backdrop-blur / focus-trap shape as the blog index's "See more" filter
+   dialog (.flt-dialog), so it reads as one system rather than a one-off
+   widget bolted onto the post page. ── */
+.flt-dialog {
+  position: fixed; inset: 0; z-index: 900;
+  display: grid; place-items: center; padding: 24px;
+  opacity: 0; visibility: hidden; transition: opacity .3s ease;
+}
+.flt-dialog[aria-hidden="false"] { opacity: 1; visibility: visible; }
+.flt-dialog__backdrop {
+  position: absolute; inset: 0; background: rgba(4,4,8,.72);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.flt-dialog__panel {
+  position: relative; z-index: 1; width: min(480px, 92vw); max-height: 80vh; overflow-y: auto;
+  background: #0a0a0f; border: 1px solid rgba(var(--c-white),.10); border-radius: 14px;
+  padding: 28px 28px 24px;
+  transform: translateY(10px); transition: transform .35s cubic-bezier(.22,1,.36,1);
+}
+.flt-dialog[aria-hidden="false"] .flt-dialog__panel { transform: none; }
+.flt-dialog__close {
+  position: absolute; top: 14px; right: 14px; width: 28px; height: 28px;
+  display: grid; place-items: center;
+  background: rgba(var(--c-white),.06); border: 1px solid rgba(var(--c-white),.12); border-radius: 50%;
+  color: #dfe4f0; font-size: 16px; line-height: 1; cursor: pointer; transition: background .2s;
+}
+.flt-dialog__close:hover { background: rgba(var(--c-white),.12); }
+.flt-dialog__title { font-family: 'EB Garamond', serif; font-weight: 500; font-size: 24px; color: #fff; margin-bottom: 6px; }
+.flt-dialog__sub { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .05em; color: rgba(var(--c-white),.35); margin-bottom: 22px; }
+.flt-dialog__apply {
+  display: block; width: 100%; text-align: center; margin-top: 20px;
+  background: #fff; color: #0a0a0f; border: none; border-radius: 999px;
+  padding: 13px 24px; font-family: 'Hanken Grotesk', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .05em;
+  text-decoration: none; cursor: pointer; transition: transform .2s;
+}
+.flt-dialog__apply:hover { transform: translateY(-1px); }
+
+.share-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.share-tab {
+  flex: 1; background: none; border: 1px solid rgba(var(--c-white),.10); border-radius: 999px;
+  padding: 9px 10px; font-family: 'Share Tech Mono', monospace; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  color: rgba(var(--c-white),.45); cursor: pointer; transition: color .2s, border-color .2s, background .2s;
+}
+.share-tab:hover { color: rgba(var(--c-white),.8); border-color: rgba(var(--c-white),.24); }
+.share-tab.on { color: #0a0a0f; background: #fff; border-color: #fff; }
+
+.share-card { border: 1px solid rgba(var(--c-white),.12); border-radius: 10px; overflow: hidden; background: #111116; }
+.share-card__img-wrap { width: 100%; background: #161618; }
+.share-card__img { width: 100%; display: block; object-fit: cover; }
+.share-card--x .share-card__img, .share-card--x .share-card__img--ph { aspect-ratio: 16 / 9; }
+.share-card--linkedin .share-card__img, .share-card--linkedin .share-card__img--ph { aspect-ratio: 1.91 / 1; }
+.share-card__img--ph { background: linear-gradient(135deg,#1a1a1f,#0f0f13); }
+.share-card__body { padding: 12px 14px; }
+.share-card__title {
+  font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 14.5px; line-height: 1.35;
+  color: rgba(var(--c-white),.92);
+}
+.share-card__desc {
+  font-family: 'Hanken Grotesk', sans-serif; font-size: 12.5px; line-height: 1.5;
+  color: rgba(var(--c-white),.50); margin-top: 6px;
+}
+.share-card__domain {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+  color: rgba(var(--c-white),.35); margin-top: 8px;
+}
+
+.share-copy-row { display: flex; gap: 8px; }
+.share-copy-input {
+  flex: 1; min-width: 0; background: #111116; border: 1px solid rgba(var(--c-white),.12); border-radius: 8px;
+  padding: 12px 14px; font-family: 'Share Tech Mono', monospace; font-size: 12px; color: rgba(var(--c-white),.75);
+}
+.share-copy-btn {
+  flex: 0 0 auto; background: rgba(var(--c-white),.08); border: 1px solid rgba(var(--c-white),.14); border-radius: 8px;
+  padding: 0 18px; font-family: 'Hanken Grotesk', sans-serif; font-size: 12px; font-weight: 600;
+  color: rgba(var(--c-white),.85); cursor: pointer; transition: background .2s, border-color .2s, color .2s;
+}
+.share-copy-btn:hover { background: rgba(var(--c-white),.14); }
+.share-copy-btn.copied { color: #7be3a8; border-color: rgba(123,227,168,.4); }
+
 /* ── Reduced motion: calm everything that pulses, breathes or glides ── */
 @media (prefers-reduced-motion: reduce) {
   .live-dot { animation: none; }
-  .hero-art { animation: none; opacity: 1; }
+  .hero-art-img { animation: none; opacity: 1; }
   #read-progress { transition: none; }
   .hlink { transition: none; transform: none; }
+  .flt-dialog, .flt-dialog__panel { transition: none; }
 }
 
 /* ══════════ ASTRO PORT BRIDGE ══════════
@@ -1391,11 +1321,11 @@ a.social-icon { text-decoration: none; color: inherit; }
    below it is the real (keyboard + screen-reader reachable) control that
    opens the chat. Both fade in together shortly after load — no cinematic
    portal sequence, since this isn't a first-load homepage moment.
-   bottom offset raised to 86px (72px on mobile) to clear this project's
-   pre-existing #back-to-top button, which shares the same corner. ── */
+   #back-to-top now lives in the opposite (left) corner, so Luna gets the
+   full bottom-right corner to herself instead of stacking above it. ── */
 .luna-slot {
   position: fixed;
-  right: 20px; bottom: 86px;
+  right: 20px; bottom: 22px;
   z-index: 140;
   display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
   opacity: 0;

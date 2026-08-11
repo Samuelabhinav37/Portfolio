@@ -2,12 +2,15 @@
    at build time from the post's headings; this file only adds the dynamic
    pieces: scroll UI, scrollspy, anchors, copy actions, FAQ, collapsed menu. */
 
+import { renderClock, renderWeather } from './clock-weather.js';
+
 /* ── Scroll-driven UI: navbar swap (mid-hero), rails (past author bar, until
    FAQ ends), reading progress, back-to-top. Single rAF-throttled handler. ── */
 (() => {
   const hero = document.getElementById('hero');
   const authorBar = document.querySelector('.author-bar');
   const faqSection = document.getElementById('section-faq');
+  const articleCol = document.querySelector('.article-col');
   const navName = document.getElementById('navName');
   const navBrand = document.getElementById('navBrand');
   const iconRail = document.querySelector('.icon-rail');
@@ -28,15 +31,32 @@
   function recalcThresholds() {
     thresholdNav = hero ? hero.offsetHeight * 0.6 : 0;
     thresholdRails = authorBar ? docTop(authorBar) + authorBar.offsetHeight : thresholdNav;
-    thresholdRailsHide = faqSection
-      ? docTop(faqSection) + faqSection.offsetHeight
-      : Number.POSITIVE_INFINITY;
+    // Rail is scoped to the article itself — cut off right where the post
+    // ends, before the FAQ (FAQ's own top edge when there is one; otherwise
+    // the article column's bottom edge), not after it.
+    // scrollTop alone isn't "before the FAQ" perceptually — the FAQ heading
+    // scrolls into view well before scrollTop reaches its offsetTop, since
+    // the viewport shows everything between scrollTop and scrollTop+innerHeight.
+    // Subtracting innerHeight hides the rail right as that boundary is about
+    // to reach the bottom of the viewport, i.e. before the FAQ is visible at all.
+    const cutoff = faqSection
+      ? docTop(faqSection)
+      : articleCol
+        ? docTop(articleCol) + articleCol.offsetHeight
+        : null;
+    thresholdRailsHide = cutoff === null ? Number.POSITIVE_INFINITY : cutoff - window.innerHeight;
   }
   recalcThresholds();
   // Fonts, images and async layout can shift the FAQ bottom after first paint.
-  window.addEventListener('load', recalcThresholds);
-  setTimeout(recalcThresholds, 200);
-  setTimeout(recalcThresholds, 1200);
+  // recalcThresholds() only updates the numbers — without a re-run of onScroll()
+  // right after, a rail hidden under stale (pre-reflow) thresholds stays hidden
+  // until the next scroll event, which may never come if the user already
+  // stopped scrolling. Every recalc is followed by an immediate re-sync.
+  function recalcAndSync() { recalcThresholds(); onScroll(); }
+  window.addEventListener('load', recalcAndSync);
+  setTimeout(recalcAndSync, 200);
+  setTimeout(recalcAndSync, 1200);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(recalcAndSync);
 
   let ticking = false;
   function onScroll() {
@@ -57,7 +77,7 @@
     });
   }
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', recalcThresholds, { passive: true });
+  window.addEventListener('resize', recalcAndSync, { passive: true });
   backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   onScroll();
 })();
@@ -91,19 +111,79 @@
   heads.forEach((h) => io.observe(h));
 })();
 
-/* ── Copy link (icon rail). Share URLs are built at compile time. ── */
+/* ── Share dialog: icon-rail buttons open it pre-set to the matching tab.
+   Tab switching swaps the preview card and the bottom action (X/LinkedIn
+   open a share-intent tab; Copy link swaps the action for an inline
+   copy row instead — no destination to "go" to). Focus trap + Escape
+   mirror the blog index's "See more" filter dialog. ── */
 (() => {
-  const canon = document.querySelector('link[rel="canonical"]');
-  const url = (canon && canon.href) || location.href;
-  document.querySelectorAll('#shareCopy').forEach((cp) => {
-    cp.addEventListener('click', () => {
-      navigator.clipboard.writeText(url).then(() => {
-        cp.classList.add('copied');
-        cp.title = 'Copied';
-        setTimeout(() => { cp.classList.remove('copied'); cp.title = 'Copy link'; }, 1600);
-      }).catch(() => {});
+  const dialog = document.getElementById('shareDialog');
+  if (!dialog) return;
+  const panel = dialog.querySelector('.flt-dialog__panel');
+  const tabs = [...dialog.querySelectorAll('.share-tab')];
+  const panels = [...dialog.querySelectorAll('.share-preview')];
+  const goBtn = document.getElementById('shareDialogGo');
+  const copyBtn = document.getElementById('shareDialogCopyBtn');
+  const urlInput = document.getElementById('shareDialogUrl');
+  let lastFocused = null;
+
+  function setTab(key) {
+    tabs.forEach((t) => {
+      const on = t.dataset.shareTab === key;
+      t.classList.toggle('on', on);
+      t.setAttribute('aria-selected', String(on));
     });
+    panels.forEach((p) => { p.hidden = p.dataset.sharePanel !== key; });
+    // .flt-dialog__apply sets display:block at the same specificity as the
+    // browser's default [hidden]{display:none}, so the hidden *attribute*
+    // wouldn't reliably hide this element — toggle inline style instead.
+    if (key === 'copy') {
+      goBtn.style.display = 'none';
+    } else {
+      goBtn.style.display = '';
+      goBtn.href = goBtn.dataset[key + 'Href'];
+      goBtn.textContent = goBtn.dataset[key + 'Label'];
+    }
+  }
+
+  function focusables() { return [...panel.querySelectorAll('a[href],button,input')]; }
+  function onKeydown(e) {
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key === 'Tab') {
+      const f = focusables(); if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }
+  function open(key) {
+    setTab(key);
+    lastFocused = document.activeElement;
+    dialog.setAttribute('aria-hidden', 'false');
+    document.addEventListener('keydown', onKeydown);
+    if (key === 'copy') { urlInput.focus(); urlInput.select(); }
+    else tabs.find((t) => t.dataset.shareTab === key).focus();
+  }
+  function close() {
+    dialog.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKeydown);
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  document.querySelectorAll('[data-share-open]').forEach((btn) => {
+    btn.addEventListener('click', () => open(btn.dataset.shareOpen));
   });
+  dialog.querySelectorAll('[data-share-close]').forEach((el) => el.addEventListener('click', close));
+  tabs.forEach((t) => t.addEventListener('click', () => setTab(t.dataset.shareTab)));
+
+  function doCopy() {
+    navigator.clipboard.writeText(urlInput.value).then(() => {
+      copyBtn.textContent = 'Copied';
+      copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 1600);
+    }).catch(() => {});
+  }
+  copyBtn.addEventListener('click', doCopy);
 })();
 
 /* ── Copy code / copy IOC / FAQ accordion — one delegated listener. ── */
@@ -212,55 +292,7 @@ document.addEventListener('click', (ev) => {
   });
 
   /* live GMT (UTC) clock — single line: GMT DD MON YY  HH:MM:SS */
-  const clock = document.getElementById('menu-clock');
-  if (clock) {
-    const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const pad = (n) => (n < 10 ? '0' : '') + n;
-    function upd() {
-      const d = new Date();
-      const u = new Date(d.getTime() + d.getTimezoneOffset() * 60000); // -> UTC/GMT
-      clock.innerHTML =
-        '<span class="d1">GMT</span> ' + pad(u.getDate()) + ' ' + MON[u.getMonth()] + ' ' +
-        String(u.getFullYear()).slice(2) + ' ' +
-        pad(u.getHours()) + ':' + pad(u.getMinutes()) + ':' + pad(u.getSeconds());
-    }
-    upd(); setInterval(upd, 1000);
-  }
+  renderClock(document.getElementById('menu-clock'));
 
-  /* live weather — Open-Meteo (no API key), fixed to California. */
-  const weather = document.getElementById('menu-weather');
-  if (weather) {
-    const WMO = {
-      0: 'CLEAR', 1: 'MAINLY CLEAR', 2: 'PARTLY CLOUDY', 3: 'OVERCAST',
-      45: 'FOG', 48: 'RIME FOG', 51: 'LIGHT DRIZZLE', 53: 'DRIZZLE', 55: 'HEAVY DRIZZLE',
-      61: 'LIGHT RAIN', 63: 'RAIN', 65: 'HEAVY RAIN', 71: 'LIGHT SNOW', 73: 'SNOW', 75: 'HEAVY SNOW',
-      80: 'RAIN SHOWERS', 81: 'RAIN SHOWERS', 82: 'VIOLENT SHOWERS',
-      95: 'THUNDERSTORM', 96: 'THUNDERSTORM', 99: 'THUNDERSTORM',
-    };
-    function iconFor(code) {
-      if (code === 0 || code === 1) return '☀';
-      if (code === 2) return '⛅';
-      if (code === 3 || code === 45 || code === 48) return '☁';
-      if (code >= 51 && code <= 65) return '☂';
-      if (code >= 71 && code <= 75) return '❄';
-      if (code >= 80 && code <= 82) return '☂';
-      if (code >= 95) return '⚡';
-      return '☁';
-    }
-    function render(city, tempF, code) {
-      weather.innerHTML =
-        '<span class="mw-icon">' + iconFor(code) + '</span> ' +
-        '<span class="mw-city">' + city + '</span><br>' +
-        Math.round(tempF) + '° ' + (WMO[code] || '—');
-    }
-    function load(lat, lon, city) {
-      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
-        '&current=temperature_2m,weather_code&temperature_unit=fahrenheit';
-      fetch(url).then((r) => r.json()).then((j) => {
-        const c = j && j.current;
-        if (c) render(city, c.temperature_2m, c.weather_code);
-      }).catch(() => { weather.innerHTML = '<span class="mw-city">' + city + '</span>'; });
-    }
-    load(36.78, -119.42, 'CALIFORNIA');
-  }
+  renderWeather(document.getElementById('menu-weather'));
 })();

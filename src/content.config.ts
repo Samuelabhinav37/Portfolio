@@ -14,6 +14,11 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     /** MITRE technique IDs — rendered as linked pills in the hero. */
     mitre: z.array(z.string()).default([]),
+    /** Filter category keys for the blog index grid (e.g. 'threatintel',
+     *  'dfir', 'detect') — see blog/index.astro's PRIMARY_CATS/SECONDARY_CATS
+     *  for the full key list. Defaults to ['threatintel'] since every post
+     *  on this blog qualifies for it. */
+    cats: z.array(z.string()).default(['threatintel']),
     /** Path under /public, e.g. /images/supply-chain-hero.jpg */
     heroImage: z.string().optional(),
     /** Required once heroImage is set — screen readers get nothing otherwise. */

