@@ -1318,11 +1318,18 @@ footer#site-footer{
     {source:'MISP',title:'OSINT — C2 framework fingerprinting update',org:'CIRCL',href:'https://www.circl.lu/doc/misp/feed-osint/'},
     {source:'OTX',title:'Cred-stuffing botnet rotating through residential proxies',org:'AlienVault community',href:'https://otx.alienvault.com/'}
   ];
-  function esc(s){ return String(s||'').replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
+  /* Attribute-safe: also escapes quotes, unlike a text-node-only escaper —
+     used below to build an href="..." attribute from feed data, where a bare
+     '<>&' escape would still let a stray " break out of the attribute. */
+  function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  /* Feed hrefs are always server-built with a fixed https:// prefix (see
+     functions/api/threat-feed.js), but don't trust that blindly from the
+     browser side too — reject anything that isn't actually http(s). */
+  function safeHref(h){ return /^https?:\/\//i.test(h||'') ? h : '#'; }
   function paint(items){
     list.innerHTML=items.slice(0,3).map(function(it){
       var cls=(it.source||'').toLowerCase()==='otx'?'otx':'misp';
-      return '<a class="ed-intel__row '+cls+'" href="'+esc(it.href||'#')+'" target="_blank" rel="noopener">'+
+      return '<a class="ed-intel__row '+cls+'" href="'+esc(safeHref(it.href))+'" target="_blank" rel="noopener">'+
              '<span class="ed-intel__meta"><span class="src '+cls+'">'+esc(it.source)+'</span><span class="org">'+esc(it.org||'')+'</span></span>'+
              '<span class="ed-intel__title">'+esc(it.title)+'</span></a>';
     }).join('');
