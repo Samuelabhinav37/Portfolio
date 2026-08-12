@@ -327,10 +327,15 @@
        measuring the rect makes label alignment robust to any layout change.
        Cached; refreshed on resize only (no per-frame layout read). */
     var _glRect = canvas.getBoundingClientRect();
+    /* cLabelsEl doesn't exist yet at this point in boot (created further down)
+       — positionLabels() below fills this in once it does. Refreshed here on
+       resize alongside _glRect so both stay in sync without a per-frame read. */
+    var _lblRect = null;
     addEventListener('resize',function(){ W=innerWidth;H=innerHeight;
       GL_SIDE=Math.round(Math.min(1180,Math.max(innerWidth,innerHeight)*0.92));
       camera.aspect=1;camera.updateProjectionMatrix();renderer.setSize(GL_SIDE,GL_SIDE,false);
       _glRect = canvas.getBoundingClientRect();
+      if(cLabelsEl) _lblRect = cLabelsEl.getBoundingClientRect();
       cacheArcMetrics(); },{passive:true});
 
     // progress source: total runway = beat1 + beat-arc
@@ -655,6 +660,13 @@
       var ul=document.getElementById('case-list'); if(!ul) return;
       PROJECTS.forEach(function(p,i){
         var li=document.createElement('li'),b=document.createElement('button');
+        /* role="presentation": #case-list is role="tablist", which requires its
+           direct children to be role="tab". Without this, the <li> wrapper's
+           implicit listitem role sits between tablist and tab, an invalid ARIA
+           parent/child relationship (flagged by Lighthouse: aria-required-children
+           on the ul, listitem on the li). Presentation makes AT skip straight to
+           the button's own role="tab" below. */
+        li.setAttribute('role','presentation');
         b.type='button'; b.setAttribute('role','tab'); b.setAttribute('aria-selected','false');
         b.innerHTML='<span class="cr-id">CASE-00'+(i+1)+'</span><span class="cr-nm">'+p.title+'</span>';
         b.addEventListener('click',function(){ csSelect(i); });
@@ -759,6 +771,7 @@
 
     // ═══ per-project constellation layer (reactive to the accordion) ═══
     var cLabelsEl = document.getElementById('c-labels');
+    if(cLabelsEl) _lblRect = cLabelsEl.getBoundingClientRect();
     var _cUp=new THREE.Vector3(), _cT1=new THREE.Vector3(), _cT2=new THREE.Vector3(), _projV=new THREE.Vector3();
     var _zAxis=new THREE.Vector3(0,0,1), _qRollDyn=new THREE.Quaternion(), _cSpin=0;
     function placeOnSphere(center,u,v,scale){
@@ -893,8 +906,12 @@
       }
     })();
     function positionLabels(){
-      if(!cLabelsEl) return;
-      var cr=canvas.getBoundingClientRect(), lr=cLabelsEl.getBoundingClientRect();
+      if(!cLabelsEl||!_lblRect) return;
+      /* Was two fresh getBoundingClientRect() reads every call (every frame
+         while labels are on-screen) — forced synchronous layout, flagged by
+         DevTools as a top reflow site. Both rects only change on resize, so
+         reuse the cached ones (kept in sync by the resize listener above). */
+      var cr=_glRect, lr=_lblRect;
       for(var i=0;i<_cLabelEls.length;i++){
         var el=_cLabelEls[i]; if(!el||!_cPos[i]) continue;
         _projV.copy(_cPos[i]).applyQuaternion(worldGroup.quaternion).add(worldGroup.position);

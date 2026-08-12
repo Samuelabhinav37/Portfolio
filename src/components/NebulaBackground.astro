@@ -79,6 +79,27 @@
       rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 4px
     );
   }
-  #gc { position:absolute; display:block; z-index:0; }
-  #sc { position:absolute; display:block; z-index:1; pointer-events:none; }
+  /* Explicit sizing (not just position:absolute) so these match their FINAL
+     script-driven geometry from first paint, not just an intermediate size.
+     Canvas's replaced-element default is 300x150 — without any CSS size,
+     that's what paints first, then jumps when JS measures/positions it: a
+     real, measured layout shift (Layout Instability API confirmed a 0.328
+     CLS entry, #sc's previousRect at exactly 300x150).
+     Fixing #gc to 100%/100% was enough — nebula-engine[-home].js's
+     positionCanvases() sets its inline style to that exact same box
+     (left:0;top:0;width:100%;height:100%), so there's nothing left for it
+     to change.
+     #sc needed more: positionCanvases() deliberately OVERSIZES it (65%
+     larger than the viewport, centered via a negative offset — see
+     nebula-engine.js's OVERSIZE constant — so craft can fly in from
+     off-screen) and sets that via inline style, which beats this CSS
+     rule's specificity regardless of paint timing. A first-paint size of
+     100%/100% was still a real geometry change once that inline style
+     landed — same shift, just from a different starting box. Matching the
+     inline style's OX/OY/CW/CH math here (100% * 1.65, offset by
+     -(0.65/2) = -32.5%) means the JS write becomes a no-op resize instead
+     of a visible one. If OVERSIZE ever changes in the engine scripts,
+     update these to match. */
+  #gc { position:absolute; display:block; z-index:0; width:100%; height:100%; }
+  #sc { position:absolute; display:block; z-index:1; pointer-events:none; left:-32.5%; top:-32.5%; width:165%; height:165%; }
 </style>

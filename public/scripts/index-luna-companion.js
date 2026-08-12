@@ -4,6 +4,20 @@
    pages' — verified via diff before extracting, not merged with theirs. */
 (function(){
   var f = document.getElementById('luna-frame');
+  /* Viewport height + document height, cached instead of read live —
+     innerHeight/scrollHeight are both on the classic forced-synchronous-
+     layout list, and resolveCostume()/the scroll handlers below were reading
+     them every scroll frame (flagged by DevTools as a top reflow site).
+     _vh only changes on resize. _docH can change from content mutating
+     (accordion, lazy-loaded sections) without a resize firing, so it's
+     re-measured lazily, throttled instead of read fresh every frame. */
+  var _vh = innerHeight, _docH = document.documentElement.scrollHeight, _docHStamp = 0;
+  addEventListener('resize', function(){ _vh = innerHeight; _docH = document.documentElement.scrollHeight; _docHStamp = Date.now(); }, {passive:true});
+  function _freshDocH(){
+    var now = Date.now();
+    if(now - _docHStamp > 250){ _docH = document.documentElement.scrollHeight; _docHStamp = now; }
+    return _docH;
+  }
   /* Parent → Luna iframe bridge.
      Two jobs:
        1. Forward every page-level mousemove to the iframe (translated to
@@ -162,8 +176,8 @@
     if(document.readyState!=='loading') observeSections();
     else document.addEventListener('DOMContentLoaded', observeSections);
     function _currentSection(){
-      if(scrollY < innerHeight*0.6) return 'top';                   // hero wins up top
-      var maxS=Math.max(1, document.documentElement.scrollHeight-innerHeight);
+      if(scrollY < _vh*0.6) return 'top';                          // hero wins up top
+      var maxS=Math.max(1, _freshDocH()-_vh);
       if((maxS-scrollY)<200) return 'footer';                       // footer at the very bottom
       return _activeSection;
     }
@@ -181,11 +195,11 @@
     }
     setInterval(maybeSpeak, 1500);
     function resolveCostume(){
-      if(scrollY < innerHeight * 0.5)       return 'host';        // up at the hero: the greeter
+      if(scrollY < _vh * 0.5)               return 'host';        // up at the hero: the greeter
       if(Date.now() - _lunaStart > 300000)  return 'settled';     // dwell > 5 min: settled in
       /* quiet mid-page for a while → off-duty, riding the scroll (not right at the footer) */
       if(Date.now() - _lastActivity > 22000){
-        var maxS = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+        var maxS = Math.max(1, _freshDocH() - _vh);
         if((maxS - scrollY) > 260) return 'surf';
       }
       var h = new Date().getHours();
@@ -233,7 +247,7 @@
       if(_pQ) return; _pQ=true;
       requestAnimationFrame(function(){
         _pQ=false;
-        var max=Math.max(1, document.documentElement.scrollHeight - innerHeight);
+        var max=Math.max(1, _freshDocH() - _vh);
         var depth=scrollY / max;
         var nearBottom=(max - scrollY) < 220;
         /* mid-page: she points at the signal before you reach it */
