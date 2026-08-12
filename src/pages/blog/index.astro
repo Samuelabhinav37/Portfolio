@@ -4,9 +4,14 @@ import SiteMenu from '../../components/SiteMenu.astro';
 import PortfolioLunaShell from '../../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../../components/NebulaBackground.astro';
 import LunaDrawerShell from '../../components/LunaDrawerShell.astro';
+import { FAKE_PROJECTS } from '../../data/projects.ts';
 import '../../styles/tokens.css';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+// Translations (e.g. es/anatomy-of-a-supply-chain-attack) live under a
+// locale subfolder and get their own index-free route — the grid here
+// stays English-only; a translated post is reached via the language
+// switcher on its English original, not by appearing twice in this list.
+const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/'))).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 const year = new Date().getFullYear();
@@ -21,6 +26,15 @@ const postCards = posts.map((p) => ({
   lead: p.data.description,
   href: '/blog/' + p.id + '/',
 }));
+// Featured hero card — an illustrative case study if any exist (FAKE_PROJECTS
+// is currently empty on purpose, see src/data/projects.ts), else the latest
+// real post. Matches what the client-side rotator in the script below would
+// pick as its first frame, so there's no server/client mismatch on load.
+const heroItem = FAKE_PROJECTS[0] ?? postCards[0] ?? null;
+// FakeProject has no `href` field (it opens the case-study slide-over
+// instead) — narrow explicitly rather than accessing heroItem.href, which
+// TS rejects on the FakeProject branch of the union.
+const heroHref = heroItem && 'href' in heroItem ? heroItem.href : null;
 ---
 
 <!DOCTYPE html>
@@ -399,10 +413,19 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 
 <div class="hero">
   <div class="bg" id="herobg"><div class="hero-glow halo"></div><div class="hero-glow"></div></div>
-  <article class="frame" id="heroFrame" tabindex="0" role="link" aria-label="Security Operations · 2025 — Sentinel: open case study">
-    <img class="frame-bg" id="heroFrameImg" alt="" aria-hidden="true" loading="eager">
-    <div class="top"><span class="meta">Security Operations · 2025</span><span class="ar" aria-hidden="true">↗</span></div>
-    <h1>Sentinel</h1>
+  <article
+    class="frame"
+    id="heroFrame"
+    tabindex="0"
+    role="link"
+    data-key={heroItem?.seed}
+    aria-label={heroItem
+      ? `${heroItem.kick} — ${heroItem.name}: ${heroHref ? 'read the post' : 'open case study'}`
+      : 'Nothing featured yet'}
+  >
+    <img class="frame-bg" id="heroFrameImg" alt="" aria-hidden="true" loading="eager" src={heroItem?.img || undefined}>
+    <div class="top"><span class="meta">{heroItem?.kick ?? ''}</span><span class="ar" aria-hidden="true">↗</span></div>
+    <h1>{heroItem?.name ?? 'More stories soon'}</h1>
   </article>
   <div class="cue"><span class="ln"></span><span class="meta">Scroll</span></div>
 </div>

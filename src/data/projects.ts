@@ -21,7 +21,15 @@ export interface FakeProject {
   links: [string, string][];
 }
 
-export const FAKE_PROJECTS: FakeProject[] = [
+/**
+ * Empty for now — the blog index shows only real posts until there's more
+ * than one of them. The illustrative set below (Sentinel, PRISM, Axon, and
+ * three bug-bounty write-ups) is kept as ARCHIVED_FAKE_PROJECTS so it's a
+ * one-line swap to bring back: `export const FAKE_PROJECTS = ARCHIVED_FAKE_PROJECTS;`
+ */
+export const FAKE_PROJECTS: FakeProject[] = [];
+
+export const ARCHIVED_FAKE_PROJECTS: FakeProject[] = [
   {
     name: 'Sentinel', cats: ['detect'], kick: 'Security Operations · 2025', year: 2025, seed: 'sentinelnode',
     img: '/images/projects/sentinelcore.jpg',

@@ -292,10 +292,22 @@ document.addEventListener('click',e=>{
   const href=a.getAttribute('href');
   if(href && href!=='#') return; // real writeup link (post card) — let it navigate normally
   e.preventDefault();
-  const key=a.dataset.key||'sentinelnode';const p=projects.find(x=>x.seed===key)||projects[0];
+  const key=a.dataset.key;const p=key?projects.find(x=>x.seed===key):projects[0];
+  // p can be a real post (has .href) resolved as the hero's fallback item —
+  // those don't have the metrics/overview/stack/links shape openCase()
+  // expects, so navigate normally instead of trying to render a case study.
+  if(p && p.href){ location.href=p.href; return; }
+  if(!p) return;
   opener=a;openCase(p,a.querySelector('img'));
 });
-document.getElementById('heroFrame').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();opener=e.currentTarget;openCase(projects[0],null);}});
+document.getElementById('heroFrame').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  const p=projects[0];
+  if(p && p.href){ location.href=p.href; return; }
+  if(!p) return;
+  opener=e.currentTarget;openCase(p,null);
+});
 document.getElementById('csBack').addEventListener('click',closeCase);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&cs.classList.contains('open'))closeCase();});
 
