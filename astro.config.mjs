@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
 import rehypeTemplateClasses from './src/plugins/rehype-template-classes.mjs';
 
 export default defineConfig({
@@ -10,7 +11,7 @@ export default defineConfig({
     // css-variables theme lets blog.css own the code palette
     // (green strings, grey keywords) instead of a stock Shiki theme.
     shikiConfig: { theme: 'css-variables' },
-    rehypePlugins: [rehypeTemplateClasses],
+    processor: unified({ rehypePlugins: [rehypeTemplateClasses] }),
   },
   vite: {
     optimizeDeps: {

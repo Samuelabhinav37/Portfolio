@@ -14,6 +14,7 @@ dist/
 
 # Cloudflare local dev state
 .wrangler/
+.dev.vars
 
 # Playwright
 test-results/
