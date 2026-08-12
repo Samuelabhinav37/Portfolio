@@ -8,9 +8,17 @@
   if (!greetEl) return;
 
   var VISIT_KEY = "luna_last_visit";
+  /* "Returning" should mean a genuine gap since last time — someone who left
+     and came back — not literally every reload/page-nav after the first-ever
+     visit. Without this window, the timestamp gets overwritten on every load,
+     so isReturning flips true after visit #1 and stays true forever; the
+     "first visit" lines become effectively dead. 30min: still counts as the
+     same sitting if you're reloading/navigating around within it. */
+  var RETURN_WINDOW_MS = 30 * 60 * 1000;
   var isReturning = false;
   try {
-    isReturning = !!localStorage.getItem(VISIT_KEY);
+    var last = localStorage.getItem(VISIT_KEY);
+    isReturning = !!last && (Date.now() - Number(last)) > RETURN_WINDOW_MS;
     localStorage.setItem(VISIT_KEY, String(Date.now()));
   } catch (e) {
     /* localStorage unavailable (private mode, etc.) — treat as first visit */

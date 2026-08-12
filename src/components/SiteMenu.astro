@@ -180,6 +180,12 @@ const links = [
       trigger!.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       overlay!.setAttribute('aria-hidden', open ? 'false' : 'true');
       if(open){
+        /* Luna's drawer (z-index 1200) sits well below this overlay
+           (z-index 10000+) — with both open at once the menu covers her
+           drawer, including its close button. Neither side knew about the
+           other; close hers when this one opens. */
+        var lc = (window as any).SITE && (window as any).SITE.LunaChat;
+        if(lc && lc.isOpen && lc.isOpen()) lc.close();
         armIdle();
         const first = focusableEls()[0];
         if (first) setTimeout(() => first.focus(), 80);

@@ -78,8 +78,21 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
       if(!pool.length) pool = DEFAULT_GUESS_IDS.map(byId);
       const reply = "Hm — I don't have a note on that. Did you mean:";
       onToken && onToken(reply, true);
+      reportMiss(query);
       return { grounded:false, reply, guesses:pool.map(t=>({id:t.id,label:t.title})),
                signals:best?best.s:0, engine:'keyword' };
+    }
+    /* Fire-and-forget: lets the KB's keyword coverage actually improve from
+       real usage instead of guessing. 404s harmlessly under `astro dev`
+       (Cloudflare Pages Functions don't run there — see functions/api/) and
+       never blocks or surfaces errors into the chat UX either way. */
+    function reportMiss(query){
+      try{
+        fetch('/api/luna-miss', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ query: String(query||'').slice(0,300), page: location.pathname })
+        }).catch(function(){});
+      }catch(e){}
     }
     function topic(id){ const t=byId(id); return t
       ? { grounded:true, reply:t.reply, citeId:t.id, target:t.target, signals:null, engine:'keyword' }
@@ -293,6 +306,12 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
 
     function openD(){ if(open)return; open=true;
       window.SITE.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
+      /* Symmetric to SiteMenu's own check: the hamburger menu overlay sits
+         well above this drawer (z-index 10000+ vs 1200) and neither knew
+         about the other, so both open at once let the menu cover the
+         drawer's close button. Close the menu when she opens instead. */
+      const mt=document.getElementById('menu-trigger'), mo=document.getElementById('menu-overlay');
+      if(mt && mo && mo.classList.contains('open')) mt.click();
       drawer.classList.add('on'); scrim.classList.add('on');
       document.body.classList.add('ldw-drawer-open'); drawer.setAttribute('aria-hidden','false');
       mountLuna(); startTypewriter();
