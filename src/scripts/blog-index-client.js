@@ -8,6 +8,7 @@
    a small residual inline script right before this one loads — define:vars
    only works for is:inline scripts, not external src files. */
 import { FAKE_PROJECTS } from '../data/projects.ts';
+import { PRIMARY_CATS, SECONDARY_CATS } from '../data/blog-categories.ts';
 import Lenis from '@studio-freight/lenis';
 
 const postCards = window.__POST_CARDS__ || [];
@@ -30,19 +31,6 @@ const grid=document.getElementById('grid'),countEl=document.getElementById('coun
      - secondary: the fuller domain taxonomy, tucked behind "See more" so the
        page doesn't open with 14 buttons — most would show 0 results today.
    `selected` holds category keys from either tier; empty set = All. */
-const PRIMARY_CATS=['detect','otics','auth','bb'];
-const SECONDARY_CATS=[
-  ['web','Web / App Security'],
-  ['mobile','Mobile Security'],
-  ['network','Network Security'],
-  ['cloud','Cloud Security'],
-  ['iot','IoT Security'],
-  ['malware','Malware Analysis'],
-  ['threatintel','Threat Intelligence'],
-  ['dfir','Digital Forensics & IR'],
-  ['crypto','Cryptography'],
-  ['grc','GRC / Risk'],
-];
 let selected=new Set(),sort='latest';
 function matches(p){return selected.size===0||(p.cats||[]).some(c=>selected.has(c));}
 function render(){

@@ -53,6 +53,17 @@ mitre: ["T1195.002", "T1567"]
 # you drop inline in the body text (see the body section below). Omit this
 # line if the post isn't security-technique-specific.
 
+cats: ["threatintel", "malware"]
+# Which blog-index filter tabs/pills this post shows up under — the
+# always-visible primary row (Detection / OT-ICS / Auth / Bug Bounty) plus
+# the fuller secondary taxonomy behind "See more" (Web, Cloud, DFIR, etc).
+# The full key list lives in src/data/blog-categories.ts, shared by the
+# blog index's filter UI and the /tools/new-post category picker — add a
+# key there once and both pick it up. Defaults to ["threatintel"] if you
+# omit this field entirely (every post here qualifies for that one), but
+# every real post sets it explicitly so it lands under the tab a reader
+# would actually filter by.
+
 # ── Images — READ THIS: the site now uses a "two crop" convention ──────────
 # One photo/illustration, cropped twice:
 #   • a WIDE crop (roughly 16:9, e.g. 2192×1152) → the big hero banner

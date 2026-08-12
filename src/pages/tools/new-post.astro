@@ -17,6 +17,7 @@
  */
 import { getCollection } from 'astro:content';
 import NewPostTool from '../../components/NewPostTool.astro';
+import { PRIMARY_CATS, PRIMARY_CAT_LABELS, SECONDARY_CATS } from '../../data/blog-categories';
 
 const allPosts = await getCollection('blog');
 const realPosts = allPosts.filter((p) => !p.id.startsWith('_'));
@@ -29,7 +30,13 @@ const isDev = import.meta.env.DEV;
 <!doctype html>
 <html lang="en">
 {isDev ? (
-  <NewPostTool categories={categories} relatedOptions={relatedOptions} />
+  <NewPostTool
+    categories={categories}
+    relatedOptions={relatedOptions}
+    primaryCats={PRIMARY_CATS}
+    primaryCatLabels={PRIMARY_CAT_LABELS}
+    secondaryCats={SECONDARY_CATS}
+  />
 ) : (
   <Fragment>
     <head>

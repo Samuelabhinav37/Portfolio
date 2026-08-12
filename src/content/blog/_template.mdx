@@ -13,6 +13,10 @@ pubDate: 2026-01-01                # any Date-parseable string
 # readTime: 9                      # optional — minutes. Omit to auto-compute from word count.
 tags: ["Tag One", "Tag Two"]       # free-form chips in the hero
 mitre: ["T1195.002"]               # optional — MITRE technique IDs, rendered as linked pills
+cats: ["threatintel"]              # which blog-index filter tabs/pills this post appears under —
+                                    # see src/data/blog-categories.ts for the full key list.
+                                    # Defaults to ["threatintel"] if omitted, but every real post
+                                    # sets this by hand so it actually lands under the right tab.
 
 # heroImage: /images/my-post-hero.jpg   # optional — path under /public. Omit entirely (or leave
                                           # commented out) to get the gradient placeholder instead

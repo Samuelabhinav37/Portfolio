@@ -10,8 +10,11 @@
 interface Props {
   categories: string[];
   relatedOptions: { slug: string; title: string }[];
+  primaryCats: string[];
+  primaryCatLabels: Record<string, string>;
+  secondaryCats: [string, string][];
 }
-const { categories, relatedOptions } = Astro.props;
+const { categories, relatedOptions, primaryCats, primaryCatLabels, secondaryCats } = Astro.props;
 ---
 <head>
   <meta charset="UTF-8" />
@@ -153,6 +156,16 @@ const { categories, relatedOptions } = Astro.props;
       <button class="btn" id="btn-add-mitre" type="button">Add</button>
     </div>
     <div class="chip-list" id="mitre-list"></div>
+
+    <label>Filter categories <span class="hint" style="display:inline;">— which blog-index tabs/pills this post shows up under. "Threat Intelligence" is pre-checked since every post here qualifies for it.</span></label>
+    <div class="related-list" id="cats-list">
+      {primaryCats.map((key) => (
+        <label><input type="checkbox" class="cats-checkbox" value={key} />{primaryCatLabels[key] ?? key}</label>
+      ))}
+      {secondaryCats.map(([key, label]) => (
+        <label><input type="checkbox" class="cats-checkbox" value={key} checked={key === 'threatintel'} />{label}</label>
+      ))}
+    </div>
 
     <h2>Images <span class="hint" style="display:inline; text-transform:none; letter-spacing:0;">— one wide crop for the hero, one tall crop reused as the card thumbnail + share image. Leave blank for the gradient placeholder.</span></h2>
     <label for="f-hero">Hero image path <span class="hint" style="display:inline;">(wide crop, e.g. /images/my-post-hero.jpg)</span></label>
@@ -438,6 +451,9 @@ const { categories, relatedOptions } = Astro.props;
       if (tags.length) lines.push('tags: ' + JSON.stringify(tags));
       const mitre = mitreField.get();
       if (mitre.length) lines.push('mitre: ' + JSON.stringify(mitre));
+
+      const cats = Array.from(document.querySelectorAll('.cats-checkbox:checked')).map((c) => c.value);
+      if (cats.length) lines.push('cats: ' + JSON.stringify(cats));
 
       const hero = document.getElementById('f-hero').value.trim();
       const heroAlt = document.getElementById('f-hero-alt').value.trim();
