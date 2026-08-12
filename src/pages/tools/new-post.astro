@@ -20,7 +20,10 @@ import NewPostTool from '../../components/NewPostTool.astro';
 import { PRIMARY_CATS, PRIMARY_CAT_LABELS, SECONDARY_CATS } from '../../data/blog-categories';
 
 const allPosts = await getCollection('blog');
-const realPosts = allPosts.filter((p) => !p.id.startsWith('_'));
+// Excludes _template/_blueprint (leading underscore) and any locale
+// subfolder translations (e.g. es/some-post) — this tool authors new
+// English posts, not per-language variants of existing ones.
+const realPosts = allPosts.filter((p) => !p.id.startsWith('_') && !p.id.includes('/'));
 const relatedOptions = realPosts.map((p) => ({ slug: p.id, title: p.data.title }));
 const categories = [...new Set(realPosts.map((p) => p.data.category))];
 

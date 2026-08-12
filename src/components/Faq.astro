@@ -2,13 +2,17 @@
 /** Renders the visible accordion from the same frontmatter that feeds FAQPage JSON-LD. */
 interface Props {
   faqs: { q: string; a: string }[];
+  /** Post's language — only ever passed explicitly by BlogPost.astro for a
+   *  translated post; defaults to English otherwise. */
+  lang?: 'en' | 'es';
 }
-const { faqs } = Astro.props;
+const { faqs, lang = 'en' } = Astro.props;
+const heading = lang === 'es' ? 'Preguntas frecuentes' : 'Frequently asked questions';
 ---
 
 {faqs.length > 0 && (
   <div class="faq-section" id="section-faq">
-    <h2 class="faq-heading">Frequently asked questions</h2>
+    <h2 class="faq-heading">{heading}</h2>
     <div class="faq-list">
       {faqs.map((f) => (
         <div class="faq-item">

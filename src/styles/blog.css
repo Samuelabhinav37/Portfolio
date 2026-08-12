@@ -321,6 +321,21 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.8s both;
 }
 
+/* ── Language notice — Cloudflare-blog-style banner, always visible right
+   under the hero (no click-to-reveal). Whole line is one link. ── */
+.lang-notice {
+  display: flex; align-items: center; gap: 9px;
+  margin-top: 26px; padding: 11px 16px;
+  border: 1px solid rgba(var(--c-white),0.10); border-radius: 3px;
+  background: rgba(var(--c-white),0.02);
+  text-decoration: none; color: rgba(var(--c-white),0.55);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+  transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.lang-notice:hover { color: rgba(var(--c-white),0.92); border-color: rgba(var(--c-white),0.22); background: rgba(var(--c-white),0.045); }
+.lang-notice__icon { width: 15px; height: 15px; flex: none; opacity: 0.75; }
+
 /* ── Author Bar ── */
 .author-bar {
   display: flex; align-items: center; justify-content: space-between;

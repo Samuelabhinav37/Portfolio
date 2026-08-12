@@ -1,8 +1,15 @@
 ---
 /** The signature callout. Content goes in the slot; inline HTML/components allowed. */
+interface Props {
+  /** Post's language — only ever passed explicitly from a translated MDX
+   *  file (e.g. lang="es"); defaults to English otherwise. */
+  lang?: 'en' | 'es';
+}
+const { lang = 'en' } = Astro.props;
+const label = lang === 'es' ? 'Oportunidad de detección' : 'Detection opportunity';
 ---
 
 <div class="callout-detect">
-  <div class="callout-detect-label">Detection opportunity</div>
+  <div class="callout-detect-label">{label}</div>
   <p><slot /></p>
 </div>

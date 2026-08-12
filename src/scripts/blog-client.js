@@ -87,6 +87,9 @@ import { renderClock, renderWeather } from './clock-weather.js';
 (() => {
   const article = document.querySelector('.article-col');
   if (!article) return;
+  // Localized by BlogPost.astro via data-label-anchor; falls back to English
+  // for any older/cached markup that predates the attribute.
+  const anchorLabel = article.dataset.labelAnchor || 'Link to this section';
 
   const heads = Array.from(article.querySelectorAll('.heading-2, .heading-3'));
   heads.forEach((h) => {
@@ -95,7 +98,7 @@ import { renderClock, renderWeather } from './clock-weather.js';
     a.className = 'hlink';
     a.href = '#' + h.id;
     a.textContent = '#';
-    a.setAttribute('aria-label', 'Link to this section');
+    a.setAttribute('aria-label', anchorLabel);
     h.appendChild(a);
   });
 
@@ -265,9 +268,16 @@ document.addEventListener('click', (ev) => {
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => setOpen(false), 10000); // auto-close after 10s idle
   }
+  // Localized by BlogPost.astro via data-text-*/data-label-*; falls back to
+  // English for any older/cached markup that predates the attributes.
+  const textClosed = trigger.dataset.textClosed || 'Menu';
+  const textOpen = trigger.dataset.textOpen || 'Close';
+  const labelClosed = trigger.dataset.labelClosed || 'Open menu';
+  const labelOpen = trigger.dataset.labelOpen || 'Close menu';
   function setOpen(open) {
     overlay.classList.toggle('open', open);
-    trigger.textContent = open ? 'Close' : 'Menu';
+    trigger.textContent = open ? textOpen : textClosed;
+    trigger.setAttribute('aria-label', open ? labelOpen : labelClosed);
     trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
     overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {

@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import { SITE } from '../config';
+import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
 import MoreStories from '../components/MoreStories.astro';
 import Luna from '../components/Luna.astro';
@@ -14,13 +15,27 @@ interface Props {
   relatedPosts: CollectionEntry<'blog'>[];
   /** Auto word count used when readTime is not set in frontmatter. */
   words: number;
+  /** Defaults to English. Only ever set explicitly by a locale-specific
+   *  route (e.g. src/pages/es/blog/[...slug].astro) — every other caller
+   *  gets the English chrome strings for free. */
+  lang?: BlogLocale;
+  /** URL of this same post in the other language, if a translation exists.
+   *  Renders the language-switch link/hreflang tags; null/undefined hides
+   *  them entirely so an untranslated post silently stays English-only
+   *  instead of linking to a 404. */
+  altHref?: string | null;
 }
 
-const { post, headings, relatedPosts, words } = Astro.props;
+const { post, headings, relatedPosts, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
+const i18n = BLOG_STRINGS[lang];
+const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
+const altUrl = altHref ? new URL(altHref, Astro.site).href : null;
 
 /* ── Derived, never hand-edited ─────────────────────────────────────── */
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+// x-default should always resolve to the English (default) version.
+const xDefaultUrl = lang === 'en' ? canonicalUrl : altUrl;
 /* Share image: explicit ogImage, else the card crop (also used as the "More
    stories" thumbnail), else the hero crop. No hardcoded /og/ path — that
    folder was never populated, so it silently broke every share preview. */
@@ -33,8 +48,12 @@ const shareImage = d.heroImage ? new URL(d.heroImage, Astro.site).href : ogImage
 const readTime = d.readTime ?? Math.max(1, Math.round(words / 220));
 const pubIso = d.pubDate.toISOString().slice(0, 10);
 const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
+// timeZone: 'UTC' matters here — pubDate parses as UTC midnight (z.coerce.date()
+// on a bare "2026-04-01"), so without pinning the format to UTC too, this
+// silently renders in whatever timezone the build machine happens to be in
+// (e.g. a west-of-UTC build server shows "MAR 2026" for an April 1 post).
 const dateLabel = d.pubDate
-  .toLocaleString('en-US', { month: 'short', year: 'numeric' })
+  .toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
   .toUpperCase();
 
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
@@ -85,7 +104,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <script is:inline>
     window.SITE=window.SITE||{};
@@ -115,6 +134,13 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <meta name="twitter:description" content={d.description} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
     <link rel="canonical" href={canonicalUrl} />
+    {altUrl && (
+      <>
+        <link rel="alternate" hreflang={otherLang} href={altUrl} />
+        <link rel="alternate" hreflang={lang} href={canonicalUrl} />
+        {xDefaultUrl && <link rel="alternate" hreflang="x-default" href={xDefaultUrl} />}
+      </>
+    )}
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -145,11 +171,11 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
   </head>
 
   <body>
-    <a class="skip-link" href="#main-content">Skip to content</a>
+    <a class="skip-link" href="#main-content">{i18n.skipToContent}</a>
 
     <div id="read-progress"></div>
 
-    <button id="back-to-top" aria-label="Back to top">
+    <button id="back-to-top" aria-label={i18n.backToTop}>
       <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
 
@@ -162,12 +188,21 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </div>
     </div>
 
-    <button type="button" id="menu-trigger" aria-label="Open menu" aria-expanded="false">Menu</button>
+    <button
+      type="button"
+      id="menu-trigger"
+      aria-label={i18n.openMenu}
+      aria-expanded="false"
+      data-text-closed={lang === 'es' ? 'Menú' : 'Menu'}
+      data-text-open={i18n.close}
+      data-label-closed={i18n.openMenu}
+      data-label-open={i18n.closeMenu}
+    >{lang === 'es' ? 'Menú' : 'Menu'}</button>
     <nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
       <ul id="menu-list">
-        <li><a href={SITE.links.about}><span>About</span></a></li>
-        <li><a href={SITE.links.blogIndex}><span>Blog</span></a></li>
-        <li><a href={SITE.links.contact}><span>Contact</span></a></li>
+        <li><a href={SITE.links.about}><span>{i18n.navAbout}</span></a></li>
+        <li><a href={SITE.links.blogIndex}><span>{i18n.navBlog}</span></a></li>
+        <li><a href={SITE.links.contact}><span>{i18n.navContact}</span></a></li>
       </ul>
       <div id="menu-meta">
         <div id="menu-weather" class="meta-block"><span class="mw-load">— —</span></div>
@@ -181,7 +216,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         <div class="hero-corner-br"></div>
         <div class="hero-content">
           <div class="hero-breadcrumb">
-            <a href={SITE.links.blogIndex}>Blog</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
+            <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
           </div>
           <h1 class="hero-title">{d.title}</h1>
           <p class="hero-subtitle">{d.description}</p>
@@ -204,6 +239,19 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     </div>
 
     <div class="container">
+      <!-- Language notice — Cloudflare-blog-style: a plain, always-visible
+           line right under the hero (not buried in a menu or the footer),
+           only rendered when a translation of this exact post exists. -->
+      {altHref && (
+        <a href={altHref} class="lang-notice">
+          <svg class="lang-notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3c2.5 2.6 3.8 5.8 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.8-3.8-9s1.3-6.4 3.8-9z" />
+          </svg>
+          <span>{i18n.alsoAvailable(i18n.switchTo(otherLang))}</span>
+        </a>
+      )}
+
       <!-- Author bar -->
       <div class="author-bar">
         <div class="author-bar-left">
@@ -223,25 +271,25 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </div>
         <div class="author-bar-meta">
           <span class="live-dot" aria-hidden="true"></span><strong><time datetime={pubIso}>{dateLabel}</time></strong>
-          &nbsp;·&nbsp; {readTime} MIN READ
+          &nbsp;·&nbsp; {readTime} {i18n.minRead}
         </div>
       </div>
 
       <!-- Icon rail — share URLs derive from the canonical URL at build time -->
       <div class="icon-rail">
-        <button class="social-icon" type="button" data-share-open="x" title="Share on X" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></button>
-        <button class="social-icon" type="button" data-share-open="linkedin" title="Share on LinkedIn" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></button>
-        <button class="social-icon" type="button" data-share-open="copy" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        <button class="social-icon" type="button" data-share-open="x" title={i18n.shareOnX} aria-label={i18n.shareOnX}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></button>
+        <button class="social-icon" type="button" data-share-open="linkedin" title={i18n.shareOnLinkedIn} aria-label={i18n.shareOnLinkedIn}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></button>
+        <button class="social-icon" type="button" data-share-open="copy" title={i18n.copyLink} aria-label={i18n.copyLink}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         <a class="social-icon" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
       </div>
 
       <!-- 2-col grid -->
       <div class="page-grid">
-        <main class="article-col" id="main-content" tabindex="-1">
+        <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
           <!-- Inline TOC — fallback for viewports below 1580px -->
           {toc.length > 0 && (
             <details class="toc-inline">
-              <summary>On this page</summary>
+              <summary>{i18n.onThisPage}</summary>
               <ol class="toc-list" id="tocListInline">
                 {toc.map((h) => (
                   <li class={h.depth === 3 ? 'toc-sub' : undefined}>
@@ -262,7 +310,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div class="rail-sticky">
             {toc.length > 0 && (
               <nav class="toc" aria-label="Table of contents">
-                <div class="left-sidebar-heading">On this page</div>
+                <div class="left-sidebar-heading">{i18n.onThisPage}</div>
                 <ol class="toc-list" id="tocList">
                   {toc.map((h) => (
                     <li class={h.depth === 3 ? 'toc-sub' : undefined}>
@@ -290,7 +338,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </aside>
       </div><!-- /.page-grid -->
 
-      <Faq faqs={d.faqs as { q: string; a: string }[]} />
+      <Faq faqs={d.faqs as { q: string; a: string }[]} lang={lang} />
 
       <MoreStories posts={relatedPosts} />
     </div><!-- /.container -->
@@ -311,14 +359,14 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <div id="shareDialog" class="flt-dialog share-dialog" aria-hidden="true">
       <div class="flt-dialog__backdrop" data-share-close></div>
       <div class="flt-dialog__panel share-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
-        <button type="button" class="flt-dialog__close" data-share-close aria-label="Close">&times;</button>
-        <h3 class="flt-dialog__title" id="shareTitle">Share this post</h3>
-        <p class="flt-dialog__sub share-dialog__sub">Preview how it'll look before you post it.</p>
+        <button type="button" class="flt-dialog__close" data-share-close aria-label={i18n.close}>&times;</button>
+        <h3 class="flt-dialog__title" id="shareTitle">{i18n.shareDialogTitle}</h3>
+        <p class="flt-dialog__sub share-dialog__sub">{i18n.shareDialogHint}</p>
 
         <div class="share-tabs" role="tablist" aria-label="Share destination">
           <button type="button" class="share-tab" data-share-tab="x" role="tab" aria-selected="false">X</button>
           <button type="button" class="share-tab" data-share-tab="linkedin" role="tab" aria-selected="false">LinkedIn</button>
-          <button type="button" class="share-tab" data-share-tab="copy" role="tab" aria-selected="false">Copy link</button>
+          <button type="button" class="share-tab" data-share-tab="copy" role="tab" aria-selected="false">{i18n.copyLink}</button>
         </div>
 
         <div class="share-preview" data-share-panel="x" hidden>
@@ -353,7 +401,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         <div class="share-preview" data-share-panel="copy" hidden>
           <div class="share-copy-row">
             <input type="text" class="share-copy-input" id="shareDialogUrl" readonly value={canonicalUrl} />
-            <button type="button" class="share-copy-btn" id="shareDialogCopyBtn">Copy</button>
+            <button type="button" class="share-copy-btn" id="shareDialogCopyBtn">{i18n.copy}</button>
           </div>
         </div>
 
@@ -364,10 +412,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           target="_blank"
           rel="noopener"
           data-x-href={shareX}
-          data-x-label="Share on X →"
+          data-x-label={i18n.shareOnXGo}
           data-linkedin-href={shareLi}
-          data-linkedin-label="Share on LinkedIn →"
-        >Share on X →</a>
+          data-linkedin-label={i18n.shareOnLinkedInGo}
+        >{i18n.shareOnXGo}</a>
       </div>
     </div>
 

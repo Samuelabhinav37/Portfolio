@@ -7,7 +7,9 @@ export async function getStaticPaths() {
   // previewed at its real URL while writing. They're excluded everywhere a
   // visitor would actually discover one: blog/index.astro's listing and
   // public/sitemap.xml both keep filtering on `draft` separately.
-  const posts = await getCollection('blog');
+  // Translations live under an `es/` (etc.) subfolder and get their own
+  // route — src/pages/es/blog/[...slug].astro — so they're excluded here.
+  const posts = await getCollection('blog', ({ id }) => !id.includes('/'));
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 
@@ -20,8 +22,16 @@ const relatedPosts = (
 ).filter(Boolean) as CollectionEntry<'blog'>[];
 
 const words = post.body ? post.body.split(/\s+/).length : 0;
+
+// If a Spanish translation of this exact post exists (and isn't itself a
+// draft), the layout renders a language-switch link to it; otherwise the
+// page just stays English-only, same as before translations existed.
+// Skipped for drafts/templates (_blueprint, _template) — those never get
+// translated, and looking them up just logs a noisy "not found" at build.
+const esEntry = post.data.draft ? undefined : await getEntry('blog', 'es/' + post.id);
+const altHref = esEntry && !esEntry.data.draft ? `/es/blog/${post.id}/` : null;
 ---
 
-<BlogPost post={post} headings={headings} relatedPosts={relatedPosts} words={words}>
+<BlogPost post={post} headings={headings} relatedPosts={relatedPosts} words={words} altHref={altHref}>
   <Content />
 </BlogPost>

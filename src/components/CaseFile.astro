@@ -7,12 +7,16 @@
 interface Props {
   id: string;
   rows: { term: string; desc: string }[];
+  /** Post's language — only ever passed explicitly from a translated MDX
+   *  file (e.g. lang="es"); defaults to English otherwise. */
+  lang?: 'en' | 'es';
 }
-const { id, rows } = Astro.props;
+const { id, rows, lang = 'en' } = Astro.props;
+const label = lang === 'es' ? 'Ficha del caso' : 'Case file';
 ---
 
 <div class="case-file">
-  <div class="case-file-head"><span>Case file</span><span>{id}</span></div>
+  <div class="case-file-head"><span>{label}</span><span>{id}</span></div>
   <dl class="case-file-grid">
     {rows.map((r) => (
       <div class="case-file-row"><dt>{r.term}</dt><dd set:html={r.desc} /></div>

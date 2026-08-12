@@ -1,0 +1,38 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BlogPost from '../../../layouts/BlogPost.astro';
+import type { CollectionEntry } from 'astro:content';
+
+/**
+ * Spanish mirror of src/pages/blog/[...slug].astro. Only ever generates a
+ * page for a post that actually has an es/ translation — there is no
+ * fallback/auto-translate here, an untranslated post simply has no route
+ * under /es/blog/ at all (its English original's language switcher won't
+ * link here either, since that link only renders when this exact route
+ * exists — see altHref in the English route).
+ */
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ id, data }) => !data.draft && id.startsWith('es/'));
+  return posts.map((post) => ({
+    params: { slug: post.id.slice('es/'.length) },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props as { post: CollectionEntry<'blog'> };
+const { Content, headings } = await render(post);
+
+const slug = post.id.slice('es/'.length);
+const relatedPosts = (
+  await Promise.all(post.data.related.map((s: string) => getEntry('blog', 'es/' + s)))
+).filter(Boolean) as CollectionEntry<'blog'>[];
+
+const words = post.body ? post.body.split(/\s+/).length : 0;
+// The English original always exists for a translation to exist in the
+// first place, so the link back needs no existence check.
+const altHref = `/blog/${slug}/`;
+---
+
+<BlogPost post={post} headings={headings} relatedPosts={relatedPosts} words={words} lang="es" altHref={altHref}>
+  <Content />
+</BlogPost>

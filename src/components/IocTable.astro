@@ -8,19 +8,26 @@
 interface Props {
   id: string;
   rows: { type: string; value: string; fanged?: string }[];
+  /** Post's language — only ever passed explicitly from a translated MDX
+   *  file (e.g. lang="es"); defaults to English otherwise. */
+  lang?: 'en' | 'es';
 }
-const { id, rows } = Astro.props;
+const { id, rows, lang = 'en' } = Astro.props;
+const label = lang === 'es' ? 'Indicadores de compromiso' : 'Indicators of compromise';
+const copyLabel = lang === 'es' ? 'Copiar' : 'Copy';
+const copyAria = (type: string, value: string) =>
+  lang === 'es' ? `Copiar indicador ${type}: ${value}` : `Copy ${type} indicator: ${value}`;
 ---
 
 <div class="ioc-block">
-  <div class="ioc-head"><span>Indicators of compromise</span><span>{id}</span></div>
+  <div class="ioc-head"><span>{label}</span><span>{id}</span></div>
   <div class="ioc-table-wrap">
   <table class="ioc-table">
     {rows.map((r) => (
       <tr>
         <td class="ioc-type">{r.type}</td>
         <td class="ioc-val" data-fanged={r.fanged}>{r.value}</td>
-        <td class="ioc-act"><button class="ioc-copy" type="button" aria-label={`Copy ${r.type} indicator: ${r.value}`}>Copy</button></td>
+        <td class="ioc-act"><button class="ioc-copy" type="button" aria-label={copyAria(r.type, r.value)}>{copyLabel}</button></td>
       </tr>
     ))}
   </table>
