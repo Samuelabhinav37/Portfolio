@@ -52,7 +52,8 @@ function render(){
   if(sort==='latest')list.sort((a,b)=>b.year-a.year);
   if(sort==='oldest')list.sort((a,b)=>a.year-b.year);
   if(sort==='az')list.sort((a,b)=>a.name.localeCompare(b.name));
-  grid.innerHTML=list.map((p,i)=>card(p,i+1,0)).join('');
+  grid.innerHTML=list.length?list.map((p,i)=>card(p,i+1,0)).join(''):
+    `<div class="no-results">Nothing filed under this category yet.<br><button type="button" data-clear-filters>Clear filters →</button></div>`;
   const n=String(list.length).padStart(2,'0');
   countEl.innerHTML=`Showing <b>${n}</b> of <b>${n}</b> results`;
   [...grid.querySelectorAll('.card')].forEach((c,i)=>{
@@ -89,6 +90,10 @@ document.getElementById('tabs').addEventListener('click',e=>{
   syncTabUI();render();
 });
 document.getElementById('sort').addEventListener('change',e=>{sort=e.target.value;render();});
+grid.addEventListener('click',e=>{
+  if(!e.target.closest('[data-clear-filters]'))return;
+  selected.clear();syncTabUI();render();
+});
 
 /* ── "See more" dialog: the secondary category grid ── */
 (()=>{

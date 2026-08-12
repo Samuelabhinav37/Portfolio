@@ -16,11 +16,6 @@ related:
   - detecting-lateral-movement-active-directory
   - honeypot-lab-aws-threat-intel
   - detecting-lolbins-windows-event-logs
-alsoBy:
-  label: "Also in Lab Notes"
-  title: "OffSec Lab 3 — anatomy of a JIT spray chain"
-  meta: "Lab Notes · 14 Min"
-  href: "#"
 faqs:
   - q: "What is a software supply chain attack?"
     a: "Instead of attacking you directly, the attacker goes after something you already trust — a dependency, a build tool, the pipeline that ships your code. Compromise that one upstream piece and you get malicious code running in every downstream project that pulled it in, without touching those projects yourself. That's what makes it so efficient: one compromised maintainer account can outperform thousands of individual attacks."
@@ -39,7 +34,6 @@ import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
 import IocTable from '../../components/IocTable.astro';
-import AsideCta from '../../components/AsideCta.astro';
 import Mitre from '../../components/Mitre.astro';
 
 <Dropcap letter="I">n March 2026, a routine dependency update in a widely-used Node.js package introduced a backdoor that went undetected for nearly seven weeks. The attack exploited the trust model inherent in open source package management, targeting a maintainer's compromised credentials to push malicious code through what appeared to be a legitimate version bump.</Dropcap>
@@ -112,8 +106,6 @@ IOC-003: 104.248.xx.0/24 (DigitalOcean, SFO2)
 YARA rule: supply_chain_postinstall_hook
 SHA256: 9f86d081884c7d659a2feaa0...
 ```
-
-<AsideCta href="#">The complete IOC set and Sigma detections for this incident live in the companion repository.</AsideCta>
 
 ## Lessons for defenders
 

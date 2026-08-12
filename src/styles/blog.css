@@ -33,6 +33,26 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
    blog-index. Without this the nebula would render on top of the article. */
 .container { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 0 48px; }
 
+/* ── Post footer (copyright + social) — mirrors the site-wide footer used on
+   index/about/contact/blog-index, which BlogPost.astro doesn't otherwise
+   share since it has its own layout/stylesheet. ── */
+.post-footer {
+  position: relative; z-index: 1;
+  max-width: 1440px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; padding: 40px 48px 70px;
+  border-top: 1px solid rgba(var(--c-white),0.08);
+  color: rgba(var(--c-white),0.30);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em;
+}
+.post-footer .f-links { display: flex; align-items: center; gap: 16px; text-transform: uppercase; }
+.post-footer .f-links a {
+  color: rgba(var(--c-white),0.30); text-decoration: none; transition: color 0.25s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.post-footer .f-links a:hover { color: #fff; }
+.post-footer .f-links .fic { width: 12.5px; height: 12.5px; fill: currentColor; opacity: 0.9; flex: none; }
+
 /* ── Reading progress ── */
 #read-progress {
   position: fixed; top: 0; left: 0; z-index: 300;
