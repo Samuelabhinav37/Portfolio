@@ -23,13 +23,19 @@ const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 // Real MDX writeups merged into the same feed as the illustrative projects.
 const projects = [...FAKE_PROJECTS, ...postCards];
 
+// This blog's own subject matter is injection/XSS writeups, so a post title
+// or kicker containing '<', '"', or '&' is a real (if self-inflicted) risk
+// here, not just a hypothetical one — escape before splicing into innerHTML,
+// same as the Threat Wire ticker's esc() further down this file.
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
 // Posts without a cardImage/heroImage get the site's static gradient
 // placeholder (same treatment as BlogPost.astro's .hero-art--placeholder)
 // instead of a random unrelated photo pulled from a third-party service.
-const card=(p,n,d)=>`<a href="${p.href||'#'}" class="card" data-key="${p.seed}" style="transition-delay:${d}s">
-  <div class="ph${p.img?'':' noimg loaded'}"><span class="num">${String(n).padStart(2,'0')}</span>${p.img?`<img loading="lazy" src="${p.img}" alt="${p.name}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
-  <div class="cmeta meta"><span>${p.kick.split('·')[0].trim()}</span><span>${p.year}</span></div>
-  <h3>${p.name}</h3></a>`;
+const card=(p,n,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
+  <div class="ph${p.img?'':' noimg loaded'}"><span class="num">${String(n).padStart(2,'0')}</span>${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
+  <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
+  <h3>${esc(p.name)}</h3></a>`;
 
 const grid=document.getElementById('grid'),countEl=document.getElementById('count');
 /* Filtering is multi-select across two tiers:

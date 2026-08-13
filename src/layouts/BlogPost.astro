@@ -100,7 +100,12 @@ if (d.faqs.length) {
     })),
   });
 }
-const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+// JSON.stringify doesn't escape '<', so a stray "</script" in any frontmatter
+// field would close this script tag early — escape it before embedding.
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(
+  /</g,
+  '\\u003c'
+);
 ---
 
 <!doctype html>
