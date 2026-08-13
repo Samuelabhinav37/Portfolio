@@ -38,7 +38,23 @@ async function verifyTurnstile(token, ip, secret, allowedHostnames) {
   }
 }
 
+// Strips control characters (CR/LF included) from values that end up in
+// email headers (subject, reply-to display name) — Resend's structured JSON
+// API should already reject/sanitize embedded newlines server-side, but a
+// hostile "name" like "Bob\nBcc: victim@x.com" costs nothing to neutralize
+// here too rather than trust a single layer.
+function stripControlChars(s) {
+  return s.replace(/[\r\n\t\x00-\x1f\x7f]+/g, ' ').trim();
+}
+
+const MAX_BODY_BYTES = 20_000; // generous for a 3-field contact form; blocks grotesque payloads before JSON parsing
+
 export async function onRequestPost({ request, env }) {
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return json({ error: 'Payload too large' }, 413);
+  }
+
   let body;
   try {
     body = await request.json();
@@ -46,7 +62,7 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'Invalid JSON' }, 400);
   }
 
-  const name = String(body.name || '').trim();
+  const name = stripControlChars(String(body.name || '').trim());
   const email = String(body.email || '').trim();
   const message = String(body.message || '').trim();
   const company = String(body.company || '').trim(); // honeypot
