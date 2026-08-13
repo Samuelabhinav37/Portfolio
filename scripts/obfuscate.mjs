@@ -25,10 +25,17 @@
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import * as terser from 'terser';
 import * as acorn from 'acorn';
 
 const DIST = new URL('../dist/', import.meta.url);
+// glob()'s cwd option: Node 24 (this machine) accepts a URL there directly,
+// but Cloudflare Pages' build image (Node 22.16) throws "paths[0] argument
+// must be of type string. Received an instance of URL" — glob's internal
+// path resolution isn't URL-aware on that version. A plain string works on
+// both, so resolve it once here rather than passing DIST itself.
+const DIST_PATH = fileURLToPath(DIST);
 
 const SCRIPT_TAG_RE = /<script((?:\s+[^>]*)?)>([\s\S]*?)<\/script>/gi;
 // about.astro embeds a whole mini-game as an HTML-entity-escaped srcdoc="..."
@@ -175,7 +182,7 @@ async function processJsFile(path) {
 
 async function main() {
   let files = 0, blocksBefore = 0, blocksAfter = 0, keptTotal = 0;
-  for await (const entry of glob('**/*.html', { cwd: DIST })) {
+  for await (const entry of glob('**/*.html', { cwd: DIST_PATH })) {
     const path = new URL(entry, DIST);
     const { changed, totalBefore, totalAfter, kept } = await processFile(path);
     keptTotal += kept;
@@ -189,7 +196,7 @@ async function main() {
   console.log(`\nDone. ${files} file(s) touched, ${blocksBefore} -> ${blocksAfter} bytes of inline script. ${keptTotal} block(s) kept as original source.`);
 
   let jsFiles = 0, jsBefore = 0, jsAfter = 0, jsKept = 0;
-  for await (const entry of glob('scripts/**/*.js', { cwd: DIST })) {
+  for await (const entry of glob('scripts/**/*.js', { cwd: DIST_PATH })) {
     const path = new URL(entry, DIST);
     const { changed, before, after, kept } = await processJsFile(path);
     jsKept += kept;
