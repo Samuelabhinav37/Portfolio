@@ -24,7 +24,15 @@ const PAGES = [
 // Errors known to be expected right now, not regressions to catch.
 // Keep this list short and specific — anything not matched here still fails
 // the test, which is the point.
-const KNOWN_ERRORS: RegExp[] = [];
+const KNOWN_ERRORS: RegExp[] = [
+  // contact.astro's Turnstile widget uses a real sitekey scoped to the
+  // production domain(s) in the Cloudflare dashboard. Under CI/local
+  // preview the page loads on localhost, which isn't an allowed domain for
+  // that sitekey, so the widget logs a domain-validation error — it works
+  // fine on the real deployed domain. Narrow to this exact code so an
+  // actual Turnstile misconfiguration (wrong sitekey, etc.) still fails.
+  /\[Cloudflare Turnstile\] Error: 110200/,
+];
 
 for (const path of PAGES) {
   test(`${path} loads with no console errors`, async ({ page }) => {
