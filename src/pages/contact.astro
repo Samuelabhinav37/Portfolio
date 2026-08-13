@@ -587,8 +587,13 @@ window.SITE=window.SITE||{};
         <div class="err" id="ms-err">Say a little more</div>
       </div>
       <p class="req-note">* required</p>
-      <!-- honeypot: bots fill it, humans never see it -->
-      <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true"
+      <!-- honeypot: bots fill it, humans never see it. Deliberately NOT named
+           "company"/"website"/etc — those are common autofill dictionary
+           entries, and a password manager or browser autofill silently
+           filling a hidden field by name (ignoring autocomplete="off" and
+           CSS visibility) would falsely trigger the honeypot for a real
+           visitor. An unrecognized name avoids that. -->
+      <input type="text" name="hp_topic" tabindex="-1" autocomplete="off" aria-hidden="true"
              style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
       <!-- Cloudflare Turnstile — verified server-side in functions/api/contact.js
            against TURNSTILE_SECRET_KEY. size="flexible" spans the full field width

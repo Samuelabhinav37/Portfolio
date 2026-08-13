@@ -50,7 +50,11 @@
     mark('ms', ms.length < 2);  if(ms.length < 2) bad = bad || F.ms;
     if(bad){ bad.focus(); say('Three fields, that\u2019s all.', 'bad'); return null; }
     var turnstileToken = (window.turnstile && window.turnstile.getResponse) ? window.turnstile.getResponse() : '';
-    return { name:nm, email:em, message:ms, company:(form.company ? form.company.value : ''), turnstileToken:turnstileToken };
+    /* form field is named hp_topic (not "company") — see the honeypot
+       comment in contact.astro; the JSON key sent to the server stays
+       "company" since that's just our own payload shape, unrelated to the
+       HTML field name that autofill engines key off of. */
+    return { name:nm, email:em, message:ms, company:(form.hp_topic ? form.hp_topic.value : ''), turnstileToken:turnstileToken };
   }
 
   /* clear an error the moment the visitor starts fixing it */
