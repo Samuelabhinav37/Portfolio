@@ -594,9 +594,12 @@ window.SITE=window.SITE||{};
            against TURNSTILE_SECRET_KEY. size="flexible" spans the full field width
            instead of Cloudflare's fixed ~300px box; the CSS filter on #turnstile-widget
            below mutes its default chrome to sit closer to the page's palette (can't
-           reach into the iframe itself, but a filter composites over it fine). -->
+           reach into the iframe itself, but a filter composites over it fine).
+           data-action binds the resulting token to this specific form — the server
+           checks result.action matches, so a token can't be solved somewhere else on
+           the domain and replayed here (or vice versa, if another action is ever added). -->
       <div id="turnstile-widget" class="cf-turnstile" data-sitekey="0x4AAAAAAEKzOSB1himcW2Zs"
-           data-theme="dark" data-size="flexible"></div>
+           data-action="contact" data-theme="dark" data-size="flexible"></div>
       <button class="cta" id="send" type="submit">Send Message</button>
       <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
     </form>

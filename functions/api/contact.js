@@ -12,8 +12,15 @@ function json(data, status = 200) {
   });
 }
 
-async function verifyTurnstile(token, ip, secret) {
-  if (!token) return false;
+const TURNSTILE_ACTION = 'contact'; // must match the widget's data-action in contact.astro
+
+// allowedHostnames is optional (see env.TURNSTILE_HOSTNAMES below) — Pages preview
+// deploys get a fresh *.pages.dev hostname per build, so unlike Cloudflare's own
+// canonical example, an unset/empty allowlist here means "skip the check" rather
+// than "reject everything": that keeps preview deploys functional without every
+// contributor having to touch dashboard env vars just to test the form.
+async function verifyTurnstile(token, ip, secret, allowedHostnames) {
+  if (!token || token.length > 2048) return false;
   try {
     const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',
@@ -21,7 +28,10 @@ async function verifyTurnstile(token, ip, secret) {
       body: JSON.stringify({ secret, response: token, remoteip: ip }),
     });
     const data = await resp.json();
-    return !!data.success;
+    if (!data.success) return false;
+    if (data.action !== TURNSTILE_ACTION) return false;
+    if (allowedHostnames && allowedHostnames.size > 0 && !allowedHostnames.has(data.hostname)) return false;
+    return true;
   } catch (err) {
     console.error('Turnstile verify failed:', err);
     return false;
@@ -67,10 +77,14 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'Not configured' }, 500);
   }
 
+  const allowedHostnames = new Set(
+    (env.TURNSTILE_HOSTNAMES || '').split(',').map((h) => h.trim()).filter(Boolean)
+  );
   const humanVerified = await verifyTurnstile(
     turnstileToken,
     request.headers.get('CF-Connecting-IP'),
-    env.TURNSTILE_SECRET_KEY
+    env.TURNSTILE_SECRET_KEY,
+    allowedHostnames
   );
   if (!humanVerified) {
     return json({ error: 'Verification failed' }, 403);

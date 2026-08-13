@@ -13,6 +13,12 @@ pages_build_output_dir = "dist"
 # `wrangler pages secret put <NAME>` — never committed here:
 #   RESEND_API_KEY       — sends the contact-form email via Resend
 #   TURNSTILE_SECRET_KEY — server-side verification for the Turnstile widget
+#
+# Optional, plain (non-secret) env var — also set under Environment variables:
+#   TURNSTILE_HOSTNAMES — comma-separated hostnames allowed to have solved the
+#     Turnstile token (e.g. "samuelabhinav.com,your-project.pages.dev"). Left
+#     unset, hostname checking is skipped rather than rejecting everything —
+#     see the comment in functions/api/contact.js for why.
 
 # functions/api/contact.js optionally rate-limits (5 requests/60s per IP)
 # via an env.RATE_LIMITER binding — but Pages projects' wrangler.toml does
