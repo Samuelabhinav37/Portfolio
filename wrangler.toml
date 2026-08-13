@@ -14,14 +14,13 @@ pages_build_output_dir = "dist"
 #   RESEND_API_KEY       — sends the contact-form email via Resend
 #   TURNSTILE_SECRET_KEY — server-side verification for the Turnstile widget
 
-# Rate limits the /api/contact endpoint (5 requests/60s per IP). This binding
-# needs no dashboard provisioning and works whether or not the project has a
-# custom domain attached — unlike Cloudflare's dashboard WAF rate-limit
-# rules, which require a zone.
-[[ratelimits]]
-name = "RATE_LIMITER"
-namespace_id = "1001"
-
-[ratelimits.simple]
-limit = 5
-period = 60
+# functions/api/contact.js optionally rate-limits (5 requests/60s per IP)
+# via an env.RATE_LIMITER binding — but Pages projects' wrangler.toml does
+# NOT support the top-level [[ratelimits]] block (that's Workers-only
+# config; "does not support ratelimits" fails Pages' config validation at
+# deploy time). For a Pages project this binding has to be added through
+# the dashboard instead: Pages project > Settings > Functions > Bindings >
+# Rate limiting, bound to the name RATE_LIMITER, 5 requests / 60s. The
+# contact function already guards for its absence (`if (env.RATE_LIMITER)`),
+# so the endpoint works fine without it too — just unrate-limited until the
+# binding is added.
