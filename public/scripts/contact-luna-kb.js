@@ -47,7 +47,7 @@
 
     { id:'about', title:'About Samuel',
       keywords:['about','who','samuel','background','resume','cv','education','degree','masters','opt','hire','hiring','job','jobs','open to work','soc analyst','detection engineer','security engineer'],
-      reply:"Samuel got into security by getting curious about how interconnected everything really is — and what it takes to keep that trust intact. He thinks like an attacker first, then builds the defense; that's Sentinel, PRISM, and Axon in one line. MS in cybersecurity, on OPT, open to SOC analyst and security engineering roles. I'm the companion he built to keep watch over the archive.",
+      reply:"Samuel got into security chasing how interconnected everything really is, and what it takes to keep that trust intact — thinks like an attacker first, then builds the defense. That's Sentinel, PRISM, and Axon. MS in cybersecurity, on OPT, open to SOC analyst and security engineering roles. I'm the companion he built to keep watch over the archive.",
       detail:"The short pitch: three shipped security projects, accepted bounty findings, a threat-intel blog, and hands-on IR labs. If you are hiring for blue-team work, the contact page has the direct line.",
       target:{type:'focus', value:'#nm'} },
 

@@ -23,7 +23,10 @@
         no per-event layout. */
 
   var stack = document.querySelector('.stack');
-  if(!stack) return;
+  /* .stack is display:none on phone/tablet (<=900px, see contact.astro) —
+     don't set up poster loads, IntersectionObserver or parallax behind a
+     hidden element. Matches contact-recon-engine.js's own LOW_POWER bail. */
+  if(!stack || (window.SITE && window.SITE.LOW_POWER)) return;
   var cards = Array.prototype.slice.call(stack.querySelectorAll('.card'));
   var vids  = Array.prototype.slice.call(stack.querySelectorAll('video.clip'));
   var RM    = matchMedia('(prefers-reduced-motion: reduce)').matches;

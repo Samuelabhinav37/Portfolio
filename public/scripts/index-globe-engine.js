@@ -5,11 +5,11 @@
 (function(){
   "use strict";
   var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* Phones skip the globe entirely under LOW_POWER — it's the single heaviest
-     system on the page (~600KB fetch + WebGL geometry build) and already
-     lazy/optional by design. Tablets (LOW_POWER true but width>=600) keep it. */
-  var _lowPowerPhone = !!(window.SITE && window.SITE.LOW_POWER) && innerWidth < 600;
-  if(RM || _lowPowerPhone) return;
+  /* Phone/tablet (LOW_POWER, <=900px) skip the globe entirely rather than
+     shrinking it — it's the single heaviest system on the page (~600KB
+     Three.js fetch + WebGL geometry build), not worth the cost on those
+     devices. .psplit-right is display:none to match (see index.astro). */
+  if(RM || (window.SITE && window.SITE.LOW_POWER)) return;
 
   /* Lazy-load Three only when the visitor scrolls toward the arc. The module
      is ~600KB; a static `import * as THREE` would fetch + parse + build a WebGL

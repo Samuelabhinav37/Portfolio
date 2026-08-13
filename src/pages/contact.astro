@@ -37,9 +37,8 @@ window.SITE=window.SITE||{};
 <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22geometricPrecision%22%3E%3Cdefs%3E%3Cfilter%20id%3D%22g%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%221.4%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2228.32%22%20cy%3D%225.85%22%20r%3D%223.64%22%20fill%3D%22white%22%20opacity%3D%220.5%22%20filter%3D%22url(%23g)%22%2F%3E%3Cline%20x1%3D%2228.32%22%20y1%3D%225.85%22%20x2%3D%2216.73%22%20y2%3D%2214.55%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Cline%20x1%3D%2216.73%22%20y1%3D%2214.55%22%20x2%3D%229.48%22%20y2%3D%2226.15%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Cline%20x1%3D%2216.73%22%20y1%3D%2214.55%22%20x2%3D%223.68%22%20y2%3D%2210.2%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Ccircle%20cx%3D%2228.32%22%20cy%3D%225.85%22%20r%3D%223.12%22%20fill%3D%22rgba(255%2C255%2C255%2C1)%22%2F%3E%3Ccircle%20cx%3D%2216.73%22%20cy%3D%2214.55%22%20r%3D%222.21%22%20fill%3D%22rgba(255%2C255%2C255%2C0.85)%22%2F%3E%3Ccircle%20cx%3D%229.48%22%20cy%3D%2226.15%22%20r%3D%221.43%22%20fill%3D%22rgba(255%2C255%2C255%2C0.55)%22%2F%3E%3Ccircle%20cx%3D%223.68%22%20cy%3D%2210.2%22%20r%3D%221.43%22%20fill%3D%22rgba(255%2C255%2C255%2C0.5)%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet">
 <script is:inline src="/scripts/title-manager.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Inter:wght@300;400&family=DM+Sans:wght@300;400;500&family=Hanken+Grotesk:wght@400;500&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style is:global>
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
@@ -93,7 +92,7 @@ window.SITE=window.SITE||{};
     transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
   .pg-footer .f-links a:hover{ color:#fff; }
   .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
-  @media (max-width:1000px){
+  @media (max-width:900px){
     .pg-footer{ grid-column:auto; grid-row:auto; margin-top:24px; padding:14px 20px; }
   }
 
@@ -280,6 +279,9 @@ window.SITE=window.SITE||{};
   .field:focus-within{ border-color:rgba(180,210,250,0.6); }
   .field label{ display:block; font-family:'JetBrains Mono', monospace; font-size:0.5rem;
     letter-spacing:0.22em; text-transform:uppercase; color:rgba(170,195,235,0.4); margin-bottom:5px; }
+  .field label .req{ color:rgba(255,150,150,0.7); margin-left:3px; }
+  .req-note{ font-family:'JetBrains Mono', monospace; font-size:0.45rem; letter-spacing:0.14em;
+    text-transform:uppercase; color:rgba(var(--c-white),0.30); margin:-8px 0 18px; }
   .field input, .field textarea{ width:100%; background:none; border:none; outline:none;
     font-family:'EB Garamond', serif; font-size:1.08rem; color:rgba(233,236,247,0.95); padding:2px 0 9px; }
   .field textarea{ min-height:56px; line-height:1.45; resize:none; display:block; }
@@ -336,12 +338,16 @@ window.SITE=window.SITE||{};
     .stack.ready .card:hover .card-inner{ transform:none; }
   }
 
-  @media (max-width:1000px){
+  @media (max-width:900px){
     .field-wrap{ position:absolute; inset:auto 0 auto 0; display:block;
       padding:92px 20px 48px; max-width:none; }
     body{ overflow-y:auto; }
-    .stack{ height:auto; display:flex; flex-direction:column; gap:14px; margin-bottom:44px; }
-    .card{ position:relative; left:auto; top:auto; width:100%; height:200px; transform:none !important; }
+    /* The 8-window stack (parallax cards + up to 8 concurrent per-frame
+       recon-HUD canvas loops) is the heaviest thing on this page. Cut it
+       entirely on phone/tablet rather than shrink it, so only the form
+       shows — contact-window-stack.js and contact-recon-engine.js both
+       skip booting it under window.SITE.LOW_POWER to match. */
+    .stack{ display:none; }
     .form-panel{ max-width:none; }
     .form-title{ font-size:clamp(1.2rem, 5.8vw, 2rem); }
   }
@@ -566,20 +572,21 @@ window.SITE=window.SITE||{};
     <p class="form-sub">Roles, findings, or anything that runs on a network.</p>
     <form id="contact-form" novalidate>
       <div class="field" data-field="nm">
-        <label for="nm">Name</label>
+        <label for="nm">Name<span class="req" aria-hidden="true">*</span></label>
         <input id="nm" name="name" type="text" placeholder="Your name" autocomplete="name" required aria-describedby="nm-err" />
         <div class="err" id="nm-err">Your name, please</div>
       </div>
       <div class="field" data-field="em">
-        <label for="em">Email</label>
+        <label for="em">Email<span class="req" aria-hidden="true">*</span></label>
         <input id="em" name="email" type="email" placeholder="Your email address" autocomplete="email" required aria-describedby="em-err" />
         <div class="err" id="em-err">That address doesn’t look routable</div>
       </div>
       <div class="field" data-field="ms">
-        <label for="ms">Message</label>
+        <label for="ms">Message<span class="req" aria-hidden="true">*</span></label>
         <textarea id="ms" name="message" rows="2" placeholder="Whatever you’d like to say" required aria-describedby="ms-err"></textarea>
         <div class="err" id="ms-err">Say a little more</div>
       </div>
+      <p class="req-note">* required</p>
       <!-- honeypot: bots fill it, humans never see it -->
       <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true"
              style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />

@@ -36,7 +36,17 @@ const { hasIntro = false } = Astro.props;
     z-index: 999;
     transition: opacity 0.35s ease;
   }
-  #luna-wrap.about-hidden, #luna-wrap.luna-hidden { opacity: 0; pointer-events: none; }
+  /* Below the mobile/tablet breakpoint (each page's own inline script toggles
+     these classes via matchMedia), her default top:calc(66vh+80px) spot
+     overlaps scrolling content for a much larger share of a narrow viewport
+     than it does on desktop. Rather than hide her entirely, dock her to the
+     bottom-right corner instead — same standard spot as a chat widget,
+     always clear of in-flow content, still visible and tappable. */
+  #luna-wrap.about-hidden, #luna-wrap.luna-hidden {
+    top: auto;
+    bottom: 16px;
+    right: 14px;
+  }
   #luna-frame {
     width: 100%;
     height: 100%;

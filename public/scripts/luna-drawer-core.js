@@ -302,7 +302,8 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
       head.classList.add('ldw-'+st);
       statusEl.textContent = st==='online'?'online':st==='warming'?('warming · '+Math.round(LLMEngine.progress()*100)+'%'):'offline mode';
     }
-    setInterval(refreshStatus,400); refreshStatus();
+    refreshStatus();
+    let statusTimer=null; // only ticks while the drawer is actually open — see openD/closeD
 
     function openD(){ if(open)return; open=true;
       window.SITE.__lunaEverOpened = true;   // stop the corner quip's periodic nudges once she's actually been used
@@ -315,13 +316,28 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
       drawer.classList.add('on'); scrim.classList.add('on');
       document.body.classList.add('ldw-drawer-open'); drawer.setAttribute('aria-hidden','false');
       mountLuna(); startTypewriter();
+      statusTimer=setInterval(refreshStatus,400);
       if(Router.getMode()==='auto') LLMEngine.load(()=>refreshStatus()); }
     function closeD(){ if(!open)return; open=false; drawer.classList.remove('on'); scrim.classList.remove('on');
       document.body.classList.remove('ldw-drawer-open'); drawer.setAttribute('aria-hidden','true'); ask.blur();
+      clearInterval(statusTimer); statusTimer=null;
       setTimeout(unmountLuna, reduce?0:650); stopTypewriter(); }   // unmount after the slide-out finishes
 
     // OPEN PATH: Luna lives in an iframe; her document posts this on click/tap.
-    addEventListener('message', e=>{ if(e.origin===location.origin && e.data && e.data.type==='lunaOpenChat') open?closeD():openD(); });
+    // Touch-to-click synthesis across an iframe boundary can occasionally
+    // deliver two 'lunaOpenChat' messages for a single tap (seen on mobile) —
+    // since this handler TOGGLES, a double-delivery opens then immediately
+    // closes again, which looks from the outside like tapping her did
+    // nothing at all. Coalesce anything arriving within one toggle's worth
+    // of time into a single open/close.
+    let lastLunaMsgT=0;
+    addEventListener('message', e=>{
+      if(e.origin!==location.origin || !e.data || e.data.type!=='lunaOpenChat') return;
+      const now=performance.now();
+      if(now-lastLunaMsgT<350) return;
+      lastLunaMsgT=now;
+      open?closeD():openD();
+    });
     // also allow Ctrl/Cmd+L from the page
     addEventListener('keydown', e=>{
       if(e.key==='Escape' && open) closeD();

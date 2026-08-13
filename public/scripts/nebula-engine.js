@@ -131,6 +131,12 @@ var threeClock;
    API (U, renderer) is byte-identical to v6's contract.
    ────────────────────────────────────────────────────────────────── */
 (function initGL(){
+  /* Ported from nebula-engine-home.js, which already had this and this file
+     didn't: phones skip the WebGL nebula shader entirely under LOW_POWER,
+     rather than loading/compiling/running it and only backing off the
+     decorative ship systems below. Tablets (LOW_POWER true but width>=600)
+     keep it; it's a single fullscreen-quad shader, not heavy. */
+  if(window.SITE && window.SITE.LOW_POWER && innerWidth < 600){ return; }
   var gl = glslCanvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
   if(!gl){ console.warn('WebGL unavailable; nebula will not render.'); return; }
 

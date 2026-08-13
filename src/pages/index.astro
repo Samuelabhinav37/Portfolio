@@ -7,7 +7,7 @@ import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
 import '../styles/tokens.css';
 
-const recentPosts = (await getCollection('blog', ({ data }) => !data.draft))
+const recentPosts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/')))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3)
   .map((p) => {
@@ -231,12 +231,16 @@ body.globe-active #globe-gl{ opacity:1; }
 #intro-logo.in { opacity: 1; transform: translate(-50%, -50%) translateY(0px); }
 #intro-logo h1 {
   font-family: 'EB Garamond', serif;
-  font-size: 2.80rem; font-weight: 400;
+  /* fixed 2.80rem (44.8px) had no mobile fallback — "Samuel " + italic
+     "Abhinav" side by side at that size runs close to or past the edges of
+     a ~320-360px phone viewport and silently clips (page uses overflow-x:clip,
+     so no scrollbar to reveal it, just a cut-off wordmark). */
+  font-size: clamp(1.9rem, 9vw, 2.80rem); font-weight: 400;
   color: rgba(var(--c-white),0.92); letter-spacing: 0.01em;
 }
 #intro-logo .port {
   font-family: 'EB Garamond', serif;
-  font-size: 2.80rem; font-weight: 400;
+  font-size: clamp(1.9rem, 9vw, 2.80rem); font-weight: 400;
   font-style: italic; color: rgba(var(--c-white),0.6);
 }
 
@@ -285,6 +289,14 @@ body.globe-active #globe-gl{ opacity:1; }
   0%   { opacity:0;    transform:scale(1.12); }   /* a faint wide gather */
   38%  { opacity:0.55; transform:scale(1.00); }   /* light draws onto her — she arrives */
   100% { opacity:0;    transform:scale(0.97); }   /* quietly fades */
+}
+/* Below 900px #luna-wrap docks to the bottom-right corner instead of its
+   vh-based spot (see PortfolioLunaShell.astro's .luna-hidden rule) — keep
+   the arrival bloom and speech bubble anchored to that same corner so they
+   still read as "at her" instead of floating at the old mid-page position. */
+@media (max-width:900px){
+  #luna-portal{ top:auto; bottom:16px; right:14px; }
+  #luna-quip{ bottom:146px; }
 }
 
 /* ── chrome dampening — soft dark pools that keep the UI legible over the
@@ -354,9 +366,13 @@ body.intro-done #term-stage { opacity:1; }
 .tcorner.tr { top:20px; right:20px; border-width:1px 1px 0 0; }
 .tcorner.bl { bottom:20px; left:20px;  border-width:0 0 1px 1px; }
 .tcorner.br { bottom:20px; right:20px; border-width:0 1px 1px 0; }
-#term-feed { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; }
-#term-feed-label { font-family:'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-weight:300; font-size:1.2rem; letter-spacing:0.32em; color:rgba(180,205,245,0.5); text-transform:uppercase; }
-#term-feed-sub { font-family:'Hanken Grotesk', system-ui, -apple-system, sans-serif; font-style:italic; font-size:1.0rem; color:rgba(var(--c-white),0.28); margin-top:10px; }
+#term-feed { position:absolute; inset:0; pointer-events:none; }
+/* poster (a real, compressed still pulled from the video's own first frame) paints
+   instantly and carries the same filter, so on a slow connection the CRT shows a
+   frozen frame of the feed rather than a loading state — the video fades in over
+   it once playable and the swap reads as "it started moving", not "it loaded". */
+#term-feed-video { width:100%; height:100%; object-fit:cover; display:block;
+  filter:grayscale(1) contrast(1.08) brightness(0.95); background:#000; }
 
 /* ════ Globe arc overlays ════ */
 /* GUEST of T2, so window-relative. Edited in place rather than overridden
@@ -663,12 +679,13 @@ footer#site-footer{
     display:flex; flex-direction:column;
   }
   @media (max-width:980px){
-    .f-card{ flex-direction:column; align-items:stretch; padding:36px 26px 30px; gap:28px; margin-top:56px; }
+    /* The CRT (live ascii.cam video render) is the heaviest thing in the
+       footer — dropped entirely on phone/tablet rather than shrunk, same
+       call as the globe. index-ascii-footer.js skips booting it under
+       LOW_POWER so the video/canvas loop never runs either. */
+    .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
     .f-left{ max-width:none; }
-    .crt{ align-self:stretch; width:100%; aspect-ratio:16/9; margin:0; transform:translateZ(0) rotate(0deg); }
-  }
-  @media (max-width:820px){
-    .crt{ aspect-ratio:4/3; }
+    .crt{ display:none; }
   }
   /* ascii.cam widget — ported from the About page's skills card, same spot
      the CRT recon map used to occupy. Renders a baked-in default clip (or a
@@ -778,6 +795,21 @@ footer#site-footer{
 </div>
 <div id="luna-portal"></div>
 <div id="luna-quip" aria-hidden="true"></div>
+<script is:inline>
+/* #luna-wrap is fixed at top:calc(66vh+80px) — on mobile/tablet, whatever
+   editorial content scrolls into that fixed screen band ends up covered by
+   her 120x120px circle for as long as it's on screen, same problem already
+   found and fixed on about.astro (below 980px there, 900px here). Rather
+   than hide her, .luna-hidden (in PortfolioLunaShell.astro) docks her to
+   the bottom-right corner instead, where nothing scrolls under her. */
+(function(){
+  var lw = document.getElementById('luna-wrap');
+  if(!lw) return;
+  function sync(){ lw.classList.toggle('luna-hidden', matchMedia('(max-width:900px)').matches); }
+  sync();
+  addEventListener('resize', sync, {passive:true});
+})();
+</script>
 
 
 
@@ -849,12 +881,37 @@ footer#site-footer{
       <div class="tcorner tl"></div><div class="tcorner tr"></div>
       <div class="tcorner bl"></div><div class="tcorner br"></div>
       <div id="term-feed">
-        <div id="term-feed-label">CRT&nbsp;FEED</div>
-        <div id="term-feed-sub">interior &mdash; pending design</div>
+        <video id="term-feed-video" poster="/images/term-feed-poster.webp"
+          muted loop playsinline></video>
       </div>
     </div>
   </div>
 </div>
+<script is:inline>
+(function(){
+  var v = document.getElementById('term-feed-video');
+  if(!v) return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; // stays on the poster, as before
+
+  /* Connection-aware loading: on a slow/metered connection, never request
+     the 4.9MB video at all — src is only set below, so preload="auto"
+     never fires a byte over the wire, and the poster (a real compressed
+     still of the video's own first frame) just stays up permanently
+     instead of a video that would stall or eat someone's data cap. The
+     Network Information API is Chromium-only (no Safari/Firefox support);
+     absent that signal, default to loading normally rather than silently
+     degrading everyone on unsupported browsers. */
+  var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  var slow = conn && (conn.saveData || /^(slow-2g|2g)$/.test(conn.effectiveType||''));
+  if(slow) return;
+
+  v.preload = 'auto';
+  v.src = '/videos/term-feed-hero.mp4';
+  v.autoplay = true;
+  var p = v.play();
+  if(p && p.catch) p.catch(function(){});
+})();
+</script>
 
 <!-- Beat 1 scroll distance: scrubs the expand floating &rarr; fullscreen -->
 <!-- beat1 removed: CRT is now a normal-flow section that scrolls away -->
@@ -902,6 +959,24 @@ footer#site-footer{
   #editorial .ed-kev__foot{ padding:18px clamp(24px,5vw,80px) 0; }
   #editorial .ed-kev__foot span{ font-family:'JetBrains Mono',monospace; font-size:10.5px;
     letter-spacing:.5px; color:#67676d; }
+
+  /* ── KEV feed, mobile: this section had no phone-specific sizing at all —
+     desktop's 24-32px heading and 34px-padded ticker pills just ran at full
+     size on a narrow screen. Everything below is scaled down and given its
+     own explicit spacing (head/ticker/foot were relying on desktop's large
+     padding for breathing room, so shrinking that without adding gap back
+     is what read as "no spacing" once the paddings came down). */
+  @media (max-width:760px){
+    #editorial .ed-kev{ padding:clamp(40px,8vh,80px) 0; }
+    #editorial .ed-kev__head{ padding:0 20px; margin-bottom:22px; gap:10px 16px; }
+    #editorial .ed-kev__head .ed-lbl{ margin-bottom:10px; }
+    #editorial .ed-kev__head h2{ font-size:1.3rem; }
+    #editorial .ed-kev__status{ font-size:9.5px; gap:7px; }
+    #editorial .ed-kv{ padding:11px 16px; gap:8px; font-size:10.5px; }
+    #editorial .ed-kv .ed-ransom{ font-size:8.5px; padding:1px 5px; }
+    #editorial .ed-kev__foot{ padding:14px 20px 0; }
+    #editorial .ed-kev__foot span{ font-size:9.5px; }
+  }
 
   /* ── Beliefs — Overview spread (ma / fukinsei) ── */
   #editorial .ed-beliefs{ padding:clamp(90px,16vh,190px) clamp(24px,5vw,80px) clamp(70px,12vh,150px);
@@ -1017,9 +1092,15 @@ footer#site-footer{
   #editorial .ed-attck__id{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#67676d; letter-spacing:.5px; }
   #editorial .ed-attck__dots{ display:flex; align-items:center; gap:5px; padding-top:10px;
     border-top:1px solid rgba(var(--c-white),.07); }
-  #editorial .ed-attck__dots span{ width:4px; height:4px; border-radius:50%; background:rgba(var(--c-white),.18);
-    transition:background .3s; cursor:pointer; }
-  #editorial .ed-attck__dots span.active{ background:#ededee; }
+  #editorial .ed-attck__dots button{ position:relative; width:4px; height:4px; border-radius:50%; background:rgba(var(--c-white),.18);
+    transition:background .3s; cursor:pointer; border:0; padding:0; appearance:none; }
+  /* the visible dot stays 4px (matches the rest of this section's dense,
+     small-scale mono UI) but a real tap target needs more than that —
+     absolutely-positioned so it doesn't add to the flex row's own spacing
+     or push neighboring dots apart. */
+  #editorial .ed-attck__dots button::before{ content:''; position:absolute; inset:-10px; }
+  #editorial .ed-attck__dots button:focus-visible{ outline:1px solid #ededee; outline-offset:3px; }
+  #editorial .ed-attck__dots button.active{ background:#ededee; }
 
   /* Auto-defense (decorative arcade runner) — same dark/mono bento language
      as the cells above, sits in the ed-frame--b slot. Pure attract mode:
@@ -1033,7 +1114,15 @@ footer#site-footer{
     background:rgba(var(--c-white),.03); }
 
   @media (max-width:600px){
-    #editorial .ed-bento{ grid-template-columns:1fr; grid-template-rows:repeat(4,180px); aspect-ratio:auto; }
+    /* Signal (the eagle canvas) and Auto-defense (the arcade runner) are
+       both purely decorative/ambient — cut on phones rather than shrunk,
+       same call as the homepage globe/footer earlier. The eagle canvas
+       already stops animating under LOW_POWER (index-signal-eagle.js), but
+       still painted a static frame behind display:none; the arcade loop
+       had no such gate at all and needs one (see index-editorial-flow.js). */
+    #editorial .ed-bento{ grid-template-columns:1fr; grid-template-rows:repeat(3,180px); aspect-ratio:auto; }
+    #editorial .ed-bento__pixels{ display:none; }
+    #editorial .ed-frame--b.ed-arcade{ display:none; }
   }
 
   /* ── Research log — Work-grammar cards ── */
@@ -1067,11 +1156,31 @@ footer#site-footer{
   #editorial .ed-card:hover h3{ color:#fff; } #editorial .ed-card:hover h3::after{ width:100%; }
   #editorial .ed-card p{ margin-top:9px; font-weight:300; font-size:13px; line-height:1.55; color:#94949a; max-width:34ch; }
 
-  @media (max-width:820px){
-    #editorial .ed-beliefs__text{ grid-template-columns:1fr; gap:20px; }
+  /* .ed-frame--a squeezed to half-width (grid-column:1/7) still has to hold
+     the full 4-cell .ed-bento inside it — and .ed-bento's OWN mobile collapse
+     only triggers below 600px of VIEWPORT width, not container width, so on
+     a tablet (768-1024px) the bento renders its multi-column desktop layout
+     squeezed into a ~350-400px half-width column: a cramped, doubly-squeezed
+     mess neither breakpoint below was written to catch. Give both frames the
+     full width well before that container-squeeze can happen, independent
+     of the narrower breakpoint below (which still handles the beliefs text
+     column and the research-log card grid). */
+  @media (max-width:1100px){
     #editorial .ed-frame--a{ grid-column:1 / 13; margin-top:0; }
     #editorial .ed-frame--b{ grid-column:1 / 13; }
-    #editorial .ed-grid{ grid-template-columns:1fr; gap:34px; }
+  }
+  @media (max-width:820px){
+    #editorial .ed-beliefs__text{ grid-template-columns:1fr; gap:20px; }
+    /* "Recent writing" cards: the 4:5 portrait photo + full desktop type
+       scale is the same "too big/bulky" pattern already fixed on the blog
+       index's card grid — same fix here. */
+    #editorial .ed-log__head h2{ font-size:1.3rem; }
+    #editorial .ed-grid{ grid-template-columns:1fr; gap:22px; }
+    #editorial .ed-card .ed-ph{ aspect-ratio:3/2; }
+    #editorial .ed-card .ed-num{ font-size:9.5px; top:10px; left:11px; }
+    #editorial .ed-card .ed-cmeta{ font-size:9.5px; margin:10px 0 6px; }
+    #editorial .ed-card h3{ font-size:17px; }
+    #editorial .ed-card p{ font-size:12px; margin-top:6px; }
   }
   @media (prefers-reduced-motion:reduce){
     #editorial .ed-track{ animation:none; } #editorial .ed-ticker{ overflow-x:auto; }
@@ -1105,7 +1214,7 @@ footer#site-footer{
       </div>
     </div>
     <div class="ed-beliefs__imgs">
-      <div class="ed-frame ed-frame--a ed-bento" role="img" aria-label="Cybersecurity snapshot: an animated dot-matrix eagle tracked by a reframing grid, live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
+      <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: an animated dot-matrix eagle tracked by a reframing grid, live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
         <div class="ed-bento__cell ed-bento__pixels">
           <span class="ed-bento__lbl">Signal</span>
           <canvas id="ed-bento-pixels" aria-hidden="true"></canvas>
@@ -1166,512 +1275,7 @@ footer#site-footer{
 
 </div>
 
-<script is:inline>
-(function(){
-  var KEV='https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json';
-  var track=document.getElementById('ed-track');
-  var status=document.getElementById('ed-status');
-  var statusText=document.getElementById('ed-status-text');
-  var foot=document.getElementById('ed-foot');
-  if(!track) return;
-  var FALLBACK=[
-    {cveID:'CVE-2026-2041',vendorProject:'Cisco',product:'IOS XE',dateAdded:'2026-07-21',ransom:false},
-    {cveID:'CVE-2026-1180',vendorProject:'Microsoft',product:'SharePoint',dateAdded:'2026-07-18',ransom:true},
-    {cveID:'CVE-2026-0995',vendorProject:'Fortinet',product:'FortiOS',dateAdded:'2026-07-15',ransom:false},
-    {cveID:'CVE-2026-0774',vendorProject:'Ivanti',product:'Connect Secure',dateAdded:'2026-07-12',ransom:true},
-    {cveID:'CVE-2025-9932',vendorProject:'Apache',product:'Tomcat',dateAdded:'2026-07-09',ransom:false},
-    {cveID:'CVE-2026-0421',vendorProject:'Zyxel',product:'Firewalls',dateAdded:'2026-07-05',ransom:false}
-  ];
-  function esc(s){ return String(s||'').replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
-  function tok(v, hidden){
-    var vp=esc(v.vendorProject)+(v.product?' '+esc(v.product):'');
-    var r=v.ransom?'<span class="ed-ransom">RANSOMWARE</span>':'';
-    var attrs=hidden?' aria-hidden="true" tabindex="-1"':'';
-    var href='https://nvd.nist.gov/vuln/detail/'+esc(v.cveID);
-    /* aria-label must contain the full visible text (WCAG 2.5.3 Label in
-       Name) — it used to be just the CVE ID, dropping vendor/product/date/
-       ransomware-flag that are also rendered inside the link. */
-    var label=esc(v.cveID)+' · '+vp+' · '+esc(v.dateAdded)+(v.ransom?' RANSOMWARE':'')+' — view on NVD';
-    return '<a class="ed-kv" href="'+href+'" target="_blank" rel="noopener"'+attrs+
-           ' aria-label="'+label+'"><span class="ed-cve">'+esc(v.cveID)+'</span><span class="ed-sep">·</span>'+
-           '<span class="ed-vp">'+vp+'</span><span class="ed-sep">·</span>'+
-           '<span class="ed-date">'+esc(v.dateAdded)+'</span>'+r+'</a>';
-  }
-  function paint(list){
-    var h1=list.map(function(v){ return tok(v,false); }).join('');
-    var h2=list.map(function(v){ return tok(v,true); }).join('');
-    track.innerHTML=h1+h2;
-  }
-  paint(FALLBACK);
-  function load(){
-    fetch(KEV).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-      var v=(d.vulnerabilities||[]).slice();
-      v.sort(function(a,b){ return (b.dateAdded||'').localeCompare(a.dateAdded||''); });
-      var recent=v.slice(0,16).map(function(x){ return { cveID:x.cveID, vendorProject:x.vendorProject,
-        product:x.product, dateAdded:x.dateAdded, ransom:(x.knownRansomwareCampaignUse||'').toLowerCase()==='known' }; });
-      if(recent.length){ paint(recent); }
-      if(status) status.classList.add('ed-live');
-      if(statusText) statusText.textContent='live · '+(d.count||v.length)+' tracked';
-      if(foot && d.dateReleased){ foot.textContent='Source: CISA KEV'; }
-    }).catch(function(){ if(statusText) statusText.textContent='cached'; });
-  }
-  /* Defer the KEV fetch (whole-catalog JSON, several hundred KB) until the
-     section is actually about to be seen, instead of firing it on every page
-     load regardless of whether the visitor scrolls past the hero. */
-  if('IntersectionObserver' in window){
-    var kevIo=new IntersectionObserver(function(es){
-      if(es.some(function(e){ return e.isIntersecting; })){ kevIo.disconnect(); load(); }
-    }, {rootMargin:'200px'});
-    kevIo.observe(track.closest('.ed-kev')||track);
-  } else {
-    load();
-  }
-})();
-
-/* ── Beliefs copy — scroll-linked light reveal: a soft mask sweeps down the
-   paragraph block as it passes through the viewport, so the text visibly
-   lights up while you scroll instead of just sitting there fully visible.
-   Bidirectional (dims again scrolling back up) and gated by an
-   IntersectionObserver so the scroll listener only runs while the block is
-   actually near the viewport. Position is derived from a cached document
-   offset + scrollY rather than a fresh getBoundingClientRect() every scroll
-   frame — the latter forces a synchronous layout on a page this animation-
-   heavy, which is where scroll-linked effects usually go janky. ── */
-(function(){
-  var copy=document.querySelector('#editorial .ed-beliefs__copy');
-  if(!copy) return;
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    copy.style.setProperty('--reveal','200%');
-    return;
-  }
-  function clamp01(n){ return Math.max(0, Math.min(1, n)); }
-  var docTop=0, elHeight=0;
-  function measure(){
-    var r=copy.getBoundingClientRect();
-    docTop=r.top + window.scrollY;
-    elHeight=r.height;
-  }
-  measure();
-  if('ResizeObserver' in window){ new ResizeObserver(measure).observe(copy); }
-  else { window.addEventListener('resize', measure); }
-  var ticking=false;
-  function update(){
-    ticking=false;
-    var vh=window.innerHeight||800;
-    var top=docTop - window.scrollY;
-    var start=vh*0.88, end=vh*0.22;
-    var span=(elHeight + (start-end)) || 1;
-    var progress=clamp01((start - top) / span);
-    copy.style.setProperty('--reveal', (progress*124).toFixed(2)+'%');
-  }
-  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } }
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting){
-        window.addEventListener('scroll', onScroll, {passive:true});
-        update();
-      } else {
-        window.removeEventListener('scroll', onScroll);
-      }
-    }, {rootMargin:'25% 0px'});
-    io.observe(copy);
-  } else {
-    window.addEventListener('scroll', onScroll, {passive:true});
-  }
-  update();
-})();
-
-/* Bento: signal canvas (decorative, top-left quadrant) — moved to
-   /scripts/index-signal-eagle.js (own file, not inlined here) since it
-   carries ~34KB of packed animation data extracted from a reference clip;
-   keeping that out of this shared inline block avoids bloating every
-   homepage load's HTML payload. See the script tag near the other
-   decorative widgets below. */
-
-/* ── Bento: cert badges marquee (bottom-left quadrant) — real vendor-issued badge
-   artwork from Credly's CDN, not generic brand icons. ── */
-(function(){
-  var track=document.getElementById('ed-badges-track');
-  if(!track) return;
-  var BADGES=[
-    {name:'Security+', img:'https://images.credly.com/images/d3cb5ac3-8bd2-471a-a27c-f447bf16da47/blob', framed:true},
-    {name:'Network+', img:'https://images.credly.com/images/3746480e-1d97-41f8-b27a-0b798d235306/CompTIA_Network_2B.png', framed:true},
-    {name:'ISC2 CC', img:'https://images.credly.com/images/2030e43f-8003-4d4b-9630-847add403c87/image.png'},
-    {name:'AWS CCP', img:'https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png'},
-    {name:'AZ-900', img:'https://images.credly.com/images/be8fcaeb-c769-4858-b567-ffaaa73ce8cf/image.png'},
-    {name:'HTB CJCA', img:'https://images.credly.com/images/95043c37-e916-4e4e-96ab-06fb66056648/blob'}
-  ];
-  function tok(b, hidden){
-    return '<span class="ed-badge'+(b.framed?' ed-badge--framed':'')+'"'+(hidden?' aria-hidden="true"':'')+
-           '><img loading="lazy" src="'+b.img+'" alt="'+b.name+' certification badge" onerror="this.style.visibility=\'hidden\'"><span>'+b.name+'</span></span>';
-  }
-  track.innerHTML=BADGES.map(function(b){ return tok(b,false); }).join('')+BADGES.map(function(b){ return tok(b,true); }).join('');
-})();
-
-/* ── Bento: threat intel (top-right quadrant) — OTX + CIRCL MISP via a same-origin
-   proxy function (functions/api/threat-feed.js). Never ships a key to the browser;
-   falls back to static sample rows if the endpoint 404s (e.g. local `astro dev`,
-   where Cloudflare Pages Functions don't run) or the fetch fails. Each row links to
-   the specific OTX pulse or MISP/CIRCL event, not just the feed in general. ── */
-(function(){
-  var list=document.getElementById('ed-intel-list');
-  if(!list) return;
-  var FALLBACK=[
-    {source:'OTX',title:'Tracking a new loader chain abusing signed drivers',org:'AlienVault community',href:'https://otx.alienvault.com/'},
-    {source:'MISP',title:'OSINT — infrastructure reuse across recent ransomware intrusions',org:'CIRCL',href:'https://www.circl.lu/doc/misp/feed-osint/'},
-    {source:'OTX',title:'Phishing kit targeting SSO login pages spotted in the wild',org:'AlienVault community',href:'https://otx.alienvault.com/'},
-    {source:'MISP',title:'OSINT — C2 framework fingerprinting update',org:'CIRCL',href:'https://www.circl.lu/doc/misp/feed-osint/'},
-    {source:'OTX',title:'Cred-stuffing botnet rotating through residential proxies',org:'AlienVault community',href:'https://otx.alienvault.com/'}
-  ];
-  /* Attribute-safe: also escapes quotes, unlike a text-node-only escaper —
-     used below to build an href="..." attribute from feed data, where a bare
-     '<>&' escape would still let a stray " break out of the attribute. */
-  function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-  /* Feed hrefs are always server-built with a fixed https:// prefix (see
-     functions/api/threat-feed.js), but don't trust that blindly from the
-     browser side too — reject anything that isn't actually http(s). */
-  function safeHref(h){ return /^https?:\/\//i.test(h||'') ? h : '#'; }
-  function paint(items){
-    list.innerHTML=items.slice(0,3).map(function(it){
-      var cls=(it.source||'').toLowerCase()==='otx'?'otx':'misp';
-      return '<a class="ed-intel__row '+cls+'" href="'+esc(safeHref(it.href))+'" target="_blank" rel="noopener">'+
-             '<span class="ed-intel__meta"><span class="src '+cls+'">'+esc(it.source)+'</span><span class="org">'+esc(it.org||'')+'</span></span>'+
-             '<span class="ed-intel__title">'+esc(it.title)+'</span></a>';
-    }).join('');
-  }
-  paint(FALLBACK);
-  fetch('/api/threat-feed').then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-    if(d && Array.isArray(d.items) && d.items.length) paint(d.items);
-  }).catch(function(){ /* keep fallback rows */ });
-})();
-
-/* ── Auto-defense (decorative arcade runner) — a security-reskinned endless
-   runner, pure attract mode: never reads input, ever. A terminal-cursor
-   "agent" auto-jumps threat icons (spikes = exploits, bugs = malware).
-   The AI's jump-trigger distance is a FIXED value that doesn't scale with
-   the game's own speed ramp (speed increases steadily over each run) — so
-   early on it dodges cleanly, and as speed climbs past what that fixed
-   reaction distance can safely clear, it eventually mistimes a jump and
-   "dies". That's deliberate: gives each run a natural, non-identical
-   ~15-25s length before a brief "BREACH DETECTED" beat and a full reset,
-   rather than running forever (boring) or looking like a hand-scripted
-   loop (uncanny). Canvas-drawn (no image assets), same reasoning as the
-   artifact-design guidance against hand-authored SVG path data — simple
-   procedural shapes instead. ── */
-(function(){
-  var canvas=document.getElementById('ed-arcade-canvas'), scoreEl=document.getElementById('ed-arcade-score');
-  if(!canvas || !canvas.getContext) return;
-  var ctx=canvas.getContext('2d');
-  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var W=0,H=0,PLAY_TOP=6,PLAY_BOTTOM=0;
-
-  function fit(){
-    var rect=canvas.getBoundingClientRect();
-    var dpr=Math.min(window.devicePixelRatio||1,2);
-    W=rect.width; H=rect.height; PLAY_BOTTOM=H-6;
-    canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  var stars=[];
-  function makeStars(){
-    stars=[];
-    for(var i=0;i<20;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+0.4,tw:Math.random()*Math.PI*2,par:0.1+Math.random()*0.12});
-  }
-  fit();
-  makeStars();
-  var fitT=null;
-  addEventListener('resize',function(){ clearTimeout(fitT); fitT=setTimeout(function(){ fit(); makeStars(); },150); },{passive:true});
-
-  // ── physics/state ── free flight, not a ground-runner: gravity pulls the
-  // probe down continuously, small rate-limited "boosts" (flappy-bird taps)
-  // eases smoothly toward wherever it needs to be next — maneuvering
-  // thrusters, not a bird's wingbeat, so no gravity/discrete impulses.
-  // When nothing's ahead it glides on a slow idle sine drift instead of
-  // sitting dead still. The AI's reaction distance + ease rate are FIXED
-  // and don't scale with the speed ramp below — same difficulty philosophy
-  // as before: early on there's plenty of time to smoothly reach the next
-  // gap/gate, and as speed climbs the correction window shrinks below what
-  // the fixed ease rate can cover in time, producing a natural ~15-25s run
-  // before a miss, not a hard cutoff.
-  var EASE_RATE=0.075, IDLE_AMP=16, IDLE_FREQ=0.0011, BASE_SPEED=2.0, SPEED_RAMP=0.00017;
-  var SHIP_X=24, SHIP_W=16, SHIP_H=11;
-  var TRIGGER_DIST=130; // fixed on purpose
-  var shipY, vy, speed, score, obstacles, phase, phaseT, particles, tAccum;
-
-  function reset(){
-    shipY=H/2; vy=0; speed=BASE_SPEED; score=0;
-    obstacles=[]; particles=[]; phase='run'; phaseT=0; tAccum=0;
-    scheduleNext(true);
-  }
-  var nextSpawnAt=0, distSince=0;
-  function scheduleNext(first){ nextSpawnAt=distSince+230+Math.random()*190+(first?70:0); }
-  function spawn(){
-    // 'gate' — a checkpoint frame the probe threads through; its opening
-    // starts wide (GATE_OPEN) and narrows toward GATE_CLOSE as it crosses
-    // the tile, the "slowly closing" effect — computed from spawnX/x each
-    // frame, not animated on its own timer, so it stays in sync if the tab
-    // was backgrounded and time jumped.
-    // 'asteroid' — jagged debris (points fixed once at spawn so its
-    // silhouette doesn't jitter) that slowly bobs up/down as it drifts by.
-    var kind=Math.random()<0.42?'gate':'asteroid';
-    if(kind==='gate'){
-      var gapY=PLAY_TOP+30+Math.random()*Math.max(10,(PLAY_BOTTOM-PLAY_TOP-60));
-      obstacles.push({x:W+10,spawnX:W+10,kind:kind,w:7,gapY:gapY,openH:46,closeH:24});
-    } else {
-      var w=13+Math.random()*5,h=11+Math.random()*5,n=6,pts=[];
-      for(var k=0;k<n;k++) pts.push({a:(k/n)*Math.PI*2,r:0.68+Math.random()*0.32});
-      var baseY=PLAY_TOP+16+Math.random()*Math.max(10,(PLAY_BOTTOM-PLAY_TOP-32));
-      obstacles.push({x:W+10,kind:kind,w:w,h:h,pts:pts,baseY:baseY,amp:7+Math.random()*7,freq:0.0009+Math.random()*0.0007,ph0:Math.random()*Math.PI*2,curY:baseY});
-    }
-  }
-  function explode(x,y){
-    particles=[];
-    for(var i=0;i<9;i++){
-      var ang=Math.random()*Math.PI*2, spd=1+Math.random()*2.4;
-      particles.push({x:x,y:y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,life:1});
-    }
-  }
-
-  function nearestAhead(){
-    var best=null;
-    for(var i=0;i<obstacles.length;i++){
-      var o=obstacles[i];
-      if(o.x+o.w>=SHIP_X && (!best || o.x<best.x)) best=o;
-    }
-    return best;
-  }
-  function gateGapH(o){
-    var prog=1-((o.x-SHIP_X)/Math.max(1,(o.spawnX-SHIP_X)));
-    prog=Math.max(0,Math.min(1,prog));
-    return o.openH+(o.closeH-o.openH)*prog;
-  }
-  function pickTarget(o){
-    if(o.kind==='gate') return o.gapY;
-    var above=Math.max(PLAY_TOP+6,o.curY-o.h/2-13), below=Math.min(PLAY_BOTTOM-6,o.curY+o.h/2+13);
-    return Math.abs(shipY-above)<=Math.abs(shipY-below)?above:below;
-  }
-
-  function update(dt){
-    var k=dt/16.67;
-    if(phase==='over'){
-      phaseT+=dt;
-      for(var p=0;p<particles.length;p++){ particles[p].x+=particles[p].vx*k; particles[p].y+=particles[p].vy*k; particles[p].life-=dt/450; }
-      if(phaseT>1300) reset();
-      return;
-    }
-    tAccum+=dt;
-    speed+=SPEED_RAMP*dt;
-    distSince+=speed*k;
-    score+=speed*k*0.4;
-
-    // spawn
-    if(distSince>=nextSpawnAt){ spawn(); scheduleNext(false); }
-
-    // move + cull obstacles, update asteroid bob, drift starfield (parallax)
-    for(var i=obstacles.length-1;i>=0;i--){
-      var o=obstacles[i]; o.x-=speed*k;
-      if(o.kind==='asteroid') o.curY=o.baseY+Math.sin(tAccum*o.freq+o.ph0)*o.amp;
-      if(o.x+o.w<0) obstacles.splice(i,1);
-    }
-    for(var s=0;s<stars.length;s++){
-      stars[s].x-=speed*stars[s].par*k;
-      if(stars[s].x<-2){ stars[s].x=W+2; stars[s].y=Math.random()*H; }
-    }
-
-    // AI: fixed reaction distance, smooth ease toward the target — see file
-    // comment. No obstacle ahead → drift on a slow idle sine instead of
-    // holding still, so it still reads as "flying" between hazards.
-    var n=nearestAhead(), desiredY;
-    if(n && (n.x-SHIP_X)<=TRIGGER_DIST){
-      desiredY=pickTarget(n);
-    } else {
-      desiredY=H/2+Math.sin(tAccum*IDLE_FREQ)*IDLE_AMP;
-    }
-    var prevY=shipY;
-    shipY+=(desiredY-shipY)*Math.min(1,EASE_RATE*k);
-    if(shipY<PLAY_TOP) shipY=PLAY_TOP;
-    if(shipY>PLAY_BOTTOM-SHIP_H) shipY=PLAY_BOTTOM-SHIP_H;
-    vy=(shipY-prevY)/k; // derived from actual motion, purely for the hull-tilt/thruster visual below
-
-    // collision
-    for(var j=0;j<obstacles.length;j++){
-      var ob=obstacles[j];
-      if(ob.kind==='gate'){
-        if(ob.x<SHIP_X+SHIP_W-3 && ob.x+ob.w>SHIP_X+3){
-          var gh=gateGapH(ob), top=ob.gapY-gh/2, bot=ob.gapY+gh/2;
-          var shipCenter=shipY+SHIP_H/2;
-          if(shipCenter-4<top || shipCenter+4>bot){ explode(SHIP_X+SHIP_W/2,shipY+SHIP_H/2); phase='over'; phaseT=0; break; }
-        }
-      } else {
-        var rx=SHIP_X+3,rw=SHIP_W-6,ry=shipY+2,rh=SHIP_H-2;
-        var ox=ob.x+2,ow=ob.w-4,oy=ob.curY-ob.h/2+1,oh=ob.h-2;
-        if(rx<ox+ow && rx+rw>ox && ry<oy+oh && ry+rh>oy){ explode(SHIP_X+SHIP_W/2,shipY+SHIP_H/2); phase='over'; phaseT=0; break; }
-      }
-    }
-
-    if(scoreEl) scoreEl.textContent=String(Math.floor(score)).padStart(4,'0');
-  }
-
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-
-    // faint scattered starfield — open space, no ground/horizon
-    for(var s=0;s<stars.length;s++){
-      var st=stars[s], tw=0.5+0.5*Math.sin(tAccum*0.0016+st.tw);
-      ctx.fillStyle='rgba(237,237,238,'+(0.12+0.22*tw).toFixed(2)+')';
-      ctx.fillRect(st.x,st.y,st.r,st.r);
-    }
-
-    // obstacles
-    for(var i=0;i<obstacles.length;i++){
-      var o=obstacles[i];
-      if(o.kind==='gate'){
-        var gh=gateGapH(o), top=o.gapY-gh/2, bot=o.gapY+gh/2;
-        ctx.strokeStyle='rgba(237,237,238,.8)'; ctx.lineWidth=1.5;
-        ctx.beginPath(); ctx.moveTo(o.x,PLAY_TOP-4); ctx.lineTo(o.x,top); ctx.moveTo(o.x+o.w,PLAY_TOP-4); ctx.lineTo(o.x+o.w,top); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(o.x,bot); ctx.lineTo(o.x,PLAY_BOTTOM+4); ctx.moveTo(o.x+o.w,bot); ctx.lineTo(o.x+o.w,PLAY_BOTTOM+4); ctx.stroke();
-        ctx.strokeStyle='rgba(237,237,238,.4)'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(o.x,top); ctx.lineTo(o.x+o.w,top); ctx.moveTo(o.x,bot); ctx.lineTo(o.x+o.w,bot); ctx.stroke();
-      } else {
-        var cx=o.x+o.w/2, cy=o.curY;
-        ctx.fillStyle='rgba(156,156,162,.82)';
-        ctx.beginPath();
-        for(var pi=0;pi<o.pts.length;pi++){
-          var pt=o.pts[pi], px=cx+Math.cos(pt.a)*pt.r*o.w/2, py=cy+Math.sin(pt.a)*pt.r*o.h/2;
-          if(pi===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-        }
-        ctx.closePath(); ctx.fill();
-      }
-    }
-
-    // probe: a small triangular hull that pitches with vertical velocity,
-    // a fading thruster flame behind it (flicker via a light random jitter),
-    // and a "cockpit" dot — black and white throughout, no accent color,
-    // same restrained mono palette as everywhere else on the page.
-    if(phase!=='over'){
-      var cx=SHIP_X+SHIP_W/2, cy=shipY+SHIP_H/2;
-      var tilt=Math.max(-0.5,Math.min(0.5,-vy*0.09));
-      ctx.save(); ctx.translate(cx,cy); ctx.rotate(tilt);
-      var flick=0.65+Math.random()*0.35, flameLen=9*flick;
-      var grd=ctx.createLinearGradient(-SHIP_W/2-flameLen,0,-SHIP_W/2,0);
-      grd.addColorStop(0,'rgba(237,237,238,0)'); grd.addColorStop(1,'rgba(237,237,238,.8)');
-      ctx.fillStyle=grd;
-      ctx.beginPath(); ctx.moveTo(-SHIP_W/2,-2.5); ctx.lineTo(-SHIP_W/2-flameLen,0); ctx.lineTo(-SHIP_W/2,2.5); ctx.closePath(); ctx.fill();
-      ctx.fillStyle='#ededee';
-      ctx.beginPath(); ctx.moveTo(SHIP_W/2,0); ctx.lineTo(-SHIP_W/2,-SHIP_H/2); ctx.lineTo(-SHIP_W/2,SHIP_H/2); ctx.closePath(); ctx.fill();
-      ctx.fillStyle='rgba(237,237,238,.9)';
-      ctx.beginPath(); ctx.arc(SHIP_W/6,0,1.6,0,Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
-
-    if(phase==='over'){
-      ctx.fillStyle='rgba(4,4,10,.6)'; ctx.fillRect(0,0,W,H);
-      for(var p=0;p<particles.length;p++){
-        var pt=particles[p]; if(pt.life<=0) continue;
-        ctx.fillStyle='rgba(237,237,238,'+Math.max(0,pt.life*0.85).toFixed(2)+')';
-        ctx.beginPath(); ctx.arc(pt.x,pt.y,1.6,0,Math.PI*2); ctx.fill();
-      }
-      ctx.fillStyle='#ededee'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='center';
-      ctx.fillText('BREACH DETECTED — RESETTING…', W/2, H/2+4);
-      ctx.textAlign='left';
-    }
-  }
-
-  if(reduced){
-    reset(); draw(); // one static frame, no loop — respects prefers-reduced-motion
-    return;
-  }
-
-  reset();
-  var last=0;
-  function loop(t){
-    requestAnimationFrame(loop);
-    if(document.hidden) return;
-    if(!last) last=t;
-    var dt=Math.min(t-last,50); last=t;
-    update(dt); draw();
-  }
-  requestAnimationFrame(loop);
-})();
-
-/* ── Bento: MITRE ATT&CK technique spotlight (bottom-right quadrant) — a rotating
-   card through a curated set of real, well-known Enterprise ATT&CK techniques, each
-   linking to its real attack.mitre.org page. Static rather than fetched: the full
-   STIX dataset is tens of MB, far too large to pull client-side for this. Pauses on
-   hover/focus and respects prefers-reduced-motion (shows the first technique only). ── */
-(function(){
-  var mount=document.getElementById('ed-attck-mount');
-  if(!mount) return;
-  var ICONS={
-    envelope:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
-    terminal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>',
-    clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
-    mask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><path d="M3 3l18 18"/></svg>',
-    key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></svg>',
-    search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-5-5"/></svg>',
-    broadcast:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><path d="M8.5 8.5a5 5 0 000 7M15.5 8.5a5 5 0 010 7M5.5 5.5a9 9 0 000 13M18.5 5.5a9 9 0 010 13"/></svg>',
-    burst:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2l2 6 6-2-4 5 4 5-6-2-2 6-2-6-6 2 4-5-4-5 6 2z"/></svg>'
-  };
-  var TECHNIQUES=[
-    {id:'T1566',name:'Phishing',tactic:'Initial Access',icon:'envelope',
-      desc:'Malicious messages used to gain initial access or deliver payloads. Often disguised as a trusted sender to prompt a click, a login, or a risky download.'},
-    {id:'T1059',name:'Command and Scripting Interpreter',tactic:'Execution',icon:'terminal',
-      desc:'Executing commands through a CLI, PowerShell, or another scripting engine. A common way to run code after compromise, since interpreters are trusted and everywhere.'},
-    {id:'T1547',name:'Boot or Logon Autostart Execution',tactic:'Persistence',icon:'clock',
-      desc:'Configuring software to run automatically to survive reboots. Registry run keys, startup folders, and services are common places this gets abused.'},
-    {id:'T1055',name:'Process Injection',tactic:'Defense Evasion',icon:'mask',
-      desc:'Injecting code into another process’s memory to evade detection. Lets malicious code run under the identity of an already-trusted process.'},
-    {id:'T1003',name:'OS Credential Dumping',tactic:'Credential Access',icon:'key',
-      desc:'Extracting account credentials from operating system memory or storage. Often an early step toward lateral movement once a host is compromised.'},
-    {id:'T1046',name:'Network Service Discovery',tactic:'Discovery',icon:'search',
-      desc:'Enumerating network services to plan lateral movement. Adversaries scan for open ports and running services to map out what’s reachable next.'},
-    {id:'T1071',name:'Application Layer Protocol',tactic:'Command and Control',icon:'broadcast',
-      desc:'Blending command-and-control traffic into normal protocols like HTTP or DNS. This makes malicious traffic harder to spot among everyday activity.'},
-    {id:'T1486',name:'Data Encrypted for Impact',tactic:'Impact',icon:'burst',
-      desc:'Encrypting data to disrupt availability, as seen in ransomware. Usually the final stage of an intrusion, aimed at extortion or operational damage.'}
-  ];
-  mount.innerHTML='<a class="ed-attck" id="ed-attck-card" target="_blank" rel="noopener">'+
-    '<span class="ed-attck__top"><span class="ed-attck__icon" id="ed-attck-icon"></span>'+
-    '<span class="ed-attck__text"><span class="ed-attck__name" id="ed-attck-name"></span>'+
-    '<span class="ed-attck__desc" id="ed-attck-desc"></span>'+
-    '<span class="ed-attck__meta"><span class="ed-attck__tactic" id="ed-attck-tactic"></span>'+
-    '<span class="ed-attck__id" id="ed-attck-id"></span></span>'+
-    '</span></span></a>'+
-    '<div class="ed-attck__dots" id="ed-attck-dots"></div>';
-  var card=document.getElementById('ed-attck-card');
-  var iconEl=document.getElementById('ed-attck-icon');
-  var tacticEl=document.getElementById('ed-attck-tactic');
-  var idEl=document.getElementById('ed-attck-id');
-  var nameEl=document.getElementById('ed-attck-name');
-  var descEl=document.getElementById('ed-attck-desc');
-  var dotsWrap=document.getElementById('ed-attck-dots');
-  dotsWrap.innerHTML=TECHNIQUES.map(function(_,i){ return '<span data-i="'+i+'"></span>'; }).join('');
-  var dots=dotsWrap.children;
-  var idx=0;
-  function show(i){
-    var t=TECHNIQUES[i];
-    card.href='https://attack.mitre.org/techniques/'+t.id+'/';
-    iconEl.innerHTML=ICONS[t.icon]||'';
-    tacticEl.textContent=t.tactic;
-    idEl.textContent=t.id;
-    nameEl.textContent=t.name;
-    descEl.textContent=t.desc;
-    for(var j=0;j<dots.length;j++){ dots[j].classList.toggle('active', j===i); }
-  }
-  show(0);
-  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var timer=null;
-  function start(){ if(reduced || timer) return; timer=setInterval(function(){ idx=(idx+1)%TECHNIQUES.length; show(idx); }, 4500); }
-  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
-  start();
-  var cell=mount.closest('.ed-bento__cell');
-  if(cell){ cell.addEventListener('mouseenter', stop); cell.addEventListener('mouseleave', start); }
-  dotsWrap.addEventListener('click', function(e){
-    var t=e.target.closest('[data-i]'); if(!t) return;
-    idx=Number(t.getAttribute('data-i')); show(idx); stop(); start();
-  });
-})();
-</script>
+<script is:inline src="/scripts/index-editorial-flow.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- Focus scrim retained (empty) so the globe module's scrim ref stays valid -->
@@ -1865,7 +1469,22 @@ footer#site-footer{
 #signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#67676d; margin:0 0 14px; }
 #signal .sig-head{ font-family:'Hanken Grotesk',system-ui,sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
 #signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
-@media (max-width:820px){ #signal .sig-grid{ grid-template-columns:1fr; } }
+@media (max-width:820px){
+  #signal .sig-grid{ grid-template-columns:1fr; }
+  #signal .sig-head{ font-size:1.3rem; }
+  .sig-card{ padding:18px; }
+  .news-row, .pod-row{ padding:10px 0; gap:10px; }
+  .news-badge{ width:40px; height:32px; }
+  .pod-art{ width:36px; height:36px; font-size:11px; }
+  .news-title, .pod-name{ font-size:12px; }
+  .pod-why{ font-size:10.5px; }
+  .news-meta, .ctf-meta{ font-size:8px; }
+  .pod-stars{ font-size:9.5px; }
+  /* Not enough room for the full list on a phone — cap both to 3 rows;
+     the rest are still reachable through each card's own "See more" dialog. */
+  #news-list .news-row:nth-child(n+4){ display:none; }
+  .pod-shelf .pod-row:nth-child(n+4){ display:none; }
+}
 .sig-card{ border:1px solid rgba(var(--c-white),.1); border-radius:4px; background:rgba(var(--c-white),.015); padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
 .sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
 .sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
@@ -1906,15 +1525,18 @@ footer#site-footer{
 .sig-more{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.5); background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
 .sig-more:hover{ color:#fff; }
 
-.sig-dialog{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px; }
-.sig-dialog[aria-hidden="true"]{ display:none; }
+.sig-dialog{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px;
+  opacity:0; visibility:hidden; transition:opacity .3s ease; }
+.sig-dialog[aria-hidden="false"]{ opacity:1; visibility:visible; }
 .sig-dialog__backdrop{ position:absolute; inset:0; background:rgba(4,4,12,0.72); backdrop-filter:blur(3px); }
 .sig-dialog__panel{
-  position:relative; width:min(480px,100%); max-height:min(560px,86vh); overflow-y:auto;
+  position:relative; z-index:1; width:min(480px,100%); max-height:min(560px,86vh); overflow-y:auto;
   background:#0b0b14; border:1px solid rgba(var(--c-white),0.12); border-radius:8px;
   padding:clamp(20px,3vw,28px); box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);
+  transform:translateY(10px); transition:transform .35s cubic-bezier(.22,1,.36,1);
 }
-.sig-dialog__close{ position:absolute; top:14px; right:14px; width:28px; height:28px; display:grid; place-items:center;
+.sig-dialog[aria-hidden="false"] .sig-dialog__panel{ transform:none; }
+.sig-dialog__close{ position:absolute; top:10px; right:10px; width:36px; height:36px; display:grid; place-items:center;
   background:rgba(var(--c-white),0.06); border:1px solid rgba(var(--c-white),0.12); border-radius:50%;
   color:#dfe4f0; font-size:16px; line-height:1; cursor:pointer; }
 .sig-dialog__close:hover{ background:rgba(var(--c-white),0.12); }
@@ -1925,8 +1547,8 @@ footer#site-footer{
 .sig-dialog__list img{ width:20px; height:20px; border-radius:4px; margin-top:2px; flex:none; background:rgba(var(--c-white),0.06); }
 .sig-dialog__list a{ font-family:'Hanken Grotesk',system-ui,sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
 .sig-dialog__list a:hover{ text-decoration:underline; }
-.sig-dialog__how{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
-@media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } }
+.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
+@media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } .sig-dialog, .sig-dialog__panel{ transition:none; } }
 </style>
 <section id="signal" aria-label="Signal: news, podcasts and CTFs">
   <div class="sig-inner">

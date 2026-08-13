@@ -1245,9 +1245,17 @@ document.addEventListener('visibilitychange',function(){
 (function(){ var h=new Date().getHours(); applyRole(h>=6 && h<18 ? 'day' : 'night'); })();
 doAction('boot');
 
-/* open the assistant drawer on click — posts to the parent page */
+/* open the assistant drawer on tap — posts to the parent page. 'click' alone
+   is unreliable for a touch tap landing inside a cross-document iframe (the
+   synthetic click that's supposed to follow touchend doesn't always fire
+   there on mobile) — 'pointerup' catches touch directly as a second path.
+   A tap that fires both is safe: luna-drawer-core.js debounces repeat
+   'lunaOpenChat' messages, so this can't double-toggle open then shut. */
 try{ document.documentElement.style.cursor='pointer';
-  addEventListener('click', function(){ try{ parent.postMessage({type:'lunaOpenChat'}, location.origin); }catch(e){} }); }catch(e){}
+  var _openChat=function(){ try{ parent.postMessage({type:'lunaOpenChat'}, location.origin); }catch(e){} };
+  addEventListener('click', _openChat);
+  addEventListener('pointerup', _openChat);
+}catch(e){}
 })();
 <\/script>
 

@@ -143,6 +143,36 @@ async function processFile(path) {
   return { changed, totalBefore, totalAfter, kept };
 }
 
+// dist/scripts/*.js are public/ passthrough files — Astro/Vite never bundles
+// or minifies them, so they otherwise ship at full source size with comments
+// intact (confirmed: nebula-engine.js + nebula-engine-home.js alone total
+// ~254KB unminified). Same terser config + acorn re-parse safety net as the
+// inline-script pass above: on any failure, the original file is left as-is.
+async function processJsFile(path) {
+  const code = await readFile(path, 'utf8');
+  if (!code.trim()) return { changed: false, before: 0, after: 0, kept: 0 };
+  try {
+    const minified = await terser.minify(code, {
+      module: false,
+      compress: true,
+      mangle: true,
+      format: { comments: false },
+    });
+    if (minified.code && parsesCleanly(minified.code) && minified.code.length < code.length) {
+      await writeFile(path, minified.code, 'utf8');
+      return { changed: true, before: code.length, after: minified.code.length, kept: 0 };
+    }
+    if (minified.code && parsesCleanly(minified.code)) {
+      return { changed: false, before: code.length, after: code.length, kept: 0 }; // already smaller/equal
+    }
+    console.warn(`  ! kept original (minified output failed verification) in ${path.pathname.split('/dist/')[1] || path}`);
+    return { changed: false, before: code.length, after: code.length, kept: 1 };
+  } catch (err) {
+    console.warn(`  ! kept original (terser error: ${err.message}) in ${path.pathname.split('/dist/')[1] || path}`);
+    return { changed: false, before: code.length, after: code.length, kept: 1 };
+  }
+}
+
 async function main() {
   let files = 0, blocksBefore = 0, blocksAfter = 0, keptTotal = 0;
   for await (const entry of glob('**/*.html', { cwd: DIST })) {
@@ -157,6 +187,20 @@ async function main() {
     }
   }
   console.log(`\nDone. ${files} file(s) touched, ${blocksBefore} -> ${blocksAfter} bytes of inline script. ${keptTotal} block(s) kept as original source.`);
+
+  let jsFiles = 0, jsBefore = 0, jsAfter = 0, jsKept = 0;
+  for await (const entry of glob('scripts/**/*.js', { cwd: DIST })) {
+    const path = new URL(entry, DIST);
+    const { changed, before, after, kept } = await processJsFile(path);
+    jsKept += kept;
+    if (changed) {
+      jsFiles++;
+      jsBefore += before;
+      jsAfter += after;
+      console.log(`minified: ${entry}  (${before} -> ${after} bytes)`);
+    }
+  }
+  console.log(`Done. ${jsFiles} public/scripts file(s) minified, ${jsBefore} -> ${jsAfter} bytes. ${jsKept} file(s) kept as original source.`);
 }
 
 main().catch((err) => {

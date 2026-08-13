@@ -95,6 +95,10 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
   box-shadow:0 0 18px 2px rgba(120,170,255,0.10)}
 #luna-portal.opening{animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards}
 @keyframes lunaPortal{0%{opacity:0;transform:scale(1.12)}38%{opacity:0.55;transform:scale(1.00)}100%{opacity:0;transform:scale(0.97)}}
+/* Below 900px #luna-wrap docks to the bottom-right corner instead of its
+   vh-based spot (see PortfolioLunaShell.astro's .luna-hidden rule) — keep
+   the arrival bloom anchored to that same corner. */
+@media (max-width:900px){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
 
 .hero{position:relative;height:100vh;min-height:640px;overflow:hidden;perspective:1400px}
 .hero .bg{position:absolute;inset:-8% -2%;will-change:transform}
@@ -318,6 +322,42 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .shead{flex-direction:column;align-items:flex-start}.shead .meta{text-align:left}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
   .cs-grid2{grid-template-columns:1fr;gap:40px}
+
+  /* Wire + filters route their labels through .meta (11px/2px tracking) —
+     that tracking is what makes small badges/tabs read as oversized on a
+     phone, so both size and letter-spacing come down here. */
+  .meta{font-size:9px;letter-spacing:1px}
+
+  /* ── Threat wire: smaller pills, tighter padding on every side, so the
+     ticker reads as a thin compact strip instead of a row of desktop-sized
+     badges squeezed onto a phone ── */
+  .wire-label{padding:8px 10px;gap:6px}
+  .wire-label .dot{width:5px;height:5px}
+  .wire-track{padding:6px 0}
+  .wire-item{padding:4px 8px;margin:0 5px;gap:5px}
+  .wire-item .sev,.wire-item .wid,.wire-item .wtx{font-size:9px;letter-spacing:1px}
+  .wire-item.skel{min-width:130px;height:22px}
+
+  /* ── Filters: only "All" + "See more" stay in the visible row — the four
+     primary categories move into the See more dialog alongside the
+     secondary set (see blog-index-client.js), so the tab row never has to
+     wrap on a narrow screen. ── */
+  .filter{gap:10px;padding:12px 0}
+  .tabs{gap:14px}
+  .tab[data-cat="detect"],.tab[data-cat="otics"],.tab[data-cat="auth"],.tab[data-cat="bb"]{display:none}
+  .tab .ring{width:8px;height:8px}
+  .sortwrap select{font-size:9px}
+  .count{margin-bottom:18px}
+
+  /* ── Cards: the 4:5 portrait photo is the single biggest source of
+     "bulk" in a one-column mobile grid — flattening it, plus tightening
+     the surrounding type/margins, reads as a compact list rather than
+     stacked desktop cards ── */
+  .grid{gap:20px 16px}
+  .card .ph{aspect-ratio:3/2}
+  .card .num{font-size:9.5px;top:10px;left:11px}
+  .card .cmeta{margin:10px 0 6px}
+  .card h3{font-size:17px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -345,6 +385,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
   #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
+  @media (max-width:900px){ #luna-quip{ bottom:146px; } }
 </style>
 </head>
 <body>
@@ -410,6 +451,18 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 <PortfolioLunaShell />
 <div id="luna-portal"></div>
 <div id="luna-quip" aria-hidden="true"></div>
+<script is:inline>
+/* Same fix as about.astro/index.astro: #luna-wrap's fixed top:calc(66vh+80px)
+   position ends up sitting over scrolling page content on mobile/tablet,
+   where that fixed screen band is a much larger share of a narrow viewport. */
+(function(){
+  var lw = document.getElementById('luna-wrap');
+  if(!lw) return;
+  function sync(){ lw.classList.toggle('luna-hidden', matchMedia('(max-width:900px)').matches); }
+  sync();
+  addEventListener('resize', sync, {passive:true});
+})();
+</script>
 
 <div class="hero">
   <div class="bg" id="herobg"><div class="hero-glow halo"></div><div class="hero-glow"></div></div>

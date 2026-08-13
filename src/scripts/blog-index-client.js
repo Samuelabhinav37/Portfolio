@@ -8,8 +8,14 @@
    a small residual inline script right before this one loads — define:vars
    only works for is:inline scripts, not external src files. */
 import { FAKE_PROJECTS } from '../data/projects.ts';
-import { PRIMARY_CATS, SECONDARY_CATS } from '../data/blog-categories.ts';
+import { PRIMARY_CATS, SECONDARY_CATS, PRIMARY_CAT_LABELS } from '../data/blog-categories.ts';
 import Lenis from '@studio-freight/lenis';
+
+/* Below 760px the four primary-category tabs are display:none (see
+   blog/index.astro) to keep the tab row from wrapping — they're folded
+   into the "See more" dialog instead, so nothing is actually unreachable,
+   just relocated. */
+const compactTabs=()=>matchMedia('(max-width:760px)').matches;
 
 const postCards = window.__POST_CARDS__ || [];
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -66,10 +72,13 @@ function syncTabUI(){
     const b=document.querySelector(`.tab[data-cat="${c}"]`);
     if(b)b.classList.toggle('on',selected.has(c));
   });
-  const extra=[...selected].filter(c=>!PRIMARY_CATS.includes(c)).length;
+  // On the compact (<=760px) tab row the primary buttons are hidden, so a
+  // primary-category selection is otherwise invisible — count it too.
+  const extra=compactTabs()?selected.size:[...selected].filter(c=>!PRIMARY_CATS.includes(c)).length;
   moreTab.textContent=extra?`See more (${extra}) →`:'See more →';
   moreTab.classList.toggle('on',extra>0);
 }
+addEventListener('resize',syncTabUI,{passive:true});
 document.getElementById('tabs').addEventListener('click',e=>{
   const b=e.target.closest('.tab[data-cat]');if(!b)return;
   const c=b.dataset.cat;
@@ -89,13 +98,22 @@ grid.addEventListener('click',e=>{
   const panel=dlg.querySelector('.flt-dialog__panel');
   const pillGrid=document.getElementById('fltPills');
   let lastFocused=null;
-  pillGrid.innerHTML=SECONDARY_CATS.map(([key,label])=>
-    `<button type="button" class="flt-pill" data-cat="${key}">${label}</button>`).join('');
+  function buildPills(){
+    // Compact tab row hides the primary buttons — fold them in here first
+    // so they stay reachable instead of just disappearing on mobile.
+    const cats=compactTabs()
+      ?[...PRIMARY_CATS.map(k=>[k,PRIMARY_CAT_LABELS[k]]),...SECONDARY_CATS]
+      :SECONDARY_CATS;
+    pillGrid.innerHTML=cats.map(([key,label])=>
+      `<button type="button" class="flt-pill" data-cat="${key}">${label}</button>`).join('');
+  }
+  buildPills();
   function syncPills(){
     pillGrid.querySelectorAll('.flt-pill').forEach(p=>p.classList.toggle('on',selected.has(p.dataset.cat)));
   }
   function focusables(){return [...panel.querySelectorAll('a[href],button')];}
   function open(){
+    buildPills();
     syncPills();
     lastFocused=document.activeElement;
     dlg.setAttribute('aria-hidden','false');
@@ -303,7 +321,7 @@ document.addEventListener('click',e=>{
 document.getElementById('heroFrame').addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
   e.preventDefault();
-  const p=projects[0];
+  const key=e.currentTarget.dataset.key;const p=key?projects.find(x=>x.seed===key):projects[0];
   if(p && p.href){ location.href=p.href; return; }
   if(!p) return;
   opener=e.currentTarget;openCase(p,null);
