@@ -97,7 +97,7 @@ export async function onRequestPost({ request, env }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Portfolio Contact <onboarding@resend.dev>',
+      from: 'Portfolio Contact <contact@samuelabhinav.com>',
       to: [TO_EMAIL],
       reply_to: email,
       subject: `Portfolio contact from ${name}`,
