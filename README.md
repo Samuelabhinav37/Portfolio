@@ -17,6 +17,7 @@ public/
   404.html            custom not-found page
   _redirects          /resume -> /resume.pdf
   _headers            Cloudflare Pages security headers (CSP, HSTS, etc.)
+  .well-known/security.txt  RFC 9116 vulnerability reporting contact
   robots.txt, sitemap.xml
   (everything in public/ is copied as-is into the build output)
 

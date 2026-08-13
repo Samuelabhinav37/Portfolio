@@ -1,0 +1,5 @@
+Contact: mailto:hello@samuelabhinav.com
+Expires: 2027-08-13T23:59:00.000Z
+Canonical: https://samuelabhinav.com/.well-known/security.txt
+Preferred-Languages: en
+Policy: https://github.com/Samuelabhinav37/Portfolio/security/policy
