@@ -37,7 +37,9 @@ const DIST = new URL('../dist/', import.meta.url);
 // both, so resolve it once here rather than passing DIST itself.
 const DIST_PATH = fileURLToPath(DIST);
 
-const SCRIPT_TAG_RE = /<script((?:\s+[^>]*)?)>([\s\S]*?)<\/script>/gi;
+// Attrs segment matches quoted attribute values as atomic units so a '>'
+// inside e.g. data-x=">" can't be mistaken for the tag's real closing '>'.
+const SCRIPT_TAG_RE = /<script((?:\s+(?:"[^"]*"|'[^']*'|[^"'>])*)?)>([\s\S]*?)<\/script>/gi;
 // about.astro embeds a whole mini-game as an HTML-entity-escaped srcdoc="..."
 // attribute (its own <script> tags appear as literal text once escaped, but
 // the raw string can still confuse a naive regex scan). Mask those spans out
@@ -49,6 +51,16 @@ function shouldSkip(attrs) {
   if (/type\s*=\s*["']?(importmap|application\/(ld\+)?json)["']?/i.test(attrs)) return true;
   if (/type\s*=\s*["']?module["']?/i.test(attrs)) return true; // import/export — left untouched
   return false;
+}
+
+const HTML_COMMENT_RE = /<!--[\s\S]*?-->/g;
+// A single .replace pass can leave a new "<!--...-->" behind where removing
+// one nested/malformed comment splices two surviving fragments back
+// together — reapply until a pass makes no further change.
+function stripCommentsFully(str) {
+  let prev;
+  do { prev = str; str = str.replace(HTML_COMMENT_RE, ''); } while (str !== prev);
+  return str;
 }
 
 function parsesCleanly(code) {
@@ -79,11 +91,11 @@ function stripHtmlComments(html) {
   // literal <!-- --> comments. Clean those before protecting the blob
   // wholesale, so decorative section markers don't survive inside it too.
   let masked = html.replace(SRCDOC_RE, (m) => {
-    const inner = m.replace(SCRIPT_TAG_RE, protect).replace(/<!--[\s\S]*?-->/g, '');
+    const inner = stripCommentsFully(m.replace(SCRIPT_TAG_RE, protect));
     return protect(inner);
   });
   masked = masked.replace(SCRIPT_TAG_RE, protect);
-  masked = masked.replace(/<!--[\s\S]*?-->/g, '');
+  masked = stripCommentsFully(masked);
   for (let i = chunks.length - 1; i >= 0; i--) {
     masked = masked.replace(`@@HTMLCOMMENT_PROTECT_${i}@@`, () => chunks[i]);
   }

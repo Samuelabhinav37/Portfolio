@@ -19,7 +19,11 @@
     {cveID:'CVE-2025-9932',vendorProject:'Apache',product:'Tomcat',dateAdded:'2026-07-09',ransom:false},
     {cveID:'CVE-2026-0421',vendorProject:'Zyxel',product:'Firewalls',dateAdded:'2026-07-05',ransom:false}
   ];
-  function esc(s){ return String(s||'').replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
+  /* Attribute-safe: also escapes quotes — this builds an aria-label="..." and
+     href="..." attribute below from KEV feed data, where a bare '<>&' escape
+     would still let a stray " break out of the attribute (see the same fix
+     on the threat-intel esc() further down this file). */
+  function esc(s){ return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); }
   function tok(v, hidden){
     var vp=esc(v.vendorProject)+(v.product?' '+esc(v.product):'');
     var r=v.ransom?'<span class="ed-ransom">RANSOMWARE</span>':'';

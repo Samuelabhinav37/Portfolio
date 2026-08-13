@@ -34,12 +34,15 @@ function stripCdata(s) {
   return s.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1');
 }
 function decodeEntities(s) {
+  // &amp; must decode last: decoding it first would turn a feed's own
+  // double-escaped "&amp;lt;" (literal text "&lt;") into "&lt;" and then
+  // straight into "<" on the next replace below — an unintended unescape.
   return s
-    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'");
+    .replace(/&#0?39;/g, "'")
+    .replace(/&amp;/g, '&');
 }
 function tag(block, name) {
   const m = block.match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i'));

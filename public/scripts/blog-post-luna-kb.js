@@ -27,7 +27,12 @@ function lunaSlugKeywords(text){
    bubble here deliberately renders replies via textContent (safe-by-
    default), so strip tags down to plain text first. */
 function lunaStripHtml(html){
-  return String(html||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+  var s = String(html||''), prev;
+  // Single-pass tag stripping can leave a new "<...>" behind where removing
+  // one malformed/nested tag splices two surviving fragments back together —
+  // reapply until a pass makes no further change.
+  do { prev = s; s = s.replace(/<[^>]+>/g,''); } while (s !== prev);
+  return s.replace(/\s+/g,' ').trim();
 }
 
 const KB = [];
