@@ -1,0 +1,116 @@
+---
+title: "The Analog Dawn: The Medieval Firewall"
+description: "Corporate LANs in the 1990s trusted anything plugged into an office wall jack. Connecting that trusted network to the open internet borrowed a much older idea for keeping it safe: a single guarded gate between everything inside and everything outside."
+category: "Security Fundamentals"
+pubDate: 2026-10-09
+tags: ["Analog Dawn", "Network Security", "Computing History"]
+cats: ["network"]
+heroImage: /images/medieval-firewall-hero.webp
+heroImageAlt: "A glowing orange wireframe castle built from binary code and ASCII characters, under attack from red hostile scan traffic streaming into its towers, with a blue wireframe floppy disk bearing a padlock icon standing at its center, set against a dark blue background covered in a real IP routing table, ARP table, packet captures, and a firewall log showing dropped connections."
+cardImage: /images/medieval-firewall-card.webp
+cardImageAlt: "A glowing orange wireframe castle built from binary code, under attack from red hostile traffic at its towers, with a blue wireframe floppy disk bearing a padlock icon at its center, centered against a dark blue background of network and firewall log readouts."
+faqs:
+  - q: "What is the castle-and-moat security model?"
+    a: "A network architecture that treats everything inside a defined perimeter as trusted and everything outside it as hostile, with a single guarded gateway, the firewall, inspecting all traffic that crosses the boundary in either direction. It borrows its name directly from medieval fortress design: a castle interior, a moat and wall marking the perimeter, and one drawbridge everyone has to cross."
+  - q: "What's the difference between a stateless and a stateful firewall?"
+    a: "A stateless packet filter checks each packet in total isolation, looking only at its source, destination, and port, with no memory of anything that came before it. A stateful firewall tracks the full lifecycle of a connection instead, so it can tell an actual reply to a request an insider made from an unsolicited connection someone on the internet is trying to force through, and drops the second kind automatically."
+  - q: "Who built the first firewalls?"
+    a: "Packet filtering traces back to Digital Equipment Corporation's screening router work in the late 1980s, alongside Bill Cheswick and Steve Bellovin's application-level gateway research at AT&T Bell Labs around the same time. Stateful inspection, the generation that actually dominated the 1990s, was pioneered commercially by Check Point's FireWall-1, released in 1994."
+  - q: "Why did firewalls stop being enough on their own?"
+    a: "Because a perimeter firewall only answers one question: should this traffic be allowed to cross the boundary. It has no opinion about what a machine already inside that boundary does next. Attackers adapted by hiding malicious traffic inside ports the firewall already allowed, and by getting a foothold through insiders, compromised laptops, and rogue devices plugged directly into an internal network jack, none of which the firewall was ever positioned to see."
+  - q: "What is Zero Trust and how is it different from the perimeter model?"
+    a: "The perimeter model trusts anything already inside the network boundary by default. Zero Trust drops that assumption entirely and verifies every request on its own merits, regardless of whether it originated inside or outside the network, treating internal traffic with the same scrutiny a 1990s firewall reserved only for the outside world."
+draft: false
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+<Dropcap letter="I">n the early 1990s, computing didn't just get personal. It got networked. Every desk in an office building got its own workstation, and those workstations got wired together to share printers, file servers, and internal systems nobody had built with a stranger on the other end of the wire in mind.</Dropcap>
+
+```text
++-----------------------------------------------------------+
+|               CORPORATE OFFICE NETWORK (LAN)              |
+|                                                           |
+|  [ Workstation A ] <====== (Zero Friction) ======> [ DB ] |
+|         ||                                          ||    |
+|  [ Workstation B ] <=========================> [ Server ] |
++-----------------------------------------------------------+
+```
+
+Inside the office perimeter, there were almost no internal locks: a cable plugged into a wall jack meant the machine on the other end was trusted, full stop. The moment a company wired that trusted network into the open, unregulated internet, every outside actor gained a direct line to workstations that had never expected a stranger to come knocking.
+
+## The castle and the moat
+
+To survive on the open internet without redesigning thousands of already-trusting internal systems, engineers borrowed a design that predates computing by centuries:
+
+- **The castle interior (trusted zone)**: the corporate LAN, where everything inside is assumed safe.
+- **The wilderness (untrusted zone)**: the open, hostile internet.
+- **The moat and wall (the perimeter)**: a hard line of physical and logical separation between inside and outside.
+- **The drawbridge (the firewall)**: the single gateway every byte of traffic has to cross, inspected by an automated guard on the way through.
+
+```text
+      UNTRUSTED                                             TRUSTED
+    (Wild Internet)                                      (Corporate LAN)
+                      +-----------------------------+
+                      |         THE DRAWBRIDGE      |
+[ External Traffic ] ===> [ Packet Filtering Firewall ] ===> [ Workstation ]
+                      |   - Match IP Header         |   ===> [ File Server ]
+                      |   - Match Port Number       |   ===> [ Intranet ]
+                      +-----------------------------+
+```
+
+<CaseFile
+  id="MOAT-88"
+  rows={[
+    { term: 'Assumption', desc: 'A cable in an office wall jack means the machine on the other end is trusted' },
+    { term: 'Trigger', desc: 'Corporate LANs connecting to the open internet in the early 1990s' },
+    { term: 'Fix deployed', desc: 'A single inspected gateway between the trusted network and the internet' },
+    { term: 'Root flaw', desc: 'Hard perimeter, soft interior, nothing stops movement once someone gets inside' },
+    { term: 'Modern equivalent', desc: 'Zero Trust and micro-segmentation, verifying every hop, not just the border' },
+  ]}
+/>
+
+## Evolution of the gatekeeper
+
+The earliest firewalls weren't intelligent. They were fast, narrow inspection stations, and they went through two real generations before the decade was out:
+
+1. **Stateless packet filters (late 1980s)**: the earliest drawbridge guards, rooted in Digital Equipment Corporation's screening-router work and in Bill Cheswick and Steve Bellovin's application-level gateway research at AT&T Bell Labs around 1988. Each guard checked only a packet's envelope, its source and destination IP, and the port number it was requesting. It had no memory. Every packet stood alone, which meant an attacker could craft one that merely looked like a reply and walk straight through the static rule table.
+2. **Stateful inspection (early 1990s)**: Check Point's FireWall-1, released in 1994, added an actual memory, a state table tracking a TCP connection through its full three-way handshake. An outbound request from an employee got logged as an active session. When the reply came back, the firewall checked it against that session and let it through. An unsolicited inbound connection, with no session to match, got dropped at the door instead.
+
+```text
+FIREWALL STATE TABLE:
+--------------------------------------------------------------------------------
+INSIDE IP:PORT          OUTSIDE IP:PORT          SESSION STATE    ACTION
+--------------------------------------------------------------------------------
+192.168.1.50:49152  <-> 203.0.113.10:80 (HTTP)   ESTABLISHED      ALLOW RETURN
+--------------------------------------------------------------------------------
+INBOUND PACKET (UNSOLICITED): 198.51.100.4 -> 192.168.1.50:22 (SSH) -> [ DROP ]
+```
+
+## The fatal architecture flaw
+
+<span class="highlight">Hard on the outside, soft and chewy on the inside.</span>
+
+- **"All threats come from outside the wall"**: insiders, disgruntled employees, and compromised laptops already sit inside the castle.
+- **"Firewalls block bad ports"**: attackers stopped attacking closed ports and started hiding malicious payloads inside the ports everyone already allowed, 80 and 443.
+- **"Physical presence equals trust"**: a rogue device plugged into an unlocked conference room's ethernet jack bypassed a multi-million-dollar firewall completely.
+
+<DetectionOpportunity>A perimeter firewall only ever answers one question: should this traffic be allowed to cross the boundary. It has no opinion on what a machine already inside the boundary does next. Once an adversary is past the drawbridge, whether through an infected floppy disk, a vulnerable web server, or a rogue jack in an empty conference room, the firewall offers zero visibility into lateral movement across the internal network.</DetectionOpportunity>
+
+> A wall only protects what's inside it from what's outside it. It has nothing to say about a threat that's already home.
+
+## The modern takeaway
+
+<CaseFile
+  id="MOAT-88 / translation"
+  rows={[
+    { term: 'Single hard boundary', desc: '&rarr; Micro-segmentation, firewalls at every internal hop' },
+    { term: 'Implicit internal trust', desc: '&rarr; Zero Trust: never trust, always verify' },
+    { term: 'Port and IP based blocking', desc: '&rarr; Application-aware next-gen firewalls (NGFW)' },
+  ]}
+/>
+
+The castle walls worked as long as traffic stayed on wires and data lived in a server room down the hall. Attackers who couldn't breach the firewall head-on simply stopped trying to. They pivoted to the machines already living inside the moat instead, carried in on an infected floppy disk, a rigged email attachment, anything an employee would trust enough to open themselves.
