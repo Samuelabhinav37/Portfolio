@@ -2,6 +2,15 @@ name = "portfolio"
 compatibility_date = "2026-08-06"
 pages_build_output_dir = "dist"
 
+# Plain (non-secret) vars. A wrangler.toml in the project root makes Pages
+# treat this file as the sole source of truth for bindings/vars — the
+# dashboard's Environment variables UI gets locked out for these once this
+# file exists, so TURNSTILE_HOSTNAMES has to live here, not there. Secrets
+# (below) are the one exception: they're never safe to commit, so they still
+# go through the dashboard/`wrangler pages secret put` regardless.
+[vars]
+TURNSTILE_HOSTNAMES = "samuelabhinav.com"
+
 # This project deploys as Cloudflare Pages (static build + Pages Functions
 # under functions/), not a standalone Worker — pages_build_output_dir is
 # what puts wrangler in Pages mode. Build command is `bun run build`
@@ -14,19 +23,20 @@ pages_build_output_dir = "dist"
 #   RESEND_API_KEY       — sends the contact-form email via Resend
 #   TURNSTILE_SECRET_KEY — server-side verification for the Turnstile widget
 #
-# Optional, plain (non-secret) env var — also set under Environment variables:
-#   TURNSTILE_HOSTNAMES — comma-separated hostnames allowed to have solved the
-#     Turnstile token (e.g. "samuelabhinav.com,your-project.pages.dev"). Left
-#     unset, hostname checking is skipped rather than rejecting everything —
-#     see the comment in functions/api/contact.js for why.
+# TURNSTILE_HOSTNAMES (set above, under [vars]) restricts which hostnames a
+# solved Turnstile token is accepted from — since it's set now, previewing
+# the contact form on a *.pages.dev preview deployment will fail Turnstile
+# verification (expected: those hostnames aren't in the allowlist). Test
+# against the production domain instead.
 
-# functions/api/contact.js optionally rate-limits (5 requests/60s per IP)
-# via an env.RATE_LIMITER binding — but Pages projects' wrangler.toml does
-# NOT support the top-level [[ratelimits]] block (that's Workers-only
-# config; "does not support ratelimits" fails Pages' config validation at
-# deploy time). For a Pages project this binding has to be added through
-# the dashboard instead: Pages project > Settings > Functions > Bindings >
-# Rate limiting, bound to the name RATE_LIMITER, 5 requests / 60s. The
-# contact function already guards for its absence (`if (env.RATE_LIMITER)`),
-# so the endpoint works fine without it too — just unrate-limited until the
-# binding is added.
+# functions/api/contact.js optionally rate-limits (5 requests/60s per IP) via
+# an env.RATE_LIMITER binding — deliberately left unconfigured. Pages
+# projects' wrangler.toml does not support the top-level [[ratelimits]]
+# block, rate-limiting bindings declared elsewhere in wrangler.toml are
+# unreliable for Pages production deploys, and once this file exists the
+# dashboard's own binding UI is locked out anyway — three dead ends for one
+# binding. Skipped as not worth it: Turnstile already requires a fresh,
+# single-use solve per submission, which caps abuse throughput on its own,
+# and Cloudflare's network-level DDoS protection covers volumetric attacks
+# regardless. The contact function already guards for RATE_LIMITER's absence
+# (`if (env.RATE_LIMITER)`), so revisit this only if abuse actually shows up.
