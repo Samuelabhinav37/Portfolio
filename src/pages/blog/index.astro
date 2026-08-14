@@ -22,7 +22,11 @@ const postCards = posts.map((p) => ({
   kick: p.data.category + ' · ' + p.data.pubDate.getFullYear(),
   year: p.data.pubDate.getFullYear(),
   seed: p.id,
-  img: p.data.cardImage || p.data.heroImage || null,
+  // Horizontal rows want a wide image, so heroImage (already ~1.9:1) is the
+  // primary source now — cardImage is kept only as a fallback for any post
+  // that happens to have one set without a heroImage, not something new
+  // posts need to supply.
+  img: p.data.heroImage || p.data.cardImage || null,
   lead: p.data.description,
   href: '/blog/' + p.id + '/',
 }));
@@ -35,6 +39,14 @@ const heroItem = FAKE_PROJECTS[0] ?? postCards[0] ?? null;
 // instead) — narrow explicitly rather than accessing heroItem.href, which
 // TS rejects on the FakeProject branch of the union.
 const heroHref = heroItem && 'href' in heroItem ? heroItem.href : null;
+// Anthropic-style static hero: one big featured item plus a short text list
+// of the next few recent posts beside it — skip postCards[0] only when it's
+// actually the one occupying the featured slot (FAKE_PROJECTS is currently
+// empty on purpose, so today heroItem always comes from postCards[0]).
+const sideItems = (FAKE_PROJECTS.length ? postCards : postCards.slice(1)).slice(0, 5);
+// The grid/table below needs to exclude whatever's already shown up here —
+// otherwise the same 3-4 posts appear twice on first load, back to back.
+const featuredSeeds = [heroItem, ...sideItems].filter(Boolean).map((p) => p.seed);
 ---
 
 <!DOCTYPE html>
@@ -100,51 +112,41 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
    the arrival bloom anchored to that same corner. */
 @media (max-width:900px){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
 
-.hero{position:relative;height:100vh;min-height:640px;overflow:hidden;perspective:1400px}
-.hero .bg{position:absolute;inset:-8% -2%;will-change:transform}
-/* Gemini-glow style ambient hero: a soft blurred rounded-rect light source
-   instead of a project screenshot. .halo is a larger, softer wash behind the
-   brighter inner blob, same trick as the reference demo. */
-.hero-glow{position:absolute;left:50%;top:52%;width:46%;height:42%;transform:translate(-50%,-50%);
-  border-radius:40px;filter:blur(90px);z-index:1;
-  background:radial-gradient(ellipse 70% 70% at 50% 50%,
-    hsla(226,8%,28%,0.5) 0%, hsla(226,8%,20%,0.28) 60%, hsla(226,6%,14%,0.12) 100%)}
-.hero-glow.halo{width:69%;height:63%;filter:blur(126px);opacity:0.55}
-/* Frosted-glass layer: sits between the glow and the title card, darkening
-   and blurring what's behind it for an opaque "glass panel" read rather than
-   a flat gradient wash. */
-.hero::after{content:"";position:absolute;inset:0;z-index:2;
-  background:linear-gradient(180deg,rgba(10,10,13,.09),rgba(10,10,13,.03) 38%,rgba(8,8,10,.18));
-  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);}
-.frame{position:absolute;z-index:3;top:50%;left:50%;overflow:hidden;
-  transform:translate(-50%,-46%) rotateY(var(--hero-rot,0deg));transform-style:preserve-3d;
-  width:min(540px,80vw);height:min(420px,56vh);border:1px solid var(--line);padding:26px 28px;
-  display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;
-  opacity:0;transition:opacity 1s var(--e),border-color .5s,background .5s,transform 1.3s cubic-bezier(.65,0,.35,1)}
-.is-loaded .frame{opacity:1;transition-delay:.75s}
-.frame:hover{border-color:#fff;background:rgba(var(--c-white),.03)}
-/* Rotator's per-item image — cover-fit behind the text, dimmed + gradient
-   so the meta/title stay legible over whatever photo is showing. No [src]
-   attr (posts without a cardImage/heroImage) just shows the plain card
-   background underneath, no broken-image icon. No backface-visibility
-   here on purpose — as the card turns past edge-on it shows the natural
-   mirrored reverse of the current face, which is the effect being kept. */
-.frame-bg{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;
-  opacity:0;filter:grayscale(.4) brightness(.55);transition:opacity .6s var(--e)}
-.frame-bg[src]{opacity:1}
-.frame::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(180deg,rgba(8,8,12,.15),rgba(8,8,12,.65) 70%,rgba(8,8,12,.85))}
-.frame .top,.frame h1{position:relative;z-index:2}
-.frame .top{display:flex;justify-content:space-between;align-items:flex-start}
-.frame .top .meta{color:#dcdce0}
-.frame .ar{font-size:17px;color:#dcdce0;transition:transform .4s var(--e)}
-.frame:hover .ar{transform:translate(3px,-3px)}
-.frame h1{font-weight:300;font-size:clamp(32px,4.5vw,52px);line-height:1.02;letter-spacing:-1px;color:#fff}
-.cue{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:3;display:flex;
-  flex-direction:column;align-items:center;gap:8px;color:#bdbdc2;opacity:.65}
-.cue .ln{width:1px;height:34px;background:#bdbdc2;animation:drop 2s var(--e) infinite}
-@keyframes drop{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}
-  55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* Anthropic-style static hero: one big featured post (image, kicker, title,
+   excerpt) beside a short text list of a few more recent ones — replaces
+   the old full-viewport rotating flip-card. The page-wide #content-scrim
+   (blur + dark overlay, added separately) already handles darkening the
+   starfield behind this section, so no dedicated hero glow/frosted-glass
+   layer is needed here anymore either. */
+/* Flex, not grid — a proportional 1.6fr/1fr grid split stretched the
+   featured card's column across most of the page while its actual content
+   (a capped-width image + text) stayed narrow, leaving a big dead gap
+   before the side list started. Flex with a content-sized basis on each
+   side + justify-content:center means both blocks size to what they
+   actually need and sit snug next to each other, centered as one group. */
+.hero2{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;
+  gap:56px;padding:96px 38px 64px;max-width:1400px;margin:0 auto}
+.hero2-feat{position:relative;display:block;flex:0 1 540px;text-decoration:none;color:inherit;cursor:pointer;
+  opacity:0;transform:translateY(24px);transition:opacity 1s var(--e),transform 1s var(--e)}
+.is-loaded .hero2-feat{opacity:1;transform:none;transition-delay:.3s}
+.hero2-imgwrap{position:relative;aspect-ratio:16/10;overflow:hidden;border-radius:6px;background:#101012;margin-bottom:22px}
+.hero2-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:grayscale(.35) brightness(.75);transition:filter .5s var(--e),transform .7s var(--e)}
+.hero2-feat:hover .hero2-imgwrap img{filter:grayscale(0) brightness(.9);transform:scale(1.03)}
+.hero2-feat .meta{color:var(--faint)}
+.hero2-feat h1{margin-top:10px;font-weight:300;font-size:clamp(26px,2.6vw,36px);line-height:1.12;
+  letter-spacing:-1px;color:#fff}
+.hero2-feat p{margin-top:14px;color:var(--faint);font-size:15px;line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.hero2-side{display:flex;flex-direction:column;flex:0 1 360px;padding-top:6px;
+  opacity:0;transform:translateY(24px);transition:opacity 1s var(--e),transform 1s var(--e)}
+.is-loaded .hero2-side{opacity:1;transform:none;transition-delay:.5s}
+.hero2-item{display:block;text-decoration:none;color:inherit;padding:20px 0;border-top:1px solid var(--line-soft)}
+.hero2-side .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
+.hero2-item .meta{color:var(--faint)}
+.hero2-item h3{margin-top:8px;font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
+.hero2-item:hover h3{color:#fff}
 
 /* ── THREAT WIRE — live ticker (NVD → CIRCL → static pills fallback).
    Awwwards-pattern mechanics: measured track duplication for a seamless
@@ -193,41 +195,70 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .shead h2{font-weight:200;font-size:clamp(44px,8vw,104px);line-height:.86;letter-spacing:-2px;color:#fff}
 .shead .meta{color:var(--faint);text-align:right;padding-bottom:10px;line-height:2}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:30px 24px}
+/* Top 3 posts get real image cards — this page's one "featured" slot
+   (Anthropic gives theirs to a single post; this extends it to 3 since
+   there's no separate rotating hero competing for that role here).
+   Everything past that drops to a plain Anthropic-style table (see .tbl
+   below) — no thumbnail, no box, just date/category/title — so the
+   archive stays light and scannable instead of turning into an
+   ever-taller photo wall as more posts land. */
+.card{text-decoration:none;color:inherit;cursor:pointer;opacity:0;transform:translateY(20px);
+  transition:opacity .8s var(--e),transform .8s var(--e)}
+.card:visited{color:inherit}
+.card.in{opacity:1;transform:none}
+
+/* auto-fit (not auto-fill): with only 3 cards, auto-fill was reserving
+   empty phantom column tracks to the right instead of letting the 3 real
+   cards stretch to fill the row — the whole page read as "stuck on the
+   left" because of it. auto-fit collapses those empty tracks so the 1fr
+   cards actually expand to fill the available width. */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;margin-bottom:64px;padding-bottom:56px;border-bottom:1px solid var(--line-soft)}
 .no-results{grid-column:1/-1;padding:60px 0;text-align:center;color:var(--faint);font-size:15px;line-height:1.9}
 .no-results button{margin-top:6px;background:none;border:none;color:var(--muted);font:inherit;cursor:pointer;
   text-decoration:underline;text-underline-offset:4px;transition:color .3s}
 .no-results button:hover{color:#fff}
-.card{display:block;text-decoration:none;color:inherit;cursor:pointer;opacity:0;transform:translateY(26px);
-  transition:opacity .9s var(--e),transform .9s var(--e)}
-.card:visited{color:inherit}
-.card.in{opacity:1;transform:none}
-.card .ph{position:relative;aspect-ratio:4/5;overflow:hidden;background:#101012}
-/* Static stand-in for cards with no real photo (no cardImage/heroImage set) —
-   same gradient BlogPost.astro uses for its hero-art placeholder, so a
-   missing image reads as an intentional treatment, not a broken load. */
-.card .ph.noimg{background:
+.grid .card{display:block}
+.grid .card .ph{position:relative;aspect-ratio:16/10;overflow:hidden;background:#101012;border-radius:4px}
+/* Static stand-in for cards with no real photo (no heroImage set) — same
+   gradient BlogPost.astro uses for its hero-art placeholder, so a missing
+   image reads as an intentional treatment, not a broken load. */
+.grid .card .ph.noimg{background:
   radial-gradient(at 50% 32%,rgba(132,132,146,.30) 0%,rgba(70,70,80,.18) 38%,transparent 70%),
   linear-gradient(165deg,rgba(36,36,42,.95) 0%,rgba(10,10,12,.98) 100%)}
-.card .ph::before,.cs-herowrap::before{content:"";position:absolute;inset:0;z-index:1;
+.grid .card .ph::before{content:"";position:absolute;inset:0;z-index:1;
   background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
   animation:shim 1.6s linear infinite;transition:opacity .7s ease;opacity:1}
-.card .ph.loaded::before,.cs-herowrap.loaded::before{opacity:0}
+.grid .card .ph.loaded::before{opacity:0}
 @keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.card .ph img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:2;
+.grid .card .ph img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:2;
   filter:grayscale(1) brightness(.78);opacity:0;
   transform:scale(1.03);transition:filter .7s var(--e),transform .9s var(--e),opacity .6s ease}
-.card .ph.loaded img{opacity:1}
-.card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,15,17,.05),rgba(15,15,17,.5))}
-.card:hover .ph img{filter:grayscale(0) brightness(.94);transform:scale(1.09)}
-.card .num{position:absolute;top:13px;left:15px;z-index:2;color:#fff;opacity:.55;font-size:11px;
-  font-weight:500;letter-spacing:2px;transition:opacity .4s}
-.card:hover .num{opacity:1}
-.card .cmeta{display:flex;justify-content:space-between;color:var(--faint);margin:15px 0 8px}
-.card h3{font-weight:400;font-size:clamp(19px,1.6vw,23px);line-height:1.18;letter-spacing:-.2px;
-  color:var(--ink);max-width:24ch;position:relative;display:inline-block}
-.card h3::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
-.card:hover h3{color:#fff}.card:hover h3::after{width:100%}
+.grid .card .ph.loaded img{opacity:1}
+.grid .card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,15,17,.05),rgba(15,15,17,.5))}
+.grid .card:hover .ph img{filter:grayscale(0) brightness(.94);transform:scale(1.06)}
+.grid .card .cbody{margin-top:16px}
+.grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px}
+.grid .card .cmeta span+span::before{content:"·";margin:0 8px}
+.grid .card h3{font-weight:400;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);transition:color .3s}
+.grid .card:hover h3{color:#fff}
+.grid .card .clead{margin-top:8px;color:var(--faint);font-size:14px;line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Anthropic's actual "News" archive pattern: a literal date/category/title
+   table, dividers instead of boxes, no imagery at all. */
+/* Capped and centered rather than letting the title column's 1fr stretch
+   across the whole page — on a wide screen that just left short titles
+   hugging the left edge with a huge dead gap after them. A comfortable
+   reading-width column, centered under the full-width grid above it. */
+.tbl{display:flex;flex-direction:column;max-width:880px;margin:0 auto}
+.trow{display:grid;grid-template-columns:70px 180px 1fr;gap:20px;align-items:baseline;
+  padding:16px 4px;border-bottom:1px solid var(--line-soft);transition:background-color .3s}
+.trow-head{pointer-events:none}
+.trow-head span{color:var(--faint);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
+a.trow:hover{background:rgba(255,255,255,.02)}
+.trow-date,.trow-cat{color:var(--faint);font-size:13px}
+.trow-title{font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .3s}
+a.trow:hover .trow-title{color:#fff}
 
 .filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
   border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:16px 0;margin-bottom:24px}
@@ -291,6 +322,11 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   cursor:pointer;mix-blend-mode:difference}
 .cs-herowrap{position:relative;width:100%;height:64vh;min-height:380px;overflow:hidden;background:#101012}
 .cs-hero{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.7);opacity:0;position:relative;z-index:2;transition:opacity .5s ease}
+.cs-herowrap::before{content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
+  animation:shim 1.6s linear infinite;transition:opacity .7s ease;opacity:1}
+.cs-herowrap.loaded::before{opacity:0}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .cs-herowrap::after{content:"";position:absolute;inset:0;z-index:3;background:linear-gradient(180deg,rgba(27,27,30,.4),rgba(27,27,30,.85))}
 .cs-body{max-width:1100px;margin:0 auto;padding:0 38px 120px}
 .cs-rev{opacity:0;transform:translateY(20px);transition:opacity .8s var(--e),transform .8s var(--e)}
@@ -316,8 +352,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 .cs-side .lk:hover{color:#fff}.cs-side .lk .ar{float:right;color:var(--faint)}
 
 @media(max-width:760px){
-  .hero{height:90vh}
-  .frame{top:auto;bottom:8vh;transform:translate(-50%,0) rotateY(var(--hero-rot,0deg))}
+  .hero2{grid-template-columns:1fr;gap:36px;padding:84px 20px 40px}
   .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
   .shead{flex-direction:column;align-items:flex-start}.shead .meta{text-align:left}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
@@ -349,19 +384,18 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .sortwrap select{font-size:9px}
   .count{margin-bottom:18px}
 
-  /* ── Cards: the 4:5 portrait photo is the single biggest source of
-     "bulk" in a one-column mobile grid — flattening it, plus tightening
-     the surrounding type/margins, reads as a compact list rather than
-     stacked desktop cards ── */
-  .grid{gap:20px 16px}
-  .card .ph{aspect-ratio:3/2}
-  .card .num{font-size:9.5px;top:10px;left:11px}
-  .card .cmeta{margin:10px 0 6px}
-  .card h3{font-size:17px}
+  .grid{grid-template-columns:1fr;gap:24px}
+  .grid .card .cmeta{margin-bottom:6px;font-size:11px}
+  .grid .card h3{font-size:17px}
+
+  /* Category column is the first thing to go on a narrow screen — date and
+     title carry the row fine on their own. */
+  .trow{grid-template-columns:56px 1fr;gap:14px;padding:14px 2px}
+  .trow-cat{display:none}
+  .trow-title{font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
-  .hero .bg{transform:none!important}
 }
 </style>
 <style is:global>
@@ -391,6 +425,27 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 <body>
 
 <NebulaBackground />
+<!-- NebulaBackground's own #bg-dim sits deliberately BELOW the ships/stars
+     canvas (#sc) so it only darkens the nebula glow, not the animated
+     foreground CRAFT already brightens — correct for the other pages, but
+     this page is now dense, text-heavy tables/cards that need to read
+     clearly over whatever's moving behind them. A second, page-local scrim
+     ABOVE the whole nebula stack (not touching the shared component, so
+     index/about/contact are unaffected) — plain fixed div, no explicit
+     z-index needed: it paints above #window (position:fixed, z-index:auto)
+     purely by coming later in the DOM at the same stacking tier, and stays
+     below real content since every content section already carries an
+     explicit z-index that beats z-index:auto regardless of DOM order.
+     backdrop-filter:blur here softens the stars/ships themselves too, same
+     "frosted glass" trick the featured hero's own .hero::after already
+     uses over its title card — just extended across the whole page instead
+     of one small area, since backdrop-filter only blurs what's behind an
+     element, never the real content stacked above it. -->
+<div id="content-scrim" aria-hidden="true"></div>
+<style>
+  #content-scrim{position:fixed;inset:0;pointer-events:none;background:rgba(0,0,0,.5);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+</style>
 
 <SiteMenu currentPath="/blog" />
 
@@ -464,24 +519,32 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 })();
 </script>
 
-<div class="hero">
-  <div class="bg" id="herobg"><div class="hero-glow halo"></div><div class="hero-glow"></div></div>
-  <article
-    class="frame"
+<section class="hero2">
+  <a
+    class="hero2-feat"
     id="heroFrame"
-    tabindex="0"
-    role="link"
-    data-key={heroItem?.seed}
+    href={heroHref || '#'}
+    data-key={heroHref ? undefined : heroItem?.seed}
     aria-label={heroItem
       ? `${heroItem.kick} — ${heroItem.name}: ${heroHref ? 'read the post' : 'open case study'}`
       : 'Nothing featured yet'}
   >
-    <img class="frame-bg" id="heroFrameImg" alt="" aria-hidden="true" loading="eager" src={heroItem?.img || undefined}>
-    <div class="top"><span class="meta">{heroItem?.kick ?? ''}</span><span class="ar" aria-hidden="true">↗</span></div>
+    <div class="hero2-imgwrap"><img alt="" loading="eager" src={heroItem?.img || undefined}></div>
+    <span class="meta">{heroItem?.kick ?? ''}</span>
     <h1>{heroItem?.name ?? 'More stories soon'}</h1>
-  </article>
-  <div class="cue"><span class="ln"></span><span class="meta">Scroll</span></div>
-</div>
+    {heroItem?.lead && <p>{heroItem.lead}</p>}
+  </a>
+  {sideItems.length > 0 && (
+    <div class="hero2-side">
+      {sideItems.map((p) => (
+        <a class="hero2-item" href={p.href}>
+          <span class="meta">{p.kick}</span>
+          <h3>{p.name}</h3>
+        </a>
+      ))}
+    </div>
+  )}
+</section>
 
 <div class="wire" aria-label="Live security threat wire">
   <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
@@ -505,6 +568,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   </div>
   <div class="count meta" id="count">Showing <b>09</b> of <b>09</b> results</div>
   <div class="grid" id="grid"></div>
+  <div class="tbl" id="tbl"></div>
 </section>
 
 <div id="filterDialog" class="flt-dialog" aria-hidden="true">
@@ -543,75 +607,8 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   </div>
 </div>
 
-<script is:inline define:vars={{ postCards }}>window.__POST_CARDS__ = postCards;</script>
+<script is:inline define:vars={{ postCards, featuredSeeds }}>window.__POST_CARDS__ = postCards; window.__FEATURED_SEEDS__ = featuredSeeds;</script>
 <script src="../../scripts/blog-index-client.js"></script>
-<!-- Hero rotator: cycles #heroFrame through a few recent projects/posts with
-     a slow cube-style turn, instead of always showing a hardcoded Sentinel.
-     type="module" so it's deferred and runs after blog-index-client.js in
-     document order (both are modules — deferred scripts execute in source
-     order), guaranteeing window.projects/window.openCase already exist. -->
-<script type="module">
-(function(){
-  var frame=document.getElementById('heroFrame');
-  if(!frame || !window.projects) return;
-  var metaEl=frame.querySelector('.top .meta'), h1El=frame.querySelector('h1'), imgEl=document.getElementById('heroFrameImg');
-  if(!metaEl || !h1El) return;
-
-  // Illustrative case-study projects (no .href — opened via the existing
-  // data-key → openCase flow, unchanged) mixed with a couple of the most
-  // recent real posts (have .href — need actual navigation, since openCase
-  // expects the richer FakeProject shape posts don't have).
-  var cases=window.projects.filter(function(p){ return !p.href; }).slice(0,3);
-  var posts=window.projects.filter(function(p){ return p.href; }).slice(0,2);
-  var ITEMS=cases.concat(posts);
-  if(ITEMS.length<2) return; // nothing to rotate through
-
-  function show(item){
-    metaEl.textContent=item.kick;
-    h1El.textContent=item.name;
-    if(imgEl){ if(item.img) imgEl.src=item.img; else imgEl.removeAttribute('src'); }
-    if(item.href){
-      frame.setAttribute('href',item.href);
-      frame.removeAttribute('data-key');
-      frame.setAttribute('aria-label',item.kick+' — '+item.name+': read the post');
-    } else {
-      frame.removeAttribute('href');
-      frame.setAttribute('data-key',item.seed);
-      frame.setAttribute('aria-label',item.kick+' — '+item.name+': open case study');
-    }
-  }
-
-  // The shared document click handler in blog-index-client.js already does
-  // the right thing for the data-key/openCase case; #heroFrame is an
-  // <article>, not an <a>, so a plain href attribute doesn't natively
-  // navigate — handle that one case ourselves, and let everything else
-  // (case-study clicks) fall through to the existing handler untouched.
-  frame.addEventListener('click',function(e){
-    var href=frame.getAttribute('href');
-    if(href){ e.stopPropagation(); location.href=href; }
-  });
-
-  var idx=0, rot=0, reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  show(ITEMS[0]);
-  var timer=null;
-  function tick(){
-    rot+=180;
-    frame.style.setProperty('--hero-rot',rot+'deg');
-    // Swap content ~halfway through the 1.3s turn (card is edge-on, then
-    // mirrored past that point) rather than pre-painting a hidden back
-    // face — the mirrored-text moment as it swings past is the effect
-    // being kept here.
-    setTimeout(function(){ idx=(idx+1)%ITEMS.length; show(ITEMS[idx]); }, 650);
-  }
-  function start(){ if(timer||reduce) return; timer=setInterval(tick,6000); }
-  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
-  start();
-  frame.addEventListener('mouseenter',stop);
-  frame.addEventListener('mouseleave',start);
-  frame.addEventListener('focus',stop);
-  frame.addEventListener('blur',start);
-})();
-</script>
 <script src="../../scripts/blog-luna-companion.js"></script>
 
 

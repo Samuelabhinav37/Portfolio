@@ -18,10 +18,13 @@ import Lenis from '@studio-freight/lenis';
 const compactTabs=()=>matchMedia('(max-width:760px)').matches;
 
 const postCards = window.__POST_CARDS__ || [];
+const featuredSeeds = new Set(window.__FEATURED_SEEDS__ || []);
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-// Real MDX writeups merged into the same feed as the illustrative projects.
-const projects = [...FAKE_PROJECTS, ...postCards];
+// Real MDX writeups merged into the same feed as the illustrative projects —
+// minus whatever's already shown in the static hero above (featuredSeeds),
+// so the same posts don't appear twice on first load.
+const projects = [...FAKE_PROJECTS, ...postCards].filter(p => !featuredSeeds.has(p.seed));
 
 // This blog's own subject matter is injection/XSS writeups, so a post title
 // or kicker containing '<', '"', or '&' is a real (if self-inflicted) risk
@@ -29,15 +32,31 @@ const projects = [...FAKE_PROJECTS, ...postCards];
 // same as the Threat Wire ticker's esc() further down this file.
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-// Posts without a cardImage/heroImage get the site's static gradient
-// placeholder (same treatment as BlogPost.astro's .hero-art--placeholder)
-// instead of a random unrelated photo pulled from a third-party service.
-const card=(p,n,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
-  <div class="ph${p.img?'':' noimg loaded'}"><span class="num">${String(n).padStart(2,'0')}</span>${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
-  <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
-  <h3>${esc(p.name)}</h3></a>`;
+// The 3 most recent posts get a real image card (wide heroImage on top,
+// category/date, title, excerpt) — same treatment Anthropic gives its one
+// featured slot, just extended to 3 since this page doesn't have a
+// separate rotating hero competing for that role. Posts without a
+// heroImage get the site's static gradient placeholder (same treatment as
+// BlogPost.astro's .hero-art--placeholder) instead of a random unrelated
+// photo pulled from a third-party service.
+const card=(p,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
+  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
+  <div class="cbody">
+    <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
+    <h3>${esc(p.name)}</h3>
+    ${p.lead?`<p class="clead">${esc(p.lead)}</p>`:''}
+  </div></a>`;
 
-const grid=document.getElementById('grid'),countEl=document.getElementById('count');
+// Everything past the top 3 becomes a plain table row — Anthropic's actual
+// pattern for its full news archive (a literal DATE / CATEGORY / TITLE
+// table, no thumbnails, no per-row box) — so the page stays scannable as
+// the archive grows well past what a photo grid could hold gracefully.
+const row=(p,d)=>`<a href="${esc(p.href||'#')}" class="card trow" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
+  <span class="trow-date">${esc(p.year)}</span>
+  <span class="trow-cat">${esc(p.kick.split('·')[0].trim())}</span>
+  <span class="trow-title">${esc(p.name)}</span></a>`;
+
+const grid=document.getElementById('grid'),tbl=document.getElementById('tbl'),countEl=document.getElementById('count');
 /* Filtering is multi-select across two tiers:
      - primary: the always-visible tab row (detect/otics/auth/bb)
      - secondary: the fuller domain taxonomy, tucked behind "See more" so the
@@ -47,16 +66,22 @@ let selected=new Set(),sort='latest';
 function matches(p){return selected.size===0||(p.cats||[]).some(c=>selected.has(c));}
 function render(){
   const firsts={};
-  grid.querySelectorAll('.card').forEach(c=>firsts[c.dataset.key]=c.getBoundingClientRect());
+  [grid,tbl].forEach(el=>el.querySelectorAll('.card').forEach(c=>firsts[c.dataset.key]=c.getBoundingClientRect()));
   let list=projects.filter(matches);
   if(sort==='latest')list.sort((a,b)=>b.year-a.year);
   if(sort==='oldest')list.sort((a,b)=>a.year-b.year);
   if(sort==='az')list.sort((a,b)=>a.name.localeCompare(b.name));
-  grid.innerHTML=list.length?list.map((p,i)=>card(p,i+1,0)).join(''):
-    `<div class="no-results">Nothing filed under this category yet.<br><button type="button" data-clear-filters>Clear filters →</button></div>`;
+  const featured=list.slice(0,3),rest=list.slice(3);
+  if(!list.length){
+    grid.innerHTML=`<div class="no-results">Nothing filed under this category yet.<br><button type="button" data-clear-filters>Clear filters →</button></div>`;
+    tbl.innerHTML='';
+  }else{
+    grid.innerHTML=featured.map((p)=>card(p,0)).join('');
+    tbl.innerHTML=rest.length?`<div class="trow trow-head" aria-hidden="true"><span class="trow-date">Date</span><span class="trow-cat">Category</span><span class="trow-title">Title</span></div>${rest.map((p)=>row(p,0)).join('')}`:'';
+  }
   const n=String(list.length).padStart(2,'0');
   countEl.innerHTML=`Showing <b>${n}</b> of <b>${n}</b> results`;
-  [...grid.querySelectorAll('.card')].forEach((c,i)=>{
+  [...grid.querySelectorAll('.card'),...tbl.querySelectorAll('.card')].forEach((c,i)=>{
     c.classList.add('in');
     const f=firsts[c.dataset.key];
     if(f&&!reduce){
@@ -69,7 +94,6 @@ function render(){
       requestAnimationFrame(()=>{c.style.transition=`opacity .55s var(--e) ${i*0.04}s,transform .55s var(--e) ${i*0.04}s`;c.style.opacity='';c.style.transform='';});
     }
   });
-  grid.querySelectorAll('.ph img').forEach(im=>{if(im.complete)im.closest('.ph').classList.add('loaded');});
 }
 const moreTab=document.getElementById('moreTab');
 function syncTabUI(){
@@ -244,16 +268,18 @@ addEventListener('resize',(()=>{let t;return()=>{clearTimeout(t);
 
 window.addEventListener('load',()=>{document.body.classList.add('is-loaded');render();});
 
-const bg=document.getElementById('herobg');let sy=0,lastY=0,lenis;
-const parallax=()=>{if(!reduce)bg.style.transform=`translateY(${sy*0.28}px)`;};
-const onScroll=y=>{sy=y;parallax();lastY=y;};
 /* header hide-on-scroll removed with the header — the ported identity +
    menu trigger stay fixed, matching the homepage.
    Lenis is now a bundled import (self-hosted) instead of a CDN <script>
-   global, so no window.Lenis existence check is needed anymore. */
-if(!reduce){lenis=new Lenis({lerp:.085});lenis.on('scroll',e=>onScroll(e.scroll));
-  (function raf(t){lenis.raf(t);requestAnimationFrame(raf);})();}
-else{addEventListener('scroll',()=>onScroll(scrollY));}
+   global, so no window.Lenis existence check is needed anymore. Kept only
+   for its stop()/start() pause during the case-study slide-over open/close
+   below — it used to also drive a hero parallax effect, but that moved a
+   glow layer the Anthropic-style static hero redesign removed. */
+let lenis;
+if(!reduce){
+  lenis=new Lenis({lerp:.085});
+  (function raf(t){lenis.raf(t);requestAnimationFrame(raf);})();
+}
 
 /* case study */
 const cs=document.getElementById('cs');let opener=null;
@@ -323,14 +349,6 @@ document.addEventListener('click',e=>{
   if(p && p.href){ location.href=p.href; return; }
   if(!p) return;
   opener=a;openCase(p,a.querySelector('img'));
-});
-document.getElementById('heroFrame').addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  e.preventDefault();
-  const key=e.currentTarget.dataset.key;const p=key?projects.find(x=>x.seed===key):projects[0];
-  if(p && p.href){ location.href=p.href; return; }
-  if(!p) return;
-  opener=e.currentTarget;openCase(p,null);
 });
 document.getElementById('csBack').addEventListener('click',closeCase);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&cs.classList.contains('open'))closeCase();});
