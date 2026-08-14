@@ -314,12 +314,21 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         <aside class="left-sidebar">
           <div class="rail-sticky">
             {toc.length > 0 && (
-              <nav class="toc" aria-label="Table of contents">
+              <!-- Collapses to a short bar per heading; hovering (or
+                   focusing, for keyboard users) reveals the text in place.
+                   Same position/markup as the old always-visible TOC — only
+                   each link's content changed, plus the CSS that hides the
+                   text until hovered. Desktop only; .toc-inline above is the
+                   separate, untouched narrow-viewport fallback. -->
+              <nav class="toc" aria-label={i18n.onThisPage}>
                 <div class="left-sidebar-heading">{i18n.onThisPage}</div>
                 <ol class="toc-list" id="tocList">
                   {toc.map((h) => (
                     <li class={h.depth === 3 ? 'toc-sub' : undefined}>
-                      <a href={'#' + h.slug} data-target={h.slug}>{h.text}</a>
+                      <a href={'#' + h.slug} data-target={h.slug}>
+                        <span class="toc-bar" aria-hidden="true"></span>
+                        <span class="toc-text">{h.text}</span>
+                      </a>
                     </li>
                   ))}
                 </ol>
