@@ -1,0 +1,112 @@
+---
+title: "The Analog Dawn: Cleartext Catastrophes"
+description: "When mainframes left isolated university basements and joined ARPANET, engineers built protocols for connectivity, not confidentiality. Telnet and FTP sent every password across the wire in plain, readable text."
+category: "Security Fundamentals"
+pubDate: 2026-08-28
+tags: ["Analog Dawn", "Network Security", "Computing History"]
+cats: ["auth", "network"]
+heroImage: /images/cleartext-hero.webp
+heroImageAlt: "A glowing blue wireframe padlock built from binary code, its body pried open and streaming green intercepted data straight through the middle, set against a dark blue background scattered with terminal readouts: system boot logs, a network scan, a code fragment, and a packet capture table."
+cardImage: /images/cleartext-card.webp
+cardImageAlt: "A glowing blue wireframe padlock built from binary code, its body pried open and streaming green intercepted data through the middle, centered against a dark blue background with faint terminal logs around the edges."
+faqs:
+  - q: "Why were early internet protocols like Telnet and FTP insecure?"
+    a: "They were built when the network itself was assumed to be private and trustworthy, usually a handful of university and government machines that already knew each other. Telnet (1969) and FTP (1971) converted keystrokes and commands into plain ASCII and sent them across the wire exactly as typed, including usernames and passwords. Nobody designed for a stranger listening in, because for years there wasn't one."
+  - q: "What is a packet sniffer and how did it steal passwords?"
+    a: "Early Ethernet broadcast every frame to every machine sharing the same wire or hub, and a network card normally just discarded traffic addressed to someone else. A packet sniffer switches the card into promiscuous mode instead, so it keeps everything. Tools like tcpdump and Wireshark then reassemble that raw traffic back into readable text, including any cleartext login like Telnet's or FTP's."
+  - q: "What does 'promiscuous mode' mean on a network card?"
+    a: "It's the setting that tells a network interface to accept every frame on the wire, not just the ones addressed to its own hardware address. Under normal operation the card filters out everyone else's traffic. In promiscuous mode it hands all of it up to whatever software is listening, which is exactly what a packet sniffer needs to capture a password crossing a shared link."
+  - q: "Which protocols replaced Telnet and cleartext HTTP?"
+    a: "SSH replaced Telnet for remote terminal access, encrypting the whole session instead of sending it as plain ASCII. HTTPS, built on TLS/SSL, replaced plain HTTP for the web. Both arrived through the 1990s, and both do the same basic job: wrap the connection in a layer no one on the wire can read without the key."
+  - q: "Does encrypting network traffic fully solve the password problem?"
+    a: "No. TLS and SSH protect a password while it's moving between client and server, but they do nothing for what happens once it arrives. If the server stores that password in plaintext or with weak hashing, an attacker who reaches the database gets the exact same payoff a packet sniffer used to get for free."
+draft: false
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+<Dropcap letter="I">n 1961, stealing a password meant sitting down at a terminal inside an MIT lab. By the late 1960s, that constraint disappeared. Computers began talking to each other across entire states over ARPANET, the network that grew into the modern internet, and a researcher in California could log into a machine in Massachusetts through brand new protocols like Telnet and FTP.</Dropcap>
+
+Remote access was a genuine engineering breakthrough. It also carried an invisible design flaw: these protocols were built for connectivity, not confidentiality.
+
+```text
+[ Terminal: Stanford ] ===== ( ARPANET Phone Lines ) =====> [ Mainframe: MIT ]
+```
+
+<CaseFile
+  id="ARPANET-69"
+  rows={[
+    { term: 'System', desc: 'ARPANET-era remote login: Telnet (1969) and FTP (1971)' },
+    { term: 'Root cause', desc: 'Credentials sent as raw ASCII, zero transport encryption' },
+    { term: 'Exploit', desc: 'A network card switched into promiscuous mode reads every packet on the wire' },
+    { term: 'Exposure window', desc: 'Roughly two decades, until SSH and TLS replaced cleartext transport' },
+    { term: 'Modern equivalent', desc: 'TLS and SSH, plus a default assumption that every network is hostile' },
+  ]}
+/>
+
+## The postcard problem
+
+Network communication behaves a lot like sending mail:
+
+- **Encrypted traffic (modern web)**: sealing a letter inside a locked steel case before mailing it. Only the recipient holding the key can open it.
+- **Cleartext traffic (early internet)**: writing your secrets on the back of an open postcard. Every mail carrier and sorting clerk along the route reads it without opening anything.
+
+```text
+[ Client ] --- "USER alice \r\n PASS Summer2026!" ---> [ Server ]
+                              |
+                    [ Sniffer: Packet Read ]
+```
+
+Telnet converted every keystroke into ASCII and sent it across the wire the instant you typed it. Press P and the network carried the byte for P. Press a and it carried the byte for a. Nothing stood between your fingers and anyone watching the cable.
+
+## The exploit: the packet sniffer
+
+Early Ethernet broadcast every frame to every machine on a shared wire or hub. A network card normally discarded whatever wasn't addressed to it, but flipping that card into promiscuous mode made it keep everything instead.
+
+```text
+[ Client ] -----------------------------------------------------> [ Server ]
+                             | (Shared Wire)
+                   [ Promiscuous Mode NIC ]
+                             v
+                  +-----------------------+
+                  |  PACKET CAPTURE LOG   |
+                  |  0x0020: 50 41 53 53  | -> "PASS"
+                  |  0x0024: 20 53 65 63  | -> " Sec"
+                  |  0x0028: 72 65 74 31  | -> "ret1"
+                  +-----------------------+
+```
+
+Tools like tcpdump and, later, Wireshark turned that trick into a shopping list. An attacker never touched the destination server. They just listened to the wire between client and server and watched passwords scroll past.
+
+<span class="highlight">Attackers stopped breaking down doors. They started reading mail over your shoulder.</span>
+
+<DetectionOpportunity>Any protocol that puts a credential on the wire in a form a packet capture can read straight back out treats the network itself as an ally to the attacker. Encrypt the transport, and a captured packet stops being a password.</DetectionOpportunity>
+
+## Legacy sins: the protocols that refused to die
+
+Even after the security community understood the risk, cleartext protocols dominated the internet for decades:
+
+- **Telnet (port 23)**: remote terminal access. Sends credentials and every shell command in unencrypted ASCII.
+- **FTP (port 21)**: file transfer. Transmits USER and PASS commands as raw text.
+- **HTTP (port 80)**: web browsing. Form submissions and basic auth cross the wire with zero transport encryption.
+- **POP3 and IMAP (ports 110 and 143)**: email retrieval. Let attackers harvest mail passwords straight off local Wi-Fi or Ethernet.
+
+Every one of these protocols assumed the wire underneath it was physical, private, and trustworthy. Once the internet became a public utility, that assumption collapsed.
+
+> The network was never the safe part. It only felt that way while nobody was listening.
+
+## The modern takeaway
+
+<CaseFile
+  id="ARPANET-69 / translation"
+  rows={[
+    { term: '"The internal network is safe"', desc: '&rarr; Assume the network is always hostile' },
+    { term: '"Send raw bytes over the wire"', desc: '&rarr; Encrypt everything in transit, TLS and SSH' },
+    { term: '"Trust the connection"', desc: '&rarr; Authenticate every endpoint explicitly' },
+  ]}
+/>
+
+By the 1990s, SSH replaced Telnet and HTTPS replaced cleartext HTTP, closing the postcard problem on the wire itself. Encrypting data in transit solved how a password travels. It left one question completely untouched: what happens to that password the moment it lands on the server, sitting in a database, waiting for whoever finds it next?
