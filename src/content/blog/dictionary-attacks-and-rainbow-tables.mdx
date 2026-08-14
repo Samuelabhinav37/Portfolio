@@ -73,7 +73,7 @@ PRE-COMPUTED HASH                                    CLEARTEXT VALUE
 ef92b778bafe771e89245b89ecbc08a4...  ===========>   "secret"
 ```
 
-## The exploit in action: a reverse lookup
+## Exploit in action: a reverse lookup
 
 With an unsalted hash and a precomputed table already built, cracking it stops being cryptography and turns into a lookup:
 
@@ -89,7 +89,7 @@ With an unsalted hash and a precomputed table already built, cracking it stops b
 
 Hash once and crack forever. An attacker who builds a table pays the computational cost a single time, then reuses it against every stolen database that crosses their path afterward, one victim or ten million, for almost the same price.
 
-## The core architectural failure
+## Core architectural failure
 
 - **Identical hashes**: if Alice, Bob, and Carol all pick <span class="code-inline">Winter2026!</span>, their stored hashes come out byte-for-byte identical. Crack one and all three fall.
 - **Cross-system matching**: a hash stolen from Company A drops straight into the exact same table used to crack Company B. Nothing about the hash ties it to where it came from.
@@ -101,7 +101,7 @@ Hash once and crack forever. An attacker who builds a table pays the computation
 
 > A pre-computed table doesn't crack a password. It looks one up.
 
-## The modern takeaway
+## Modern takeaway
 
 <CaseFile
   id="RAINBOW-03 / translation"

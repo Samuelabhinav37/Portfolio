@@ -50,7 +50,7 @@ The fix already existed in 1976. Robert Morris Sr. and Ken Thompson's original <
   ]}
 />
 
-## The salting workflow
+## Salting workflow
 
 A salt gets combined with the plaintext password before either one ever reaches the hash function:
 
@@ -81,7 +81,7 @@ bob     m3$7vL  ---> d88e9102ca17482f09a1... (Result of "Password123m3$7vL")
 - **Tables stop working**: a table built for <span class="code-inline">Password123</span> alone is useless the moment every user's password gets combined with a different random string first. Cracking Alice now needs a table built specifically for her salt, and Bob's needs an entirely separate one.
 - **The cost explodes**: precomputing separate multi-terabyte tables for billions of possible salt values isn't a shortcut anymore. It's the same amount of work as attacking every account one at a time, which is exactly what salting is designed to force.
 
-## The speed problem: why fast hashes still fail
+## Speed problem: why fast hashes still fail
 
 Salting neutralized rainbow tables, and attackers pivoted straight to raw hardware.
 
@@ -108,7 +108,7 @@ Niels Provos and David Mazières built bcrypt around this idea in 1999. Argon2 w
 
 > Security here isn't about hiding the math. It's about making the math expensive.
 
-## The modern takeaway
+## Modern takeaway
 
 <CaseFile
   id="SALT-76 / translation"

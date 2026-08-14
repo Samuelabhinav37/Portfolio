@@ -47,7 +47,7 @@ Engineers needed a way to confirm Alice typed the right password without the ser
   ]}
 />
 
-## The fruit smoothie problem
+## Fruit smoothie problem
 
 Hashing only makes sense next to what it replaced:
 
@@ -81,7 +81,7 @@ Input:  "Password"  --->  e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23
 
 <span class="highlight">Hashing didn't hide the secret. It got rid of the need to keep one at all.</span>
 
-## The login handshake
+## Login handshake
 
 A working hash function turns password storage into a matching exercise instead of a filing cabinet:
 
@@ -102,7 +102,7 @@ Breach a database built this way and an attacker doesn't walk out with a list of
 
 <DetectionOpportunity>Not every one-way function belongs in a login flow. General-purpose hashes like MD5 or plain SHA-256 run fast, which is exactly wrong for password storage: a modern GPU can push billions of guesses through them per second. Purpose-built password hashes like bcrypt, scrypt, and Argon2 exist specifically to slow that math down instead of speeding it up.</DetectionOpportunity>
 
-## The modern takeaway
+## Modern takeaway
 
 <CaseFile
   id="CRYPT-76 / translation"
