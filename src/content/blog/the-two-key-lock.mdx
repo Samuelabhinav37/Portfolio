@@ -1,0 +1,118 @@
+---
+title: "The Analog Dawn: The Two-Key Lock (Public-Key Cryptography)"
+description: "For most of history, encryption meant one shared key that both locked and unlocked a message, and getting that key to the other side safely was the whole problem. In 1977, RSA split the key in two and made the problem disappear."
+category: "Security Fundamentals"
+pubDate: 2026-10-02
+tags: ["Analog Dawn", "Cryptography", "Public-Key Encryption"]
+cats: ["crypto"]
+heroImage: /images/two-key-lock-hero.webp
+heroImageAlt: "A glowing skeleton key built from binary code, split down the middle into a blue half labeled PUBLIC KEY and a red half labeled PRIVATE KEY, each with its own sample key data and SHA-256 hash printed below, set against a dark blue background covered in RSA algorithm steps, Diffie-Hellman key exchange notation, and a list of cryptographic algorithms."
+cardImage: /images/two-key-lock-card.webp
+cardImageAlt: "A glowing skeleton key built from binary code, split into a blue PUBLIC KEY half and a red PRIVATE KEY half with sample key data beneath each, centered against a dark blue background of faint cryptographic formulas."
+faqs:
+  - q: "What is the difference between symmetric and asymmetric encryption?"
+    a: "Symmetric encryption uses one key for both locking and unlocking a message, so both sides need an identical copy before anything secret can be sent, and getting that copy to the other side safely is its own hard problem. Asymmetric encryption uses two mathematically linked keys instead: a public one anyone can use to lock a message, and a private one, held by only one person, that's the sole way to unlock it again."
+  - q: "How can two mathematically related keys not reveal each other?"
+    a: "They rely on a trapdoor one-way function: a problem that's trivial to compute in one direction and effectively impossible to reverse without a specific piece of secret information. Multiplying two large prime numbers together takes a computer a fraction of a second. Factoring that product back into its original primes, without already knowing one of them, can take longer than the age of the universe once the numbers get large enough."
+  - q: "What is RSA and who invented it?"
+    a: "RSA is the asymmetric encryption algorithm Ron Rivest, Adi Shamir, and Leonard Adleman published at MIT in 1977, and it's still one of the most widely deployed public-key systems in the world. The same idea had actually surfaced three years earlier: British cryptographer Clifford Cocks solved an equivalent problem inside GCHQ in 1973, but his work stayed classified until 1997, so Rivest, Shamir, and Adleman's paper is the version the world actually got to build on."
+  - q: "How do digital signatures prove someone wrote a message?"
+    a: "The sender encrypts a hash of the document with their own private key. Anyone holding the sender's public key can decrypt that hash and compare it against the document themselves. Since only the sender's private key could have produced a signature that decrypts correctly with their public key, a valid match proves both who wrote the message and that nobody altered it afterward."
+  - q: "If asymmetric encryption is so secure, why doesn't everything just use it?"
+    a: "Because the math behind it is thousands of times heavier than symmetric encryption, which makes it too slow for bulk data. Modern systems use both together in what's called a hybrid cryptosystem: asymmetric encryption runs just long enough during a handshake to exchange a temporary symmetric key, and fast symmetric encryption, like AES-GCM, handles every actual file, video stream, or web request after that."
+draft: false
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+<Dropcap letter="I">magine receiving a top-secret letter through a mail carrier known for stealing mail. Traditional encryption hands you a strongbox with a single key, and whoever locks it and whoever unlocks it both need an identical copy of that exact key before anything can move.</Dropcap>
+
+```text
+[ Friend: Box Locked with Key A ] ---> ( Mail Courier ) ---> [ You: Unlocked with Key A ]
+                                              |
+                                   [ Key Must Be Shared First! ]
+```
+
+Mail the key and a courier copies it in transit. Don't mail it and your friend can never lock the box in the first place. For most of human history, this key distribution problem meant secure communication needed a physical meeting or a courier you already trusted, before a single secret ever moved.
+
+In 1976 and 1977, that assumption finally broke. Whitfield Diffie and Martin Hellman had already shown two strangers a way to agree on a shared secret across an open wire. A year later, Ron Rivest, Adi Shamir, and Leonard Adleman, working at MIT, pushed the same asymmetric idea further still: a key pair where the key that locks a message is mathematically incapable of unlocking it again.
+
+<Mnote sub="classified for 24 years" />The idea had actually surfaced three years earlier and stayed buried. British cryptographer Clifford Cocks solved the same problem inside GCHQ in 1973, but his work sat classified until 1997. Rivest, Shamir, and Adleman's 1977 paper is the version the world actually got to build on.
+
+<CaseFile
+  id="RSA-77"
+  rows={[
+    { term: 'Problem', desc: 'A single shared key means the courier who delivers it can also steal it' },
+    { term: 'Breakthrough', desc: 'RSA, published by Rivest, Shamir, and Adleman in 1977' },
+    { term: 'Buried precedent', desc: 'Clifford Cocks solved the same problem inside GCHQ in 1973, classified until 1997' },
+    { term: 'Guarantee', desc: 'The key that locks a message is mathematically unable to unlock it again' },
+    { term: 'Modern equivalent', desc: 'RSA and ECC key pairs behind TLS certificates, SSH keys, and code signing' },
+  ]}
+/>
+
+## The mailbox
+
+Asymmetric cryptography behaves like a public street mailbox:
+
+```text
+                    PUBLIC KEY                       PRIVATE KEY
+                 (Shared with World)             (Never Leaves Machine)
+                         |                                 |
+                         v                                 v
+[ Plaintext ] ---> [ Open Lock Slot ] ===> [ Ciphertext ] ===> [ Key Opens Door ] ---> [ Plaintext ]
+```
+
+Anyone walking past can drop a letter through the slot. Only the carrier holding the physical key to the back door can ever retrieve it. Once a letter drops through the slot, even the person who dropped it can't reach back in and pull it out. Locking and unlocking are two genuinely separate operations now, not the same action run twice.
+
+## Two keys, two jobs
+
+- **Public key**: published openly, on GitHub, key servers, DNS records, certificates. Encrypts a message meant for you, or verifies a signature you claim to have made.
+- **Private key**: guarded fiercely, often inside a hardware enclave or a TPM chip. Decrypts whatever arrives encrypted to you, or creates a signature only you could have produced.
+
+That split covers two genuinely different jobs:
+
+1. **Confidentiality**: Alice looks up your public key, encrypts a note with it, and only your private key opens it back up. Not even Alice can reverse what she just encrypted.
+2. **Digital signatures**: you encrypt a document's hash with your private key. Anyone holding your public key can decrypt that hash and check it against the document, proving you wrote it and that nobody altered it afterward.
+
+<span class="highlight">The same math that keeps a secret in also proves who put it there.</span>
+
+## The math behind the curtain: one-way traps
+
+Two keys stay mathematically linked without either one giving the other away because asymmetric cryptography leans on trapdoor one-way functions: problems easy to compute in one direction and effectively impossible to reverse without a specific piece of secret information.
+
+```text
+EASY TO COMPUTE (Forward):
+Prime A (89) x Prime B (97) = 8,633   <--- Takes 1 millisecond
+
+IMPOSSIBLE TO REVERSE (Backward):
+Find the prime factors of 8,633       <--- In small numbers it's fast;
+                                           in 2048-bit numbers (617 digits),
+                                           it takes supercomputers billions of years.
+```
+
+RSA leans on how hard factoring a huge number back into its original primes is. Elliptic Curve Cryptography reaches the same guarantee through a different one-way trap, the algebra of points along a curve, and gets there with far smaller keys.
+
+<DetectionOpportunity>A public key alone only proves someone holds the matching private key. It says nothing about whose hands that private key is actually in, which is exactly the gap a certificate and a Certificate Authority exist to close. Never trust a bare key. Trust a signed one.</DetectionOpportunity>
+
+> Two keys did what one key never could: let the lock travel anywhere while the key that opens it goes nowhere.
+
+## The modern takeaway
+
+Asymmetric math is thousands of times heavier than symmetric encryption, so modern systems only use it where it earns its cost:
+
+1. **Asymmetric encryption** (RSA or ECC) runs for roughly the first fifty milliseconds of a connection, just long enough to exchange a temporary key.
+2. **Symmetric encryption** (AES-GCM) takes over for every file, video stream, and byte of bulk web traffic after that.
+
+<CaseFile
+  id="RSA-77 / translation"
+  rows={[
+    { term: 'Single shared secret', desc: '&rarr; Asymmetric key pairs, public and private' },
+    { term: 'Physical key exchange required', desc: '&rarr; Public keys broadcast openly across the web' },
+    { term: 'Encryption only', desc: '&rarr; Encryption plus cryptographic digital signatures' },
+  ]}
+/>
+
+Hashing, salting, TLS, and public-key cryptography together solved the foundational math of identity: proving who sent something, proving nobody altered it, and doing both without ever handing a secret to someone who might steal it. The next problem was never really about one connection anymore. It was about what happens when ten, or ten thousand, machines inside the same office building all have to trust each other at once.
