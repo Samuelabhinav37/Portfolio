@@ -22,8 +22,20 @@ interface Props {
 const { hasIntro = false } = Astro.props;
 ---
 
-<div id="luna-wrap" aria-hidden="true">
-  <iframe id="luna-frame" title="Luna (decorative companion)" tabindex="-1" scrolling="no" sandbox="allow-scripts allow-same-origin"></iframe>
+<!-- The creature is decorative (aria-hidden on the iframe only); the pill
+     button is the real, labeled, keyboard- and screen-reader-reachable
+     control that opens the chat — same pattern as the blog post pages'
+     Luna.astro, nested here so it inherits #luna-wrap's own fixed position
+     (including each page's own top/.luna-hidden/.about-hidden overrides)
+     instead of duplicating that positioning math per page. -->
+<div id="luna-wrap">
+  <iframe id="luna-frame" title="Luna (decorative companion)" tabindex="-1" scrolling="no" sandbox="allow-scripts allow-same-origin" aria-hidden="true"></iframe>
+  <button type="button" class="luna-pill" id="luna-pill"
+    aria-haspopup="dialog" aria-controls="ldw-drawer" aria-expanded="false">
+    <span class="lp-dot" aria-hidden="true"></span>
+    <span class="lp-icon" aria-hidden="true">💬</span>
+    <span class="lp-label">Ask Luna</span>
+  </button>
 </div>
 
 <style>
@@ -34,8 +46,50 @@ const { hasIntro = false } = Astro.props;
     width: 120px;
     height: 120px;
     z-index: 999;
-    transition: opacity 0.35s ease;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1);
   }
+  /* A mouse hovering her had no feedback at all before this — nothing to
+     signal she's actually interactive. A small scale-up (matched by the
+     "Ask Luna" hint revealing below) gives an immediate "she noticed you"
+     response, the same beat a real cursor-follow already gives once you're
+     actually inside the drawer. */
+  #luna-wrap:hover { transform: scale(1.06); }
+  @media (prefers-reduced-motion: reduce) { #luna-wrap:hover { transform: none; } }
+  /* The pill was hidden-until-keyboard-focus only — invisible and
+     unclickable by mouse by design, since the creature itself was assumed
+     to be the mouse/touch discovery path. But hovering the creature gave no
+     hint a click would do anything, so now hovering #luna-wrap reveals the
+     same pill as a mouse-visible "Ask Luna" hint too, while keeping it out
+     of the way (opacity/pointer-events, not aria-hidden) so it still stays
+     in the accessibility tree and reachable by AT swipe navigation
+     regardless of hover/focus state. */
+  .luna-pill {
+    position: absolute; right: 0; bottom: 100%; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+    color: rgba(238,241,247,0.94);
+    background: rgba(10,11,16,0.88); border: 1px solid rgba(205,214,226,0.20);
+    border-radius: 999px; padding: 10px 16px 10px 14px;
+    min-height: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    cursor: pointer;
+    opacity: 0; pointer-events: none; transform: translateY(6px);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  #luna-wrap:hover .luna-pill, .luna-pill:focus-visible {
+    opacity: 1; pointer-events: auto; transform: translateY(0);
+  }
+  .luna-pill:focus-visible {
+    outline: 2px solid rgba(226,232,244,0.85); outline-offset: 2px;
+  }
+  .luna-pill .lp-icon { font-size: 15px; line-height: 1; }
+  .luna-pill .lp-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: rgba(120,225,170,0.95);
+    box-shadow: 0 0 6px 1px rgba(120,225,170,0.55);
+  }
+  @media (prefers-reduced-motion: reduce) { .luna-pill { transition: opacity .15s ease; transform: none !important; } }
   /* Below the mobile/tablet breakpoint (each page's own inline script toggles
      these classes via matchMedia), her default top:calc(66vh+80px) spot
      overlaps scrolling content for a much larger share of a narrow viewport
@@ -69,3 +123,14 @@ const { hasIntro = false } = Astro.props;
 )}
 
 <LunaEngine />
+
+<script>
+  const pill = document.getElementById('luna-pill');
+  if (pill) {
+    pill.addEventListener('click', () => {
+      const chat = (window as any).SITE && (window as any).SITE.LunaChat;
+      if (!chat) return;
+      chat.isOpen() ? chat.close() : chat.open();
+    });
+  }
+</script>

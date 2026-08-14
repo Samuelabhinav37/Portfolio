@@ -281,6 +281,12 @@ document.addEventListener('click', (ev) => {
     trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
     overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
+      /* Luna's drawer sits at a much lower z-index than this menu overlay —
+         with both open at once the menu covers her drawer, including its
+         close button. Neither side knew about the other; close hers when
+         this one opens. Same fix as SiteMenu.astro's version. */
+      const lc = window.SITE && window.SITE.LunaChat;
+      if (lc && lc.isOpen && lc.isOpen()) lc.close();
       armIdle();
       const first = focusableEls()[0];
       if (first) setTimeout(() => first.focus(), 80);

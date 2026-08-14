@@ -109,6 +109,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   transition: color 0.3s ease;
 }
 #menu-trigger:hover { color: rgba(var(--c-white),1); }
+/* Belt-and-suspenders alongside the JS mutual-exclusion above: while Luna's
+   drawer is open, the trigger is invisible/unclickable too, so it can't sit
+   on top of her close button even for the brief window before/after the JS
+   check runs. Same rule LunaDrawerShell.astro's pages already carry. */
+body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none; }
 
 #menu-overlay {
   position: fixed; top: 56px; right: 22px; z-index: 10000;
@@ -1370,8 +1375,14 @@ a.social-icon { text-decoration: none; color: inherit; }
 .luna-slot.luna-in { opacity: 1; transform: translateY(0); }
 #luna-wrap {
   width: 96px; height: 96px;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1);
 }
+/* A mouse hovering her had no feedback at all before this — nothing to
+   signal she's actually interactive. A small scale-up (matched by the
+   "Ask Luna" hint revealing below, see .luna-slot:hover) gives an
+   immediate "she noticed you" response. */
+#luna-wrap:hover { transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) { #luna-wrap:hover { transform: none; } }
 #luna-frame {
   width: 100%; height: 100%;
   border: 0; background: transparent; display: block;
@@ -1386,13 +1397,14 @@ a.social-icon { text-decoration: none; color: inherit; }
   -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 55%, transparent 80%);
   mask-image: radial-gradient(circle at 50% 46%, #000 55%, transparent 80%);
 }
-/* No visible button by design — the creature and her periodic quip are the
-   only things a mouse user ever sees. But a mouse click and "wait for a
-   hint" aren't reachable by keyboard or screen-reader users, so the same
-   control still exists in the DOM, taken out of flow and invisible/
-   unclickable by default, and revealed only on keyboard focus (:focus-visible)
-   — the same pattern a "skip to content" link uses. Tabbing to it is the
-   keyboard-equivalent discovery path to the mouse user seeing a quip. */
+/* Was hidden-until-keyboard-focus only — invisible and unclickable by mouse
+   by design, since the creature + quip were assumed to be the whole
+   mouse/touch discovery path. But hovering the creature gave no hint a
+   click would do anything, so hovering .luna-slot now reveals the same
+   pill as a mouse-visible "Ask Luna" hint too (see :hover rule below),
+   while it stays out of the way (opacity/pointer-events, not aria-hidden)
+   so it's still in the accessibility tree and reachable by AT swipe
+   navigation regardless of hover/focus state. */
 .luna-pill {
   /* Above the creature, not below: the slot is bottom-anchored near the
      viewport edge, so "below" would often render off-screen. */
@@ -1410,8 +1422,10 @@ a.social-icon { text-decoration: none; color: inherit; }
   opacity: 0; pointer-events: none; transform: translateY(6px);
   transition: opacity .2s ease, transform .2s ease;
 }
-.luna-pill:focus-visible {
+.luna-slot:hover .luna-pill, .luna-pill:focus-visible {
   opacity: 1; pointer-events: auto; transform: translateY(0);
+}
+.luna-pill:focus-visible {
   outline: 2px solid rgba(226,232,244,0.85); outline-offset: 2px;
 }
 .luna-pill .lp-icon { font-size: 15px; line-height: 1; }
@@ -1505,7 +1519,12 @@ a.social-icon { text-decoration: none; color: inherit; }
   box-shadow:0 18px 44px -16px rgba(0,0,0,.8),0 0 0 6px rgba(var(--c-ice),.04),0 0 40px -12px rgba(var(--c-ice),.18);
   transition:left .55s var(--ldw-spring),top .55s var(--ldw-spring),width .55s var(--ldw-spring),height .55s var(--ldw-spring),transform .55s var(--ldw-spring),box-shadow .5s ease}
 .ldw-avatar::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(var(--c-ice),.12);animation:ldw-halo 6s ease-in-out infinite;pointer-events:none;z-index:2}
-.ldw-avatar iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;transform:scale(1.08)}
+.ldw-avatar iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;transform:scale(1.08);
+  /* Recreated fresh on every drawer open (mountLuna/unmountLuna), unlike the
+     corner companion's #luna-frame — so it never picked up the color-scheme
+     fix that stops Chrome painting an opaque white box under it, and the
+     white flash recurred on every single open. Same fix, same reason. */
+  color-scheme:dark}
 /* compact: Luna shrinks into the header, never disappears */
 #ldw-drawer.ldw-compact .ldw-avatar{left:16px;top:11px;width:34px;height:34px;transform:translateX(0);box-shadow:0 0 0 1px rgba(var(--c-ice),.14),0 0 18px -6px rgba(var(--c-ice),.25)}
 #ldw-drawer.ldw-compact .ldw-avatar::before{opacity:0}
@@ -1521,36 +1540,46 @@ a.social-icon { text-decoration: none; color: inherit; }
   background:var(--ldw-ice-soft);border:1px solid rgba(var(--c-ice),.16);padding:9px 13px;border-radius:12px 12px 3px 12px}
 .ldw-msg.ldw-luna{align-self:flex-start;max-width:94%;font-family:var(--ldw-body);font-size:15.5px;line-height:1.5;color:var(--ldw-ink);
   border-left:1px solid rgba(var(--c-ice),.28);padding:1px 0 1px 14px}
+.ldw-thinking{display:inline-flex;align-items:center;gap:4px;height:15.5px}
+.ldw-thinking i{width:5px;height:5px;border-radius:50%;background:var(--ldw-ice);display:block;opacity:.35;
+  animation:ldw-think 1.1s ease-in-out infinite}
+.ldw-thinking i:nth-child(2){animation-delay:.15s}
+.ldw-thinking i:nth-child(3){animation-delay:.3s}
+@keyframes ldw-think{0%,60%,100%{opacity:.35;transform:scale(.85)}30%{opacity:1;transform:scale(1.15)}}
 .ldw-readout{margin-top:9px;font-family:var(--ldw-mono);font-weight:500;font-size:9.5px;letter-spacing:.14em;color:var(--ldw-faint);text-transform:uppercase;display:flex;align-items:center;gap:7px}
 .ldw-readout .ldw-tick{color:var(--ldw-ice)}
 .ldw-goto{margin-top:10px}
 .ldw-goto button{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.06em;color:var(--ldw-ice);
   border:1px solid rgba(var(--c-ice),.28);border-radius:8px;padding:7px 12px;transition:.2s}
-.ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(var(--c-ice),.5)}
+.ldw-goto button:hover{background:var(--ldw-ice-soft);border-color:rgba(var(--c-ice),.5);transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(var(--c-ice),.5)}
+.ldw-goto button:active{transform:translateY(0)}
 .ldw-guesses{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .ldw-guesses button{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);
   background:var(--ldw-ice-soft);border:1px solid rgba(var(--c-ice),.14);padding:8px 13px;border-radius:999px;transition:.2s}
-.ldw-guesses button:hover{background:rgba(var(--c-ice),.2);border-color:rgba(var(--c-ice),.32)}
+.ldw-guesses button:hover{background:rgba(var(--c-ice),.28);border-color:rgba(var(--c-ice),.5);transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(var(--c-ice),.4)}
+.ldw-guesses button:active{transform:translateY(0)}
 .ldw-guesses .ldw-brk{color:rgba(var(--c-ice),.55)}
 
 .ldw-chips{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 24px 12px}
 .ldw-chips.ldw-hide{display:none}
 .ldw-chip{font-family:var(--ldw-mono);font-weight:500;font-size:12px;color:var(--ldw-ink);background:var(--ldw-ice-soft);
   border:1px solid rgba(var(--c-ice),.14);padding:8px 14px;border-radius:999px;transition:.2s}
-.ldw-chip:hover{background:rgba(var(--c-ice),.2)} .ldw-chip .ldw-brk{color:rgba(var(--c-ice),.55)}
+.ldw-chip:hover{background:rgba(var(--c-ice),.28);border-color:rgba(var(--c-ice),.5);transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(var(--c-ice),.4)}
+.ldw-chip:active{transform:translateY(0)}
+.ldw-chip .ldw-brk{color:rgba(var(--c-ice),.55)}
 
-.ldw-cw{position:relative;z-index:2;padding:0 18px 18px}
-.ldw-composer{position:relative;border-radius:18px;background:rgba(8,8,20,.62);border:1px solid rgba(var(--c-ice),.5);
-  box-shadow:0 0 26px -6px rgba(var(--c-ice),.28);padding:13px 15px 11px;transition:.25s}
-.ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 32px -3px rgba(var(--c-ice),.42)}
+.ldw-cw{position:relative;z-index:2;padding:0 16px 16px}
+.ldw-composer{position:relative;border-radius:15px;background:rgba(8,8,20,.62);border:1px solid rgba(var(--c-ice),.5);
+  box-shadow:0 0 18px -8px rgba(var(--c-ice),.24);padding:9px 11px 7px;transition:.25s}
+.ldw-composer:focus-within{border-color:var(--ldw-ice);box-shadow:0 0 22px -5px rgba(var(--c-ice),.36)}
 .ldw-r1{display:flex;align-items:center;gap:5px}
 .ldw-composer .ldw-brk{font-family:var(--ldw-mono);font-size:14px;color:rgba(var(--c-ice),.5)}
-.ldw-composer input{flex:1;background:none;border:0;outline:0;font-family:var(--ldw-mono);font-weight:500;font-size:13.5px;color:var(--ldw-ink);padding:2px 6px;caret-color:var(--ldw-ice)}
+.ldw-composer input{flex:1;background:none;border:0;outline:0;font-family:var(--ldw-mono);font-weight:500;font-size:13px;color:var(--ldw-ink);padding:2px 6px;caret-color:var(--ldw-ice)}
 .ldw-composer input::placeholder{color:var(--ldw-faint)}
-.ldw-r2{display:flex;align-items:center;margin-top:11px;font-family:var(--ldw-mono);font-weight:500;font-size:10px;letter-spacing:.06em;color:var(--ldw-faint)}
+.ldw-r2{display:flex;align-items:center;margin-top:6px;font-family:var(--ldw-mono);font-weight:500;font-size:9px;letter-spacing:.06em;color:var(--ldw-faint)}
 .ldw-r2 .ldw-sp{flex:1}
-.ldw-send{flex:0 0 auto;width:38px;height:32px;display:grid;place-items:center;border-radius:11px;background:rgba(var(--c-ice),.10);border:1px solid rgba(var(--c-ice),.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
-.ldw-send svg{width:15px;height:15px}
+.ldw-send{flex:0 0 auto;width:32px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(var(--c-ice),.10);border:1px solid rgba(var(--c-ice),.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
+.ldw-send svg{width:13px;height:13px}
 .ldw-send.on{opacity:1;background:linear-gradient(160deg,#e8ebf1,#c3c8d2);border-color:transparent;color:#12121c}
 .ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(var(--c-ice),.5)}
 
@@ -1570,6 +1599,7 @@ a.social-icon { text-decoration: none; color: inherit; }
 .ldw-followups{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
 .ldw-fu{font-family:var(--ldw-mono);font-weight:500;font-size:11px;letter-spacing:.02em;color:var(--ldw-dim);
   background:rgba(var(--c-ice),.06);border:1px solid rgba(var(--c-ice),.12);border-radius:999px;padding:6px 12px;transition:.18s;cursor:pointer}
-.ldw-fu:hover{color:var(--ldw-ink);background:rgba(var(--c-ice),.14);border-color:rgba(var(--c-ice),.28)}
+.ldw-fu:hover{color:var(--ldw-ink);background:rgba(var(--c-ice),.22);border-color:rgba(var(--c-ice),.45);transform:translateY(-1px);box-shadow:0 4px 12px -6px rgba(var(--c-ice),.4)}
+.ldw-fu:active{transform:translateY(0)}
 .ldw-fu .ldw-plus{color:rgba(var(--c-ice),.5);margin-right:5px}
 @media (max-width: 640px){ #ldw-drawer{ --ldw-w: 100vw; } }

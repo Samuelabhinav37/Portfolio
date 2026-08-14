@@ -145,15 +145,20 @@
     if(_quipEl){
       _quipEl.addEventListener('click', function(){
         if(!_quipTopic) return;
-        clearTimeout(_quipT); _quipEl.classList.remove('show');
-        if(window.SITE.LunaChat && window.SITE.LunaChat.askTopic){ window.SITE.LunaChat.askTopic(_quipTopic); }
+        var topic=_quipTopic; _quipTopic=null;   // consume immediately — the
+        /* fade-out is a .5s opacity transition, and lq-clickable (which
+           carries pointer-events:auto) isn't removed until it finishes, so
+           the still-fading bubble kept accepting taps and re-firing this
+           handler, stacking up duplicate greeting bubbles in the thread. */
+        clearTimeout(_quipT); _quipEl.classList.remove('show','lq-clickable');
+        if(window.SITE.LunaChat && window.SITE.LunaChat.askTopic){ window.SITE.LunaChat.askTopic(topic); }
       });
       _quipEl.addEventListener('mouseenter', function(){ clearTimeout(_quipT); });
       _quipEl.addEventListener('mouseleave', function(){ clearTimeout(_quipT); _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, 1500); });
     }
     var NUDGE_LINES = [
       "hi, i'm Luna! ask me anything.",
-      "need a hand? just ask.",
+      "need a hand? ask.",
       "curious about something here? ask away.",
       "happy to help you find your way around."
     ];

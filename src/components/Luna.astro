@@ -89,7 +89,7 @@ const chipEntries = [
       <div class="ldw-body" id="ldw-dbody">
         <div class="ldw-identity" id="ldw-identity">
           <div class="ldw-greeting" id="ldw-greeting">Good evening</div>
-          <div class="ldw-sub">i can help you get around this post.<br/>ask about {d.category.toLowerCase()}, or just tell me where you want to jump to.</div>
+          <div class="ldw-sub">i can help you get around this post<br/>ask about {d.category.toLowerCase()} or tell me where to jump.</div>
         </div>
         <div class="ldw-thread" id="ldw-thread" aria-live="polite" aria-atomic="false"></div>
       </div>
@@ -99,7 +99,7 @@ const chipEntries = [
       <div class="ldw-cw">
         <div class="ldw-composer">
           <div class="ldw-r1">
-            <input id="ldw-ask" type="text" autocomplete="off" spellcheck="false" placeholder="ask, search, or explain…" aria-label="Ask Luna"/>
+            <input id="ldw-ask" type="text" autocomplete="off" spellcheck="false" maxlength="300" placeholder="ask, search, or explain…" aria-label="Ask Luna"/>
             <button class="ldw-send" id="ldw-send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
           </div>
           <div class="ldw-r2">matched against this post</div>

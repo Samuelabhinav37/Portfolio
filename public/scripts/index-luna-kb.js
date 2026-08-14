@@ -60,8 +60,8 @@
 
     { id:'greeting', title:'Say hi',
       keywords:['hi','hey','hello','yo','luna','who are you','what are you','greetings'],
-      reply:"I'm Luna. I keep an eye on this archive. Ask me about the work, the labs, or the writing, whatever you're curious about.",
-      detail:"I match what you ask against Samuel's real work and take you straight to the right section. He's training a small model of me to answer in fuller sentences soon.",
+      reply:"Hi, I'm Luna. I keep an eye on this archive and I'm happy to point you toward the work, the labs or the writing.",
+      detail:"I match what you ask against Samuel's real work and take you to the right section. He's training a small model of me to answer in fuller sentences soon.",
       target:null },
   ];
 
