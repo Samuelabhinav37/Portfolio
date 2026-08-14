@@ -53,6 +53,12 @@ const { hasIntro = false } = Astro.props;
     border: 0;
     background: transparent;
     display: block;
+    /* Chrome only composites an iframe transparently when its used
+       color-scheme matches the parent's. LunaEngine.astro's document
+       declares dark; without this, the parent side of that match is
+       undeclared here and Chrome paints an opaque white box under her —
+       see LunaEngine.astro's fuller comment. */
+    color-scheme: dark;
   }
 </style>
 
