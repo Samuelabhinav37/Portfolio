@@ -1,4 +1,4 @@
-# Samuel Abhinav — Portfolio + Blog
+# Portfolio + Blog
 
 Astro site combining the portfolio and the Threat Intel Blog. The portfolio
 pages (`/`, `/about`, `/contact`) are large self-contained `.astro` files
