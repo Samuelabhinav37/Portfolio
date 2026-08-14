@@ -1,0 +1,133 @@
+---
+title: "The Analog Dawn: The Digital Handshake (SSL/TLS)"
+description: "Salting and slow hashing secured passwords at rest, but sending secrets across the open internet was still a solved problem waiting to happen. TLS lets two strangers agree on a shared key in milliseconds, without ever transmitting it."
+category: "Security Fundamentals"
+pubDate: 2026-09-25
+tags: ["Analog Dawn", "Network Security", "Cryptography"]
+cats: ["network", "crypto"]
+heroImage: /images/tls-handshake-hero.webp
+heroImageAlt: "Two glowing green wireframe hands built from binary code, clasped in a handshake with a small key standing between them, set against a dark blue background covered in a real TLS 1.3 packet capture: the client and server hello messages, cipher suites, key material, master secret, and connection metrics."
+cardImage: /images/tls-handshake-card.webp
+cardImageAlt: "Two glowing green wireframe hands built from binary code, clasped in a handshake with a small key between them, centered against a dark blue background of a TLS packet capture readout."
+faqs:
+  - q: "What problem does the TLS handshake actually solve?"
+    a: "Two machines that have never met need to agree on a shared encryption key across a network full of eavesdroppers, without ever sending that key where an eavesdropper could grab it. TLS solves that with asymmetric key exchange math, then layers identity verification on top so the client knows it's actually talking to the server it meant to reach, not an attacker sitting in the middle."
+  - q: "How does Diffie-Hellman key exchange work without sending the secret key?"
+    a: "Each side combines a public, openly shared value with a private value only they hold, and sends the result across the wire. An eavesdropper sees those combined results but never the private values themselves. Each side then combines the other's public result with their own private value, and thanks to how modular exponentiation works, both land on the exact same final secret, one neither side ever transmitted directly."
+  - q: "What is a man-in-the-middle attack in the context of TLS?"
+    a: "An attacker who intercepts a connection early enough can run a separate key exchange with the client, pretending to be the server, and another with the real server, pretending to be the client. Without a way to verify identity, both sides end up with a secure tunnel to the attacker instead of to each other. Certificates exist specifically to close that gap."
+  - q: "What is a Certificate Authority and why does my browser trust it?"
+    a: "A Certificate Authority, like Let's Encrypt or DigiCert, digitally signs a server's certificate after verifying it controls the domain the certificate names. Your browser ships with the CAs' own public keys built in, so it can check that signature instantly, without a separate lookup, and trust the certificate because it trusts the authority that signed it."
+  - q: "How is TLS different from SSL?"
+    a: "TLS is SSL's successor, standardized by the IETF in 1999 after Netscape's original SSL 3.0. The name SSL still gets used out of habit, and the padlock icon in a browser still gets called an SSL certificate, but any connection secured today is running TLS, almost always TLS 1.3, not the actual SSL protocol, which is considered broken and deprecated."
+draft: false
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+<Dropcap letter="I">magine buying a book from a server three thousand miles away. Every byte has to survive a trip across networks you don't own, control, or trust, and somewhere at the far end a stranger's machine needs to read your credit card number without a packet sniffer reading it too.</Dropcap>
+
+```text
+[ Client ] --- Encrypted with Key (K) ---> [ Server ]
+```
+
+Encrypting that trip takes a shared key, and shared keys create a paradox. Send it over the open internet and any sniffer along the route intercepts it, decrypts everything, and the whole scheme is over before it starts. Don't send it, and the server can't read anything you encrypt with it. Two machines that have never met need to agree on a secret while every adversary on the path listens to every word.
+
+<CaseFile
+  id="DH-76"
+  rows={[
+    { term: 'Problem', desc: 'Two strangers need a shared key without ever transmitting it' },
+    { term: 'Breakthrough', desc: 'Diffie-Hellman key exchange, published by Whitfield Diffie and Martin Hellman in 1976' },
+    { term: 'Guarantee', desc: 'An eavesdropper who sees every exchanged value still can&rsquo;t derive the shared secret' },
+    { term: 'Remaining gap', desc: 'Key exchange proves nothing about who is actually on the other end of the wire' },
+    { term: 'Modern equivalent', desc: 'ECDHE key exchange, running inside every TLS 1.3 handshake' },
+  ]}
+/>
+
+1976 turns out to be a busy year for this series. The same year Unix started hashing and salting passwords, Diffie and Hellman solved a completely different problem across the country: how to agree on a secret with a stranger in plain sight of an adversary.
+
+## Mixing paint: the key exchange trick
+
+The math behind Diffie-Hellman behaves a lot like mixing paint:
+
+- **Public base**: client and server publicly agree on a starting color, yellow. Anyone watching knows it.
+- **Private secrets**: the client secretly picks red, the server secretly picks blue, and neither color ever leaves its own machine.
+- **The mix**: the client mixes yellow with red and sends orange across the network. The server mixes yellow with blue and sends green.
+- **The shared secret**: the client adds its private red to the green it received and gets brown. The server adds its private blue to the orange it received and lands on the identical brown.
+
+```text
+[ Client Secret: Red ]                               [ Server Secret: Blue ]
+         |                                                     |
+  Mix with Public Yellow                                Mix with Public Yellow
+         |                                                     |
+         v                                                     v
+   Sends: ORANGE =====================================> Receives: ORANGE
+   Receives: GREEN <===================================== Sends: GREEN
+         |                                                     |
+  + Add Private Red                                     + Add Private Blue
+         |                                                     |
+         v                                                     v
+[ FINAL SHARED KEY: BROWN ]                           [ FINAL SHARED KEY: BROWN ]
+```
+
+An eavesdropper on the wire only ever sees yellow, orange, and green. Pulling red back out of orange means reversing modular exponentiation over a large prime, and the discrete logarithm problem gives no practical shortcut for that. Both machines land on the same brown without either one ever sending it.
+
+## The impersonation flaw: who are you actually talking to?
+
+Key exchange solves confidentiality. It solves nothing about identity, and that gap has a name: the man-in-the-middle attack.
+
+```text
+[ Client ] <--- (Tunnel 1) ---> [ Attacker / MitM ] <--- (Tunnel 2) ---> [ Real Bank ]
+```
+
+An attacker who intercepts the connection early enough runs a key exchange with the client while pretending to be the bank, and a separate key exchange with the real bank while pretending to be the client. Both tunnels look perfectly encrypted. Neither one connects the two people who actually meant to talk.
+
+- **The certificate**: the server presents a signed certificate holding its public key and its domain name.
+- **The signature**: a trusted Certificate Authority, Let's Encrypt or DigiCert among them, has already signed that certificate after verifying the server controls the domain.
+- **The trust anchor**: the browser ships with the CAs' own public keys built in, so it verifies that signature instantly, no separate lookup required.
+
+<span class="highlight">Diffie-Hellman solved who can listen. Certificates solved who you're actually talking to.</span>
+
+## The handshake itself
+
+```text
+CLIENT                                                               SERVER
+  |                                                                    |
+  | -------- 1. ClientHello (TLS Version, Supported Ciphers) --------> |
+  |                                                                    |
+  | <------- 2. ServerHello (Chosen Cipher, Digital Certificate) ----- |
+  |                                                                    |
+  |  [ Client verifies CA signature on Certificate ]                   |
+  |  [ Both generate ephemeral keys via Key Exchange ]                 |
+  |                                                                    |
+  | <====== 3. Session Keys Generated -> Encrypted Tunnel Active =====> |
+  |                                                                    |
+  | -------- 4. HTTP GET /login (Fully Encrypted Application Data) --> |
+```
+
+1. **Hello exchange**: client and server agree on a TLS version and a cipher suite.
+2. **Authentication**: the server presents its signed certificate, and the client checks it against its trusted CA store.
+3. **Key generation**: both sides run the key exchange math independently and land on the identical symmetric session key.
+4. **Secure transmission**: the handshake ends, and every request and response after it travels inside a fast, symmetrically encrypted tunnel.
+
+The whole exchange finishes in under fifty milliseconds, before a single byte of your actual request ever leaves the client.
+
+<DetectionOpportunity>A valid certificate only proves the server holds the private key matching its public one and that a CA vouched for the domain. It says nothing about whether that domain is the one your user actually meant to visit. Certificate pinning and HSTS exist specifically to close the gap between "this certificate is valid" and "this certificate belongs to who I think it does."</DetectionOpportunity>
+
+> A handshake doesn't just start a conversation. It decides whether that conversation can be trusted at all.
+
+## The modern takeaway
+
+<CaseFile
+  id="DH-76 / translation"
+  rows={[
+    { term: 'Cleartext wire sniffing', desc: '&rarr; Symmetric session encryption, AES-GCM or ChaCha20' },
+    { term: 'Pre-shared secret dependency', desc: '&rarr; Dynamic ephemeral key exchange, ECDHE' },
+    { term: 'Spoofed endpoints', desc: '&rarr; Signed public key certificates, PKI and Certificate Authorities' },
+  ]}
+/>
+
+Every certificate and every key exchange in this handshake leans on the same underlying trick: two mathematically related keys that do different jobs, one that locks and one that unlocks, without either one ever revealing the other. That asymmetry is the actual engine underneath TLS, and it's worth taking apart on its own terms.
