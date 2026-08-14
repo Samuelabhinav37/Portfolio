@@ -133,18 +133,29 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
 .hero2-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;
   filter:grayscale(.35) brightness(.75);transition:filter .5s var(--e),transform .7s var(--e)}
 .hero2-feat:hover .hero2-imgwrap img{filter:grayscale(0) brightness(.9);transform:scale(1.03)}
-.hero2-feat .meta{color:var(--faint)}
+/* Only the image reacted to hover before — the title is already pure
+   white (no headroom for a color brighten), so it gets a growing
+   underline instead; the category/excerpt get a real color shift so
+   nothing below the photo just sits there unchanged. */
+.hero2-feat .meta{color:var(--faint);transition:color .3s}
+.hero2-feat:hover .meta{color:var(--ink-soft)}
 .hero2-feat h1{margin-top:10px;font-weight:300;font-size:clamp(26px,2.6vw,36px);line-height:1.12;
-  letter-spacing:-1px;color:#fff}
-.hero2-feat p{margin-top:14px;color:var(--faint);font-size:15px;line-height:1.6;
+  letter-spacing:-1px;color:#fff;position:relative;display:inline-block}
+.hero2-feat h1::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
+.hero2-feat:hover h1::after{width:100%}
+.hero2-feat p{margin-top:14px;color:var(--faint);font-size:15px;line-height:1.6;transition:color .3s;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hero2-feat:hover p{color:var(--muted)}
 
 .hero2-side{display:flex;flex-direction:column;flex:0 1 360px;padding-top:6px;
   opacity:0;transform:translateY(24px);transition:opacity 1s var(--e),transform 1s var(--e)}
 .is-loaded .hero2-side{opacity:1;transform:none;transition-delay:.5s}
-.hero2-item{display:block;text-decoration:none;color:inherit;padding:20px 0;border-top:1px solid var(--line-soft)}
+.hero2-item{display:block;text-decoration:none;color:inherit;padding:20px 14px;margin:0 -14px;
+  border-top:1px solid var(--line-soft);border-radius:5px;transition:background-color .25s}
+.hero2-item:hover{background:rgba(var(--c-white),.07)}
 .hero2-side .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
-.hero2-item .meta{color:var(--faint)}
+.hero2-item .meta{color:var(--faint);transition:color .3s}
+.hero2-item:hover .meta{color:var(--ink-soft)}
 .hero2-item h3{margin-top:8px;font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
 .hero2-item:hover h3{color:#fff}
 
@@ -236,13 +247,24 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .grid .card .ph.loaded img{opacity:1}
 .grid .card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,15,17,.05),rgba(15,15,17,.5))}
 .grid .card:hover .ph img{filter:grayscale(0) brightness(.94);transform:scale(1.06)}
+/* Only the image reacted to hover before — the text below it (category,
+   title, excerpt) had no change at all, or in the title's case a #ededee
+   -> #fff shift nobody could actually see. Every line now visibly
+   brightens, and the title gets a real affordance (growing underline)
+   instead of a color flicker, so the whole card reads as interactive, not
+   just the photo. */
 .grid .card .cbody{margin-top:16px}
-.grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px}
+.grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px;transition:color .3s}
 .grid .card .cmeta span+span::before{content:"·";margin:0 8px}
-.grid .card h3{font-weight:400;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);transition:color .3s}
+.grid .card:hover .cmeta{color:var(--ink-soft)}
+.grid .card h3{font-weight:400;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
+  position:relative;display:inline-block;transition:color .3s}
+.grid .card h3::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
 .grid .card:hover h3{color:#fff}
-.grid .card .clead{margin-top:8px;color:var(--faint);font-size:14px;line-height:1.6;
+.grid .card:hover h3::after{width:100%}
+.grid .card .clead{margin-top:8px;color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.grid .card:hover .clead{color:var(--muted)}
 
 /* Anthropic's actual "News" archive pattern: a literal date/category/title
    table, dividers instead of boxes, no imagery at all. */
@@ -251,13 +273,20 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
    hugging the left edge with a huge dead gap after them. A comfortable
    reading-width column, centered under the full-width grid above it. */
 .tbl{display:flex;flex-direction:column;max-width:880px;margin:0 auto}
+/* Row hover was a real but nearly-invisible change before (2% white
+   background, #ededee -> #fff on the title — an 18-unit-per-channel shift
+   nobody could actually see). Bled the hover background past the row's own
+   box (negative margin matching the added padding) so it reads as a real
+   highlighted list item, not just a text color flicker. */
 .trow{display:grid;grid-template-columns:70px 180px 1fr;gap:20px;align-items:baseline;
-  padding:16px 4px;border-bottom:1px solid var(--line-soft);transition:background-color .3s}
+  padding:16px 12px;margin:0 -12px;border-radius:5px;
+  border-bottom:1px solid var(--line-soft);transition:background-color .25s}
 .trow-head{pointer-events:none}
 .trow-head span{color:var(--faint);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
-a.trow:hover{background:rgba(255,255,255,.02)}
-.trow-date,.trow-cat{color:var(--faint);font-size:13px}
-.trow-title{font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .3s}
+a.trow:hover{background:rgba(var(--c-white),.07)}
+.trow-date,.trow-cat{color:var(--faint);font-size:13px;transition:color .25s}
+.trow-title{font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .25s}
+a.trow:hover .trow-date,a.trow:hover .trow-cat{color:var(--ink-soft)}
 a.trow:hover .trow-title{color:#fff}
 
 .filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
@@ -391,7 +420,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 
   /* Category column is the first thing to go on a narrow screen — date and
      title carry the row fine on their own. */
-  .trow{grid-template-columns:56px 1fr;gap:14px;padding:14px 2px}
+  .trow{grid-template-columns:56px 1fr;gap:14px;padding:14px 8px;margin:0 -8px}
   .trow-cat{display:none}
   .trow-title{font-size:15px}
 }
