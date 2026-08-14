@@ -1,0 +1,115 @@
+---
+title: "The Analog Dawn: The Dictionary Attack & Rainbow Tables"
+description: "Hashing made passwords mathematically impossible to reverse. Attackers didn't reverse the math. They pre-computed the hashes for millions of common passwords instead, turning cracking into a database lookup."
+category: "Security Fundamentals"
+pubDate: 2026-09-11
+tags: ["Analog Dawn", "Cryptography", "Password Security"]
+cats: ["auth", "crypto"]
+heroImage: /images/rainbow-tables-hero.webp
+heroImageAlt: "A glowing red wireframe open book built from binary code, raining streams of digits down onto a small white skeleton-key-shaped lock, which is fracturing outward into radiating cracks where the data hits it, set against a dark blue background covered in labels like OBJECT_DESCRIPTOR, IMPACT_SIMULATION, and FRACTURE_LOG."
+cardImage: /images/rainbow-tables-card.webp
+cardImageAlt: "A glowing red wireframe open book built from binary code, raining streams of digits down onto a small white skeleton-key-shaped lock fracturing into radiating cracks, centered against a dark blue background of faint terminal readouts."
+faqs:
+  - q: "What is a dictionary attack?"
+    a: "An attack that runs a list of real, commonly used passwords, rather than every possible character combination, through a hash function and checks each result against a stolen set of hashes. It works because people reuse predictable words and patterns far more than they use random strings, so a well-chosen wordlist cracks a large share of any stolen database in minutes."
+  - q: "What is a rainbow table and how is it different from a dictionary attack?"
+    a: "A dictionary attack computes hashes fresh, on the spot, against one stolen database at a time. A rainbow table does that computation once, ahead of time, for millions of common passwords, then saves the results as a sorted lookup table. Cracking a hash becomes a search instead of a computation, and the same table works against any database that used the same hash algorithm."
+  - q: "Why does rockyou.txt keep showing up in password cracking?"
+    a: "Because it's real data, not a guess. In 2009, an attacker breached the social app RockYou and stole roughly 32 million passwords stored in plaintext. That leak became rockyou.txt, a list of real passwords real people actually chose, and it's been one of the most effective cracking wordlists ever since precisely because it reflects genuine human behavior instead of a dictionary of formal words."
+  - q: "Why do two identical passwords produce identical hashes?"
+    a: "Because a cryptographic hash function is deterministic by design: the same input always produces the same output, every time, on any machine. That property is essential for verifying a login, but it's also exactly what lets an attacker precompute a hash once and match it against every account that happens to share the same password."
+  - q: "How does salting stop rainbow table attacks?"
+    a: "By mixing a random, unique value into each password before hashing it, so identical passwords from different users produce completely different digests. That randomness breaks a precomputed table's core assumption, since an attacker would need a separate table for every possible salt value, which defeats the entire point of precomputing in the first place."
+draft: false
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+<Dropcap letter="I">n theory, hashing closed the loop. Feed a password into a one-way function and there's no operation that runs backward from the digest to the original word, not with any amount of computing power, not ever. Attackers who breached a database of hashes were supposed to hit a mathematical wall.</Dropcap>
+
+They didn't stay stuck for long. The wall was mathematically real. Nobody needed to climb it.
+
+```text
+STOLEN DATABASE FILE:
+------------------------------------------------------------------
+USER         STORED HASH (SHA-256)
+------------------------------------------------------------------
+alice   ---> 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+bob     ---> 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
+carol   ---> ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f
+```
+
+The fatal weakness was never the math. It was human behavior paired with determinism. People pick predictable words, and a hash function produces the exact same digest every single time. An attacker doesn't need to break the algorithm. They just need to guess the input.
+
+<CaseFile
+  id="RAINBOW-03"
+  rows={[
+    { term: 'Assumption broken', desc: 'A one-way function is safe as long as nobody has to reverse it' },
+    { term: 'Real weak point', desc: 'Deterministic output plus predictable human passwords' },
+    { term: 'Technique', desc: 'Rainbow tables, formalized by Philippe Oechslin in 2003' },
+    { term: 'Real-world wordlist', desc: 'rockyou.txt, 32 million real passwords leaked in the 2009 RockYou breach' },
+    { term: 'Modern equivalent', desc: 'Per-user salting plus slow, memory-hard hashing (bcrypt, Argon2)' },
+  ]}
+/>
+
+## Three ways to guess an input
+
+Offline password cracking evolved through three distinct approaches, each faster than the last:
+
+1. **Brute force**: try every possible character string in order, <span class="code-inline">a</span>, <span class="code-inline">b</span>, <span class="code-inline">c</span>, onward through <span class="code-inline">aaaa</span> and <span class="code-inline">aaab</span>. Guaranteed to eventually find the password, and computationally hopeless the moment a password gets long.
+2. **Dictionary attack**: run an actual wordlist of real human passwords, like rockyou.txt, through the hash function and compare each result against the stolen hashes. People reuse <span class="code-inline">P@ssword1</span> far more often than they type a random twelve-character string.
+3. **Rainbow tables**: hash millions of common passwords once, sort the results, and save the whole set to disk as a lookup table. Cryptographer Philippe Oechslin formalized the technique in 2003, building on a time-memory tradeoff Martin Hellman had described back in 1980. The computation happens exactly once, and every attack after that is just a search.
+
+```text
+PRE-COMPUTED LOOKUP TABLE:
+------------------------------------------------------------------
+PRE-COMPUTED HASH                                    CLEARTEXT VALUE
+------------------------------------------------------------------
+5e884898da28047151d0e56f8dc62927...  ===========>   "password"
+8d969eef6ecad3c29a3a629280e686cf...  ===========>   "123456"
+ef92b778bafe771e89245b89ecbc08a4...  ===========>   "secret"
+```
+
+## The exploit in action: a reverse lookup
+
+With an unsalted hash and a precomputed table already built, cracking it stops being cryptography and turns into a lookup:
+
+```text
+1. Hacker grabs Alice's stolen hash:
+   "5e884898da28047151d0e56f8dc62927..."
+
+2. Hacker searches the pre-computed table for that exact string.
+
+3. Table returns the match in 0.002 seconds:
+   -> Cleartext: "password"
+```
+
+Hash once and crack forever. An attacker who builds a table pays the computational cost a single time, then reuses it against every stolen database that crosses their path afterward, one victim or ten million, for almost the same price.
+
+## The core architectural failure
+
+- **Identical hashes**: if Alice, Bob, and Carol all pick <span class="code-inline">Winter2026!</span>, their stored hashes come out byte-for-byte identical. Crack one and all three fall.
+- **Cross-system matching**: a hash stolen from Company A drops straight into the exact same table used to crack Company B. Nothing about the hash ties it to where it came from.
+- **Zero cost to scale**: once the table exists, attacking ten million stolen accounts costs almost exactly what attacking one does.
+
+<span class="highlight">The math never broke. The assumption that identical inputs deserved identical outputs did.</span>
+
+<DetectionOpportunity>A password hash with no per-user randomness mixed in is really just a well-organized phonebook entry. The fix isn't a stronger hash function on its own. It's making sure identical passwords never produce identical output in the first place.</DetectionOpportunity>
+
+> A pre-computed table doesn't crack a password. It looks one up.
+
+## The modern takeaway
+
+<CaseFile
+  id="RAINBOW-03 / translation"
+  rows={[
+    { term: 'Identical input, identical hash', desc: '&rarr; Every hash must come out mathematically unique' },
+    { term: 'Global pre-computed tables work', desc: '&rarr; Render pre-computed tables useless' },
+    { term: 'Fast hash algorithms (MD5, SHA-1)', desc: '&rarr; Slow, memory-hard functions like Argon2 and bcrypt' },
+  ]}
+/>
+
+Breaking a precomputed table takes one more ingredient than a faster algorithm. It takes randomness: something unique enough per user that two people typing the identical password never end up with the identical hash. Engineers called that ingredient salt, and it's what turned a shared phonebook back into a problem an attacker has to solve one victim at a time.
