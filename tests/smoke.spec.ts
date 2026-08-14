@@ -32,6 +32,12 @@ const KNOWN_ERRORS: RegExp[] = [
   // fine on the real deployed domain. Narrow to this exact code so an
   // actual Turnstile misconfiguration (wrong sitekey, etc.) still fails.
   /\[Cloudflare Turnstile\] Error: 110200/,
+  // Same domain-validation situation, different widget: after rotating to
+  // a new Turnstile sitekey, the rejected-domain path logs this styled
+  // (invisible-in-a-real-browser, via font-size:0/color:transparent) debug
+  // line instead of the numeric error code above. Still the widget's own
+  // internal telemetry, not app code — narrow match for the same reason.
+  /^%c%d font-size:0;color:transparent/,
 ];
 
 for (const path of PAGES) {
