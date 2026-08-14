@@ -352,7 +352,8 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 .cs-side .lk:hover{color:#fff}.cs-side .lk .ar{float:right;color:var(--faint)}
 
 @media(max-width:760px){
-  .hero2{grid-template-columns:1fr;gap:36px;padding:84px 20px 40px}
+  .hero2{gap:36px;padding:84px 20px 40px}
+  .hero2-feat,.hero2-side{flex-basis:100%}
   .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
   .shead{flex-direction:column;align-items:flex-start}.shead .meta{text-align:left}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
@@ -445,6 +446,14 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 <style>
   #content-scrim{position:fixed;inset:0;pointer-events:none;background:rgba(0,0,0,.5);
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  /* backdrop-filter recomputes every frame the animated starfield behind it
+     changes — one of the pricier CSS effects, worth skipping on phones and
+     reduced-motion, matching the same LOW_POWER threshold nebula-engine.js
+     already uses to cut its own animation work on these devices. The solid
+     darkening (cheap, no compositing cost) still applies either way. */
+  @media (max-width:900px), (prefers-reduced-motion:reduce){
+    #content-scrim{backdrop-filter:none;-webkit-backdrop-filter:none}
+  }
 </style>
 
 <SiteMenu currentPath="/blog" />
