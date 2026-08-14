@@ -1,0 +1,122 @@
+---
+title: "The Analog Dawn: Adding Salt to the Recipe"
+description: "Rainbow tables cracked identical passwords in one lookup because identical passwords produced identical hashes. Salting broke that assumption, and slow, memory-hard hashing finally made brute force expensive again."
+category: "Security Fundamentals"
+pubDate: 2026-09-18
+tags: ["Analog Dawn", "Cryptography", "Password Security"]
+cats: ["auth", "crypto"]
+heroImage: /images/salting-hero.webp
+heroImageAlt: "A glowing padlock built from binary code, standing beneath a wide beam of falling random characters, letters, digits, and symbols, that scatters and breaks apart two red rainbow-table segments of precomputed hash-to-password lookups on either side, set against a dark blue background covered in salt-generation code and cryptographic notation."
+cardImage: /images/salting-card.webp
+cardImageAlt: "A glowing padlock built from binary code beneath a beam of falling random characters that scatters two red rainbow-table lookup segments on either side, centered against a dark blue background of faint cryptographic code."
+faqs:
+  - q: "What is a cryptographic salt?"
+    a: "A random value generated uniquely for each user at registration and mixed into their password before it gets hashed. It doesn't need to stay secret and typically sits right next to the hash in the database, in plain text. Its entire job is to guarantee that two people who pick the identical password end up with completely different stored hashes."
+  - q: "Why doesn't salting alone protect against brute-force attacks?"
+    a: "Because salting only stops an attacker from reusing one precomputed table against many accounts. It does nothing to slow down a single guess. If the underlying algorithm is a fast hash like SHA-256, a modern GPU cluster can still try well over a hundred billion salted guesses a second against one account, and an eight-character password falls in minutes regardless of how random its salt was."
+  - q: "What's the difference between a fast hash and a slow hash like bcrypt or Argon2?"
+    a: "A fast hash, like MD5 or SHA-256, was built to verify a file or a network packet in nanoseconds, which is exactly the wrong property for a password check. A slow hash like bcrypt, scrypt, or Argon2 runs its core operation tens of thousands of times per guess and, in Argon2's and scrypt's case, demands real chunks of RAM to do it. That turns a hundred billion guesses a second into a few hundred."
+  - q: "Does the salt need to be kept secret?"
+    a: "No. A salt's security doesn't come from hiding it, it comes from being unique per user. Storing it in plain text next to the hash is standard practice and doesn't weaken the scheme, since its only job is to make every stored hash different even when the underlying passwords match."
+  - q: "When did salting passwords actually start?"
+    a: "Earlier than most people expect. Unix's original crypt(3), the same 1976 function that introduced password hashing in the first place, already mixed in a small random value before hashing. It used just twelve bits of randomness, only 4,096 possible values, which a modern machine chews through instantly. The idea was correct from day one. It just needed a much bigger number."
+draft: false
+---
+
+import Dropcap from '../../components/Dropcap.astro';
+import Mnote from '../../components/Mnote.astro';
+import CaseFile from '../../components/CaseFile.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+<Dropcap letter="T">wo users typing the identical password walk away with the identical hash. That single, simple fact was enough to make an attacker's job trivial: crack one digest, and every account anywhere in the stolen database that reused the same password falls with it.</Dropcap>
+
+```text
+[ Alice: "Password123" ] ---> [ SHA-256 ] ---> "ef92b778bafe771e..."
+[ Bob:   "Password123" ] ---> [ SHA-256 ] ---> "ef92b778bafe771e..."
+```
+
+To stop a single lookup table from cracking an entire database at once, every stored hash needs to come out unique, even when two people pick the literal same password.
+
+The fix already existed in 1976. Robert Morris Sr. and Ken Thompson's original <span class="code-inline">crypt(3)</span>, the same function that introduced password hashing in the first place, mixed in a small random value before hashing, specifically to stop identical passwords from producing identical output. It used twelve bits of randomness, 4,096 possible values, which a modern GPU chews through without slowing down. The idea was right from the start. The scale wasn't.
+
+<CaseFile
+  id="SALT-76"
+  rows={[
+    { term: 'Old idea, wrong scale', desc: 'crypt(3) already salted in 1976, with only 12 bits of randomness' },
+    { term: 'Modern fix', desc: 'A unique random salt of 128 bits or more, generated per user at registration' },
+    { term: 'Effect', desc: 'Identical passwords produce completely different stored hashes' },
+    { term: 'Remaining gap', desc: 'A salted but fast hash still falls to raw GPU and ASIC speed' },
+    { term: 'Modern equivalent', desc: 'bcrypt, scrypt, and Argon2id: slow, memory-hard password hashing' },
+  ]}
+/>
+
+## The salting workflow
+
+A salt gets combined with the plaintext password before either one ever reaches the hash function:
+
+```text
+[ Plaintext: "Password123" ]  +  [ Random Salt: "k8#9xQ" ]
+                              |
+                              v
+             [ Combined: "Password123k8#9xQ" ]
+                              |
+                              v
+                      [ Hash Algorithm ]
+                              |
+                              v
+             [ Stored Hash: "4a1f8c09e3..." ]
+```
+
+```text
+DATABASE RECORD:
+---------------------------------------------------------------------------------
+USER    SALT         STORED HASH (Salt + Password)
+---------------------------------------------------------------------------------
+alice   k8#9xQ  ---> 4a1f8c09e3bb8a72c1d9... (Result of "Password123k8#9xQ")
+bob     m3$7vL  ---> d88e9102ca17482f09a1... (Result of "Password123m3$7vL")
+---------------------------------------------------------------------------------
+```
+
+- **The salt is public**: it sits right next to the hash in the database in plain text, and it doesn't need to hide. Its whole job is making every row different, not staying secret.
+- **Tables stop working**: a table built for <span class="code-inline">Password123</span> alone is useless the moment every user's password gets combined with a different random string first. Cracking Alice now needs a table built specifically for her salt, and Bob's needs an entirely separate one.
+- **The cost explodes**: precomputing separate multi-terabyte tables for billions of possible salt values isn't a shortcut anymore. It's the same amount of work as attacking every account one at a time, which is exactly what salting is designed to force.
+
+## The speed problem: why fast hashes still fail
+
+Salting neutralized rainbow tables, and attackers pivoted straight to raw hardware.
+
+```text
+Algorithm: SHA-256 (Designed for network speed)
+GPU Cluster Capability: 100,000,000,000 guesses / sec
+Result: An 8-character salted password falls in minutes.
+```
+
+Salted or not, MD5 and SHA-256 were built for a different job: verifying a large file or a network packet in nanoseconds. That's precisely the wrong property for a password check, where speed benefits the attacker guessing, not the user logging in.
+
+## Key derivation functions: hashing on purpose, slowly
+
+Password-specific hash functions add two tunable dials that general-purpose hashes never had:
+
+1. **Work factor**: instead of hashing once, algorithms like bcrypt and PBKDF2 run the operation tens or hundreds of thousands of times in a loop. A hundred-millisecond delay is invisible to someone logging in once. Multiplied across billions of guesses, that same delay drops an attacker from billions of guesses a second to a few hundred.
+2. **Memory hardness**: Argon2 and scrypt demand a real chunk of RAM, sixty-four megabytes or more, to compute a single hash. A GPU or a custom cracking chip packs thousands of tiny cores with almost no cache memory each, so starving every guess of RAM starves the exact hardware advantage that made GPU cracking worthwhile.
+
+Niels Provos and David Mazières built bcrypt around this idea in 1999. Argon2 won the Password Hashing Competition in 2015 by pushing the memory-hardness dial further still.
+
+<span class="highlight">Salt stopped attackers from cracking everyone at once. Slow hashing stopped them from cracking anyone quickly.</span>
+
+<DetectionOpportunity>A fast algorithm and a slow one can protect the exact same password and produce wildly different outcomes under an offline attack. Salting alone won't save a system that still reaches for MD5 or plain SHA-256 for password storage. The algorithm itself has to be slow on purpose.</DetectionOpportunity>
+
+> Security here isn't about hiding the math. It's about making the math expensive.
+
+## The modern takeaway
+
+<CaseFile
+  id="SALT-76 / translation"
+  rows={[
+    { term: 'Unsalted MD5 or SHA-256', desc: '&rarr; A unique random salt per user, 128 bits or more' },
+    { term: 'Instant execution', desc: '&rarr; Memory-hard, deliberately slow hashing: Argon2id, bcrypt' },
+    { term: 'Vulnerable to rainbow tables', desc: '&rarr; Attackers forced to compute hashes one at a time' },
+  ]}
+/>
+
+Salting and slow hashing finally secured identity at rest, inside the database, against bulk offline cracking. The fight simply moved back to where it started a few posts ago: the connection itself. Two machines that have never met, talking across a hostile internet, still have to agree on a secret while an eavesdropper listens to every word they exchange. That question is what the digital handshake, TLS, was built to answer.
