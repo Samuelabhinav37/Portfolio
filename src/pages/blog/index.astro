@@ -81,17 +81,32 @@ window.SITE=window.SITE||{};
 <script is:inline src="/scripts/title-manager.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-<!-- Cormorant Garamond + JetBrains Mono are only used by Luna's chat drawer,
-     which most visitors never open — loaded non-render-blocking (classic
-     "print" media-swap trick) instead of holding up first paint for every
-     visitor whether or not they ever click her. -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;1,300;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<!-- Body/UI text now uses the native -apple-system OS font stack (see --sans
+     above) instead of a hosted Hanken Grotesk webfont — one less render-
+     blocking request, and it's genuinely faster since there's nothing to
+     download at all. Cormorant Garamond is the one exception: it's the
+     "Samuel Abhinav" corner identity (#site-identity in SiteMenu.astro),
+     visible above the fold on every page, so it loads render-blocking here
+     same as the other pages. -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap" rel="stylesheet">
+<!-- JetBrains Mono is only used by Luna's chat drawer's mono accents, which
+     most visitors never open — loaded non-render-blocking (classic "print"
+     media-swap trick) instead of holding up first paint for every visitor
+     whether or not they ever click her. -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style is:global>
 :root{
   --bg:var(--c-bg);--ink:#ededee;--ink-soft:#c9c9cc;--muted:#94949a;--faint:#67676d;
   --line:rgba(var(--c-white),.26);--line-soft:rgba(var(--c-white),.1);
-  --sans:'Hanken Grotesk',-apple-system,sans-serif;--e:cubic-bezier(.22,1,.36,1);
+  --e:cubic-bezier(.22,1,.36,1);
+  /* Native OS font stack — same trick Apple's own site uses instead of
+     embedding the licensed SF Pro font: -apple-system pulls the real San
+     Francisco font on Mac/iPhone/iPad directly from the OS (zero download,
+     genuinely free/legal), falling back to each other OS's own native UI
+     font. Now the site-wide default for everything on the blog, not just
+     titles/descriptions — Hanken Grotesk dropped entirely. */
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --apple-sans:var(--sans);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
@@ -139,11 +154,11 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
    nothing below the photo just sits there unchanged. */
 .hero2-feat .meta{color:var(--faint);transition:color .3s}
 .hero2-feat:hover .meta{color:var(--ink-soft)}
-.hero2-feat h1{margin-top:10px;font-weight:300;font-size:clamp(26px,2.6vw,36px);line-height:1.12;
+.hero2-feat h1{margin-top:10px;font-family:var(--apple-sans);font-weight:300;font-size:clamp(26px,2.6vw,36px);line-height:1.12;
   letter-spacing:-1px;color:#fff;position:relative;display:inline-block}
 .hero2-feat h1::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
 .hero2-feat:hover h1::after{width:100%}
-.hero2-feat p{margin-top:14px;color:var(--faint);font-size:15px;line-height:1.6;transition:color .3s;
+.hero2-feat p{margin-top:14px;font-family:var(--apple-sans);color:var(--faint);font-size:15px;line-height:1.6;transition:color .3s;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .hero2-feat:hover p{color:var(--muted)}
 
@@ -156,7 +171,7 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
 .hero2-side .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
 .hero2-item .meta{color:var(--faint);transition:color .3s}
 .hero2-item:hover .meta{color:var(--ink-soft)}
-.hero2-item h3{margin-top:8px;font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
+.hero2-item h3{margin-top:8px;font-family:var(--apple-sans);font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
 .hero2-item:hover h3{color:#fff}
 
 /* ── THREAT WIRE — live ticker (NVD → CIRCL → static pills fallback).
@@ -257,12 +272,12 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px;transition:color .3s}
 .grid .card .cmeta span+span::before{content:"·";margin:0 8px}
 .grid .card:hover .cmeta{color:var(--ink-soft)}
-.grid .card h3{font-weight:400;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
+.grid .card h3{font-family:var(--apple-sans);font-weight:400;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
   position:relative;display:inline-block;transition:color .3s}
 .grid .card h3::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
 .grid .card:hover h3{color:#fff}
 .grid .card:hover h3::after{width:100%}
-.grid .card .clead{margin-top:8px;color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
+.grid .card .clead{margin-top:8px;font-family:var(--apple-sans);color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .grid .card:hover .clead{color:var(--muted)}
 
@@ -285,7 +300,7 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .trow-head span{color:var(--faint);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
 a.trow:hover{background:rgba(var(--c-white),.07)}
 .trow-date,.trow-cat{color:var(--faint);font-size:13px;transition:color .25s}
-.trow-title{font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .25s}
+.trow-title{font-family:var(--apple-sans);font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .25s}
 a.trow:hover .trow-date,a.trow:hover .trow-cat{color:var(--ink-soft)}
 a.trow:hover .trow-title{color:#fff}
 
@@ -435,7 +450,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   #luna-quip{
     position:fixed; right:18px; top:auto; bottom:calc(34vh - 70px);
     z-index:999; max-width:min(180px,60vw); text-align:right; pointer-events:none;
-    font-family:'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-family:var(--sans);
     font-size:12.5px; line-height:1.45; letter-spacing:0.01em;
     color:rgba(226,232,240,0.92);
     background:rgba(10,11,16,0.82); border:1px solid rgba(205,214,226,0.14);

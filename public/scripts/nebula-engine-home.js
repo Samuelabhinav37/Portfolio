@@ -879,13 +879,13 @@ Node.prototype.draw = function(t){
   }
   if((this.label||this.fullLabel)&&this.labelAlpha>.012){
     var lx=Math.min(this.x+r+6,CW-110),ly=this.y+3;
-    ctx.font="8.5px 'Hanken Grotesk', system-ui, -apple-system, sans-serif";
+    ctx.font="8.5px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
     var typing=this.fullLabel&&this.typeIdx<this.fullLabel.length;
     var cursor=typing&&Math.floor(U.uTime.value*3)%2===0?'_':'';
     ctx.fillStyle='rgba(255,255,255,'+(this.labelAlpha*.55).toFixed(3)+')';
     ctx.fillText(this.label+cursor,lx,ly);
     if(this.visited&&this.tier!=='tiny'&&!typing){
-      ctx.font="6.5px 'Hanken Grotesk', system-ui, -apple-system, sans-serif";
+      ctx.font="6.5px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
       ctx.fillStyle='rgba(220,228,245,'+(this.labelAlpha*.36).toFixed(3)+')';
       ctx.fillText(sTime(),lx,ly+12);
     }
@@ -1557,7 +1557,7 @@ function drawIntrusions(){
     if(ig){ig.addColorStop(0,'rgba(255,160,40,'+(al*.35).toFixed(3)+')');ig.addColorStop(1,'rgba(200,80,20,0)');ctx.beginPath();ctx.arc(n.x,n.y,ir,0,Math.PI*2);ctx.fillStyle=ig;ctx.fill();}
     ctx.beginPath();ctx.arc(n.x,n.y,n.baseR*1.4,0,Math.PI*2);
     ctx.strokeStyle='rgba(255,140,30,'+(al*.60).toFixed(3)+')';ctx.lineWidth=.8;ctx.stroke();
-    if(pulse>.7&&x.life>.3){ctx.font="7px 'Hanken Grotesk', system-ui, -apple-system, sans-serif";ctx.fillStyle='rgba(255,160,50,'+(x.life*pulse*.70).toFixed(3)+')';ctx.fillText('ALERT',n.x+n.baseR+4,n.y-n.baseR-4);}
+    if(pulse>.7&&x.life>.3){ctx.font="7px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";ctx.fillStyle='rgba(255,160,50,'+(x.life*pulse*.70).toFixed(3)+')';ctx.fillText('ALERT',n.x+n.baseR+4,n.y-n.baseR-4);}
   }
 }
 
