@@ -226,17 +226,84 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .card:visited{color:inherit}
 .card.in{opacity:1;transform:none}
 
-/* Single consistent list — kicker + title, matching the .hero2-item
-   treatment used by the "recent posts" list next to the featured hero.
-   Previously the first 3 were an image card and the rest were a bare
-   date/category/title table; three different shapes for what's
-   conceptually the same link. One structure for the whole archive now. */
+/* Mobile default: one consistent list — kicker + title, matching the
+   .hero2-item treatment used by the "recent posts" list next to the
+   featured hero. Narrow screens don't have room for a photo grid + a
+   separate table without either shrinking the images to nothing or
+   forcing a lot of scrolling, so mobile stays this one simple shape.
+   Desktop overrides this back to real image cards + a table below
+   (see the min-width:761px block further down) — restored at the site
+   owner's request after the "unify to one shape" pass went too far by
+   applying to every viewport, not just the narrow ones that needed it. */
 .grid{display:flex;flex-direction:column;max-width:880px;margin:0 auto 64px;padding-bottom:56px;border-bottom:1px solid var(--line-soft)}
 .no-results{padding:60px 0;text-align:center;color:var(--faint);font-size:15px;line-height:1.9}
 .no-results button{margin-top:6px;background:none;border:none;color:var(--muted);font:inherit;cursor:pointer;
   text-decoration:underline;text-underline-offset:4px;transition:color .3s}
 .no-results button:hover{color:#fff}
 .grid .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
+.tbl{display:none}
+
+/* ── Desktop only: real image cards for the first 3 archive posts, a plain
+   table for the rest. Paired with --bp-760 (max-width:760px) used
+   elsewhere on this page — blog-index-client.js's isDesktop() branches at
+   the same 761px so the rendered markup always matches which of these two
+   rule sets is actually active. ── */
+@media (min-width: 761px) {
+  /* auto-fit (not auto-fill): with only 3 cards, auto-fill was reserving
+     empty phantom column tracks to the right instead of letting the 3 real
+     cards stretch to fill the row — the whole page read as "stuck on the
+     left" because of it. auto-fit collapses those empty tracks so the 1fr
+     cards actually expand to fill the available width. */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;
+    max-width:none;margin:0 0 64px;padding-bottom:56px;border-bottom:1px solid var(--line-soft)}
+  .no-results{grid-column:1/-1}
+  .grid .card{display:block}
+  .grid .card .ph{position:relative;aspect-ratio:16/10;overflow:hidden;background:#101012;border-radius:4px}
+  /* Static stand-in for cards with no real photo (no heroImage set) — same
+     gradient BlogPost.astro uses for its hero-art placeholder, so a missing
+     image reads as an intentional treatment, not a broken load. */
+  .grid .card .ph.noimg{background:
+    radial-gradient(at 50% 32%,rgba(132,132,146,.30) 0%,rgba(70,70,80,.18) 38%,transparent 70%),
+    linear-gradient(165deg,rgba(36,36,42,.95) 0%,rgba(10,10,12,.98) 100%)}
+  .grid .card .ph::before{content:"";position:absolute;inset:0;z-index:1;
+    background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
+    animation:shim 1.6s linear infinite;transition:opacity .7s ease;opacity:1}
+  .grid .card .ph.loaded::before{opacity:0}
+  @keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .grid .card .ph img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:2;
+    filter:grayscale(1) brightness(.78);opacity:0;
+    transform:scale(1.03);transition:filter .7s var(--e),transform .9s var(--e),opacity .6s ease}
+  .grid .card .ph.loaded img{opacity:1}
+  .grid .card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,15,17,.05),rgba(15,15,17,.5))}
+  .grid .card:hover .ph img{filter:grayscale(0) brightness(.94);transform:scale(1.06)}
+  .grid .card .cbody{margin-top:16px}
+  .grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px;transition:color .3s}
+  .grid .card .cmeta span+span::before{content:"·";margin:0 8px}
+  .grid .card:hover .cmeta{color:var(--ink-soft)}
+  .grid .card h3{font-family:var(--apple-sans);font-weight:600;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
+    position:relative;display:inline-block;transition:color .3s}
+  .grid .card h3::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
+  .grid .card:hover h3{color:#fff}
+  .grid .card:hover h3::after{width:100%}
+  .grid .card .clead{margin-top:8px;font-family:var(--apple-sans);color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .grid .card:hover .clead{color:var(--muted)}
+
+  /* A literal date/category/title table, dividers instead of boxes, no
+     imagery — capped and centered rather than letting the title column's
+     1fr stretch across the whole page. */
+  .tbl{display:flex;flex-direction:column;max-width:880px;margin:0 auto}
+  .trow{display:grid;grid-template-columns:70px 180px 1fr;gap:20px;align-items:baseline;
+    padding:16px 12px;margin:0 -12px;border-radius:5px;
+    border-bottom:1px solid var(--line-soft);transition:background-color .25s}
+  .trow-head{pointer-events:none}
+  .trow-head span{color:var(--faint);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
+  a.trow:hover{background:rgba(var(--c-white),.07)}
+  .trow-date,.trow-cat{color:var(--faint);font-size:13px;transition:color .25s}
+  .trow-title{font-family:var(--apple-sans);font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .25s}
+  a.trow:hover .trow-date,a.trow:hover .trow-cat{color:var(--ink-soft)}
+  a.trow:hover .trow-title{color:#fff}
+}
 
 /* Filter/sort used to sit inside section.block, right before .grid, and
    inherited that section's own horizontal padding for free. Moved up to
@@ -352,15 +419,20 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
   .shead{display:none}
 
-  /* Threat wire above everything, filter/sort right under the featured
-     post, grid archive last — .hero-wire-wrap only becomes a flex
-     container at this width, so this has no effect above it. DOM order
-     (hero2, filter-count-wrap, wire) is untouched; only the mobile visual
-     order changes via these three explicit values. */
+  /* Threat wire above everything, filter/sort right above the archive
+     grid it controls, grid last — .hero-wire-wrap only becomes a flex
+     container at this width (desktop stays plain DOM order: hero, filter,
+     wire, grid — filter deliberately stays hero-adjacent there). DOM order
+     (hero2, filter-count-wrap, wire, section.block) is untouched on
+     desktop; only the mobile visual order changes via these four explicit
+     values. section.block was moved inside .hero-wire-wrap (from being a
+     separate sibling) specifically so it can share this flex/order
+     context — CSS order can't reorder across two different parents. */
   .hero-wire-wrap{display:flex;flex-direction:column}
   .wire{order:-1;padding-top:84px}
   .hero2{order:0}
   .filter-count-wrap{order:1;padding:20px 20px 0}
+  section.block{order:2}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
   .cs-grid2{grid-template-columns:1fr;gap:40px}
 
@@ -573,12 +645,13 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
   <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
 </div>
-</div>
 
 <section class="block">
   <div class="shead"><h2>Index</h2><span class="meta">Security field notes. <em>Built, broken, and documented.</em></span></div>
   <div class="grid" id="grid"></div>
+  <div class="tbl" id="tbl"></div>
 </section>
+</div>
 
 <div id="filterDialog" class="flt-dialog" aria-hidden="true">
   <div class="flt-dialog__backdrop" data-flt-close></div>
