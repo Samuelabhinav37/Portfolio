@@ -8,6 +8,7 @@ body {
   background: var(--c-bg);   /* near-black, not true black — avoids halation (text glow) on dark bg */
   color: rgba(240,240,240,0.78);
   min-height: 100vh;
+  min-height: 100svh;
   -webkit-font-smoothing: antialiased;
   /* Was never set at all — every individual element happens to declare its
      own font-family, so this was invisible in practice, but anything that
@@ -833,8 +834,8 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 
 /* ── Back to Top — left corner, so the right corner (Luna's) stays clear ── */
 #back-to-top {
-  position: fixed; bottom: 36px; left: 36px; z-index: 150;
-  width: 40px; height: 40px; border-radius: 50%;
+  position: fixed; bottom: 34px; left: 34px; z-index: 150;
+  width: 44px; height: 44px; border-radius: 50%;
   background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.92));
   border: 1px solid rgba(var(--c-white),0.07);
   border-top: 1px solid rgba(var(--c-white),0.12);
@@ -990,7 +991,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   .hero-title { font-size: 2.4rem; }
   .hero-left { padding: 36px 24px; }
   .body-text { font-size: 1.16rem; }
-  #back-to-top { bottom: 22px; left: 18px; }
+  #back-to-top { bottom: 20px; left: 16px; }
   .luna-slot { right: 18px; bottom: 22px; }
 }
 
@@ -1259,6 +1260,10 @@ td.ioc-act { width: 70px; text-align: right; }
   background: rgba(var(--c-white),.06); border: 1px solid rgba(var(--c-white),.12); border-radius: 50%;
   color: #dfe4f0; font-size: 16px; line-height: 1; cursor: pointer; transition: background .2s;
 }
+.flt-dialog__close::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+}
 .flt-dialog__close:hover { background: rgba(var(--c-white),.12); }
 .flt-dialog__title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 24px; color: #fff; margin-bottom: 6px; }
 .flt-dialog__sub { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .05em; color: rgba(var(--c-white),.35); margin-bottom: 22px; }
@@ -1511,7 +1516,8 @@ a.social-icon { text-decoration: none; color: inherit; }
 #ldw-drawer.ldw-compact .ldw-head{padding-left:60px}
 #ldw-drawer.ldw-compact .ldw-head .ldw-dot{display:none}
 .ldw-head{transition:padding .5s var(--ldw-spring)}
-.ldw-x{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ldw-faint);transition:.2s}
+.ldw-x{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ldw-faint);transition:.2s;position:relative}
+.ldw-x::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 .ldw-x:hover{color:var(--ldw-ink);background:rgba(var(--c-white),.05)} .ldw-x svg{width:15px;height:15px}
 
 .ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
@@ -1583,7 +1589,8 @@ a.social-icon { text-decoration: none; color: inherit; }
 .ldw-composer input::placeholder{color:var(--ldw-faint)}
 .ldw-r2{display:flex;align-items:center;margin-top:6px;font-family:var(--ldw-mono);font-weight:500;font-size:9px;letter-spacing:.06em;color:var(--ldw-faint)}
 .ldw-r2 .ldw-sp{flex:1}
-.ldw-send{flex:0 0 auto;width:32px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(var(--c-ice),.10);border:1px solid rgba(var(--c-ice),.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px}
+.ldw-send{flex:0 0 auto;width:32px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(var(--c-ice),.10);border:1px solid rgba(var(--c-ice),.16);color:var(--ldw-faint);opacity:.6;transition:.18s;margin-left:6px;position:relative}
+.ldw-send::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 .ldw-send svg{width:13px;height:13px}
 .ldw-send.on{opacity:1;background:linear-gradient(160deg,#e8ebf1,#c3c8d2);border-color:transparent;color:#12121c}
 .ldw-send.on:hover{transform:translateY(-1px);box-shadow:0 4px 14px -4px rgba(var(--c-ice),.5)}

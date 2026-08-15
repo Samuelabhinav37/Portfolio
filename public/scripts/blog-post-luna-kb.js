@@ -296,7 +296,7 @@ KB.forEach(function(entry, i){
         head=drawer.querySelector('.ldw-head'), statusEl=$('ldw-status'),
         avatarEl=$('ldw-avatar'), pillBtn=$('luna-pill');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let open=false, busy=false, lunaBlobURL=null, lastFocused=null;
+  let open=false, busy=false, lastFocused=null;
 
   /* live Luna in the avatar — same document as the corner companion,
      lazy-mounted so it only runs while the drawer is open */
@@ -314,7 +314,6 @@ KB.forEach(function(entry, i){
     if(!avatarEl || avatarEl.firstChild) return;
     try{
       const html=window.SITE.__LUNA_HTML; if(!html) return;
-      lunaBlobURL=URL.createObjectURL(new Blob([html],{type:'text/html'}));
       const fr=document.createElement('iframe');
       fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
       fr.setAttribute('title','Luna'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
@@ -322,13 +321,12 @@ KB.forEach(function(entry, i){
         setTimeout(()=>sendAvatarAction('wave'), 550);
         startAvatarIdle();
       }, {once:true});
-      fr.src=lunaBlobURL; avatarEl.appendChild(fr);
+      fr.srcdoc=html; avatarEl.appendChild(fr);
     }catch(e){ console.error('luna avatar mount failed',e); }
   }
   function unmountLuna(){
     stopAvatarIdle();
     if(avatarEl) avatarEl.innerHTML='';
-    if(lunaBlobURL){ try{ URL.revokeObjectURL(lunaBlobURL); }catch(_){} lunaBlobURL=null; }
   }
 
   /* typewriter placeholder — cycles example prompts into the search bar */

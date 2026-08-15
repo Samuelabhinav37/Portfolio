@@ -784,7 +784,11 @@ addEventListener('pointermove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;},{passiv
    page-level mousemove (converted to iframe-local coords) so her gaze
    tracks across the whole page, and can also trigger actions on demand. */
 addEventListener('message', e => {
-  if(e.origin !== location.origin) return;
+  /* location.origin is unusable here: this document is loaded via srcdoc,
+     so its own location is the opaque "null" origin even though DOM access
+     to/from the parent is still same-origin (allow-same-origin). Compare
+     against the parent's real origin instead. */
+  if(e.origin !== parent.location.origin) return;
   const d = e.data;
   if(!d || typeof d !== 'object') return;
   if(d.type === 'lunaMouse'){
@@ -1252,7 +1256,7 @@ doAction('boot');
    A tap that fires both is safe: luna-drawer-core.js debounces repeat
    'lunaOpenChat' messages, so this can't double-toggle open then shut. */
 try{ document.documentElement.style.cursor='pointer';
-  var _openChat=function(){ try{ parent.postMessage({type:'lunaOpenChat'}, location.origin); }catch(e){} };
+  var _openChat=function(){ try{ parent.postMessage({type:'lunaOpenChat'}, parent.location.origin); }catch(e){} };
   addEventListener('click', _openChat);
   addEventListener('pointerup', _openChat);
 }catch(e){}
@@ -1265,14 +1269,15 @@ try{ document.documentElement.style.cursor='pointer';
   var f = document.getElementById("luna-frame");
   if(f){
     try{
-      var _lunaURL = URL.createObjectURL(new Blob([LUNA_HTML],{type:"text/html"}));
       try{ window.SITE.__LUNA_HTML = LUNA_HTML; }catch(_){}
-      /* Release the blob once the iframe has parsed it — the document is
-         already live in memory, so the URL handle is no longer needed. */
-      f.addEventListener('load', function(){
-        try{ URL.revokeObjectURL(_lunaURL); }catch(_){}
-      }, {once:true});
-      f.src = _lunaURL;
+      /* srcdoc, not a blob: URL. The blob URL + revoke-on-load pattern this
+         replaced was silently going blank on iOS: WebKit can re-fetch an
+         iframe's src after backgrounding/memory pressure, and by then the
+         object URL was already revoked, so the reload found nothing — a
+         white square with no error anywhere. srcdoc has no such lifecycle:
+         the document lives in the DOM attribute itself, so there's nothing
+         to revoke and nothing for WebKit to fail to re-fetch. */
+      f.srcdoc = LUNA_HTML;
     }
     catch(e){ console.error("Luna embed failed", e); }
   }

@@ -88,14 +88,14 @@ body { min-height:100%; }
 
 /* ── T2 geometry: written by JS each frame, never authored by hand ───── */
 :root{
-  --gt-x:0px; --gt-y:0px; --gt-w:100vw; --gt-h:100vh; --gt-r:0px;
+  --gt-x:0px; --gt-y:0px; --gt-w:100vw; --gt-h:100vh; --gt-h:100svh; --gt-r:0px;
   --gt-chrome:0; --gt-o:1; --gt-bar:34px;
-  --gl-x:0px; --gl-y:0px; --gl-s:100vh;
+  --gl-x:0px; --gl-y:0px; --gl-s:100vh; --gl-s:100svh;
   --rail-o:0;
 }
 #globe-term{
   position:relative; z-index:1;
-  width:100%; height:100vh;
+  width:100%; height:100vh; height:100svh;
   overflow:hidden;                 /* keeps the globe + chrome inside the section */
   pointer-events:none; opacity:1;
   background:rgba(4,4,10,0.9);     /* same calm panel as #editorial for a continuous field */
@@ -319,7 +319,7 @@ body.globe-active #globe-gl{ opacity:1; }
 /* ════════════════ Terminal window — floating CRT, Beat 1 expands to fullscreen ════════════════ */
 #term-stage {
   position:relative; z-index:1;
-  width:100%; min-height:100vh;
+  width:100%; min-height:100vh; min-height:100svh;
   display:flex; align-items:center; justify-content:center;
   pointer-events:none;
   opacity:0;
@@ -584,7 +584,7 @@ body.intro-done #hero-tagline { opacity:1; }
   --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
 }
 footer#site-footer{
-    position:relative; z-index:1; width:100%; min-height:100vh; overflow:hidden; background:rgba(4,4,10,0.9);
+    position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:rgba(4,4,10,0.9);
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0;
     opacity:1; pointer-events:auto;   /* same calm panel as #editorial; ::before bloom sits on top */
   }
@@ -893,7 +893,7 @@ footer#site-footer{
      background (#window), below Luna (999) and the chrome (1000+), so the navbar
      and Luna ride on top throughout. Revealed at body.intro-done (Beat 0). -->
 <div id="term-stage">
-  <div id="term-window" style="width:100%;height:100vh;border-radius:0;">
+  <div id="term-window" style="width:100%;height:100vh;height:100svh;border-radius:0;">
     <div id="term-screen">
       <div class="tcorner tl"></div><div class="tcorner tr"></div>
       <div class="tcorner bl"></div><div class="tcorner br"></div>
@@ -1310,7 +1310,7 @@ footer#site-footer{
 
 <!-- ═══════════════ PROJECTS — names left · big translucent globe terminal right ═══════════════ -->
 <style is:global>
-#projects-section{ position:relative; z-index:1; width:100%; min-height:100vh; box-sizing:border-box;
+#projects-section{ position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
   background:rgba(4,4,10,0.9); display:flex; align-items:center;
   padding:clamp(50px,7vh,100px) 0; }
 #projects-section .ps-inner{ width:100%; max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
@@ -1559,6 +1559,7 @@ footer#site-footer{
 .sig-dialog__close{ position:absolute; top:10px; right:10px; width:36px; height:36px; display:grid; place-items:center;
   background:rgba(var(--c-white),0.06); border:1px solid rgba(var(--c-white),0.12); border-radius:50%;
   color:#dfe4f0; font-size:16px; line-height:1; cursor:pointer; }
+.sig-dialog__close::before{ content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
 .sig-dialog__close:hover{ background:rgba(var(--c-white),0.12); }
 .sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); margin:0 0 6px; }
 .sig-dialog__title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }

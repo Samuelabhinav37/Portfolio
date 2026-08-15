@@ -359,6 +359,7 @@ window.SITE=window.SITE||{};
 #luna-portal {
   position:fixed;
   right:18px; top:min(calc(66vh + 80px), calc(100vh - 140px));   /* concentric with Luna's box */
+  top:min(calc(66svh + 80px), calc(100svh - 140px));
   width:120px; height:120px;
   border-radius:50%;
   z-index:998;
@@ -381,7 +382,7 @@ window.SITE=window.SITE||{};
 
 </style>
 <style is:global>
-  :global(#luna-wrap) { top: min(calc(66vh + 80px), calc(100vh - 140px)); }
+  :global(#luna-wrap) { top: min(calc(66vh + 80px), calc(100vh - 140px)); top: min(calc(66svh + 80px), calc(100svh - 140px)); }
 </style>
 <style is:global>
   /* ── Luna's speech: a small quip card that docks directly over #luna-wrap

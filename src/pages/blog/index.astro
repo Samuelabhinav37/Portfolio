@@ -111,7 +111,7 @@ window.SITE=window.SITE||{};
 *{box-sizing:border-box;margin:0;padding:0}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;
-  min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  min-height:100vh;min-height:100svh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .meta{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
 a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
   outline:1px solid #fff;outline-offset:4px}
@@ -333,6 +333,7 @@ a.trow:hover .trow-title{color:#fff}
 .flt-dialog__close{position:absolute;top:14px;right:14px;width:28px;height:28px;display:grid;place-items:center;
   background:rgba(var(--c-white),.06);border:1px solid rgba(var(--c-white),.12);border-radius:50%;
   color:#dfe4f0;font-size:16px;line-height:1;cursor:pointer;transition:background .2s}
+.flt-dialog__close::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 .flt-dialog__close:hover{background:rgba(var(--c-white),.12)}
 .flt-dialog__title{font-weight:300;font-size:24px;color:#fff;margin-bottom:6px}
 .flt-dialog__sub{color:var(--faint);margin-bottom:22px}

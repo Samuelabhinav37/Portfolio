@@ -102,12 +102,12 @@ html, body {
   display:flex;
   align-items:flex-start;
   justify-content:center;
-  height:100vh;
+  height:100vh; height:100svh;
   padding: calc(9vh + 72px) 24px 48px;
   overflow:hidden;
 }
 @media (max-width:980px){
-  #about-main { height:auto; min-height:100vh; overflow:visible; padding:calc(9vh + 72px) 3vw 48px; }
+  #about-main { height:auto; min-height:100vh; min-height:100svh; overflow:visible; padding:calc(9vh + 72px) 3vw 48px; }
 }
 
 #about-inner {
@@ -506,6 +506,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;}
 .ps.cur .d{background:#fff;box-shadow:0 0 4px #fff;}.ps.done .d{background:rgba(var(--c-white),.35);}
 #prog-div{flex:1;}
 #back{position:fixed;top:0;left:10px;z-index:31;font-size:6px;letter-spacing:.14em;color:rgba(var(--c-white),.30);cursor:pointer;height:20px;display:flex;align-items:center;opacity:0;pointer-events:none;transition:.2s;}
+#back::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%);}
 #back.on{opacity:1;pointer-events:all;}#back:hover{color:rgba(var(--c-white),.55);}
 #ticker-w{position:fixed;bottom:0;left:0;right:0;z-index:30;height:20px;background:#000;border-top:1px solid rgba(var(--c-white),.05);overflow:hidden;}
 #ticker{white-space:nowrap;font-size:5px;color:rgba(var(--c-white),.28);letter-spacing:.12em;display:inline-block;padding-top:4px;animation:tickscroll 32s linear infinite;}

@@ -1079,7 +1079,7 @@
         window.SITE.__globeOwnsScreen=false;
         window.SITE.__globeScreen=null;   // globe hidden: ships roam freely, no avoidance
         if(canvas.style.visibility!=='hidden'){ canvas.style.visibility='hidden'; }
-        if(progress<=0.02){ tw.style.transform=''; tw.style.filter=''; tw.style.width='100vw'; tw.style.height='100vh'; tw.style.borderRadius='0'; tw.style.opacity='1'; }
+        if(progress<=0.02){ tw.style.transform=''; tw.style.filter=''; tw.style.width='100vw'; tw.style.height='100vh'; tw.style.height='100svh'; tw.style.borderRadius='0'; tw.style.opacity='1'; }
         /* Hard-clear tour leftovers. A scroll JUMP (scrollbar drag, End key, a
            reload that restores scrollY) can skip the whole calm 0..0.42 exit
            window between two ticks — the loop then dies here with tiles, labels
@@ -1166,7 +1166,7 @@
          layout. The box stays full-viewport; scale(2.7) reproduces the old
          W*2.7 / H*2.7 growth about the centre, but stays on the GPU thread so it
          doesn't fight the WebGL globe rendering in the same tick. */
-      tw.style.width='100vw'; tw.style.height='100vh';
+      tw.style.width='100vw'; tw.style.height='100vh'; tw.style.height='100svh';
       var _diveS=lerp(1,2.7,dv);
       var _jx=(Math.random()*2-1)*lerp(0,14,ls), _jy=(Math.random()*2-1)*lerp(0,5,ls);
       // glitch jitter on both axes rides on top of the dive scale, growing with loss
