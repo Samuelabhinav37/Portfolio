@@ -38,10 +38,40 @@
            '<span class="ed-vp">'+vp+'</span><span class="ed-sep">·</span>'+
            '<span class="ed-date">'+esc(v.dateAdded)+'</span>'+r+'</a>';
   }
+  /* The CSS's own `animation:edscroll 80s linear infinite` (translateX to
+     -50%) assumes a fixed content width. It isn't fixed: paint() runs once
+     with the 6-item FALLBACK list, then again with up to 16 live items —
+     roughly tripling the track's width. A fixed-duration animation covering
+     "50% of however wide the track currently is" suddenly has ~3x the
+     distance to cover in the same 80s the moment live data lands, which
+     read as the ticker abruptly speeding up (and jumping, since the
+     transform's % basis changes out from under an already-running
+     animation). Recomputing the duration from the track's actual width
+     after every paint keeps the visual speed constant regardless of how
+     many items are currently in it. */
+  var ED_PX_PER_SEC = 20; // matches the original 80s pace at the fallback list's width
+  var ED_REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function retune(){
+    /* Reduced-motion turns the ticker off entirely via a CSS
+       `animation:none` rule — leave animation-name alone here so that rule
+       stays in control instead of an inline style silently beating it. */
+    if(ED_REDUCE) return;
+    /* Only animation-name/-duration are set inline — never the `animation`
+       shorthand, which would silently reset animation-play-state to
+       'running' and break the :hover{animation-play-state:paused} rule
+       below (an inline style always beats a class selector). */
+    track.style.animationName = 'none';
+    track.style.transform = 'translateX(0)';
+    void track.offsetWidth; // force the reset to commit before restarting
+    var dur = Math.max(20, (track.scrollWidth * 0.5) / ED_PX_PER_SEC);
+    track.style.animationDuration = dur.toFixed(1) + 's';
+    track.style.animationName = 'edscroll';
+  }
   function paint(list){
     var h1=list.map(function(v){ return tok(v,false); }).join('');
     var h2=list.map(function(v){ return tok(v,true); }).join('');
     track.innerHTML=h1+h2;
+    retune();
   }
   paint(FALLBACK);
   function load(){

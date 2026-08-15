@@ -971,6 +971,10 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 /* ── Mobile ── */
 @media (--bp-900) {
   .hero { grid-template-columns: 1fr; min-height: auto; }
+  /* Image before title on mobile — .hero is already a grid at every width,
+     so this is just a visual reorder (DOM order, and so reading/tab order,
+     stays hero-left-then-hero-right; only what paints first changes). */
+  .hero-right { order: -1; }
   .hero-left { padding: 48px 32px; min-height: 65vw; }
   .hero-right { min-height: 56vw; }
   .hero-art { inset: 28px; }
@@ -981,7 +985,16 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   #menu-trigger { top: 14px; right: 20px; }
   .container { padding: 0 24px; }
   .page-grid { grid-template-columns: minmax(0, 1fr); }
-  .icon-rail { display: none; }
+  /* Share buttons stay, just not as a fixed floating column (cramped and
+     easy to miss on a phone) — laid out as a static horizontal row right
+     where the rail already sits in the DOM (just after the hero), and no
+     longer dependent on the scroll-triggered .visible fade the fixed
+     desktop rail uses, since it's inline content now, not an overlay. */
+  .icon-rail {
+    position: static; transform: none; width: auto; z-index: auto;
+    flex-direction: row; justify-content: center; gap: 14px;
+    padding: 18px 24px 0; opacity: 1 !important; pointer-events: auto !important;
+  }
   .article-col { padding: 28px 0 0; max-width: none; }
   .author-bar-meta { display: none; }
   .stories-grid { grid-template-columns: 1fr; gap: 36px; }

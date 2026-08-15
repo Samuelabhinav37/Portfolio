@@ -174,6 +174,20 @@ html, body {
 .about-headline sup{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.80rem;font-weight:300;color:rgba(var(--c-white),0.30);vertical-align:super;margin-left:5px;}
 .about-bio{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.72rem;font-weight:300;line-height:1.70;color:rgba(var(--c-white),0.40);margin-top:20px;}
 
+/* certifications — mobile only. Desktop already shows these on the
+   homepage bento; on mobile that cell is hidden (--bp-600, index.astro) for
+   space, so they move here instead, right after .c-tools in DOM order —
+   the mobile single-column stack has no grid-row override and falls back
+   to document order, same trick already used for .c-tools itself. Same six
+   badges/images as the homepage marquee, just laid out as a static grid
+   instead of scrolling — a mobile-only card doesn't need the motion. */
+.c-certs{display:none;padding:16px;}
+.c-certs-lbl{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(var(--c-white),0.35);display:block;margin-bottom:10px;}
+.c-certs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.c-cert{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.c-cert img{width:34px;height:34px;object-fit:contain;}
+.c-cert span{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.56rem;font-weight:400;color:rgba(var(--c-white),0.5);}
+
 /* signal */
 .c-signal{grid-row:3;grid-column:3;padding:0;height:230px;display:flex;flex-direction:column;}
 .sig-graph{padding:8px 8px 4px;border-bottom:1px solid rgba(var(--c-white),0.04);flex:1;display:flex;flex-direction:column;min-height:0;}
@@ -291,7 +305,8 @@ html, body {
   .c-about,.c-signal,.c-quote,.c-pokemon,.c-tools{
     grid-column:1 !important; grid-row:auto !important;
   }
-  .c-photo,.c-skills,.game-panel{ display:none; }
+  .c-photo,.c-skills,.game-panel,.c-signal{ display:none; }
+  .c-certs{ display:block; }
   /* The desktop scale-compensation transform (scaleAboutInner()) is a no-op
      below the 980px stacking breakpoint, so these bento labels — sized for
      a scaled-down desktop layout — would otherwise render at their literal,
@@ -429,6 +444,17 @@ html, body {
       <div class="marquee-wrap">
         <div class="marquee-track fwd"><span class="tool-chip"><img src="/icons/wireshark.svg" alt="">Wireshark</span><span class="tool-chip"><img src="/icons/splunk.svg" alt="">Splunk</span><span class="tool-chip">Burp Suite</span><span class="tool-chip">Metasploit</span><span class="tool-chip"><img src="/icons/kalilinux.svg" alt="">Kali Linux</span><span class="tool-chip">Elastic SIEM</span><span class="tool-chip">CrowdStrike</span><span class="tool-chip"><img src="/icons/python.svg" alt="">Python</span><span class="tool-chip"><img src="/icons/docker.svg" alt="">Docker</span><span class="tool-chip">MS Sentinel</span><span class="tool-chip"><img src="/icons/wireshark.svg" alt="">Wireshark</span><span class="tool-chip"><img src="/icons/splunk.svg" alt="">Splunk</span><span class="tool-chip">Burp Suite</span><span class="tool-chip">Metasploit</span><span class="tool-chip"><img src="/icons/kalilinux.svg" alt="">Kali Linux</span><span class="tool-chip">Elastic SIEM</span><span class="tool-chip">CrowdStrike</span><span class="tool-chip"><img src="/icons/python.svg" alt="">Python</span><span class="tool-chip"><img src="/icons/docker.svg" alt="">Docker</span><span class="tool-chip">MS Sentinel</span></div>
         <div class="marquee-track rev"><span class="tool-chip">Suricata</span><span class="tool-chip">Nmap</span><span class="tool-chip">Snort</span><span class="tool-chip">Volatility</span><span class="tool-chip">Zeek</span><span class="tool-chip">OpenVAS</span><span class="tool-chip">Ghidra</span><span class="tool-chip">MITRE ATT&CK</span><span class="tool-chip">Active Directory</span><span class="tool-chip"><img src="/icons/gnubash.svg" alt="">Bash</span><span class="tool-chip">PowerShell</span><span class="tool-chip">Zero Trust</span><span class="tool-chip">Suricata</span><span class="tool-chip">Nmap</span><span class="tool-chip">Snort</span><span class="tool-chip">Volatility</span><span class="tool-chip">Zeek</span><span class="tool-chip">OpenVAS</span><span class="tool-chip">Ghidra</span><span class="tool-chip">MITRE ATT&CK</span><span class="tool-chip">Active Directory</span><span class="tool-chip"><img src="/icons/gnubash.svg" alt="">Bash</span><span class="tool-chip">PowerShell</span><span class="tool-chip">Zero Trust</span></div>
+      </div>
+    </div>
+    <div class="card c-certs">
+      <span class="c-certs-lbl">Certifications</span>
+      <div class="c-certs-grid">
+        <div class="c-cert"><img src="https://images.credly.com/images/d3cb5ac3-8bd2-471a-a27c-f447bf16da47/blob" alt="" loading="lazy"><span>Security+</span></div>
+        <div class="c-cert"><img src="https://images.credly.com/images/3746480e-1d97-41f8-b27a-0b798d235306/CompTIA_Network_2B.png" alt="" loading="lazy"><span>Network+</span></div>
+        <div class="c-cert"><img src="https://images.credly.com/images/2030e43f-8003-4d4b-9630-847add403c87/image.png" alt="" loading="lazy"><span>ISC2 CC</span></div>
+        <div class="c-cert"><img src="https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png" alt="" loading="lazy"><span>AWS CCP</span></div>
+        <div class="c-cert"><img src="https://images.credly.com/images/be8fcaeb-c769-4858-b567-ffaaa73ce8cf/image.png" alt="" loading="lazy"><span>AZ-900</span></div>
+        <div class="c-cert"><img src="https://images.credly.com/images/95043c37-e916-4e4e-96ab-06fb66056648/blob" alt="" loading="lazy"><span>HTB CJCA</span></div>
       </div>
     </div>
     <div class="card c-signal">

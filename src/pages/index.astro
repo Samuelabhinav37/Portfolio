@@ -1139,9 +1139,11 @@ footer#site-footer{
        same call as the homepage globe/footer earlier. The eagle canvas
        already stops animating under LOW_POWER (index-signal-eagle.js), but
        still painted a static frame behind display:none; the arcade loop
-       had no such gate at all and needs one (see index-editorial-flow.js). */
-    #editorial .ed-bento{ grid-template-columns:1fr; grid-template-rows:repeat(3,180px); aspect-ratio:auto; }
-    #editorial .ed-bento__pixels{ display:none; }
+       had no such gate at all and needs one (see index-editorial-flow.js).
+       Threat intel and the ATT&CK spotlight cut too, mobile only — the
+       bento's down to one cell (Certifications) at this width, so the grid
+       collapses to a single row instead of two empty ones. */
+    #editorial .ed-bento{ display:none; }
     #editorial .ed-frame--b.ed-arcade{ display:none; }
   }
 
@@ -1343,6 +1345,20 @@ footer#site-footer{
 .acc-desc{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:14px;
   line-height:1.55; color:rgba(226,232,244,0.6); margin:0; padding:2px 4px 22px 42px; max-width:46ch; }
 
+/* Mobile-only: the desktop globe terminal (.psplit-right) is hidden below
+   --bp-900, leaving a bare text accordion — this gives each project a
+   compact tools/results readout instead, without adding it to desktop
+   where the terminal already carries that job visually. Hidden by default,
+   shown inside the --bp-900 block near .psplit below. */
+.acc-mobile-extra{ display:none; padding:0 4px 20px 42px; max-width:46ch; }
+.acc-tools{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.04em;
+  line-height:1.6; color:rgba(226,232,244,0.42); margin:0 0 10px; }
+.acc-tools-lbl{ color:rgba(226,232,244,0.7); text-transform:uppercase; letter-spacing:.12em; margin-right:6px; }
+.acc-results{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.acc-results li{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.6); position:relative; padding-left:14px; }
+.acc-results li::before{ content:'—'; position:absolute; left:0; color:rgba(226,232,244,0.3); }
+
 /* ── the big translucent globe terminal ── */
 .pterm{ position:relative; width:100%; height:min(84vh,900px);
   background:rgba(5,6,12,0.5); border:1px solid rgba(226,232,244,0.12); border-radius:5px;
@@ -1411,6 +1427,7 @@ footer#site-footer{
   .psplit-right{ display:none; }
   #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
   .acc-desc{ padding-left:4px; }
+  .acc-mobile-extra{ display:block; padding-left:4px; }
 }
 </style>
 <section id="projects-section" aria-label="Selected projects">
@@ -1429,6 +1446,13 @@ footer#site-footer{
             </button>
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A multi-SIEM detection architecture that converts raw telemetry into triaged, actionable alerts. Wazuh, Splunk, and Security Onion operate in parallel across the pipeline, Shuffle orchestrates the SOAR playbooks, and a local LLM performs first-pass triage, extending MITRE ATT&amp;CK coverage from nine techniques to fifteen.</p>
+              <div class="acc-mobile-extra">
+                <p class="acc-tools"><span class="acc-tools-lbl">Tools</span>Wazuh · Splunk · Security Onion · Shuffle · Local LLM</p>
+                <ul class="acc-results">
+                  <li>ATT&amp;CK coverage expanded from 9 to 15 techniques</li>
+                  <li>Automated first-pass triage via local LLM</li>
+                </ul>
+              </div>
             </div></div>
           </article>
           <article class="acc" data-idx="1" id="sec-prism">
@@ -1439,6 +1463,13 @@ footer#site-footer{
             </button>
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A federated anomaly-detection framework evaluated across seven simulated OT and ICS sites. Built on Flower with FedProx and a temporal variational autoencoder trained to model each site's baseline behavior, the system exchanges only masked model weights so that raw telemetry never leaves the plant, and reconstruction error is used to surface anomalies at a false-positive rate below eight percent.</p>
+              <div class="acc-mobile-extra">
+                <p class="acc-tools"><span class="acc-tools-lbl">Tools</span>Flower · FedProx · Temporal VAE</p>
+                <ul class="acc-results">
+                  <li>Evaluated across 7 simulated OT/ICS sites</li>
+                  <li>False-positive rate kept below 8%</li>
+                </ul>
+              </div>
             </div></div>
           </article>
           <article class="acc" data-idx="2" id="sec-axon">
@@ -1449,6 +1480,13 @@ footer#site-footer{
             </button>
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A risk-adaptive authentication scheme designed to remain unobtrusive under normal conditions. Each authentication attempt is assigned a continuous risk score derived from device, location, and behavioral signals; low-risk attempts proceed without friction, while high-risk attempts trigger step-up authentication in accordance with the NIST 800-63B assurance model.</p>
+              <div class="acc-mobile-extra">
+                <p class="acc-tools"><span class="acc-tools-lbl">Tools</span>NIST 800-63B · Device/location/behavioral risk scoring</p>
+                <ul class="acc-results">
+                  <li>Low-risk attempts proceed with no friction</li>
+                  <li>High-risk attempts trigger step-up authentication</li>
+                </ul>
+              </div>
             </div></div>
           </article>
         </div>

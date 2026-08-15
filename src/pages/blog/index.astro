@@ -397,10 +397,24 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 .cs-side .lk:hover{color:#fff}.cs-side .lk .ar{float:right;color:var(--faint)}
 
 @media (--bp-760){
-  .hero2{gap:36px;padding:84px 20px 40px}
+  /* padding-top used to clear the fixed header because .hero2 was the
+     first thing on the page — now the wire ticker is (see order:-1 below),
+     so that clearance moves there instead and this only needs normal
+     breathing room under it. */
+  .hero2{gap:36px;padding:24px 20px 40px}
   .hero2-feat,.hero2-side{flex-basis:100%}
   .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
-  .shead{flex-direction:column;align-items:flex-start}.shead .meta{text-align:left}
+  .shead{display:none}
+
+  /* Threat wire above the featured post, image-only for the featured
+     item — every grid card below goes text-only, matching the (already
+     text-only) hero2-side/table-row treatment used elsewhere on this page.
+     .hero-wire-wrap only becomes a flex container at this width, so this
+     has no effect above it — DOM order (hero2 first, wire second) is
+     untouched, only the mobile visual order flips. */
+  .hero-wire-wrap{display:flex;flex-direction:column}
+  .wire{order:-1;padding-top:84px}
+  .grid .card .ph{display:none}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
   .cs-grid2{grid-template-columns:1fr;gap:40px}
 
@@ -573,6 +587,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 })();
 </script>
 
+<div class="hero-wire-wrap">
 <section class="hero2">
   <a
     class="hero2-feat"
@@ -603,6 +618,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 <div class="wire" aria-label="Live security threat wire">
   <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
   <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
+</div>
 </div>
 
 <section class="block">
