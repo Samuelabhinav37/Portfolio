@@ -429,21 +429,16 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
 }
 
 /* ── Icon rail (fixed, fades in when article column starts) ── */
+/* Static, inline, always visible — not a fixed floating column. Research
+   into how major eng blogs (Vercel, Cloudflare, GitHub, Linear) handle
+   sharing found none of them use a persistent floating rail; usage data
+   for that pattern is consistently poor (~0.2-0.5% click-through), and one
+   A/B test found a pinned share toolbar measurably reduced engagement.
+   One button now: navigator.share() where supported, falling back to the
+   existing #shareDialog otherwise (see BlogPost.astro). */
 .icon-rail {
-  position: fixed;
-  left: 28px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex; flex-direction: column;
-  gap: 18px; align-items: center;
-  z-index: 50;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.45s ease;
-}
-.icon-rail.visible {
-  opacity: 1;
-  pointer-events: auto;
+  display: flex; align-items: center;
+  padding: 22px 0 0;
 }
 
 /* ── Right floating rail (fixed; fades in past author bar, mirrors .icon-rail pattern) ── */
@@ -494,6 +489,17 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   box-shadow: 0 4px 18px rgba(0,0,0,0.55), 0 0 0 1px rgba(var(--c-white),0.06), inset 0 1px 0 rgba(var(--c-white),0.07);
 }
 .social-icon svg { width: 16px; height: 16px; }
+
+/* GitHub moved out of the share cluster — it's a source-code link, not a
+   share destination, so it reads oddly grouped with X/LinkedIn/copy-link.
+   Small and muted, sitting with author identity instead. */
+.author-bar-github {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; margin-left: 10px; flex-shrink: 0;
+  color: rgba(var(--c-white),0.32); transition: color 0.25s;
+}
+.author-bar-github:hover { color: rgba(var(--c-white),0.7); }
+.author-bar-github svg { width: 16px; height: 16px; }
 
 /* ── Article ── */
 .article-col {
@@ -1000,16 +1006,6 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   #menu-trigger { top: 14px; right: 20px; }
   .container { padding: 0 24px; }
   .page-grid { grid-template-columns: minmax(0, 1fr); }
-  /* Share buttons stay, just not as a fixed floating column (cramped and
-     easy to miss on a phone) — laid out as a static horizontal row right
-     where the rail already sits in the DOM (just after the hero), and no
-     longer dependent on the scroll-triggered .visible fade the fixed
-     desktop rail uses, since it's inline content now, not an overlay. */
-  .icon-rail {
-    position: static; transform: none; width: auto; z-index: auto;
-    flex-direction: row; justify-content: center; gap: 14px;
-    padding: 18px 24px 0; opacity: 1 !important; pointer-events: auto !important;
-  }
   .article-col { padding: 28px 0 0; max-width: none; }
   .author-bar-meta { display: none; }
   .stories-grid { grid-template-columns: 1fr; gap: 36px; }

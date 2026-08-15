@@ -275,6 +275,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
               <span class="author-info-role">{SITE.role}</span>
             </div>
           </div>
+          <a class="author-bar-github" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
         </div>
         <div class="author-bar-meta">
           <span class="live-dot" aria-hidden="true"></span><strong><time datetime={pubIso}>{dateLabel}</time></strong>
@@ -282,13 +283,29 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </div>
       </div>
 
-      <!-- Icon rail — share URLs derive from the canonical URL at build time -->
+      <!-- Single share affordance: navigator.share() (the native OS share
+           sheet) where supported, falling back to #shareDialog's own
+           X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
+           keeps the existing dialog-wiring in blog-client.js working
+           unmodified for the fallback path — see the capture-phase
+           listener below that intercepts and calls navigator.share()
+           first when available, stopping the dialog from also opening. -->
       <div class="icon-rail">
-        <button class="social-icon" type="button" data-share-open="x" title={i18n.shareOnX} aria-label={i18n.shareOnX}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M4 4l6.5 7.5M20 4h-5l-4.5 5.5M20 4v5M4 20l8-9.5 8 9.5"/></svg></button>
-        <button class="social-icon" type="button" data-share-open="linkedin" title={i18n.shareOnLinkedIn} aria-label={i18n.shareOnLinkedIn}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></button>
-        <button class="social-icon" type="button" data-share-open="copy" title={i18n.copyLink} aria-label={i18n.copyLink}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
-        <a class="social-icon" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
+        <button class="social-icon" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
       </div>
+      <script is:inline>
+        (function(){
+          var btn = document.getElementById('shareBtn');
+          if(!btn) return;
+          btn.addEventListener('click', function(e){
+            if(navigator.share){
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              navigator.share({ title: document.title, url: location.href }).catch(function(){});
+            }
+          }, true);
+        })();
+      </script>
 
       <!-- 2-col grid -->
       <div class="page-grid">
