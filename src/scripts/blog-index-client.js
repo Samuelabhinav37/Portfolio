@@ -32,31 +32,18 @@ const projects = [...FAKE_PROJECTS, ...postCards].filter(p => !featuredSeeds.has
 // same as the Threat Wire ticker's esc() further down this file.
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-// The 3 most recent posts get a real image card (wide heroImage on top,
-// category/date, title, excerpt) — same treatment Anthropic gives its one
-// featured slot, just extended to 3 since this page doesn't have a
-// separate rotating hero competing for that role. Posts without a
-// heroImage get the site's static gradient placeholder (same treatment as
-// BlogPost.astro's .hero-art--placeholder) instead of a random unrelated
-// photo pulled from a third-party service.
-const card=(p,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
-  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
-  <div class="cbody">
-    <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
-    <h3>${esc(p.name)}</h3>
-    ${p.lead?`<p class="clead">${esc(p.lead)}</p>`:''}
-  </div></a>`;
+// Every post in the archive (everything past the single static featured
+// slot above) uses one structure — kicker + title, no thumbnail, no
+// excerpt — matching .hero2-item, the treatment the handful of "recent"
+// posts next to the featured hero already used. Previously the first 3
+// got an image card and everything after that became a bare table row;
+// three different shapes for what's conceptually the same kind of link
+// read as inconsistent, so this collapses them into one.
+const item=(p,d)=>`<a href="${esc(p.href||'#')}" class="card hero2-item" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
+  <span class="meta">${esc(p.kick)}</span>
+  <h3>${esc(p.name)}</h3></a>`;
 
-// Everything past the top 3 becomes a plain table row — Anthropic's actual
-// pattern for its full news archive (a literal DATE / CATEGORY / TITLE
-// table, no thumbnails, no per-row box) — so the page stays scannable as
-// the archive grows well past what a photo grid could hold gracefully.
-const row=(p,d)=>`<a href="${esc(p.href||'#')}" class="card trow" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
-  <span class="trow-date">${esc(p.year)}</span>
-  <span class="trow-cat">${esc(p.kick.split('·')[0].trim())}</span>
-  <span class="trow-title">${esc(p.name)}</span></a>`;
-
-const grid=document.getElementById('grid'),tbl=document.getElementById('tbl'),countEl=document.getElementById('count');
+const grid=document.getElementById('grid'),countEl=document.getElementById('count');
 /* Filtering is multi-select across two tiers:
      - primary: the always-visible tab row (detect/otics/auth/bb)
      - secondary: the fuller domain taxonomy, tucked behind "See more" so the
@@ -66,22 +53,19 @@ let selected=new Set(),sort='latest';
 function matches(p){return selected.size===0||(p.cats||[]).some(c=>selected.has(c));}
 function render(){
   const firsts={};
-  [grid,tbl].forEach(el=>el.querySelectorAll('.card').forEach(c=>firsts[c.dataset.key]=c.getBoundingClientRect()));
+  grid.querySelectorAll('.card').forEach(c=>firsts[c.dataset.key]=c.getBoundingClientRect());
   let list=projects.filter(matches);
   if(sort==='latest')list.sort((a,b)=>b.year-a.year);
   if(sort==='oldest')list.sort((a,b)=>a.year-b.year);
   if(sort==='az')list.sort((a,b)=>a.name.localeCompare(b.name));
-  const featured=list.slice(0,3),rest=list.slice(3);
   if(!list.length){
     grid.innerHTML=`<div class="no-results">Nothing filed under this category yet.<br><button type="button" data-clear-filters>Clear filters →</button></div>`;
-    tbl.innerHTML='';
   }else{
-    grid.innerHTML=featured.map((p)=>card(p,0)).join('');
-    tbl.innerHTML=rest.length?`<div class="trow trow-head" aria-hidden="true"><span class="trow-date">Date</span><span class="trow-cat">Category</span><span class="trow-title">Title</span></div>${rest.map((p)=>row(p,0)).join('')}`:'';
+    grid.innerHTML=list.map((p)=>item(p,0)).join('');
   }
   const n=String(list.length).padStart(2,'0');
   countEl.innerHTML=`Showing <b>${n}</b> of <b>${n}</b> results`;
-  [...grid.querySelectorAll('.card'),...tbl.querySelectorAll('.card')].forEach((c,i)=>{
+  grid.querySelectorAll('.card').forEach((c,i)=>{
     c.classList.add('in');
     const f=firsts[c.dataset.key];
     if(f&&!reduce){
