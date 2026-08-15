@@ -238,6 +238,18 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .no-results button:hover{color:#fff}
 .grid .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
 
+/* Filter/sort used to sit inside section.block, right before .grid, and
+   inherited that section's own horizontal padding for free. Moved up to
+   sit right under the featured post instead (inside .hero-wire-wrap,
+   between .hero2 and .wire) — it needs its own horizontal padding now,
+   matching what section.block/.hero2 use so the edges still line up. */
+/* position+z-index needed, not optional: .hero2/.wire both set this same
+   position:relative;z-index:1 because #gc (the nebula background canvas,
+   position:absolute;z-index:0) paints above any *static* sibling
+   regardless of DOM order — a positioned element beats a non-positioned
+   one in stacking order even at z-index:0 vs "auto". Without this,
+   .filter-count-wrap rendered fully invisible behind the canvas. */
+.filter-count-wrap{position:relative;z-index:1;padding:28px 38px 0}
 .filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
   border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:16px 0;margin-bottom:24px}
 .tabs{display:flex;flex-wrap:wrap;gap:26px}
@@ -340,14 +352,15 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
   .shead{display:none}
 
-  /* Threat wire above the featured post, image-only for the featured
-     item — every grid card below goes text-only, matching the (already
-     text-only) hero2-side/table-row treatment used elsewhere on this page.
-     .hero-wire-wrap only becomes a flex container at this width, so this
-     has no effect above it — DOM order (hero2 first, wire second) is
-     untouched, only the mobile visual order flips. */
+  /* Threat wire above everything, filter/sort right under the featured
+     post, grid archive last — .hero-wire-wrap only becomes a flex
+     container at this width, so this has no effect above it. DOM order
+     (hero2, filter-count-wrap, wire) is untouched; only the mobile visual
+     order changes via these three explicit values. */
   .hero-wire-wrap{display:flex;flex-direction:column}
   .wire{order:-1;padding-top:84px}
+  .hero2{order:0}
+  .filter-count-wrap{order:1;padding:20px 20px 0}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
   .cs-grid2{grid-template-columns:1fr;gap:40px}
 
@@ -539,14 +552,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   )}
 </section>
 
-<div class="wire" aria-label="Live security threat wire">
-  <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
-  <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
-</div>
-</div>
-
-<section class="block">
-  <div class="shead"><h2>Index</h2><span class="meta">Security field notes. <em>Built, broken, and documented.</em></span></div>
+<div class="filter-count-wrap">
   <div class="filter">
     <div class="tabs" id="tabs">
       <button class="tab on meta" data-cat="all"><span class="ring"></span>All</button>
@@ -561,6 +567,16 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     </div>
   </div>
   <div class="count meta" id="count">Showing <b>09</b> of <b>09</b> results</div>
+</div>
+
+<div class="wire" aria-label="Live security threat wire">
+  <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
+  <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
+</div>
+</div>
+
+<section class="block">
+  <div class="shead"><h2>Index</h2><span class="meta">Security field notes. <em>Built, broken, and documented.</em></span></div>
   <div class="grid" id="grid"></div>
 </section>
 
