@@ -32,9 +32,27 @@
   var lunaWrap = document.getElementById('luna-wrap');
   var portal   = document.getElementById('luna-portal');
   var damp     = document.getElementById('chrome-damp');
+  var termStage    = document.getElementById('term-stage');
+  var heroTagline  = document.getElementById('hero-tagline');
 
   window.SITE._introRevealReady = false;
   window.SITE._bgBoost = 0.85;   // multiplier on #bg-bloom intensity; lifted on Luna's arrival
+
+  /* #term-stage/#hero-tagline fade in on body.intro-done via their own
+     CSS transition (1.1s / 1.1s+0.4s delay), authored assuming that class
+     lands mid-way through the ~6.4s timeline where the fade is invisible
+     against everything else already happening. On the instant-settle path
+     it's the ONLY thing happening, so it read as a bare ~1s black flash
+     before the hero appeared. Kill the transition for exactly one frame so
+     the opacity jumps straight to its end state instead of animating. */
+  function snapOpacity(el){
+    if(!el) return;
+    var prev = el.style.transition;
+    el.style.transition = 'none';
+    el.style.opacity = '1';
+    void el.offsetHeight; // force the 'none' transition to commit before restoring it
+    el.style.transition = prev;
+  }
 
   /* Snap everything to its final settled state with no animation. Used by
      both the returning-visitor fast path and the reduced-motion path. */
@@ -44,6 +62,8 @@
     if(lunaWrap) lunaWrap.style.opacity = '1';
     if(damp)     damp.style.opacity = '1';
     if(logo)     logo.style.display = 'none';
+    snapOpacity(termStage);
+    snapOpacity(heroTagline);
     document.body.classList.add('chrome-in');
     document.body.classList.add('intro-done');
     window.SITE._introFullyDone = true;
