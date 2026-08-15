@@ -49,7 +49,7 @@ html, body {
 /* Desktop (side-by-side) stays a fixed single viewport, scaled to fit, no
    scroll — see scaleAboutInner() below. Below the stacking breakpoint the
    layout is genuinely fluid instead of scaled, so let it scroll. */
-@media (max-width:980px){
+@media (--bp-980){
   html, body { height:auto; overflow-x:hidden; overflow-y:auto; }
 }
 
@@ -93,7 +93,7 @@ html, body {
 /* Below 980px #luna-wrap docks to the bottom-right corner instead of its
    vh-based spot (see PortfolioLunaShell.astro's .about-hidden rule) — keep
    the arrival bloom anchored to that same corner. */
-@media (max-width:980px){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
+@media (--bp-980){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
 
 
 #about-main {
@@ -106,7 +106,7 @@ html, body {
   padding: calc(9vh + 72px) 24px 48px;
   overflow:hidden;
 }
-@media (max-width:980px){
+@media (--bp-980){
   #about-main { height:auto; min-height:100vh; min-height:100svh; overflow:visible; padding:calc(9vh + 72px) 3vw 48px; }
 }
 
@@ -121,7 +121,7 @@ html, body {
   align-items:flex-start;
   gap:10px;
 }
-@media (max-width:980px){
+@media (--bp-980){
   #about-row { flex-direction:column; align-items:center; }
 }
 
@@ -156,7 +156,7 @@ html, body {
   width:min(700px, calc((100vw - 58px) / 2));
   flex-shrink:0;
 }
-@media (max-width:980px){
+@media (--bp-980){
   .bento{ width:min(700px, 94vw); }
 }
 
@@ -253,7 +253,7 @@ html, body {
 
 /* ── GAME PANEL ── */
 .game-panel{width:min(700px, calc((100vw - 58px) / 2));flex-shrink:0;background:#000;border:1px solid rgba(var(--c-white),0.07);border-top:1px solid rgba(var(--c-white),0.13);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;align-self:stretch;}
-@media (max-width:980px){ .game-panel{ width:min(700px, 94vw); } }
+@media (--bp-980){ .game-panel{ width:min(700px, 94vw); } }
 .game-hdr{
   padding:8px 12px 7px;
   border-bottom:1px solid rgba(var(--c-white),0.05);
@@ -286,7 +286,7 @@ html, body {
    page, same call as the homepage globe/footer and the contact page's
    window stack. (The game iframe's srcdoc is gated in JS above so it never
    even boots behind display:none.) */
-@media (max-width:900px){
+@media (--bp-900){
   .bento{ grid-template-columns:1fr; }
   .c-about,.c-signal,.c-quote,.c-pokemon,.c-tools{
     grid-column:1 !important; grid-row:auto !important;
@@ -325,7 +325,7 @@ html, body {
   #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
   #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
-  @media (max-width:980px){ #luna-quip{ bottom:146px; } }
+  @media (--bp-980){ #luna-quip{ bottom:146px; } }
 </style>
 </head>
 <body>
@@ -399,7 +399,7 @@ html, body {
     background-size:cover; filter:contrast(1.6) brightness(1.3); mix-blend-mode:overlay;
   }
 
-  @media (max-width:480px){ #subliminal-layer,#subliminal-flash{ display:none; } }
+  @media (--bp-480){ #subliminal-layer,#subliminal-flash{ display:none; } }
   @media (prefers-reduced-motion: reduce){ #subliminal-layer,#subliminal-flash{ display:none; } }
 </style>
 <div id="subliminal-layer" aria-hidden="true"></div>

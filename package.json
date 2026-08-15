@@ -21,10 +21,15 @@
     "typescript": "^5"
   },
   "devDependencies": {
+    "@csstools/postcss-global-data": "^4.0.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0",
     "acorn": "^8.18.0",
+    "postcss-custom-media": "^12.0.1",
     "sharp": "^0.35.3",
     "terser": "^5.49.0"
+  },
+  "overrides": {
+    "nanoid": "^3.3.18"
   }
 }

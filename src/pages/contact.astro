@@ -92,7 +92,7 @@ window.SITE=window.SITE||{};
     transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
   .pg-footer .f-links a:hover{ color:#fff; }
   .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
-  @media (max-width:900px){
+  @media (--bp-900){
     .pg-footer{ grid-column:auto; grid-row:auto; margin-top:24px; padding:14px 20px; }
   }
 
@@ -338,7 +338,7 @@ window.SITE=window.SITE||{};
     .stack.ready .card:hover .card-inner{ transform:none; }
   }
 
-  @media (max-width:900px){
+  @media (--bp-900){
     .field-wrap{ position:absolute; inset:auto 0 auto 0; display:block;
       padding:92px 20px 48px; max-width:none; }
     body{ overflow-y:auto; }
@@ -465,7 +465,7 @@ window.SITE=window.SITE||{};
     background-size:cover; filter:contrast(1.6) brightness(1.3); mix-blend-mode:overlay;
   }
 
-  @media (max-width:480px){ #subliminal-layer,#subliminal-flash{ display:none; } }
+  @media (--bp-480){ #subliminal-layer,#subliminal-flash{ display:none; } }
   @media (prefers-reduced-motion: reduce){ #subliminal-layer,#subliminal-flash{ display:none; } }
 </style>
 <div id="subliminal-layer" aria-hidden="true"></div>

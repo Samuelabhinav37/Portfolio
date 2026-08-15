@@ -1,0 +1,23 @@
+/* Canonical breakpoint scale — every @media (max-width: …) value used
+   anywhere on the site, named once instead of re-typed as a bare number
+   per file. Resolved by postcss-custom-media at build time (see
+   postcss.config.mjs), so `@media (--bp-820)` compiles to the exact same
+   `@media (max-width: 820px)` it replaces — this file only gives the
+   existing scale names, it doesn't change any of the values.
+
+   Named by pixel value, not by semantic tier ("tablet", "mobile"): the
+   same number is reused for different reasons in different files (a
+   dialog close button vs. a whole section reflow), so a semantic name
+   would be guessing intent that isn't actually shared. Add a new custom
+   media here only if a new breakpoint value is genuinely needed — reuse
+   one of these ten first. */
+@custom-media --bp-480 (max-width: 480px);
+@custom-media --bp-600 (max-width: 600px);
+@custom-media --bp-640 (max-width: 640px);
+@custom-media --bp-760 (max-width: 760px);
+@custom-media --bp-820 (max-width: 820px);
+@custom-media --bp-900 (max-width: 900px);
+@custom-media --bp-980 (max-width: 980px);
+@custom-media --bp-1100 (max-width: 1100px);
+@custom-media --bp-1300 (max-width: 1300px);
+@custom-media --bp-1580 (max-width: 1580px);

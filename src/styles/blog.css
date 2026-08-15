@@ -964,12 +964,12 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 }
 
 /* ── Hide floating right rail on viewports too narrow to clear the article ── */
-@media (max-width: 1580px) {
+@media (--bp-1580) {
   .left-sidebar { display: none; }
 }
 
 /* ── Mobile ── */
-@media (max-width: 900px) {
+@media (--bp-900) {
   .hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-left { padding: 48px 32px; min-height: 65vw; }
   .hero-right { min-height: 56vw; }
@@ -987,7 +987,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   .stories-grid { grid-template-columns: 1fr; gap: 36px; }
   .faq-heading { font-size: 1.9rem; }
 }
-@media (max-width: 600px) {
+@media (--bp-600) {
   .hero-title { font-size: 2.4rem; }
   .hero-left { padding: 36px 24px; }
   .body-text { font-size: 1.16rem; }
@@ -1123,7 +1123,7 @@ td.ioc-act { width: 70px; text-align: right; }
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.10rem; line-height: 1.55;
   color: rgba(244,244,246,0.88);
 }
-@media (max-width: 600px) {
+@media (--bp-600) {
   .case-file-row { flex-direction: column; gap: 3px; }
   .case-file-row dt { flex: none; padding-top: 0; }
 }
@@ -1156,7 +1156,7 @@ td.ioc-act { width: 70px; text-align: right; }
 .toc-inline[open] summary::after { transform: rotate(45deg); }
 .toc-inline summary:focus-visible { outline-offset: -4px; }
 .toc-inline .toc-list { padding: 2px 18px 16px; }
-@media (max-width: 1580px) { .toc-inline { display: block; } }
+@media (--bp-1580) { .toc-inline { display: block; } }
 
 /* ── Figure with caption ── */
 .figure-block { margin: 38px 0; }
@@ -1199,7 +1199,7 @@ td.ioc-act { width: 70px; text-align: right; }
   padding: 2px 7px; border: 1px solid rgba(var(--c-white),0.16); border-radius: 3px;
   color: rgba(var(--c-white),0.48);
 }
-@media (max-width: 1300px) {
+@media (--bp-1300) {
   /* narrow screens: the note folds inline above its paragraph as a label */
   .mnote {
     position: static; display: block; width: auto; text-align: left;
@@ -1614,4 +1614,4 @@ a.social-icon { text-decoration: none; color: inherit; }
 .ldw-fu:hover{color:var(--ldw-ink);background:rgba(var(--c-ice),.22);border-color:rgba(var(--c-ice),.45);transform:translateY(-1px);box-shadow:0 4px 12px -6px rgba(var(--c-ice),.4)}
 .ldw-fu:active{transform:translateY(0)}
 .ldw-fu .ldw-plus{color:rgba(var(--c-ice),.5);margin-right:5px}
-@media (max-width: 640px){ #ldw-drawer{ --ldw-w: 100vw; } }
+@media (--bp-640){ #ldw-drawer{ --ldw-w: 100vw; } }

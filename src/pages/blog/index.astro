@@ -125,7 +125,7 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
 /* Below 900px #luna-wrap docks to the bottom-right corner instead of its
    vh-based spot (see PortfolioLunaShell.astro's .luna-hidden rule) — keep
    the arrival bloom anchored to that same corner. */
-@media (max-width:900px){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
+@media (--bp-900){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
 
 /* Anthropic-style static hero: one big featured post (image, kicker, title,
    excerpt) beside a short text list of a few more recent ones — replaces
@@ -205,7 +205,7 @@ a.wire-item:hover{border-color:var(--line);color:var(--ink);background:rgba(var(
 .wire-item.skel::before{content:"";position:absolute;inset:0;
   background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
   animation:shim 1.6s linear infinite;opacity:.5}
-@media(max-width:760px){.wire-label{padding:12px 14px}}
+@media (--bp-760){.wire-label{padding:12px 14px}}
 @media (prefers-reduced-motion:reduce){
   .wire-track{animation:none;width:auto}
   .wire-view{overflow-x:auto;mask-image:none;-webkit-mask-image:none}
@@ -396,7 +396,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 .cs-side .lk{display:block;color:var(--ink);text-decoration:none;padding:10px 0;border-bottom:1px solid var(--line-soft);transition:color .3s}
 .cs-side .lk:hover{color:#fff}.cs-side .lk .ar{float:right;color:var(--faint)}
 
-@media(max-width:760px){
+@media (--bp-760){
   .hero2{gap:36px;padding:84px 20px 40px}
   .hero2-feat,.hero2-side{flex-basis:100%}
   .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
@@ -465,7 +465,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
   #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
-  @media (max-width:900px){ #luna-quip{ bottom:146px; } }
+  @media (--bp-900){ #luna-quip{ bottom:146px; } }
 </style>
 </head>
 <body>
@@ -496,7 +496,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
      reduced-motion, matching the same LOW_POWER threshold nebula-engine.js
      already uses to cut its own animation work on these devices. The solid
      darkening (cheap, no compositing cost) still applies either way. */
-  @media (max-width:900px), (prefers-reduced-motion:reduce){
+  @media (--bp-900), (prefers-reduced-motion:reduce){
     #content-scrim{backdrop-filter:none;-webkit-backdrop-filter:none}
   }
 </style>
@@ -550,7 +550,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     background-size:cover; filter:contrast(1.6) brightness(1.3); mix-blend-mode:overlay;
   }
 
-  @media (max-width:480px){ #subliminal-layer,#subliminal-flash{ display:none; } }
+  @media (--bp-480){ #subliminal-layer,#subliminal-flash{ display:none; } }
   @media (prefers-reduced-motion: reduce){ #subliminal-layer,#subliminal-flash{ display:none; } }
 </style>
 <div id="subliminal-layer" aria-hidden="true"></div>

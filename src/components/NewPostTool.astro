@@ -29,7 +29,7 @@ const { categories, relatedOptions, primaryCats, primaryCatLabels, secondaryCats
       background: #0b0c10; color: #e2e6ee;
       display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh;
     }
-    @media (max-width: 900px) { body { grid-template-columns: 1fr; } }
+    @media (--bp-900) { body { grid-template-columns: 1fr; } }
     .pane { padding: 22px 26px; overflow-y: auto; max-height: 100vh; }
     .pane + .pane { border-left: 1px solid #23262f; }
     h1 { font-size: 18px; margin: 0 0 4px; }
