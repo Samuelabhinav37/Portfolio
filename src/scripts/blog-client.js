@@ -13,7 +13,6 @@ import { renderClock, renderWeather } from './clock-weather.js';
   const articleCol = document.querySelector('.article-col');
   const navName = document.getElementById('navName');
   const navBrand = document.getElementById('navBrand');
-  const iconRail = document.querySelector('.icon-rail');
   const rightRail = document.querySelector('.left-sidebar');
   const progressBar = document.getElementById('read-progress');
   const backTop = document.getElementById('back-to-top');
@@ -69,7 +68,6 @@ import { renderClock, renderWeather } from './clock-weather.js';
       const railsVisible = scrollTop > thresholdRails && scrollTop < thresholdRailsHide;
       navName.classList.toggle('hidden', navScrolled);
       navBrand.classList.toggle('visible', navScrolled);
-      if (iconRail) iconRail.classList.toggle('visible', railsVisible);
       if (rightRail) rightRail.classList.toggle('visible', railsVisible);
       progressBar.style.width = (docH > 0 ? (scrollTop / docH) * 100 : 0) + '%';
       backTop.classList.toggle('visible', scrollTop > 400);
@@ -114,7 +112,7 @@ import { renderClock, renderWeather } from './clock-weather.js';
   heads.forEach((h) => io.observe(h));
 })();
 
-/* ── Share dialog: icon-rail buttons open it pre-set to the matching tab.
+/* ── Share dialog: #shareBtn opens it pre-set to the matching tab.
    Tab switching swaps the preview card and the bottom action (X/LinkedIn
    open a share-intent tab; Copy link swaps the action for an inline
    copy row instead — no destination to "go" to). Focus trap + Escape

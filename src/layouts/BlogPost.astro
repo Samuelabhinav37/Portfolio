@@ -151,7 +151,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500&family=Cormorant+Garamond:wght@500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:wght@500&display=swap"
       rel="stylesheet"
     />
 
@@ -271,27 +271,24 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div>
             <div class="author-info-row">
               <span class="author-info-name">{SITE.author}</span>
-              <span class="author-info-sep">//</span>
-              <span class="author-info-role">{SITE.role}</span>
             </div>
           </div>
-          <a class="author-bar-github" title="GitHub" aria-label="GitHub profile" target="_blank" rel="noopener" href={SITE.links.github}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.21.66-.47v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></a>
+          <!-- Single share affordance: navigator.share() (the native OS
+               share sheet) where supported, falling back to #shareDialog's
+               own X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
+               keeps the existing dialog-wiring in blog-client.js working
+               unmodified for the fallback path — see the capture-phase
+               listener below that intercepts and calls navigator.share()
+               first when available, stopping the dialog from also opening.
+               Sits in the author row itself (GitHub's old slot) rather than
+               its own row below — a single icon on its own line read as an
+               orphaned afterthought with a lot of dead space around it. -->
+          <button class="social-icon" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
         </div>
         <div class="author-bar-meta">
           <span class="live-dot" aria-hidden="true"></span><strong><time datetime={pubIso}>{dateLabel}</time></strong>
           &nbsp;·&nbsp; {readTime} {i18n.minRead}
         </div>
-      </div>
-
-      <!-- Single share affordance: navigator.share() (the native OS share
-           sheet) where supported, falling back to #shareDialog's own
-           X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
-           keeps the existing dialog-wiring in blog-client.js working
-           unmodified for the fallback path — see the capture-phase
-           listener below that intercepts and calls navigator.share()
-           first when available, stopping the dialog from also opening. -->
-      <div class="icon-rail">
-        <button class="social-icon" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
       </div>
       <script is:inline>
         (function(){

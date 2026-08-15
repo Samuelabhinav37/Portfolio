@@ -4,6 +4,15 @@ html { background: var(--c-bg); }
 /* smooth anchor scrolling only for people who haven't asked for reduced motion */
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 
+/* Single source of truth for the article-reading voice (headline, body,
+   lists, quotes, headings, captions) — deliberately separate from site
+   chrome (nav/menu/dialogs), which stays on the OS system font. Swapping
+   this one variable (plus the matching @import in BlogPost.astro) is the
+   whole job of trying a different reading typeface. */
+:root {
+  --article-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
 body {
   background: var(--c-bg);   /* near-black, not true black — avoids halation (text glow) on dark bg */
   color: rgba(240,240,240,0.78);
@@ -49,7 +58,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   gap: 12px; padding: 40px 48px 70px;
   border-top: 1px solid rgba(var(--c-white),0.08);
   color: rgba(var(--c-white),0.30);
-  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em;
 }
 .post-footer .f-links { display: flex; align-items: center; gap: 16px; text-transform: uppercase; }
 .post-footer .f-links a {
@@ -99,7 +108,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   color: rgba(var(--c-white),0.42); line-height: 0.7;
 }
 .nav-brand-text {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; letter-spacing: 0.16em;
   color: rgba(var(--c-white),0.62); line-height: 1.2;
   text-transform: uppercase;
@@ -310,7 +319,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
 
 /* ── Hero typography ── */
 .hero-breadcrumb {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.62rem; letter-spacing: 0.20em;
   color: rgba(var(--c-white),0.55);  /* interactive: raised from 0.42 for contrast */
   text-transform: uppercase;
@@ -324,7 +333,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
 .hero-breadcrumb a:hover { color: rgba(var(--c-white),0.85); }
 .hero-breadcrumb .bc-sep { color: rgba(var(--c-white),0.18); margin: 0 10px; }
 .hero-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 600; font-style: normal;
   font-size: 3.9rem; color: rgba(var(--c-white),0.96);
   line-height: 1.08; margin-bottom: 24px;
@@ -332,7 +341,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   animation: fadeUp 1.2s cubic-bezier(0.22,1,0.36,1) 0.4s both;
 }
 .hero-subtitle {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-style: normal;
   font-size: 1.10rem; letter-spacing: 0.005em;
   color: rgba(245,245,245,0.62);
@@ -348,7 +357,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   border: 1px solid rgba(var(--c-white),0.10); border-radius: 3px;
   background: rgba(var(--c-white),0.02);
   text-decoration: none; color: rgba(var(--c-white),0.55);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
   transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
 }
@@ -364,7 +373,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
 }
 .author-bar-left { display: flex; align-items: center; gap: 18px; }
 .author-bar-meta {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.58rem; letter-spacing: 0.10em; text-transform: uppercase;
   color: rgba(var(--c-white),0.40);
   text-align: right; line-height: 2.0;
@@ -380,7 +389,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   box-shadow: 0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(var(--c-white),0.05);
 }
 .author-photo span {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.82rem; letter-spacing: 0.08em;
   color: rgba(var(--c-white),0.40);
 }
@@ -406,19 +415,9 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   50%      { box-shadow: 0 0 0 2px rgba(48,205,96,0.03), 0 0 3px rgba(48,205,96,0.15); opacity: 0.35; }
 }
 .author-info-name {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-size: 1.12rem;
   color: rgba(var(--c-white),0.90);
-}
-.author-info-sep {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.55rem; color: rgba(var(--c-white),0.12); margin: 0 10px;
-  letter-spacing: 0.05em;
-}
-.author-info-role {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.26);
 }
 
 /* ── Page grid (single column — right rail is now fixed-floating, see .left-sidebar) ── */
@@ -428,20 +427,17 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   gap: 0;
 }
 
-/* ── Icon rail (fixed, fades in when article column starts) ── */
-/* Static, inline, always visible — not a fixed floating column. Research
-   into how major eng blogs (Vercel, Cloudflare, GitHub, Linear) handle
-   sharing found none of them use a persistent floating rail; usage data
-   for that pattern is consistently poor (~0.2-0.5% click-through), and one
-   A/B test found a pinned share toolbar measurably reduced engagement.
-   One button now: navigator.share() where supported, falling back to the
-   existing #shareDialog otherwise (see BlogPost.astro). */
-.icon-rail {
-  display: flex; align-items: center;
-  padding: 22px 0 0;
-}
+/* Share button: research into how major eng blogs (Vercel, Cloudflare,
+   GitHub, Linear) handle sharing found none of them use a persistent
+   floating rail — usage data for that pattern is consistently poor
+   (~0.2-0.5% click-through), and one A/B test found a pinned share toolbar
+   measurably reduced engagement. One static button: navigator.share()
+   where supported, falling back to the existing #shareDialog otherwise
+   (see BlogPost.astro). Lives inline in .author-bar-left (GitHub's old
+   slot) rather than its own row — a lone icon on its own line read as an
+   orphaned afterthought with dead space around it. */
 
-/* ── Right floating rail (fixed; fades in past author bar, mirrors .icon-rail pattern) ── */
+/* ── Right floating rail (fixed; fades in past author bar) ── */
 .left-sidebar {
   position: fixed;
   right: 28px;
@@ -459,12 +455,12 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
 }
 .rail-sticky { /* container is now fixed; this is just a passive wrapper */ }
 .left-sidebar-heading {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem; letter-spacing: 0.20em; text-transform: uppercase;
   color: rgba(var(--c-white),0.50); margin-bottom: 12px;
 }
 .left-sidebar-desc {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-size: 1.10rem;
   color: rgba(240,240,240,0.62);
   line-height: 1.55; margin-bottom: 0;
@@ -474,7 +470,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   font-style: italic; color: rgba(240,240,240,0.78);
 }
 .social-icon {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
   background: linear-gradient(145deg, rgba(28,28,28,0.90), rgba(18,18,18,0.88));
   border: 1px solid rgba(var(--c-white),0.07);
   border-top: 1px solid rgba(var(--c-white),0.12);
@@ -488,18 +484,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   transform: scale(1.08);
   box-shadow: 0 4px 18px rgba(0,0,0,0.55), 0 0 0 1px rgba(var(--c-white),0.06), inset 0 1px 0 rgba(var(--c-white),0.07);
 }
-.social-icon svg { width: 16px; height: 16px; }
-
-/* GitHub moved out of the share cluster — it's a source-code link, not a
-   share destination, so it reads oddly grouped with X/LinkedIn/copy-link.
-   Small and muted, sitting with author identity instead. */
-.author-bar-github {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; margin-left: 10px; flex-shrink: 0;
-  color: rgba(var(--c-white),0.32); transition: color 0.25s;
-}
-.author-bar-github:hover { color: rgba(var(--c-white),0.7); }
-.author-bar-github svg { width: 16px; height: 16px; }
+.social-icon svg { width: 15px; height: 15px; }
 
 /* ── Article ── */
 .article-col {
@@ -523,13 +508,13 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   box-shadow: 0 4px 20px rgba(0,0,0,0.50), inset 0 1px 0 rgba(var(--c-white),0.08);
 }
 .dropcap-letter span {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-size: 3.2rem;
   color: rgba(var(--c-white),0.50);
 }
 
 .body-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-size: 1.38rem;
   color: rgba(248,248,248,0.92);
   line-height: 1.85; margin-bottom: 30px;
@@ -550,7 +535,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
       phrase + dash, so the list scans as a summary on its own. ── */
 .lead-list { list-style: none; margin: 0 0 30px; padding: 0; }
 .lead-list li {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-size: 1.32rem; line-height: 1.72;
   color: rgba(248,248,248,0.90);
   padding: 9px 0 9px 28px; position: relative;
@@ -568,11 +553,11 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   display: flex; align-items: baseline; justify-content: space-between; gap: 18px; flex-wrap: wrap;
   border: 1px solid rgba(var(--c-white),0.12); border-radius: 4px;
   background: rgba(18,18,24,0.60);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-style: italic;
+  font-family: var(--article-font); font-style: italic;
   font-size: 1.14rem; line-height: 1.6; color: rgba(var(--c-white),0.72);
 }
 .aside-cta a {
-  font-style: normal; font-family: 'Share Tech Mono', monospace;
+  font-style: normal; font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
   white-space: nowrap; text-decoration: none;
   color: rgba(var(--c-white),0.82);
@@ -594,10 +579,13 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 
 /* Inline keyword pills — small chip for tagging technical terms in prose.
    Usage: <span class="keyword-pill">postinstall hook</span>
-   Different from .highlight (sentence emphasis) — pills mark specific terms. */
+   Different from .highlight (sentence emphasis) — pills mark specific terms.
+   Font matches .body-text's system-sans stack (was 'Inter', a font loaded
+   for no other reason on this page — pills rendered in a visibly different
+   typeface than every other word around them). */
 .keyword-pill {
   display: inline-block;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--article-font);
   font-size: 0.78em;
   font-weight: 500;
   letter-spacing: 0;
@@ -612,14 +600,14 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 }
 
 .heading-2 {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 500; font-size: 1.95rem;
   color: rgba(var(--c-white),0.92);
   margin-top: 64px; margin-bottom: 24px; line-height: 1.22;
   letter-spacing: 0.005em;
 }
 .heading-3 {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase;
   color: rgba(var(--c-white),0.55);
   margin-top: 40px; margin-bottom: 18px;
@@ -628,7 +616,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 /* MITRE chip — matches portfolio badge style */
 .mitre-chip {
   display: inline-flex; align-items: center;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem; letter-spacing: 0.06em;
   padding: 3px 8px; border-radius: 3px;
   border: 1px solid rgba(var(--c-white),0.20);
@@ -663,14 +651,18 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 .code-block::after  { bottom: 9px; right: 9px; border-width: 0 1px 1px 0; }
 .code-block:hover { border-color: rgba(var(--c-white),0.09); }
 .code-block code {
-  font-family: 'Share Tech Mono', monospace;
-  font-weight: 300; font-size: 0.84rem;
+  font-family: 'JetBrains Mono', monospace;
+  /* No font-weight here on purpose: only 400/500 are loaded (see the font
+     link in BlogPost.astro) — anything else falls back to the nearest
+     loaded weight rather than fetching a new file, so declaring one that
+     isn't requested doesn't get you what it looks like it would. */
+  font-size: 0.84rem;
   color: rgba(72,215,145,0.82); line-height: 1.80;
   white-space: pre;
 }
 .copy-btn {
   position: absolute; top: 10px; right: 10px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.50rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: rgba(var(--c-white),0.40);
   background: rgba(var(--c-white),0.03);
@@ -683,7 +675,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 .copy-btn.copied { color: rgba(72,215,145,0.90); border-color: rgba(72,215,145,0.28); }
 
 .code-inline {
-  font-family: 'Share Tech Mono', monospace; font-size: 0.84rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.84rem;
   background: rgba(var(--c-white),0.04);
   border: 1px solid rgba(var(--c-white),0.07);
   padding: 2px 7px; border-radius: 3px;
@@ -704,7 +696,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 }
 .pull-quote:hover { border-color: rgba(var(--c-white),0.42); }
 .pull-quote p {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-style: italic; font-size: 1.65rem;
   color: rgba(var(--c-white),0.58); line-height: 1.50;
   letter-spacing: 0.005em;
@@ -719,8 +711,12 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 /* ── FAQ ── */
 .faq-section { padding: 72px 0; border-top: 1px solid rgba(var(--c-white),0.04); }
 .faq-heading {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-weight: 400; font-style: italic; font-size: 2.4rem;
+  font-family: var(--article-font);
+  /* Upright + medium, matching .heading-2/.more-stories-heading — italic on
+     this page is reserved for quotes/captions (pull-quote, aside-cta,
+     figcaption, mnote-sub), not section headings. This used to be the one
+     heading on the page styled like a quote instead of a heading. */
+  font-weight: 500; font-size: 2.4rem;
   color: rgba(var(--c-white),0.85);
   margin-bottom: 52px; text-align: center; line-height: 1.2;
 }
@@ -729,7 +725,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 .faq-q {
   display: flex; justify-content: space-between; align-items: center;
   padding: 22px 0; cursor: pointer; gap: 16px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-size: 1.12rem;
   color: rgba(240,240,240,0.72); line-height: 1.4;
   transition: color 0.2s;
@@ -740,13 +736,13 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   color: rgba(var(--c-white),0.45); flex-shrink: 0;
   transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s;
   line-height: 1;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 .faq-item.open .faq-icon { transform: rotate(45deg); color: rgba(var(--c-white),0.80); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1); }
 .faq-a-inner {
   padding-bottom: 22px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-size: 1.02rem; color: rgba(240,240,240,0.48);
   line-height: 1.85; letter-spacing: 0.01em;
 }
@@ -755,8 +751,11 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 /* ── More Stories ── */
 .more-stories { border-top: 1px solid rgba(var(--c-white),0.04); padding: 56px 0 80px; }
 .more-stories-heading {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-weight: 400; font-size: 1.40rem;
+  font-family: var(--article-font);
+  /* 500 to match .heading-2/.faq-heading — same "section heading" role,
+     was 400 (body weight) here specifically, so it read quieter than
+     every other heading on the page despite doing the same job. */
+  font-weight: 500; font-size: 1.40rem;
   color: rgba(var(--c-white),0.80); margin-bottom: 10px;
   letter-spacing: 0.01em;
 }
@@ -820,12 +819,12 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   box-shadow: 0 6px 32px rgba(0,0,0,0.65), 0 0 0 1px rgba(var(--c-white),0.06), inset 0 1px 0 rgba(var(--c-white),0.06);
 }
 .story-category {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.52rem; letter-spacing: 0.16em; text-transform: uppercase;
   color: rgba(var(--c-white),0.48); margin-bottom: 10px;
 }
 .story-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-style: italic;
   font-size: 1.58rem; color: rgba(240,240,240,0.80);
   line-height: 1.26; margin-bottom: 18px;
@@ -840,7 +839,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   margin-bottom: 14px;
 }
 .story-meta {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase;
   color: rgba(var(--c-white),0.36); display: flex; gap: 8px; align-items: center;
 }
@@ -911,7 +910,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   bottom: 16px;
   right: 16px;
   z-index: 3;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.56rem;
   letter-spacing: 0.20em;
   text-transform: uppercase;
@@ -933,7 +932,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 }
 .also-by:hover { opacity: 0.88; }
 .also-by-label {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.55rem; letter-spacing: 0.20em; text-transform: uppercase;
   color: rgba(var(--c-white),0.72);
   margin-bottom: 12px;
@@ -964,7 +963,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   filter: grayscale(0%) brightness(1);
 }
 .also-by-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--article-font);
   font-weight: 400; font-style: italic;
   font-size: 1.18rem;
   color: rgba(240,240,240,0.85);
@@ -972,7 +971,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   letter-spacing: 0.005em;
 }
 .also-by-meta {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.55rem; letter-spacing: 0.10em; text-transform: uppercase;
   color: rgba(var(--c-white),0.40);
 }
@@ -1041,7 +1040,7 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
 /* ── Heading anchor links (hover a heading, get a shareable # link) ── */
 .hlink {
   display: inline-block; margin-left: 12px;
-  font-family: 'Share Tech Mono', monospace; font-size: 0.72em;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.72em;
   color: rgba(var(--c-white),0.30); text-decoration: none;
   opacity: 0; transform: translateX(-4px);
   transition: opacity 0.25s, transform 0.25s, color 0.25s;
@@ -1070,7 +1069,7 @@ a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-fami
 }
 .callout-detect-label {
   display: flex; align-items: center; gap: 10px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase;
   color: rgba(var(--c-white),0.62); margin-bottom: 14px;
 }
@@ -1079,7 +1078,7 @@ a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-fami
   background: rgba(var(--c-white),0.85);
 }
 .callout-detect p {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.22rem; line-height: 1.75;
+  font-family: var(--article-font); font-size: 1.22rem; line-height: 1.75;
   color: rgba(244,244,246,0.88); margin: 0;
 }
 .callout-detect p + p { margin-top: 14px; }
@@ -1093,7 +1092,7 @@ a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-fami
 .ioc-head {
   display: flex; justify-content: space-between; align-items: center;
   padding: 12px 18px; border-bottom: 1px solid rgba(var(--c-white),0.08);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
   color: rgba(var(--c-white),0.55);
 }
@@ -1101,7 +1100,7 @@ a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-fami
 .ioc-table { width: 100%; border-collapse: collapse; }
 .ioc-table td {
   padding: 11px 18px; border-bottom: 1px solid rgba(var(--c-white),0.05);
-  font-family: 'Share Tech Mono', monospace; font-size: 0.80rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.80rem;
   vertical-align: middle;
 }
 .ioc-table tr:last-child td { border-bottom: none; }
@@ -1109,7 +1108,7 @@ a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-fami
 .ioc-val { color: rgba(235,238,244,0.88); word-break: break-all; user-select: all; }
 .ioc-copy {
   background: none; border: 1px solid rgba(var(--c-white),0.14); border-radius: 3px;
-  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.10em;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.10em;
   color: rgba(var(--c-white),0.50); padding: 4px 9px; cursor: pointer;
   transition: color 0.25s, border-color 0.25s;
 }
@@ -1127,7 +1126,7 @@ td.ioc-act { width: 70px; text-align: right; }
 .case-file-head {
   display: flex; justify-content: space-between; align-items: center;
   padding: 12px 18px; border-bottom: 1px solid rgba(var(--c-white),0.08);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
   color: rgba(var(--c-white),0.55);
 }
@@ -1139,13 +1138,13 @@ td.ioc-act { width: 70px; text-align: right; }
 .case-file-row:last-child { border-bottom: none; }
 .case-file-row dt {
   flex: 0 0 108px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
   color: rgba(var(--c-white),0.38); padding-top: 4px;
 }
 .case-file-row dd {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.10rem; line-height: 1.55;
+  font-family: var(--article-font); font-size: 1.10rem; line-height: 1.55;
   color: rgba(244,244,246,0.88);
 }
 @media (--bp-600) {
@@ -1165,7 +1164,7 @@ td.ioc-act { width: 70px; text-align: right; }
   cursor: pointer; list-style: none;
   padding: 13px 18px;
   display: flex; justify-content: space-between; align-items: center;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
   color: rgba(var(--c-white),0.55);
   transition: color 0.2s;
@@ -1188,7 +1187,7 @@ td.ioc-act { width: 70px; text-align: right; }
 .figure-block img { width: 100%; display: block; border: 1px solid rgba(var(--c-white),0.08); border-radius: 4px; }
 .figure-block figcaption {
   margin-top: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-style: italic;
+  font-family: var(--article-font); font-style: italic;
   font-size: 0.98rem; color: rgba(var(--c-white),0.45); line-height: 1.5;
 }
 
@@ -1208,18 +1207,18 @@ td.ioc-act { width: 70px; text-align: right; }
 }
 .mnote-day {
   display: block;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
   color: rgba(var(--c-white),0.66);
 }
 .mnote-sub {
   display: block; margin-top: 5px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-style: italic;
+  font-family: var(--article-font); font-style: italic;
   font-size: 0.98rem; color: rgba(var(--c-white),0.42);
 }
 .mnote-tag {
   display: inline-block; margin-top: 9px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.60rem; letter-spacing: 0.08em;
   padding: 2px 7px; border: 1px solid rgba(var(--c-white),0.16); border-radius: 3px;
   color: rgba(var(--c-white),0.48);
@@ -1251,7 +1250,7 @@ td.ioc-act { width: 70px; text-align: right; }
   position: fixed; top: 10px; left: 10px; z-index: 20000;
   padding: 10px 16px; border-radius: 6px;
   background: #101018; border: 1px solid rgba(var(--c-white),0.35);
-  font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
   letter-spacing: 0.12em; text-transform: uppercase;
   color: rgba(var(--c-white),0.9);
   transform: translateY(-200%); transition: transform 0.2s;
@@ -1291,7 +1290,7 @@ td.ioc-act { width: 70px; text-align: right; }
 }
 .flt-dialog__close:hover { background: rgba(var(--c-white),.12); }
 .flt-dialog__title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 24px; color: #fff; margin-bottom: 6px; }
-.flt-dialog__sub { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .05em; color: rgba(var(--c-white),.35); margin-bottom: 22px; }
+.flt-dialog__sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .05em; color: rgba(var(--c-white),.35); margin-bottom: 22px; }
 .flt-dialog__apply {
   display: block; width: 100%; text-align: center; margin-top: 20px;
   background: #fff; color: #0a0a0f; border: none; border-radius: 999px;
@@ -1303,7 +1302,7 @@ td.ioc-act { width: 70px; text-align: right; }
 .share-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
 .share-tab {
   flex: 1; background: none; border: 1px solid rgba(var(--c-white),.10); border-radius: 999px;
-  padding: 9px 10px; font-family: 'Share Tech Mono', monospace; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  padding: 9px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
   color: rgba(var(--c-white),.45); cursor: pointer; transition: color .2s, border-color .2s, background .2s;
 }
 .share-tab:hover { color: rgba(var(--c-white),.8); border-color: rgba(var(--c-white),.24); }
@@ -1325,14 +1324,14 @@ td.ioc-act { width: 70px; text-align: right; }
   color: rgba(var(--c-white),.50); margin-top: 6px;
 }
 .share-card__domain {
-  font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
   color: rgba(var(--c-white),.35); margin-top: 8px;
 }
 
 .share-copy-row { display: flex; gap: 8px; }
 .share-copy-input {
   flex: 1; min-width: 0; background: #111116; border: 1px solid rgba(var(--c-white),.12); border-radius: 8px;
-  padding: 12px 14px; font-family: 'Share Tech Mono', monospace; font-size: 12px; color: rgba(var(--c-white),.75);
+  padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(var(--c-white),.75);
 }
 .share-copy-btn {
   flex: 0 0 auto; background: rgba(var(--c-white),.08); border: 1px solid rgba(var(--c-white),.14); border-radius: 8px;
