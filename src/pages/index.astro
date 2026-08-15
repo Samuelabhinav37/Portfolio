@@ -703,6 +703,11 @@ footer#site-footer{
     .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
     .f-left{ max-width:none; }
     .crt{ display:none; }
+    /* .f-links wraps below .f-copy at this width and was landing directly
+       under Luna's fixed 120px corner widget (she docks to bottom:16px on
+       mobile) — real, confirmed overlap, not just visually close. Extra
+       bottom padding pushes the whole row up clear of her footprint. */
+    .f-bottom{ padding-bottom:170px; }
   }
   /* ascii.cam widget — ported from the About page's skills card, same spot
      the CRT recon map used to occupy. Renders a baked-in default clip (or a
@@ -1351,13 +1356,21 @@ footer#site-footer{
    where the terminal already carries that job visually. Hidden by default,
    shown inside the --bp-900 block near .psplit below. */
 .acc-mobile-extra{ display:none; padding:0 4px 20px 42px; max-width:46ch; }
-.acc-tools{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.04em;
-  line-height:1.6; color:rgba(226,232,244,0.42); margin:0 0 10px; }
-.acc-tools-lbl{ color:rgba(226,232,244,0.7); text-transform:uppercase; letter-spacing:.12em; margin-right:6px; }
-.acc-results{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.acc-section{ margin-bottom:20px; }
+.acc-section:last-child{ margin-bottom:0; }
+.acc-section-lbl{ display:block; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+  letter-spacing:.16em; text-transform:uppercase; color:rgba(226,232,244,0.85); margin-bottom:10px; }
+/* Chips, not a flowing dot-separated sentence — the earlier version read
+   as a continuation of the about page's full tool marquee instead of a
+   short list scoped to just this one project. */
+.acc-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.acc-chip{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.02em;
+  color:rgba(226,232,244,0.6); background:rgba(226,232,244,0.06); border:1px solid rgba(226,232,244,0.12);
+  border-radius:4px; padding:4px 9px; }
+.acc-results{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
 .acc-results li{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.6); position:relative; padding-left:14px; }
-.acc-results li::before{ content:'—'; position:absolute; left:0; color:rgba(226,232,244,0.3); }
+  font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.6); position:relative; padding-left:16px; }
+.acc-results li::before{ content:'•'; position:absolute; left:0; top:0; color:rgba(226,232,244,0.45); font-size:14px; }
 
 /* ── the big translucent globe terminal ── */
 .pterm{ position:relative; width:100%; height:min(84vh,900px);
@@ -1447,11 +1460,19 @@ footer#site-footer{
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A multi-SIEM detection architecture that converts raw telemetry into triaged, actionable alerts. Wazuh, Splunk, and Security Onion operate in parallel across the pipeline, Shuffle orchestrates the SOAR playbooks, and a local LLM performs first-pass triage, extending MITRE ATT&amp;CK coverage from nine techniques to fifteen.</p>
               <div class="acc-mobile-extra">
-                <p class="acc-tools"><span class="acc-tools-lbl">Tools</span>Wazuh · Splunk · Security Onion · Shuffle · Local LLM</p>
-                <ul class="acc-results">
-                  <li>ATT&amp;CK coverage expanded from 9 to 15 techniques</li>
-                  <li>Automated first-pass triage via local LLM</li>
-                </ul>
+                <div class="acc-section">
+                  <span class="acc-section-lbl">Tools used</span>
+                  <div class="acc-chips">
+                    <span class="acc-chip">Wazuh</span><span class="acc-chip">Splunk</span><span class="acc-chip">Security Onion</span><span class="acc-chip">Shuffle</span><span class="acc-chip">Local LLM</span>
+                  </div>
+                </div>
+                <div class="acc-section">
+                  <span class="acc-section-lbl">Results</span>
+                  <ul class="acc-results">
+                    <li>Extended MITRE ATT&amp;CK technique coverage from 9 to 15</li>
+                    <li>Local LLM handles first-pass triage before a human reviews it</li>
+                  </ul>
+                </div>
               </div>
             </div></div>
           </article>
@@ -1464,11 +1485,19 @@ footer#site-footer{
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A federated anomaly-detection framework evaluated across seven simulated OT and ICS sites. Built on Flower with FedProx and a temporal variational autoencoder trained to model each site's baseline behavior, the system exchanges only masked model weights so that raw telemetry never leaves the plant, and reconstruction error is used to surface anomalies at a false-positive rate below eight percent.</p>
               <div class="acc-mobile-extra">
-                <p class="acc-tools"><span class="acc-tools-lbl">Tools</span>Flower · FedProx · Temporal VAE</p>
-                <ul class="acc-results">
-                  <li>Evaluated across 7 simulated OT/ICS sites</li>
-                  <li>False-positive rate kept below 8%</li>
-                </ul>
+                <div class="acc-section">
+                  <span class="acc-section-lbl">Tools used</span>
+                  <div class="acc-chips">
+                    <span class="acc-chip">Flower</span><span class="acc-chip">FedProx</span><span class="acc-chip">Temporal VAE</span>
+                  </div>
+                </div>
+                <div class="acc-section">
+                  <span class="acc-section-lbl">Results</span>
+                  <ul class="acc-results">
+                    <li>Evaluated across 7 simulated OT/ICS sites</li>
+                    <li>False-positive rate held below 8%</li>
+                  </ul>
+                </div>
               </div>
             </div></div>
           </article>
@@ -1481,11 +1510,19 @@ footer#site-footer{
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A risk-adaptive authentication scheme designed to remain unobtrusive under normal conditions. Each authentication attempt is assigned a continuous risk score derived from device, location, and behavioral signals; low-risk attempts proceed without friction, while high-risk attempts trigger step-up authentication in accordance with the NIST 800-63B assurance model.</p>
               <div class="acc-mobile-extra">
-                <p class="acc-tools"><span class="acc-tools-lbl">Tools</span>NIST 800-63B · Device/location/behavioral risk scoring</p>
-                <ul class="acc-results">
-                  <li>Low-risk attempts proceed with no friction</li>
-                  <li>High-risk attempts trigger step-up authentication</li>
-                </ul>
+                <div class="acc-section">
+                  <span class="acc-section-lbl">Tools used</span>
+                  <div class="acc-chips">
+                    <span class="acc-chip">NIST 800-63B</span><span class="acc-chip">Device signals</span><span class="acc-chip">Location signals</span><span class="acc-chip">Behavioral signals</span>
+                  </div>
+                </div>
+                <div class="acc-section">
+                  <span class="acc-section-lbl">Results</span>
+                  <ul class="acc-results">
+                    <li>Low-risk attempts authenticate with zero added friction</li>
+                    <li>High-risk attempts trigger step-up authentication</li>
+                  </ul>
+                </div>
               </div>
             </div></div>
           </article>

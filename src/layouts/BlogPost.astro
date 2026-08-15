@@ -217,12 +217,14 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     <!-- Hero -->
     <div class="hero" id="hero">
+      <div class="hero-breadcrumb-row">
+        <div class="hero-breadcrumb">
+          <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
+        </div>
+      </div>
       <div class="hero-left">
         <div class="hero-corner-br"></div>
         <div class="hero-content">
-          <div class="hero-breadcrumb">
-            <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
-          </div>
           <h1 class="hero-title">{d.title}</h1>
           <p class="hero-subtitle">{d.description}</p>
           <div class="hero-tags">
