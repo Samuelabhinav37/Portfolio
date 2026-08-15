@@ -21,6 +21,11 @@
      t=6400   portal collapses out, settled state reached
    ──────────────────────────────────────────────────────────────────*/
 (function(){
+  /* Flip to false to bring the ~6.4s boot choreography back — everything
+     below is untouched, this just forces the same instant-settle path
+     already used for returning visitors and reduced-motion. */
+  var FORCE_SKIP_INTRO = true;
+
   var logo     = document.getElementById('intro-logo');
   var identity = document.getElementById('site-identity');
   var nav      = document.getElementById('menu-trigger'); /* living-chrome nav replaced by collapsed menu */
@@ -57,7 +62,7 @@
   var _reduceMotion = false;
   try { _reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_) {}
 
-  if(seen || _reduceMotion){
+  if(FORCE_SKIP_INTRO || seen || _reduceMotion){
     settleInstantly();
     return;
   }
