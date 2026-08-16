@@ -416,7 +416,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
      breathing room under it. */
   .hero2{gap:36px;padding:24px 20px 40px}
   .hero2-feat,.hero2-side{flex-basis:100%}
-  .intro{padding:72px 20px 50px}section.block{padding:30px 20px 64px}
+  .intro{padding:72px 20px 50px}section.block{padding:8px 20px 64px}
   .shead{display:none}
 
   /* Threat wire above everything, filter/sort right above the archive
@@ -431,7 +431,13 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .hero-wire-wrap{display:flex;flex-direction:column}
   .wire{order:-1;padding-top:84px}
   .hero2{order:0}
-  .filter-count-wrap{order:1;padding:20px 20px 0}
+  /* Gap above is deliberately bigger than the gap below: with the two
+     roughly equal (~60px vs ~48px) the filter row read as floating
+     equidistant between the hero's recent-post list and the archive
+     grid — neither one visually claimed it. Widening the gap from the
+     hero and tightening section.block's lead-in (below) groups it
+     with the grid it actually controls instead. */
+  .filter-count-wrap{order:1;padding:40px 20px 0}
   section.block{order:2}
   .cs-back{left:20px}.cs-body{padding:0 20px 80px}
   .cs-grid2{grid-template-columns:1fr;gap:40px}
@@ -460,7 +466,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .tab[data-cat="detect"],.tab[data-cat="otics"],.tab[data-cat="auth"],.tab[data-cat="bb"]{display:none}
   .tab .ring{width:8px;height:8px}
   .sortwrap select{font-size:9px}
-  .count{margin-bottom:18px}
+  .count{margin-bottom:8px}
 
 }
 @media (prefers-reduced-motion:reduce){
