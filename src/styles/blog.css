@@ -466,6 +466,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   position: sticky;
   top: 100px;
   align-self: start;
+  min-width: 0; /* same grid-item shrink fix as .article-col above */
 }
 .rail-sticky { /* passive wrapper, kept for the sticky-vs-fixed rename's sake */ }
 .left-sidebar-heading {
@@ -557,10 +558,23 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   /* No max-width cap — fills .page-grid's flexible 1fr column (the full
      container width minus the 320px rail and gap), matching WIRED's wide
      text measure instead of a narrow fixed-width one. */
+  /* Grid items default to min-width:auto, which means they refuse to
+     shrink below their content's own intrinsic width — a code block's
+     long unbroken line (white-space:pre) has a very wide min-content
+     size. Without this, that forced the whole column (and everything in
+     it, including normal paragraphs, which then wrap at that wider
+     measure) past the edge of a narrow/mobile viewport instead of
+     respecting .page-grid's minmax(0, ...) track, which only constrains
+     the *track*, not the item placed inside it. */
+  min-width: 0;
 }
 
 .dropcap-block { display: flex; margin-bottom: 36px; }
-.dropcap-block .body-text { margin-bottom: 0; }
+/* min-width:0 — same flex/grid-item shrink fix as .article-col; the first
+   paragraph is a flex sibling of the fixed-width drop-cap letter, and
+   without this it can refuse to wrap narrower than its own content's
+   intrinsic width on a narrow viewport. */
+.dropcap-block .body-text { margin-bottom: 0; min-width: 0; }
 .author-info-row { display: flex; align-items: baseline; flex-wrap: wrap; }
 .dropcap-letter {
   width: 80px; height: 80px;

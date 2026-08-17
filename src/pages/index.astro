@@ -1204,12 +1204,12 @@ footer#site-footer{
        scale is the same "too big/bulky" pattern already fixed on the blog
        index's card grid — same fix here. */
     #editorial .ed-log__head h2{ font-size:1.3rem; }
-    #editorial .ed-grid{ grid-template-columns:1fr; gap:22px; }
+    #editorial .ed-grid{ grid-template-columns:1fr; gap:18px; }
     #editorial .ed-card .ed-ph{ aspect-ratio:3/2; }
-    #editorial .ed-card .ed-num{ font-size:9.5px; top:10px; left:11px; }
-    #editorial .ed-card .ed-cmeta{ font-size:9.5px; margin:10px 0 6px; }
-    #editorial .ed-card h3{ font-size:17px; }
-    #editorial .ed-card p{ font-size:12px; margin-top:6px; }
+    #editorial .ed-card .ed-num{ font-size:9px; top:10px; left:11px; }
+    #editorial .ed-card .ed-cmeta{ font-size:9px; margin:9px 0 5px; }
+    #editorial .ed-card h3{ font-size:15px; }
+    #editorial .ed-card p{ font-size:11px; margin-top:5px; }
   }
   @media (prefers-reduced-motion:reduce){
     #editorial .ed-track{ animation:none; } #editorial .ed-ticker{ overflow-x:auto; }
@@ -1352,12 +1352,11 @@ footer#site-footer{
 .acc-desc{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:14px;
   line-height:1.55; color:rgba(226,232,244,0.6); margin:0; padding:2px 4px 22px 42px; max-width:46ch; }
 
-/* Mobile-only: the desktop globe terminal (.psplit-right) is hidden below
-   --bp-900, leaving a bare text accordion — this gives each project a
-   compact tools/results readout instead, without adding it to desktop
-   where the terminal already carries that job visually. Hidden by default,
-   shown inside the --bp-900 block near .psplit below. */
-.acc-mobile-extra{ display:none; padding:0 4px 20px 42px; max-width:46ch; }
+/* Was mobile-only (the desktop globe terminal covered "what tools/results"
+   visually, so this text readout was redundant there) — now shown at every
+   width, since the concrete tools/results list is useful context on
+   desktop too, not just a mobile fallback. */
+.acc-extra{ padding:0 4px 20px 42px; max-width:46ch; }
 .acc-section{ margin-bottom:20px; }
 .acc-section:last-child{ margin-bottom:0; }
 .acc-section-lbl{ display:block; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
@@ -1442,7 +1441,7 @@ footer#site-footer{
   .psplit-right{ display:none; }
   #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
   .acc-desc{ padding-left:4px; }
-  .acc-mobile-extra{ display:block; padding-left:4px; }
+  .acc-extra{ padding-left:4px; }
 }
 </style>
 <section id="projects-section" aria-label="Selected projects">
@@ -1461,7 +1460,7 @@ footer#site-footer{
             </button>
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A multi-SIEM detection architecture that converts raw telemetry into triaged, actionable alerts. Wazuh, Splunk, and Security Onion operate in parallel across the pipeline, Shuffle orchestrates the SOAR playbooks, and a local LLM performs first-pass triage, extending MITRE ATT&amp;CK coverage from nine techniques to fifteen.</p>
-              <div class="acc-mobile-extra">
+              <div class="acc-extra">
                 <div class="acc-section">
                   <span class="acc-section-lbl">Tools used</span>
                   <div class="acc-chips">
@@ -1486,7 +1485,7 @@ footer#site-footer{
             </button>
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A federated anomaly-detection framework evaluated across seven simulated OT and ICS sites. Built on Flower with FedProx and a temporal variational autoencoder trained to model each site's baseline behavior, the system exchanges only masked model weights so that raw telemetry never leaves the plant, and reconstruction error is used to surface anomalies at a false-positive rate below eight percent.</p>
-              <div class="acc-mobile-extra">
+              <div class="acc-extra">
                 <div class="acc-section">
                   <span class="acc-section-lbl">Tools used</span>
                   <div class="acc-chips">
@@ -1511,7 +1510,7 @@ footer#site-footer{
             </button>
             <div class="acc-body"><div class="acc-inner">
               <p class="acc-desc">A risk-adaptive authentication scheme designed to remain unobtrusive under normal conditions. Each authentication attempt is assigned a continuous risk score derived from device, location, and behavioral signals; low-risk attempts proceed without friction, while high-risk attempts trigger step-up authentication in accordance with the NIST 800-63B assurance model.</p>
-              <div class="acc-mobile-extra">
+              <div class="acc-extra">
                 <div class="acc-section">
                   <span class="acc-section-lbl">Tools used</span>
                   <div class="acc-chips">

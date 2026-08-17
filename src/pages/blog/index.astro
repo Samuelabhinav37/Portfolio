@@ -457,17 +457,23 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .wire-item .sev,.wire-item .wid,.wire-item .wtx{font-size:9px;letter-spacing:1px}
   .wire-item.skel{min-width:130px;height:22px}
 
-  /* ── Filters: only "All" + "See more" stay in the visible row — the four
-     primary categories move into the See more dialog alongside the
-     secondary set (see blog-index-client.js), so the tab row never has to
-     wrap on a narrow screen. ── */
-  .filter{gap:10px;padding:12px 0}
-  .tabs{gap:14px}
-  .tab[data-cat="detect"],.tab[data-cat="otics"],.tab[data-cat="auth"],.tab[data-cat="bb"]{display:none}
-  .tab .ring{width:8px;height:8px}
-  .sortwrap select{font-size:9px}
+  /* ── Filter/sort row removed entirely on mobile — narrow-screen visitors
+     just get the plain archive list, no tab row or sort dropdown to
+     interact with. .count ("Showing X of X results") stays; it's a status
+     line, not a control. Underlying JS still runs (still needed for
+     desktop), it just has nothing to click on this width. ── */
+  .filter{display:none}
   .count{margin-bottom:8px}
 
+  /* The fixed corner nav (#site-identity's "Samuel Abhinav" wordmark,
+     #menu-trigger's "Menu" button — both rendered by SiteMenu.astro, a
+     child component; reachable here because this stylesheet is
+     is:global) has no backdrop behind it. On this page specifically,
+     scrolled post titles pass directly underneath and the thin serif
+     wordmark visibly collides with whatever title happens to be at that
+     exact scroll position — hiding both on mobile removes that overlap.
+     Scoped to this page only (blog index), not the whole site. */
+  #site-identity, #menu-trigger { display: none; }
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
