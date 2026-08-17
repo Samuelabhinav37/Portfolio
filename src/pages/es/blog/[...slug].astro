@@ -1,5 +1,5 @@
 ---
-import { getCollection, getEntry, render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BlogPost from '../../../layouts/BlogPost.astro';
 import type { CollectionEntry } from 'astro:content';
 
@@ -23,9 +23,6 @@ const { post } = Astro.props as { post: CollectionEntry<'blog'> };
 const { Content, headings } = await render(post);
 
 const slug = post.id.slice('es/'.length);
-const relatedPosts = (
-  await Promise.all(post.data.related.map((s: string) => getEntry('blog', 'es/' + s)))
-).filter(Boolean) as CollectionEntry<'blog'>[];
 
 const words = post.body ? post.body.split(/\s+/).length : 0;
 // The English original always exists for a translation to exist in the
@@ -33,6 +30,6 @@ const words = post.body ? post.body.split(/\s+/).length : 0;
 const altHref = `/blog/${slug}/`;
 ---
 
-<BlogPost post={post} headings={headings} relatedPosts={relatedPosts} words={words} lang="es" altHref={altHref}>
+<BlogPost post={post} headings={headings} words={words} lang="es" altHref={altHref}>
   <Content />
 </BlogPost>

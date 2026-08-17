@@ -1,6 +1,6 @@
 /**
- * Chrome strings for BlogPost.astro's own layout (menu, share dialog, TOC
- * heading, etc.) in each supported locale. Scope is deliberately narrow:
+ * Chrome strings for BlogPost.astro's own layout (menu, share dialog,
+ * sidebar heading, etc.) in each supported locale. Scope is deliberately narrow:
  * this covers the static text ON the post-page shell, not the whole site —
  * the blog index, About/Contact, and Luna's chat companion stay English-only
  * for now. A post's actual content (title, description, body, FAQs) is
@@ -23,7 +23,7 @@ interface BlogStrings {
   navBlog: string;
   navContact: string;
   minRead: string;
-  onThisPage: string;
+  moreStories: string;
   linkToSection: string;
   shareOnX: string;
   shareOnLinkedIn: string;
@@ -61,7 +61,7 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
     navBlog: 'Blog',
     navContact: 'Contact',
     minRead: 'MIN READ',
-    onThisPage: 'On this page',
+    moreStories: 'More stories',
     linkToSection: 'Link to this section',
     shareOnX: 'Share on X',
     shareOnLinkedIn: 'Share on LinkedIn',
@@ -85,7 +85,7 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
     navBlog: 'Blog',
     navContact: 'Contacto',
     minRead: 'MIN DE LECTURA',
-    onThisPage: 'En esta página',
+    moreStories: 'Más historias',
     linkToSection: 'Enlace a esta sección',
     shareOnX: 'Compartir en X',
     shareOnLinkedIn: 'Compartir en LinkedIn',

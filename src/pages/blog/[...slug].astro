@@ -16,11 +16,6 @@ export async function getStaticPaths() {
 const { post } = Astro.props as { post: CollectionEntry<'blog'> };
 const { Content, headings } = await render(post);
 
-// "More stories" cards pull their own frontmatter via the related slugs.
-const relatedPosts = (
-  await Promise.all(post.data.related.map((slug: string) => getEntry('blog', slug)))
-).filter(Boolean) as CollectionEntry<'blog'>[];
-
 const words = post.body ? post.body.split(/\s+/).length : 0;
 
 // If a Spanish translation of this exact post exists (and isn't itself a
@@ -32,6 +27,6 @@ const esEntry = post.data.draft ? undefined : await getEntry('blog', 'es/' + pos
 const altHref = esEntry && !esEntry.data.draft ? `/es/blog/${post.id}/` : null;
 ---
 
-<BlogPost post={post} headings={headings} relatedPosts={relatedPosts} words={words} altHref={altHref}>
+<BlogPost post={post} headings={headings} words={words} altHref={altHref}>
   <Content />
 </BlogPost>

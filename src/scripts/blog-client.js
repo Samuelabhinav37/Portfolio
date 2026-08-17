@@ -4,58 +4,32 @@
 
 import { renderClock, renderWeather } from './clock-weather.js';
 
-/* ── Scroll-driven UI: navbar swap (mid-hero), rails (past author bar, until
-   FAQ ends), reading progress, back-to-top. Single rAF-throttled handler. ── */
+/* ── Scroll-driven UI: navbar swap (mid-hero), reading progress, back-to-top.
+   Single rAF-throttled handler. The "More stories" rail used to need its own
+   scroll-threshold show/hide logic here (fixed-positioned, faded in past the
+   author bar, hidden again before the FAQ) — now that it's a real sticky grid
+   column (see .left-sidebar in blog.css), the browser handles all of that
+   declaratively: it stays in view while scrolling through the article and
+   stops sticking on its own once .page-grid (which ends where the article
+   does) scrolls past. ── */
 (() => {
   const hero = document.getElementById('hero');
-  const authorBar = document.querySelector('.author-bar');
-  const faqSection = document.getElementById('section-faq');
-  const articleCol = document.querySelector('.article-col');
   const navName = document.getElementById('navName');
   const navBrand = document.getElementById('navBrand');
-  const rightRail = document.querySelector('.left-sidebar');
-  const progressBar = document.getElementById('read-progress');
   const backTop = document.getElementById('back-to-top');
-  if (!navName || !navBrand || !progressBar || !backTop) return;
+  const ring = document.querySelector('.btt-ring-fill');
+  if (!navName || !navBrand || !backTop) return;
 
-  function docTop(el) {
-    let top = 0;
-    while (el) { top += el.offsetTop; el = el.offsetParent; }
-    return top;
-  }
+  const thresholdNav = hero ? hero.offsetHeight * 0.6 : 0;
 
-  let thresholdNav = 0;
-  let thresholdRails = 0;
-  let thresholdRailsHide = Number.POSITIVE_INFINITY;
-  function recalcThresholds() {
-    thresholdNav = hero ? hero.offsetHeight * 0.6 : 0;
-    thresholdRails = authorBar ? docTop(authorBar) + authorBar.offsetHeight : thresholdNav;
-    // Rail is scoped to the article itself — cut off right where the post
-    // ends, before the FAQ (FAQ's own top edge when there is one; otherwise
-    // the article column's bottom edge), not after it.
-    // scrollTop alone isn't "before the FAQ" perceptually — the FAQ heading
-    // scrolls into view well before scrollTop reaches its offsetTop, since
-    // the viewport shows everything between scrollTop and scrollTop+innerHeight.
-    // Subtracting innerHeight hides the rail right as that boundary is about
-    // to reach the bottom of the viewport, i.e. before the FAQ is visible at all.
-    const cutoff = faqSection
-      ? docTop(faqSection)
-      : articleCol
-        ? docTop(articleCol) + articleCol.offsetHeight
-        : null;
-    thresholdRailsHide = cutoff === null ? Number.POSITIVE_INFINITY : cutoff - window.innerHeight;
+  // Circumference from the circle's own r= in the markup, not a hardcoded
+  // number here — stays correct if that radius ever changes.
+  const ringR = ring ? Number(ring.getAttribute('r')) : 0;
+  const ringC = 2 * Math.PI * ringR;
+  if (ring) {
+    ring.style.strokeDasharray = String(ringC);
+    ring.style.strokeDashoffset = String(ringC);
   }
-  recalcThresholds();
-  // Fonts, images and async layout can shift the FAQ bottom after first paint.
-  // recalcThresholds() only updates the numbers — without a re-run of onScroll()
-  // right after, a rail hidden under stale (pre-reflow) thresholds stays hidden
-  // until the next scroll event, which may never come if the user already
-  // stopped scrolling. Every recalc is followed by an immediate re-sync.
-  function recalcAndSync() { recalcThresholds(); onScroll(); }
-  window.addEventListener('load', recalcAndSync);
-  setTimeout(recalcAndSync, 200);
-  setTimeout(recalcAndSync, 1200);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(recalcAndSync);
 
   let ticking = false;
   function onScroll() {
@@ -64,24 +38,21 @@ import { renderClock, renderWeather } from './clock-weather.js';
     requestAnimationFrame(() => {
       const scrollTop = window.scrollY;
       const docH = document.documentElement.scrollHeight - window.innerHeight;
-      const navScrolled = scrollTop > thresholdNav;
-      const railsVisible = scrollTop > thresholdRails && scrollTop < thresholdRailsHide;
-      navName.classList.toggle('hidden', navScrolled);
-      navBrand.classList.toggle('visible', navScrolled);
-      if (rightRail) rightRail.classList.toggle('visible', railsVisible);
-      progressBar.style.width = (docH > 0 ? (scrollTop / docH) * 100 : 0) + '%';
+      const pct = docH > 0 ? scrollTop / docH : 0;
+      navName.classList.toggle('hidden', scrollTop > thresholdNav);
+      navBrand.classList.toggle('visible', scrollTop > thresholdNav);
+      if (ring) ring.style.strokeDashoffset = String(ringC * (1 - pct));
       backTop.classList.toggle('visible', scrollTop > 400);
       ticking = false;
     });
   }
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', recalcAndSync, { passive: true });
   backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   onScroll();
 })();
 
-/* ── Heading anchor links + TOC scrollspy. Links carry data-target from the
-   build-time TOC; headings already have ids from the markdown pipeline. ── */
+/* ── Heading anchor links — hover a heading, get a shareable # link.
+   Headings already have ids from the markdown pipeline. ── */
 (() => {
   const article = document.querySelector('.article-col');
   if (!article) return;
@@ -99,17 +70,6 @@ import { renderClock, renderWeather } from './clock-weather.js';
     a.setAttribute('aria-label', anchorLabel);
     h.appendChild(a);
   });
-
-  const links = Array.from(document.querySelectorAll('.toc-list a[data-target]'));
-  if (!links.length || !('IntersectionObserver' in window)) return;
-  const setActive = (id) =>
-    links.forEach((l) => l.classList.toggle('toc-active', l.dataset.target === id));
-  // "Motion sensor" band across the upper third of the viewport.
-  const io = new IntersectionObserver(
-    (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
-    { rootMargin: '-8% 0px -75% 0px', threshold: 0 }
-  );
-  heads.forEach((h) => io.observe(h));
 })();
 
 /* ── Share dialog: #shareBtn opens it pre-set to the matching tab.

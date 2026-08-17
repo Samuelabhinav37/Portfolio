@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  posts: CollectionEntry<'blog'>[];
+  heading: string;
+  /** Post's language — only ever passed explicitly for a translated post;
+   *  defaults to English otherwise. */
+  lang?: 'en' | 'es';
+}
+const { posts, heading, lang = 'en' } = Astro.props;
+
+// timeZone: 'UTC' — see BlogPost.astro's dateLabel for why this matters
+// (pubDate parses as UTC midnight; formatting without pinning the zone can
+// silently roll the displayed month back a day on some build machines).
+const fmt = (d: Date) =>
+  d.toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+---
+
+{posts.length > 0 && (
+  <div class="rail-stories">
+    <div class="left-sidebar-heading">{heading}</div>
+    <div class="rail-story-list">
+      {posts.map((p) => (
+        <a class="rail-story" href={`/blog/${p.id}/`}>
+          <div class="rail-story-thumb">
+            {p.data.cardImage
+              ? <img src={p.data.cardImage} alt="" loading="lazy" />
+              : <div class="story-image-ph" aria-hidden="true"></div>}
+          </div>
+          <div class="rail-story-body">
+            <div class="rail-story-cat">{p.data.category}</div>
+            <h3 class="rail-story-title">{p.data.title}</h3>
+            <div class="rail-story-meta">{fmt(p.data.pubDate)}</div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+)}

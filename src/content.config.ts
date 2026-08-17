@@ -32,19 +32,6 @@ const blog = defineCollection({
     cardImageAlt: z.string().optional(),
     /** Single source for both the visible accordion and FAQPage JSON-LD. */
     faqs: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
-    /** Slugs of posts to show under "More stories". */
-    related: z.array(z.string()).default([]),
-    /** Side-rail "Also in ..." card. */
-    alsoBy: z
-      .object({
-        label: z.string().default('Also in Lab Notes'),
-        title: z.string(),
-        meta: z.string(),
-        href: z.string(),
-        image: z.string().optional(),
-        imageAlt: z.string().optional(),
-      })
-      .optional(),
     draft: z.boolean().default(false),
   })
     .refine((d) => !d.heroImage || !!d.heroImageAlt, {

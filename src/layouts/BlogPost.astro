@@ -1,10 +1,11 @@
 ---
+import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import { SITE } from '../config';
 import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
-import MoreStories from '../components/MoreStories.astro';
+import MoreStoriesRail from '../components/MoreStoriesRail.astro';
 import Luna from '../components/Luna.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
@@ -12,7 +13,6 @@ import '../styles/blog.css';
 interface Props {
   post: CollectionEntry<'blog'>;
   headings: MarkdownHeading[];
-  relatedPosts: CollectionEntry<'blog'>[];
   /** Auto word count used when readTime is not set in frontmatter. */
   words: number;
   /** Defaults to English. Only ever set explicitly by a locale-specific
@@ -26,11 +26,23 @@ interface Props {
   altHref?: string | null;
 }
 
-const { post, headings, relatedPosts, words, lang = 'en', altHref = null } = Astro.props;
+const { post, headings, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
 const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
 const altUrl = altHref ? new URL(altHref, Astro.site).href : null;
+
+// Sidebar "More stories" list — recency-sorted, always populated (unlike
+// the old related-posts mechanism, which depended on a per-post `related:`
+// frontmatter field nobody ever filled in and so never actually rendered).
+// Same source/sort as blog/index.astro's own post listing, minus this post
+// and minus translation entries (id.includes('/')), which don't have their
+// own English-side archive presence.
+const morePosts = (
+  await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/') && id !== post.id)
+)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 5);
 
 /* ── Derived, never hand-edited ─────────────────────────────────────── */
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
@@ -55,8 +67,6 @@ const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
 const dateLabel = d.pubDate
   .toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
   .toUpperCase();
-
-const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 const shareX =
   'https://x.com/intent/post?url=' +
@@ -178,9 +188,16 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
   <body>
     <a class="skip-link" href="#main-content">{i18n.skipToContent}</a>
 
-    <div id="read-progress"></div>
-
+    <!-- Reading-progress ring traced around the button itself (Cloudflare-blog
+         pattern) instead of a separate bar fixed to the top of the viewport —
+         see the .btt-ring rules in blog.css and the scroll handler in
+         blog-client.js, which sets stroke-dashoffset from the actual radius
+         below rather than a hardcoded circumference. -->
     <button id="back-to-top" aria-label={i18n.backToTop}>
+      <svg class="btt-ring" viewBox="0 0 44 44" aria-hidden="true">
+        <circle class="btt-ring-track" cx="22" cy="22" r="20" />
+        <circle class="btt-ring-fill" cx="22" cy="22" r="20" />
+      </svg>
       <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
 
@@ -217,14 +234,27 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     <!-- Hero -->
     <div class="hero" id="hero">
-      <div class="hero-breadcrumb-row">
-        <div class="hero-breadcrumb">
-          <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
-        </div>
+      <!-- Mobile-only breadcrumb — shown before the image, same spot it
+           always occupied on mobile. Hidden on desktop, where the one
+           inside .hero-content (right above the title) is used instead.
+           Two instances of the same link pair rather than one reordered
+           via CSS: order can't move an element from being nested inside
+           .hero-left's centered content block (needed so it sits snug
+           against the title on desktop) to being a top-level sibling of
+           .hero-right (needed so it can go before the image on mobile) —
+           those are two different DOM positions, not just two different
+           visual positions of the same box. Only one is ever in the
+           accessibility tree at a time (display:none), so nothing reads
+           as duplicated content. -->
+      <div class="hero-breadcrumb hero-breadcrumb--mobile">
+        <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
       </div>
       <div class="hero-left">
         <div class="hero-corner-br"></div>
         <div class="hero-content">
+          <div class="hero-breadcrumb hero-breadcrumb--desktop">
+            <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
+          </div>
           <h1 class="hero-title">{d.title}</h1>
           <p class="hero-subtitle">{d.description}</p>
           <div class="hero-tags">
@@ -259,7 +289,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </a>
       )}
 
-      <!-- Author bar -->
+      <!-- Author bar — name/date/read-time grouped as one identity block next
+           to the avatar (matches how most editorial sites do it: byline info
+           reads as a single unit), share affordance pinned to the row's own
+           right edge instead of sharing space with the name. -->
       <div class="author-bar">
         <div class="author-bar-left">
           <div class="author-photo-wrap">
@@ -272,23 +305,20 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
             <div class="author-info-row">
               <span class="author-info-name">{SITE.author}</span>
             </div>
+            <div class="author-bar-meta">
+              <span class="live-dot" aria-hidden="true"></span><time datetime={pubIso}>{dateLabel}</time>
+              <span class="author-bar-meta-sep" aria-hidden="true">&middot;</span> {readTime} {i18n.minRead}
+            </div>
           </div>
-          <!-- Single share affordance: navigator.share() (the native OS
-               share sheet) where supported, falling back to #shareDialog's
-               own X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
-               keeps the existing dialog-wiring in blog-client.js working
-               unmodified for the fallback path — see the capture-phase
-               listener below that intercepts and calls navigator.share()
-               first when available, stopping the dialog from also opening.
-               Sits in the author row itself (GitHub's old slot) rather than
-               its own row below — a single icon on its own line read as an
-               orphaned afterthought with a lot of dead space around it. -->
-          <button class="social-icon" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
         </div>
-        <div class="author-bar-meta">
-          <span class="live-dot" aria-hidden="true"></span><strong><time datetime={pubIso}>{dateLabel}</time></strong>
-          &nbsp;·&nbsp; {readTime} {i18n.minRead}
-        </div>
+        <!-- Single share affordance: navigator.share() (the native OS
+             share sheet) where supported, falling back to #shareDialog's
+             own X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
+             keeps the existing dialog-wiring in blog-client.js working
+             unmodified for the fallback path — see the capture-phase
+             listener below that intercepts and calls navigator.share()
+             first when available, stopping the dialog from also opening. -->
+        <button class="social-icon" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
       </div>
       <script is:inline>
         (function(){
@@ -307,61 +337,23 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <!-- 2-col grid -->
       <div class="page-grid">
         <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
-          <!-- Inline TOC — fallback for viewports below 1580px -->
-          {toc.length > 0 && (
-            <details class="toc-inline">
-              <summary>{i18n.onThisPage}</summary>
-              <ol class="toc-list" id="tocListInline">
-                {toc.map((h) => (
-                  <li class={h.depth === 3 ? 'toc-sub' : undefined}>
-                    <a href={'#' + h.slug} data-target={h.slug}>{h.text}</a>
-                  </li>
-                ))}
-              </ol>
-            </details>
-          )}
-
           <slot />
-
-          <div class="grad-line"></div>
         </main>
 
-        <!-- Side rail (right, sticky content) -->
+        <!-- Side rail — "More stories" list. Fixed-floating on wide
+             viewports (>=1580px, see .left-sidebar); on narrower viewports
+             it renders in normal document flow right here instead of
+             disappearing, since it's the only "other posts" surface on a
+             post page now (the old bottom 3-card grid was removed — it
+             never actually rendered, see MoreStoriesRail's comment). -->
         <aside class="left-sidebar">
           <div class="rail-sticky">
-            {toc.length > 0 && (
-              <nav class="toc" aria-label="Table of contents">
-                <div class="left-sidebar-heading">{i18n.onThisPage}</div>
-                <ol class="toc-list" id="tocList">
-                  {toc.map((h) => (
-                    <li class={h.depth === 3 ? 'toc-sub' : undefined}>
-                      <a href={'#' + h.slug} data-target={h.slug}>{h.text}</a>
-                    </li>
-                  ))}
-                </ol>
-              </nav>
-            )}
-
-            {d.alsoBy && (
-              <a href={d.alsoBy.href} class="also-by">
-                <div class="also-by-label">{d.alsoBy.label}</div>
-                <div class="also-by-thumb">
-                  {d.alsoBy.image
-                    ? <img src={d.alsoBy.image} alt={d.alsoBy.imageAlt ?? ''} loading="lazy" />
-                    : <div class="story-image-ph" aria-hidden="true"></div>}
-                  <div class="story-shimmer"></div>
-                </div>
-                <div class="also-by-title">{d.alsoBy.title}</div>
-                <div class="also-by-meta">{d.alsoBy.meta}</div>
-              </a>
-            )}
+            <MoreStoriesRail posts={morePosts} heading={i18n.moreStories} lang={lang} />
           </div>
         </aside>
       </div><!-- /.page-grid -->
 
       <Faq faqs={d.faqs as { q: string; a: string }[]} lang={lang} />
-
-      <MoreStories posts={relatedPosts} />
     </div><!-- /.container -->
 
     <footer class="post-footer">
