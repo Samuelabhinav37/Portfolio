@@ -976,12 +976,10 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   .hero-art { inset: 28px; }
   .hero-art-frame, .hero-art--placeholder { border-radius: 10px; }
   .hero-title { font-size: 3.0rem; }
-  /* Mobile keeps the rail thumbnail's original size/desaturate-until-hover
-     treatment — the size-down + full-color change above was specifically
-     for the wide desktop rail sitting next to much bigger body text. */
-  .rail-story-thumb { width: 84px; height: 84px; border-radius: 6px; }
-  .rail-story-thumb img { filter: grayscale(100%) brightness(0.85); transition: filter 0.5s ease; }
-  .rail-story:hover .rail-story-thumb img { filter: grayscale(0%) brightness(1); }
+  /* "More stories" rail dropped entirely on true mobile — it still shows
+     inline between here and --bp-1300 (tablet/narrow-desktop widths,
+     where the rules just below still apply), just not on phones. */
+  .left-sidebar { display: none; }
   #site-identity { top: 12px; left: 20px; }
   .nav-name { font-size: 1.3rem; }
   #menu-trigger { top: 14px; right: 20px; }
