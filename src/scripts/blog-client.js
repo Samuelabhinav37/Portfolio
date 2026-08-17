@@ -2,8 +2,6 @@
    at build time from the post's headings; this file only adds the dynamic
    pieces: scroll UI, scrollspy, anchors, copy actions, FAQ, collapsed menu. */
 
-import { renderClock, renderWeather } from './clock-weather.js';
-
 /* ── Scroll-driven UI: navbar swap (mid-hero), reading progress, back-to-top.
    Single rAF-throttled handler. The "More stories" rail used to need its own
    scroll-threshold show/hide logic here (fixed-positioned, faded in past the
@@ -265,8 +263,4 @@ document.addEventListener('click', (ev) => {
     a.addEventListener('click', () => setOpen(false));
   });
 
-  /* live GMT (UTC) clock — single line: GMT DD MON YY  HH:MM:SS */
-  renderClock(document.getElementById('menu-clock'));
-
-  renderWeather(document.getElementById('menu-weather'));
 })();
