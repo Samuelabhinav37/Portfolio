@@ -20,7 +20,7 @@
       radial-gradient(1200px 600px at 50% -10%, rgba(120,140,180,0.10), transparent 60%),
       repeating-linear-gradient(0deg, rgba(255,255,255,0.020) 0 1px, transparent 1px 3px);
   }
-  .wrap{ max-width:560px; }
+  .wrap{ max-width:560px; width:100%; }
   .code{
     font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size:clamp(5rem, 18vw, 9rem); line-height:0.9; font-weight:500;
@@ -30,15 +30,33 @@
   .status{ margin-top:1.25rem; font-size:0.78rem; letter-spacing:0.35em; text-transform:uppercase; color:rgba(160,172,190,0.75); }
   .msg{ margin-top:0.9rem; font-size:0.9rem; color:rgba(180,190,206,0.68); }
   .home{
-    display:inline-block; margin-top:2rem; padding:0.7rem 1.4rem;
+    display:inline-block; margin-top:1.6rem; padding:0.7rem 1.4rem;
     font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; text-decoration:none;
     color:rgba(220,228,240,0.9);
     border:1px solid rgba(205,214,226,0.18); border-radius:2px;
     transition:border-color .2s ease, background .2s ease;
   }
   .home:hover{ border-color:rgba(205,214,226,0.4); background:rgba(205,214,226,0.05); }
-  .prompt{ margin-top:1.6rem; font-size:0.72rem; color:rgba(120,132,150,0.6); }
+  .prompt{ margin-top:1.4rem; font-size:0.72rem; color:rgba(120,132,150,0.6); }
   .prompt::before{ content:"$ "; color:rgba(150,180,235,0.7); }
+
+  /* ── While-you're-here game panel ── */
+  .game{
+    margin-top:2rem; border:1px solid rgba(205,214,226,0.14); border-radius:6px;
+    background:rgba(255,255,255,0.015); overflow:hidden;
+  }
+  .game-hdr{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 12px; border-bottom:1px solid rgba(205,214,226,0.10);
+    font-size:0.60rem; letter-spacing:0.18em; text-transform:uppercase; color:rgba(160,172,190,0.6);
+  }
+  .game-hdr .g-score{ font-variant-numeric:tabular-nums; color:rgba(205,214,226,0.85); letter-spacing:0.08em; }
+  #g-canvas{ display:block; width:100%; height:170px; touch-action:none; cursor:pointer; }
+  .game-hint{
+    padding:8px 12px; border-top:1px solid rgba(205,214,226,0.10);
+    font-size:0.62rem; letter-spacing:0.05em; color:rgba(140,152,170,0.55);
+  }
+  @media (prefers-reduced-motion: reduce){ .game{ display:none; } }
 </style>
 </head>
 <body>
@@ -46,8 +64,254 @@
     <div class="code">404</div>
     <div class="status">signal lost</div>
     <p class="msg">This route returned no telemetry. The page may have moved, or never existed.</p>
+
+    <div class="game" id="g-wrap">
+      <div class="game-hdr">
+        <span>while you're here</span>
+        <span class="g-score" id="g-score">0000</span>
+      </div>
+      <canvas id="g-canvas" aria-label="A small playable spaceship-dodging game — use arrow keys, WASD, or drag/tap to fly"></canvas>
+      <div class="game-hint" id="g-hint">↑/↓ or drag to fly · click, tap, or press a key to start</div>
+    </div>
+
     <a class="home" href="/">return to base</a>
     <div class="prompt">trace --route requested : no path found</div>
   </div>
+
+<script>
+/* Playable version of the homepage's decorative "auto-defense" runner
+   (public/scripts/index-editorial-flow.js) — same obstacle/collision/draw
+   logic (gates to thread, bobbing asteroids to dodge, particle-burst on
+   hit), but the ship's position now comes from real player input instead
+   of a fixed-reaction-distance autopilot, and the loop only starts once
+   the player actually engages (arrow/WASD/space, or a click/tap/drag),
+   with a manual restart on game-over instead of an automatic reset.
+   Self-contained: this file is a plain static asset (Cloudflare Pages'
+   404 fallback, not an Astro page), so there's no build pipeline to pull
+   in the site's shared scripts from — everything needed lives here. */
+(function(){
+  var canvas=document.getElementById('g-canvas'), scoreEl=document.getElementById('g-score'), hintEl=document.getElementById('g-hint');
+  if(!canvas || !canvas.getContext) return;
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced) return; // .game itself is display:none in that case too
+  var ctx=canvas.getContext('2d');
+  var W=0,H=0,PLAY_TOP=6,PLAY_BOTTOM=0;
+
+  function fit(){
+    var rect=canvas.getBoundingClientRect();
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    W=rect.width; H=rect.height; PLAY_BOTTOM=H-6;
+    canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  var stars=[];
+  function makeStars(){
+    stars=[];
+    for(var i=0;i<24;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+0.4,tw:Math.random()*Math.PI*2,par:0.1+Math.random()*0.12});
+  }
+  fit(); makeStars();
+  var fitT=null;
+  addEventListener('resize',function(){ clearTimeout(fitT); fitT=setTimeout(function(){ fit(); makeStars(); },150); },{passive:true});
+
+  var SHIP_X=24, SHIP_W=16, SHIP_H=11, BASE_SPEED=1.1, SPEED_RAMP=0.00009;
+  // Player control: keys give a constant thrust (accelerate/damp), a
+  // pointer drag instead sets a direct target the ship eases toward —
+  // whichever the player last touched wins.
+  var THRUST=0.62, DAMP=0.88, DRAG_EASE=0.16;
+  var shipY, vy, speed, score, obstacles, phase, phaseT, particles, tAccum, distSince, nextSpawnAt;
+  var keys={up:false,down:false};
+  var dragY=null, dragging=false;
+
+  function resetRun(){
+    shipY=H/2; vy=0; speed=BASE_SPEED; score=0;
+    obstacles=[]; particles=[]; tAccum=0; distSince=0;
+    scheduleNext(true);
+  }
+  function scheduleNext(first){ nextSpawnAt=distSince+230+Math.random()*190+(first?70:0); }
+  function spawn(){
+    var kind=Math.random()<0.42?'gate':'asteroid';
+    if(kind==='gate'){
+      var gapY=PLAY_TOP+30+Math.random()*Math.max(10,(PLAY_BOTTOM-PLAY_TOP-60));
+      obstacles.push({x:W+10,spawnX:W+10,kind:kind,w:7,gapY:gapY,openH:52,closeH:30});
+    } else {
+      var w=13+Math.random()*5,h=11+Math.random()*5,n=6,pts=[];
+      for(var k=0;k<n;k++) pts.push({a:(k/n)*Math.PI*2,r:0.68+Math.random()*0.32});
+      var baseY=PLAY_TOP+16+Math.random()*Math.max(10,(PLAY_BOTTOM-PLAY_TOP-32));
+      obstacles.push({x:W+10,kind:kind,w:w,h:h,pts:pts,baseY:baseY,amp:7+Math.random()*7,freq:0.0009+Math.random()*0.0007,ph0:Math.random()*Math.PI*2,curY:baseY});
+    }
+  }
+  function explode(x,y){
+    particles=[];
+    for(var i=0;i<9;i++){
+      var ang=Math.random()*Math.PI*2, spd=1+Math.random()*2.4;
+      particles.push({x:x,y:y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,life:1});
+    }
+  }
+  function gateGapH(o){
+    var prog=1-((o.x-SHIP_X)/Math.max(1,(o.spawnX-SHIP_X)));
+    prog=Math.max(0,Math.min(1,prog));
+    return o.openH+(o.closeH-o.openH)*prog;
+  }
+
+  function relY(clientY){
+    var r=canvas.getBoundingClientRect();
+    return clientY-r.top;
+  }
+  function startOrRestart(){
+    if(phase==='idle'){ phase='run'; resetRun(); hintEl.textContent='↑/↓ or drag to fly'; }
+    else if(phase==='over'){ phase='run'; resetRun(); }
+  }
+  window.addEventListener('keydown', function(e){
+    var k=e.key;
+    if(k==='ArrowUp'||k==='w'||k==='W'){ keys.up=true; startOrRestart(); e.preventDefault(); }
+    else if(k==='ArrowDown'||k==='s'||k==='S'){ keys.down=true; startOrRestart(); e.preventDefault(); }
+    else if(k===' '||k==='Enter'){ startOrRestart(); e.preventDefault(); }
+  });
+  window.addEventListener('keyup', function(e){
+    var k=e.key;
+    if(k==='ArrowUp'||k==='w'||k==='W') keys.up=false;
+    else if(k==='ArrowDown'||k==='s'||k==='S') keys.down=false;
+  });
+  canvas.addEventListener('pointerdown', function(e){ dragging=true; dragY=relY(e.clientY); startOrRestart(); });
+  window.addEventListener('pointermove', function(e){ if(dragging) dragY=relY(e.clientY); });
+  window.addEventListener('pointerup', function(){ dragging=false; });
+
+  phase='idle'; shipY=H/2; vy=0; score=0; obstacles=[]; particles=[]; tAccum=0;
+
+  function update(dt){
+    var k=dt/16.67;
+    if(phase==='idle'){
+      // gentle idle drift so the panel doesn't look frozen before the player engages
+      shipY=H/2+Math.sin(tAccum*0.0011)*10; tAccum+=dt;
+      return;
+    }
+    if(phase==='over'){
+      phaseT+=dt;
+      for(var p=0;p<particles.length;p++){ particles[p].x+=particles[p].vx*k; particles[p].y+=particles[p].vy*k; particles[p].life-=dt/450; }
+      return;
+    }
+    tAccum+=dt;
+    speed+=SPEED_RAMP*dt;
+    distSince+=speed*k;
+    score+=speed*k*0.4;
+
+    if(distSince>=nextSpawnAt){ spawn(); scheduleNext(false); }
+
+    for(var i=obstacles.length-1;i>=0;i--){
+      var o=obstacles[i]; o.x-=speed*k;
+      if(o.kind==='asteroid') o.curY=o.baseY+Math.sin(tAccum*o.freq+o.ph0)*o.amp;
+      if(o.x+o.w<0) obstacles.splice(i,1);
+    }
+    for(var s=0;s<stars.length;s++){
+      stars[s].x-=speed*stars[s].par*k;
+      if(stars[s].x<-2){ stars[s].x=W+2; stars[s].y=Math.random()*H; }
+    }
+
+    // movement: drag (mouse/touch) takes priority when active; otherwise keyboard thrust
+    if(dragging && dragY!=null){
+      shipY+=(dragY-shipY)*Math.min(1,DRAG_EASE*k);
+      vy=0;
+    } else {
+      if(keys.up) vy-=THRUST*k;
+      if(keys.down) vy+=THRUST*k;
+      vy*=Math.pow(DAMP,k);
+      shipY+=vy*k;
+    }
+    if(shipY<PLAY_TOP){ shipY=PLAY_TOP; vy=0; }
+    if(shipY>PLAY_BOTTOM-SHIP_H){ shipY=PLAY_BOTTOM-SHIP_H; vy=0; }
+
+    for(var j=0;j<obstacles.length;j++){
+      var ob=obstacles[j];
+      if(ob.kind==='gate'){
+        if(ob.x<SHIP_X+SHIP_W-3 && ob.x+ob.w>SHIP_X+3){
+          var gh=gateGapH(ob), top=ob.gapY-gh/2, bot=ob.gapY+gh/2;
+          var shipCenter=shipY+SHIP_H/2;
+          if(shipCenter-4<top || shipCenter+4>bot){ explode(SHIP_X+SHIP_W/2,shipY+SHIP_H/2); phase='over'; phaseT=0; hintEl.textContent='press a key, click, or tap to fly again'; break; }
+        }
+      } else {
+        var rx=SHIP_X+3,rw=SHIP_W-6,ry=shipY+2,rh=SHIP_H-2;
+        var ox=ob.x+2,ow=ob.w-4,oy=ob.curY-ob.h/2+1,oh=ob.h-2;
+        if(rx<ox+ow && rx+rw>ox && ry<oy+oh && ry+rh>oy){ explode(SHIP_X+SHIP_W/2,shipY+SHIP_H/2); phase='over'; phaseT=0; hintEl.textContent='press a key, click, or tap to fly again'; break; }
+      }
+    }
+    if(scoreEl) scoreEl.textContent=String(Math.floor(score)).padStart(4,'0');
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var s=0;s<stars.length;s++){
+      var st=stars[s], tw=0.5+0.5*Math.sin(tAccum*0.0016+st.tw);
+      ctx.fillStyle='rgba(237,237,238,'+(0.12+0.22*tw).toFixed(2)+')';
+      ctx.fillRect(st.x,st.y,st.r,st.r);
+    }
+    if(phase==='run'){
+      for(var i=0;i<obstacles.length;i++){
+        var o=obstacles[i];
+        if(o.kind==='gate'){
+          var gh=gateGapH(o), top=o.gapY-gh/2, bot=o.gapY+gh/2;
+          ctx.strokeStyle='rgba(237,237,238,.8)'; ctx.lineWidth=1.5;
+          ctx.beginPath(); ctx.moveTo(o.x,PLAY_TOP-4); ctx.lineTo(o.x,top); ctx.moveTo(o.x+o.w,PLAY_TOP-4); ctx.lineTo(o.x+o.w,top); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(o.x,bot); ctx.lineTo(o.x,PLAY_BOTTOM+4); ctx.moveTo(o.x+o.w,bot); ctx.lineTo(o.x+o.w,PLAY_BOTTOM+4); ctx.stroke();
+          ctx.strokeStyle='rgba(237,237,238,.4)'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(o.x,top); ctx.lineTo(o.x+o.w,top); ctx.moveTo(o.x,bot); ctx.lineTo(o.x+o.w,bot); ctx.stroke();
+        } else {
+          var cx=o.x+o.w/2, cy=o.curY;
+          ctx.fillStyle='rgba(156,156,162,.82)';
+          ctx.beginPath();
+          for(var pi=0;pi<o.pts.length;pi++){
+            var pt=o.pts[pi], px=cx+Math.cos(pt.a)*pt.r*o.w/2, py=cy+Math.sin(pt.a)*pt.r*o.h/2;
+            if(pi===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+          }
+          ctx.closePath(); ctx.fill();
+        }
+      }
+    }
+    if(phase!=='over'){
+      var cx=SHIP_X+SHIP_W/2, cy=shipY+SHIP_H/2;
+      var tilt=Math.max(-0.5,Math.min(0.5,-vy*0.09));
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(tilt);
+      var flick=0.65+Math.random()*0.35, flameLen=(phase==='run'?9:5)*flick;
+      var grd=ctx.createLinearGradient(-SHIP_W/2-flameLen,0,-SHIP_W/2,0);
+      grd.addColorStop(0,'rgba(237,237,238,0)'); grd.addColorStop(1,'rgba(237,237,238,.8)');
+      ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.moveTo(-SHIP_W/2,-2.5); ctx.lineTo(-SHIP_W/2-flameLen,0); ctx.lineTo(-SHIP_W/2,2.5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#ededee';
+      ctx.beginPath(); ctx.moveTo(SHIP_W/2,0); ctx.lineTo(-SHIP_W/2,-SHIP_H/2); ctx.lineTo(-SHIP_W/2,SHIP_H/2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(237,237,238,.9)';
+      ctx.beginPath(); ctx.arc(SHIP_W/6,0,1.6,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    if(phase==='idle'){
+      ctx.fillStyle='rgba(237,237,238,.85)'; ctx.font="10px 'JetBrains Mono',monospace"; ctx.textAlign='center';
+      ctx.fillText('CLICK, TAP, OR PRESS A KEY TO FLY', W/2, H-14);
+      ctx.textAlign='left';
+    }
+    if(phase==='over'){
+      ctx.fillStyle='rgba(4,4,10,.6)'; ctx.fillRect(0,0,W,H);
+      for(var p=0;p<particles.length;p++){
+        var pt=particles[p]; if(pt.life<=0) continue;
+        ctx.fillStyle='rgba(237,237,238,'+Math.max(0,pt.life*0.85).toFixed(2)+')';
+        ctx.beginPath(); ctx.arc(pt.x,pt.y,1.6,0,Math.PI*2); ctx.fill();
+      }
+      ctx.fillStyle='#ededee'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='center';
+      ctx.fillText('BREACH DETECTED', W/2, H/2-2);
+      ctx.font="9px 'JetBrains Mono',monospace"; ctx.fillStyle='rgba(205,214,226,.65)';
+      ctx.fillText('score '+Math.floor(score)+' — press to fly again', W/2, H/2+14);
+      ctx.textAlign='left';
+    }
+  }
+
+  var last=0;
+  function loop(t){
+    requestAnimationFrame(loop);
+    if(document.hidden) return;
+    if(!last) last=t;
+    var dt=Math.min(t-last,50); last=t;
+    update(dt); draw();
+  }
+  draw();
+  requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
