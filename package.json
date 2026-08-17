@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "check": "astro check",
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "astro build",
     "postbuild": "node scripts/obfuscate.mjs",
     "preview": "astro preview",

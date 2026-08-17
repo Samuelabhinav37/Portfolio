@@ -71,6 +71,11 @@ const isDesktop=()=>matchMedia('(min-width:761px)').matches;
        page doesn't open with 14 buttons — most would show 0 results today.
    `selected` holds category keys from either tier; empty set = All. */
 let selected=new Set(),sort='latest';
+// Archive table (row() below, .tbl/#tbl in blog/index.astro) is on hold
+// until there are enough posts for "first 3 get cards, rest become a bare
+// table row" to make sense — right now it'd just be 1-2 rows. Flip this
+// back to true to restore it; the table markup/CSS/row() are untouched.
+const SHOW_ARCHIVE_TABLE=false;
 function matches(p){return selected.size===0||(p.cats||[]).some(c=>selected.has(c));}
 function render(){
   const firsts={};
@@ -82,10 +87,13 @@ function render(){
   if(!list.length){
     grid.innerHTML=`<div class="no-results">Nothing filed under this category yet.<br><button type="button" data-clear-filters>Clear filters →</button></div>`;
     tbl.innerHTML='';
-  }else if(isDesktop()){
+  }else if(isDesktop()&&SHOW_ARCHIVE_TABLE){
     const featured=list.slice(0,3),rest=list.slice(3);
     grid.innerHTML=featured.map((p)=>card(p,0)).join('');
     tbl.innerHTML=rest.length?`<div class="trow trow-head" aria-hidden="true"><span class="trow-date">Date</span><span class="trow-cat">Category</span><span class="trow-title">Title</span></div>${rest.map((p)=>row(p,0)).join('')}`:'';
+  }else if(isDesktop()){
+    grid.innerHTML=list.map((p)=>card(p,0)).join('');
+    tbl.innerHTML='';
   }else{
     grid.innerHTML=list.map((p)=>item(p,0)).join('');
     tbl.innerHTML='';

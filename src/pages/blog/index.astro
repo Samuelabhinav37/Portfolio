@@ -217,9 +217,6 @@ a.wire-item:hover{border-color:var(--line);color:var(--ink);background:rgba(var(
 
 section.block{position:relative;z-index:1;padding:40px 38px 96px}
 .lbl{color:var(--faint);margin-bottom:20px}
-.shead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:46px}
-.shead h2{font-weight:200;font-size:clamp(44px,8vw,104px);line-height:.86;letter-spacing:-2px;color:#fff}
-.shead .meta{color:var(--faint);text-align:right;padding-bottom:10px;line-height:2}
 
 .card{text-decoration:none;color:inherit;cursor:pointer;opacity:0;transform:translateY(20px);
   transition:opacity .8s var(--e),transform .8s var(--e)}
@@ -417,17 +414,15 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .hero2{gap:36px;padding:24px 20px 40px}
   .hero2-feat,.hero2-side{flex-basis:100%}
   .intro{padding:72px 20px 50px}section.block{padding:8px 20px 64px}
-  .shead{display:none}
 
   /* Threat wire above everything, filter/sort right above the archive
      grid it controls, grid last — .hero-wire-wrap only becomes a flex
-     container at this width (desktop stays plain DOM order: hero, filter,
-     wire, grid — filter deliberately stays hero-adjacent there). DOM order
-     (hero2, filter-count-wrap, wire, section.block) is untouched on
-     desktop; only the mobile visual order changes via these four explicit
-     values. section.block was moved inside .hero-wire-wrap (from being a
-     separate sibling) specifically so it can share this flex/order
-     context — CSS order can't reorder across two different parents. */
+     container at this width. Desktop DOM order is hero, wire, filter, grid;
+     mobile wants wire first instead, so these four explicit order values
+     override it rather than reordering the markup itself. section.block was
+     moved inside .hero-wire-wrap (from being a separate sibling)
+     specifically so it can share this flex/order context — CSS order can't
+     reorder across two different parents. */
   .hero-wire-wrap{display:flex;flex-direction:column}
   .wire{order:-1;padding-top:84px}
   .hero2{order:0}
@@ -636,6 +631,11 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   )}
 </section>
 
+<div class="wire" aria-label="Live security threat wire">
+  <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
+  <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
+</div>
+
 <div class="filter-count-wrap">
   <div class="filter">
     <div class="tabs" id="tabs">
@@ -653,13 +653,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   <div class="count meta" id="count">Showing <b>09</b> of <b>09</b> results</div>
 </div>
 
-<div class="wire" aria-label="Live security threat wire">
-  <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
-  <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
-</div>
-
 <section class="block">
-  <div class="shead"><h2>Index</h2><span class="meta">Security field notes. <em>Built, broken, and documented.</em></span></div>
   <div class="grid" id="grid"></div>
   <div class="tbl" id="tbl"></div>
 </section>

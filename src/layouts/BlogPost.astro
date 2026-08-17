@@ -2,6 +2,8 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
+import { readFileSync, existsSync } from 'node:fs';
+import path from 'node:path';
 import { SITE } from '../config';
 import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
@@ -28,6 +30,32 @@ interface Props {
 
 const { post, headings, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
+
+// Reads intrinsic pixel size straight from the WEBP header so the hero
+// <img> can carry real width/height (CLS reservation) without hardcoding
+// one post's dimensions onto every post — heroImage varies per post.
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+function webpDims(publicPath: string): { width: number; height: number } | null {
+  const fsPath = path.join(PUBLIC_DIR, publicPath.replace(/^\//, ''));
+  if (!existsSync(fsPath)) return null;
+  const buf = readFileSync(fsPath);
+  const fourcc = buf.toString('ascii', 12, 16);
+  if (fourcc === 'VP8 ') {
+    return { width: buf.readUInt16LE(26) & 0x3fff, height: buf.readUInt16LE(28) & 0x3fff };
+  }
+  if (fourcc === 'VP8X') {
+    return {
+      width: 1 + (buf[24] | (buf[25] << 8) | (buf[26] << 16)),
+      height: 1 + (buf[27] | (buf[28] << 8) | (buf[29] << 16)),
+    };
+  }
+  if (fourcc === 'VP8L') {
+    const b = buf.readUInt32LE(21);
+    return { width: (b & 0x3fff) + 1, height: ((b >> 14) & 0x3fff) + 1 };
+  }
+  return null;
+}
+const heroDims = d.heroImage ? webpDims(d.heroImage) : null;
 const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
 const altUrl = altHref ? new URL(altHref, Astro.site).href : null;
@@ -266,7 +294,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <div class="hero-right">
         {d.heroImage
           ? <div class="hero-art"><div class="hero-art-frame">
-              <img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} />
+              <img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
               {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
             </div></div>
           : <div class="hero-art"><div class="hero-art-frame hero-art--placeholder" aria-hidden="true">
