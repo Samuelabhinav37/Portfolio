@@ -985,7 +985,16 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
   #menu-trigger { top: 14px; right: 20px; }
   .container { padding: 0 24px; }
   .page-grid { grid-template-columns: minmax(0, 1fr); }
-  .article-col { padding: 28px 0 0; max-width: none; }
+  /* margin:0 explicitly clears the margin:0 auto set by the --bp-1300
+     rule above (still in effect down here too, since both match at this
+     width, and this rule never mentioned margin so it never overrode it).
+     That leftover auto margin was the actual bug behind the mobile text-
+     overflow report: a grid item with auto margins and no explicit width
+     sizes itself to its max-content width instead of stretching to fill
+     its track — and a code block's long line makes max-content huge,
+     which is what was forcing the whole column (and every paragraph
+     inside it) wider than the screen. */
+  .article-col { padding: 28px 0 0; max-width: none; margin: 0; }
   .faq-heading { font-size: 1.9rem; }
 }
 @media (--bp-600) {
