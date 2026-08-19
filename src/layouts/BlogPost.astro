@@ -9,6 +9,7 @@ import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
 import MoreStoriesRail from '../components/MoreStoriesRail.astro';
 import Luna from '../components/Luna.astro';
+import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 
@@ -210,6 +211,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       document.addEventListener('cut', function(e){ e.preventDefault(); });
     })();
     </script>
+    <ClarityAnalytics />
 
   </head>
 

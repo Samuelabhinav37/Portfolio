@@ -1,5 +1,6 @@
 ---
 import SiteMenu from '../components/SiteMenu.astro';
+import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
@@ -342,6 +343,7 @@ html, body {
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
   @media (--bp-980){ #luna-quip{ bottom:146px; } }
 </style>
+<ClarityAnalytics />
 </head>
 <body>
 

@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import { getCollection } from 'astro:content';
 import SiteMenu from '../components/SiteMenu.astro';
+import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
@@ -803,6 +804,7 @@ footer#site-footer{
   .f-links .fic.line{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
 
 </style>
+<ClarityAnalytics />
 </head>
 <body>
 

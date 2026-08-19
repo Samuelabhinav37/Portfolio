@@ -1,0 +1,17 @@
+---
+/**
+ * Microsoft Clarity session-recording/heatmap analytics. Single source of
+ * truth for the init snippet — drop into every public page's <head>.
+ * Not included on src/pages/tools/new-post.astro (private, noindex,
+ * unlinked authoring tool) or public/404.html (static file outside the
+ * Astro/Vite build, can't resolve the npm import).
+ */
+---
+
+<script>
+  import Clarity from '@microsoft/clarity';
+  Clarity.init('y4f822drug');
+  /* No cookie-consent UI on this site yet, so consent is granted
+     up front rather than left gated with nothing to ungate it. */
+  Clarity.consentV2();
+</script>
