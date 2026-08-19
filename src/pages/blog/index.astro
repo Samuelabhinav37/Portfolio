@@ -453,23 +453,28 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   .wire-item .sev,.wire-item .wid,.wire-item .wtx{font-size:9px;letter-spacing:1px}
   .wire-item.skel{min-width:130px;height:22px}
 
-  /* ── Filter/sort row removed entirely on mobile — narrow-screen visitors
-     just get the plain archive list, no tab row or sort dropdown to
-     interact with. .count ("Showing X of X results") stays; it's a status
-     line, not a control. Underlying JS still runs (still needed for
-     desktop), it just has nothing to click on this width. ── */
-  .filter{display:none}
-  .count{margin-bottom:8px}
+  /* ── Filter/sort row AND the "Showing X of X results" count are both
+     hidden on mobile — narrow-screen visitors just get the plain archive
+     list, nothing to filter/sort and no count to read. Hiding the whole
+     wrap (not just its children) avoids leaving its top padding behind as
+     empty space. Underlying JS still runs and updates .count's text (still
+     needed for desktop), it's just not shown at this width. ── */
+  .filter-count-wrap{display:none}
 
   /* The fixed corner nav (#site-identity's "Samuel Abhinav" wordmark,
      #menu-trigger's "Menu" button — both rendered by SiteMenu.astro, a
      child component; reachable here because this stylesheet is
-     is:global) has no backdrop behind it. On this page specifically,
+     is:global) had no backdrop behind it. On this page specifically,
      scrolled post titles pass directly underneath and the thin serif
-     wordmark visibly collides with whatever title happens to be at that
-     exact scroll position — hiding both on mobile removes that overlap.
-     Scoped to this page only (blog index), not the whole site. */
-  #site-identity, #menu-trigger { display: none; }
+     wordmark visibly collided with whatever title happened to be at that
+     exact scroll position. Hiding both on mobile "fixed" the overlap but
+     also removed the only way to navigate off this page on mobile — give
+     them a small blurred backdrop instead so they stay visible/clickable
+     without colliding with scrolled content underneath. Scoped to this
+     page only (blog index), not the whole site. */
+  #site-identity, #menu-trigger { background: rgba(5,5,9,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; }
+  #site-identity { padding: 5px 10px; margin: -5px -10px; }
+  #menu-trigger { padding: 6px 10px; margin: -6px -10px; }
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
