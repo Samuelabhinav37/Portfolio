@@ -17,7 +17,7 @@
     "@astrojs/mdx": "^6",
     "@microsoft/clarity": "^1.0.2",
     "@studio-freight/lenis": "1.0.42",
-    "astro": "^6",
+    "astro": "^7",
     "gsap": "3.12.5",
     "lenis": "1.1.13",
     "typescript": "^5"
