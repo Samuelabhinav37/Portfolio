@@ -84,8 +84,14 @@ const ogImageSrc = d.ogImage ?? d.cardImage ?? d.heroImage;
 const ogImage = ogImageSrc ? new URL(ogImageSrc, Astro.site).href : undefined;
 // Share dialog preview always shows the post's own hero image (what the
 // reader actually saw at the top of the article), independent of the
-// og:image fallback chain above.
-const shareImage = d.heroImage ? new URL(d.heroImage, Astro.site).href : ogImage;
+// og:image fallback chain above. Deliberately left relative (unlike
+// ogImage/canonicalUrl, which need an absolute Astro.site URL for meta
+// tags read by off-site crawlers) — this one is only ever used as an
+// in-page <img src>, and forcing it through the production origin broke
+// the preview under any other origin (local dev, *.pages.dev previews,
+// this repo's own Playwright run) via the site's own
+// Cross-Origin-Resource-Policy: same-origin header.
+const shareImage = d.heroImage ?? ogImageSrc;
 const readTime = d.readTime ?? Math.max(1, Math.round(words / 220));
 const pubIso = d.pubDate.toISOString().slice(0, 10);
 const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);

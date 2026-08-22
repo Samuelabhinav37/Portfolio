@@ -5,6 +5,18 @@
   X-XSS-Protection: 0
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=(), browsing-topics=()
-  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
+  # Cloudflare Pages' own platform default is "Access-Control-Allow-Origin: *"
+  # on every response (page, asset, function) unless overridden here. Nothing
+  # on this site is meant to be readable cross-origin via fetch/XHR — lock it
+  # to the canonical origin, which is a no-op for same-origin requests (they
+  # never needed a CORS header) and closes the wildcard off for everyone else.
+  Access-Control-Allow-Origin: https://samuelabhinav.com
+
+# Astro fingerprints every filename in here with a content hash, so the URL
+# itself changes whenever the content does — safe to cache for a year as
+# immutable, unlike the max-age=14400 Cloudflare Pages applies by default.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

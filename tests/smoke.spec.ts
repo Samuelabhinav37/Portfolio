@@ -38,6 +38,14 @@ const KNOWN_ERRORS: RegExp[] = [
   // line instead of the numeric error code above. Still the widget's own
   // internal telemetry, not app code — narrow match for the same reason.
   /^%c%d font-size:0;color:transparent/,
+  // Same root cause, a third shape: Turnstile's iframe (always https, even
+  // locally) runs its own same-origin/clickjacking check against its
+  // parent. Real deploys are https end-to-end so parent and frame always
+  // match; only the local/CI preview server (plain http) trips this, and
+  // only surfaced once the mobile Playwright project was added — Turnstile
+  // renders differently in its compact/mobile mode and hits this check
+  // path that the desktop layout doesn't.
+  /frame requesting access has a protocol of "https".*Protocols must match/,
 ];
 
 for (const path of PAGES) {
