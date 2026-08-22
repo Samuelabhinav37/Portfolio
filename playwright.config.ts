@@ -9,6 +9,14 @@ import { defineConfig, devices } from '@playwright/test';
  * run never renders, so a regression scoped to that width — like nav
  * elements getting display:none'd — passes CI silently. Same smoke.spec.ts
  * runs under both.
+ *
+ * Mobile uses a Chromium-based device (Pixel 5), not an iOS one — iOS
+ * presets default to the WebKit engine, and ci.yml only installs Chromium
+ * (`playwright install --with-deps chromium`). An iPhone preset happened to
+ * pass locally only because WebKit was already installed on this machine
+ * from unrelated work; CI had no such binary and failed with "Executable
+ * doesn't exist" for every mobile test. Pixel 5 gives the same real
+ * mobile-viewport/touch/UA coverage without needing a second browser engine.
  */
 export default defineConfig({
   testDir: './tests',
@@ -20,7 +28,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['iPhone 13'] } },
+    { name: 'mobile', use: { ...devices['Pixel 5'] } },
   ],
   webServer: {
     command: 'bun run build && bun run preview -- --port 4322',
