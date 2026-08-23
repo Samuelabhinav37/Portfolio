@@ -72,7 +72,7 @@ window.SITE=window.SITE||{};
 <meta name="twitter:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <script type="application/ld+json" set:html={personJsonLd} />
 <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22geometricPrecision%22%3E%3Cdefs%3E%3Cfilter%20id%3D%22g%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%221.4%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2228.32%22%20cy%3D%225.85%22%20r%3D%223.64%22%20fill%3D%22white%22%20opacity%3D%220.5%22%20filter%3D%22url(%23g)%22%2F%3E%3Cline%20x1%3D%2228.32%22%20y1%3D%225.85%22%20x2%3D%2216.73%22%20y2%3D%2214.55%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Cline%20x1%3D%2216.73%22%20y1%3D%2214.55%22%20x2%3D%229.48%22%20y2%3D%2226.15%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Cline%20x1%3D%2216.73%22%20y1%3D%2214.55%22%20x2%3D%223.68%22%20y2%3D%2210.2%22%20stroke%3D%22rgba(220%2C225%2C235%2C0.42)%22%20stroke-width%3D%220.7%22%2F%3E%3Ccircle%20cx%3D%2228.32%22%20cy%3D%225.85%22%20r%3D%223.12%22%20fill%3D%22rgba(255%2C255%2C255%2C1)%22%2F%3E%3Ccircle%20cx%3D%2216.73%22%20cy%3D%2214.55%22%20r%3D%222.21%22%20fill%3D%22rgba(255%2C255%2C255%2C0.85)%22%2F%3E%3Ccircle%20cx%3D%229.48%22%20cy%3D%2226.15%22%20r%3D%221.43%22%20fill%3D%22rgba(255%2C255%2C255%2C0.55)%22%2F%3E%3Ccircle%20cx%3D%223.68%22%20cy%3D%2210.2%22%20r%3D%221.43%22%20fill%3D%22rgba(255%2C255%2C255%2C0.5)%22%2F%3E%3C%2Fsvg%3E">
-<script is:inline src="/scripts/title-manager.js"></script>
+<script is:inline defer src="/scripts/title-manager.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- serif restored for the NAME only (corner identity + intro wordmark); rest of the site stays system-sans.
@@ -595,7 +595,7 @@ body.intro-done #hero-tagline { opacity:1; }
 /* beat spacers removed — sections are normal-flow now */
 </style>
 
-<script is:inline src="/scripts/gsap.min.js"></script>
+<script is:inline defer src="/scripts/gsap.min.js"></script>
 <style is:global>
 
 /* ===== v9 CRT VIDEO FOOTER (scoped, self-contained) ===== */
@@ -914,7 +914,7 @@ footer#site-footer{
 </style>
 <div id="subliminal-layer" aria-hidden="true"></div>
 <div id="subliminal-flash" aria-hidden="true"></div>
-<script is:inline src="/scripts/index-subliminal-layer.js"></script>
+<script is:inline defer src="/scripts/index-subliminal-layer.js"></script>
 
 <!-- ════ Terminal window — floating CRT feed; Beat 1 expands it to fullscreen ════
      Sits in a fixed, centered stage at z-index 500: above the nebula/network
@@ -927,7 +927,7 @@ footer#site-footer{
       <div class="tcorner bl"></div><div class="tcorner br"></div>
       <div id="term-feed">
         <video id="term-feed-video" poster="/images/term-feed-poster.webp"
-          muted loop playsinline></video>
+          muted loop playsinline aria-hidden="true"></video>
       </div>
       <div id="hero-tagline">
         <p>Everything is connected.<br>Everything must be <span id="hero-tagline-word" data-text="protected">protected</span><span id="hero-tagline-cursor" aria-hidden="true">|</span></p>
@@ -948,16 +948,42 @@ footer#site-footer{
      instead of a video that would stall or eat someone's data cap. The
      Network Information API is Chromium-only (no Safari/Firefox support);
      absent that signal, default to loading normally rather than silently
-     degrading everyone on unsupported browsers. */
+     degrading everyone on unsupported browsers. 3g is treated as slow too
+     (not just 2g) since that's the more common "bad mobile" case in the
+     real world, plus a downlink-based fallback for congested connections
+     that still self-report as 4g. */
   var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  var slow = conn && (conn.saveData || /^(slow-2g|2g)$/.test(conn.effectiveType||''));
+  var slow = conn && (
+    conn.saveData ||
+    /^(slow-2g|2g|3g)$/.test(conn.effectiveType||'') ||
+    (typeof conn.downlink === 'number' && conn.downlink < 1.5)
+  );
   if(slow) return;
 
-  v.preload = 'auto';
-  v.src = '/videos/term-feed-hero.mp4';
-  v.autoplay = true;
-  var p = v.play();
-  if(p && p.catch) p.catch(function(){});
+  function loadVideo(){
+    v.preload = 'auto';
+    v.src = '/videos/term-feed-hero.mp4';
+    v.autoplay = true;
+    var p = v.play();
+    if(p && p.catch) p.catch(function(){});
+  }
+
+  /* #term-stage stays opacity:0 until body.intro-done (see CSS above) —
+     no reason to spend 4.9MB of bandwidth on a video that isn't even
+     visible yet. Watching for the class (rather than assuming a fixed
+     delay) keeps this correct whether the instant-settle path or the
+     full ~6.4s choreography in index-intro-sequence.js is active. */
+  if(document.body.classList.contains('intro-done')){
+    loadVideo();
+  } else {
+    var mo = new MutationObserver(function(){
+      if(document.body.classList.contains('intro-done')){
+        mo.disconnect();
+        loadVideo();
+      }
+    });
+    mo.observe(document.body, {attributes:true, attributeFilter:['class']});
+  }
 })();
 </script>
 
@@ -1325,7 +1351,7 @@ footer#site-footer{
 
 </div>
 
-<script is:inline src="/scripts/index-editorial-flow.js"></script>
+<script is:inline defer src="/scripts/index-editorial-flow.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- Focus scrim retained (empty) so the globe module's scrim ref stays valid -->
@@ -1909,18 +1935,18 @@ footer#site-footer{
   <div id="cr-detail"></div>
 </nav>
 <!-- Project tour window clusters (built by the globe module) -->
-<script is:inline src="/scripts/nebula-engine-home.js"></script>
+<script is:inline defer src="/scripts/nebula-engine-home.js"></script>
 
 
 
-<script is:inline src="/scripts/index-intro-sequence.js"></script>
+<script is:inline defer src="/scripts/index-intro-sequence.js"></script>
 
-<script is:inline src="/scripts/index-luna-companion.js"></script>
+<script is:inline defer src="/scripts/index-luna-companion.js"></script>
 
-<script is:inline src="/scripts/index-logo-glitch.js"></script>
-<script is:inline src="/scripts/index-hero-tagline.js"></script>
+<script is:inline defer src="/scripts/index-logo-glitch.js"></script>
+<script is:inline defer src="/scripts/index-hero-tagline.js"></script>
 
-<script is:inline src="/scripts/index-signal-eagle.js"></script>
+<script is:inline defer src="/scripts/index-signal-eagle.js"></script>
 
 <!-- ════════════════ Globe arc (Three.js) — composites over the live nebula ════════════════
      Reuses #term-window as the shrinking CRT. Drives: fullscreen -> rest -> seed
@@ -1978,12 +2004,12 @@ footer#site-footer{
   monoFont="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
 />
 
-<script is:inline src="/scripts/luna-drawer-core.js"></script>
-<script is:inline src="/scripts/index-luna-kb.js"></script>
-<script is:inline src="/scripts/index-footer-reveal.js"></script>
-<script is:inline src="/scripts/index-ascii-footer.js"></script>
-<script is:inline src="/scripts/index-projects-accordion.js"></script>
-<script is:inline src="/scripts/index-luna-safety-net.js"></script>
-<script src="../scripts/luna-greeting.js"></script>
+<script is:inline defer src="/scripts/luna-drawer-core.js"></script>
+<script is:inline defer src="/scripts/index-luna-kb.js"></script>
+<script is:inline defer src="/scripts/index-footer-reveal.js"></script>
+<script is:inline defer src="/scripts/index-ascii-footer.js"></script>
+<script is:inline defer src="/scripts/index-projects-accordion.js"></script>
+<script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
+<script defer src="../scripts/luna-greeting.js"></script>
 </body>
 </html>
