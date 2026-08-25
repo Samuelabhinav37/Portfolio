@@ -1,55 +1,85 @@
-# Portfolio + Blog
+# Samuel Abhinav — Portfolio and Threat Intelligence Blog
 
-Astro site combining the portfolio and the Threat Intel Blog. The portfolio
-pages (`/`, `/about`, `/contact`) are large self-contained `.astro` files
-(fonts, CSS, JS, imagery inlined), each with a WebGL/canvas backdrop and the
-Luna companion embedded as an iframe. `/blog` is the unified blog index —
-it carries the same design (hero, live threat wire, filterable project
-grid) and shows both the hand-built project case studies (Sentinel, PRISM,
-Axon, HackerOne findings) and the real MDX writeups in one feed. Individual
-posts are Astro content-collection entries: each is an `.mdx` file with
-frontmatter, rendered through one shared layout — new posts don't need any
-HTML/CSS work.
+Source for [samuelabhinav.com](https://samuelabhinav.com), an Astro-based portfolio and technical blog focused on cybersecurity engineering, threat intelligence, and project case studies.
 
-## Structure
-```
-public/
-  404.html            custom not-found page
-  _redirects          /resume -> /resume.pdf
-  _headers            Cloudflare Pages security headers (CSP, HSTS, etc.)
-  .well-known/security.txt  RFC 9116 vulnerability reporting contact
-  robots.txt, sitemap.xml
-  (everything in public/ is copied as-is into the build output)
+## Overview
 
-src/
-  pages/index.astro        /        — portfolio home
-  pages/about.astro        /about   — about + embedded arcade
-  pages/contact.astro      /contact — contact
-  pages/blog/index.astro   /blog    — unified blog index: project case studies + real posts, one grid
-  pages/blog/[...slug].astro        — individual post route
-  content/blog/*.mdx       one file per post — copy _template.mdx to start a new one
-  content.config.ts        frontmatter schema (Zod)
-  layouts/BlogPost.astro   shared article layout: nav, hero, Luna, footer
-  components/*.astro       SiteMenu, Luna, PortfolioLunaShell, CaseFile, Dropcap, Mnote, IocTable, etc.
-  scripts/luna-greeting.js shared Luna drawer greeting (time-of-day + returning-visitor variety)
-  styles/blog.css          single shared stylesheet for the blog
-  scripts/blog-client.js   scroll UI, TOC, collapsed menu, copy actions
+The site combines portfolio pages, interactive WebGL and canvas experiences, and an MDX content collection. Blog posts share a common layout and schema, while project case studies appear alongside long-form articles in a unified index.
+
+## Technology
+
+- Astro and MDX
+- TypeScript and browser-native JavaScript
+- WebGL, Three.js-style rendering, and Canvas APIs
+- Playwright smoke tests
+- Cloudflare Pages and Pages Functions
+- Bun for dependency management and project scripts
+
+## Project structure
+
+```text
+functions/                   Cloudflare Pages Functions
+public/                      Static assets, security headers, redirects, and client scripts
+src/components/              Shared Astro components
+src/content/blog/            MDX articles and post template
+src/layouts/                 Shared article layouts
+src/pages/                   Portfolio, contact, and blog routes
+src/styles/                  Shared site and blog styles
+tests/                       Browser-level smoke tests
 ```
 
-## Adding a new blog post
-1. Copy `src/content/blog/_template.mdx`, rename it (filename = URL slug).
-2. Fill in the frontmatter and body; drop any images in `public/images/`.
-3. Set `draft: false` when ready.
-4. `bun run build` (or `bun run dev` to preview first).
+Files under `public/` are copied directly into the build output. The security headers in `public/_headers` and disclosure record in `public/.well-known/security.txt` are deployment artifacts and should be reviewed whenever hosting changes.
 
-## Deploy
-Cloudflare Pages, single build:
-- Build command: `bun run build`
-- Build output directory: `dist`
+## Local development
 
-## Local preview
-```
-bun install
+Install dependencies from the committed lockfile and start Astro:
+
+```sh
+bun install --frozen-lockfile
 bun run dev
-# http://localhost:4321
 ```
+
+The development server is available at `http://localhost:4321` by default.
+
+## Verification
+
+Run static analysis, the production build, and browser smoke tests before submitting changes:
+
+```sh
+bun run check
+bun run build
+bun run test
+```
+
+The repository’s GitHub Actions workflows run Astro checks, Playwright tests, CodeQL analysis, and dependency review.
+
+## Publishing a blog post
+
+1. Copy `src/content/blog/_template.mdx` to a descriptive filename. The filename becomes the URL slug.
+2. Complete the required frontmatter and article body.
+3. Place referenced images under `public/images/`.
+4. Preview the post locally and verify responsive layouts.
+5. Set `draft: false` when the article is ready to publish.
+6. Run the complete verification commands above.
+
+## Deployment
+
+The site is designed for Cloudflare Pages:
+
+- Build command: `bun run build`
+- Output directory: `dist`
+- Package manager: Bun with `bun.lock`
+
+Production environment variables used by Pages Functions must be configured through the hosting platform and must not be committed.
+
+## Security
+
+Please review [SECURITY.md](SECURITY.md) before testing or reporting a vulnerability. Do not place API credentials, private findings, personal data, or unpublished reports in issues or pull requests.
+
+## Current limitations
+
+Some visual engines are intentionally large, browser-oriented scripts and still contain legacy or experimental paths reported by static analysis. Accessibility, reduced-motion behavior, mobile performance, and cross-browser rendering should be checked for changes affecting interactive pages.
+
+## License
+
+No general-purpose license has been declared for the site content or source. Unless a file states otherwise, reuse rights are reserved.
