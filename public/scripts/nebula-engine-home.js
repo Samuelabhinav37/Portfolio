@@ -2130,10 +2130,17 @@ var RM = REDUCED_MOTION;
    animating forever. Independent of scroll position/the globe handoff below
    — this is a hard stop regardless of where you are on the page. */
 var _bgIntroOver = false;
-setTimeout(function(){
-  _bgIntroOver = true;
-  if(glslCanvas) glslCanvas.style.display = 'none';
-}, 6000);
+/* The nebula flourish (WebGL shader + 2D glow/starfield + live constellation)
+   is by far the heaviest thing this script does, and it only runs during this
+   6s window — which used to line up exactly with page load, competing with
+   LCP/TTI. Kicking it off from _startLoop() (after load + idle) instead of at
+   parse time lets the hero paint and settle first, then the flourish plays. */
+function _startBgIntroTimer(){
+  setTimeout(function(){
+    _bgIntroOver = true;
+    if(glslCanvas) glslCanvas.style.display = 'none';
+  }, 6000);
+}
 /* Perf: cap the simulation to 30fps and fully pause when the tab is hidden,
    so this page stops competing for GPU/CPU with other tabs (e.g. video). */
 var _FRAME_MIN = 1000/30, _frameLast = 0, _loopPaused = false, _frameErrs = 0;
@@ -2297,7 +2304,22 @@ function loop(ts){
     else if(_frameErrs === 5){ console.warn('Frame: further frame errors suppressed.'); _frameErrs++; }
   }
 }
-loop();
+/* Defer the first frame (and the nebula-intro timer) until the page has
+   loaded and the main thread goes idle, so the ambient animation stops
+   stealing CPU from first paint / interactivity. Falls back to a short
+   timeout where requestIdleCallback isn't available. */
+function _startLoop(){
+  if(_startLoop._done) return;
+  _startLoop._done = true;
+  _startBgIntroTimer();
+  loop();
+}
+function _scheduleStart(){
+  if('requestIdleCallback' in window) requestIdleCallback(_startLoop, { timeout: 1500 });
+  else setTimeout(_startLoop, 800);
+}
+if(document.readyState === 'complete') _scheduleStart();
+else window.addEventListener('load', _scheduleStart, { once: true });
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && _loopPaused){
     _loopPaused = false;
