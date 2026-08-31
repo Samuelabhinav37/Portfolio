@@ -2198,7 +2198,21 @@ function loop(ts){
     else if(_frameErrs === 5){ console.warn('Frame: further frame errors suppressed.'); _frameErrs++; }
   }
 }
-loop();
+/* Defer the first frame until the page has loaded and the main thread goes
+   idle — the nebula shader + starfield run every frame here (no timed
+   shutoff on these pages), so starting at parse time steals CPU from first
+   paint / interactivity. Falls back to a short timeout. */
+function _startLoop(){
+  if(_startLoop._done) return;
+  _startLoop._done = true;
+  loop();
+}
+function _scheduleStart(){
+  if('requestIdleCallback' in window) requestIdleCallback(_startLoop, { timeout: 1500 });
+  else setTimeout(_startLoop, 800);
+}
+if(document.readyState === 'complete') _scheduleStart();
+else window.addEventListener('load', _scheduleStart, { once: true });
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && _loopPaused){
     _loopPaused = false;
