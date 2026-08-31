@@ -997,7 +997,7 @@ footer#site-footer{
   #editorial{ position:relative; z-index:300; background:rgba(4,4,10,0.9); color:#ededee;
     font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
   #editorial .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-    letter-spacing:2px; text-transform:uppercase; color:#67676d; }
+    letter-spacing:2px; text-transform:uppercase; color:#87878d; }
 
   /* ── KEV live feed ── */
   #editorial .ed-kev{ padding:clamp(70px,13vh,150px) 0; max-width:1500px; margin:0 auto; }
@@ -1007,8 +1007,8 @@ footer#site-footer{
   #editorial .ed-kev__head h2{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; }
   #editorial .ed-kev__head h2 em{ font-style:normal; color:#94949a; }
   #editorial .ed-kev__status{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.5px;
-    color:#67676d; display:flex; align-items:center; gap:8px; }
-  #editorial .ed-kev__status .ed-dot{ width:6px; height:6px; border-radius:50%; background:#67676d; }
+    color:#87878d; display:flex; align-items:center; gap:8px; }
+  #editorial .ed-kev__status .ed-dot{ width:6px; height:6px; border-radius:50%; background:#87878d; }
   #editorial .ed-kev__status.ed-live .ed-dot{ background:rgba(120,225,170,.9);
     box-shadow:0 0 6px rgba(120,225,170,.7); animation:edpulse 2.2s infinite; }
   @keyframes edpulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
@@ -1026,13 +1026,13 @@ footer#site-footer{
   #editorial .ed-kv:hover{ background:rgba(var(--c-white),.05); }
   #editorial .ed-kv .ed-cve{ color:#ededee; font-weight:500; }
   #editorial .ed-kv .ed-vp{ color:#94949a; }
-  #editorial .ed-kv .ed-date{ color:#67676d; }
+  #editorial .ed-kv .ed-date{ color:#87878d; }
   #editorial .ed-kv .ed-ransom{ color:#e5b8b8; font-size:10px; letter-spacing:1px;
     border:1px solid rgba(229,184,184,.3); border-radius:3px; padding:1px 6px; }
-  #editorial .ed-kv .ed-sep{ color:#67676d; opacity:.5; }
+  #editorial .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
   #editorial .ed-kev__foot{ padding:18px clamp(24px,5vw,80px) 0; }
   #editorial .ed-kev__foot span{ font-family:'JetBrains Mono',monospace; font-size:10.5px;
-    letter-spacing:.5px; color:#67676d; }
+    letter-spacing:.5px; color:#87878d; }
 
   /* ── KEV feed, mobile: this section had no phone-specific sizing at all —
      desktop's 24-32px heading and 34px-padded ticker pills just ran at full
@@ -1087,7 +1087,7 @@ footer#site-footer{
     gap:10px; position:relative; overflow:hidden; transition:background .4s ease; }
   #editorial .ed-bento__cell:hover{ background:#151517; }
   #editorial .ed-bento__lbl{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500;
-    letter-spacing:1.3px; text-transform:uppercase; color:#67676d; position:relative; z-index:2; }
+    letter-spacing:1.3px; text-transform:uppercase; color:#87878d; position:relative; z-index:2; }
 
   /* Signal canvas — tracked eagle animation */
   #editorial .ed-bento__pixels{ padding:0; }
@@ -1163,7 +1163,7 @@ footer#site-footer{
   #editorial .ed-attck__tactic{ font-family:'JetBrains Mono',monospace; font-size:9.5px;
     font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:#dcdce0;
     background:rgba(226,232,244,.10); border-radius:2px; padding:3px 7px; }
-  #editorial .ed-attck__id{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#67676d; letter-spacing:.5px; }
+  #editorial .ed-attck__id{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#87878d; letter-spacing:.5px; }
   #editorial .ed-attck__dots{ display:flex; align-items:center; gap:5px; padding-top:10px;
     border-top:1px solid rgba(var(--c-white),.07); }
   #editorial .ed-attck__dots button{ position:relative; width:4px; height:4px; border-radius:50%; background:rgba(var(--c-white),.18);
@@ -1223,7 +1223,7 @@ footer#site-footer{
   #editorial .ed-card .ed-num{ position:absolute; top:13px; left:15px; z-index:2; color:#fff; opacity:.55;
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:2px; transition:opacity .4s; }
   #editorial .ed-card:hover .ed-num{ opacity:1; }
-  #editorial .ed-card .ed-cmeta{ display:flex; justify-content:space-between; color:#67676d; margin:15px 0 8px;
+  #editorial .ed-card .ed-cmeta{ display:flex; justify-content:space-between; color:#87878d; margin:15px 0 8px;
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; }
   #editorial .ed-card h3{ font-weight:400; font-size:clamp(18px,1.5vw,21px); line-height:1.18;
     letter-spacing:-.2px; color:#ededee; position:relative; display:inline-block; }
@@ -1382,12 +1382,19 @@ footer#site-footer{
 .acc{ border-bottom:1px solid rgba(226,232,244,0.1); }
 .acc-head{ width:100%; background:none; border:0; cursor:pointer; text-align:left; color:inherit;
   display:flex; align-items:center; gap:16px; padding:clamp(15px,2vh,22px) 4px; transition:opacity .4s ease; }
-.acc:not(.is-open) .acc-head{ opacity:0.42; }
-.acc:not(.is-open) .acc-head:hover{ opacity:0.8; }
-.acc-num{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; color:rgba(226,232,244,0.4); width:22px; flex:none; }
+/* Collapsed rows are dimmed via explicit colours rather than a wrapper
+   opacity — a group opacity here compounds with the already-low alpha on
+   .acc-num, dropping it under a 1.5:1 contrast ratio. */
+.acc:not(.is-open) .acc-title{ color:rgba(226,232,244,0.62); }
+.acc:not(.is-open) .acc-num{ color:rgba(226,232,244,0.55); }
+.acc:not(.is-open) .acc-mark{ opacity:0.4; }
+.acc:not(.is-open) .acc-head:hover .acc-title{ color:rgba(226,232,244,0.92); }
+.acc:not(.is-open) .acc-head:hover .acc-num{ color:rgba(226,232,244,0.8); }
+.acc:not(.is-open) .acc-head:hover .acc-mark{ opacity:0.75; }
+.acc-num{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; color:rgba(226,232,244,0.62); width:22px; flex:none; transition:color .4s ease; }
 .acc-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; flex:1;
   font-size:clamp(1.2rem,2vw,1.7rem); line-height:1.1; letter-spacing:-0.015em; color:#eef3ff;
-  text-shadow:0 0 30px rgba(210,220,240,0.12); }
+  text-shadow:0 0 30px rgba(210,220,240,0.12); transition:color .4s ease; }
 .acc-mark{ width:11px; height:11px; position:relative; flex:none; opacity:0.55; }
 .acc-mark::before,.acc-mark::after{ content:''; position:absolute; background:rgba(226,232,244,0.8); transition:transform .4s ease, opacity .4s ease; }
 .acc-mark::before{ left:0; top:5px; width:11px; height:1px; }
@@ -1609,7 +1616,7 @@ footer#site-footer{
 #signal{ position:relative; z-index:1; background:rgba(4,4,10,0.9);
   padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1); }
 #signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#67676d; margin:0 0 14px; }
+#signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
 #signal .sig-head{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
 #signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
 @media (--bp-820){
@@ -1629,7 +1636,7 @@ footer#site-footer{
   .pod-shelf .pod-row:nth-child(n+4){ display:none; }
 }
 .sig-card{ border:1px solid rgba(var(--c-white),.1); border-radius:4px; background:rgba(var(--c-white),.015); padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
-.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
+.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
 .sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
 .news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
 .news-row:first-child{ border-top:0; }
@@ -1640,7 +1647,7 @@ footer#site-footer{
 .news-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
 .news-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13.5px; line-height:1.32; color:#d8dced; transition:color .2s; }
 .news-row:hover .news-title{ color:#fff; }
-.news-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.38); }
+.news-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
 .pod-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid rgba(var(--c-white),.06); }
 .pod-row:first-child{ border-top:0; }
 .pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(226,232,244,0.55);
@@ -1657,10 +1664,10 @@ footer#site-footer{
 .pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.42); letter-spacing:1px; flex:none; transition:color .3s ease; }
 .pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
 .ctf-strip{ margin-top:clamp(20px,2.5vw,36px); border:1px solid rgba(var(--c-white),.1); border-radius:4px; padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
-.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); }
+.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
 .ctf-item{ display:flex; flex-direction:column; gap:2px; }
 .ctf-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
-.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.38); }
+.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
 .ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(226,232,244,0.6); background:none; border:none; cursor:pointer; padding:0; }
 .ctf-more:hover{ color:#fff; }
 
