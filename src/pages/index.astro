@@ -1310,12 +1310,10 @@ footer#site-footer{
           <div id="ed-attck-mount"></div>
         </div>
       </div>
-      <!-- Was a static stock photo (editorial-barefield.jpg), then briefly a
-           live Cloudflare Radar rotator (functions/api/radar.js — left in
-           place, unused, in case this comes back) — replaced with a
-           decorative autoplay runner game, security-reskinned. Pure attract
-           mode: never reads input, dies and restarts forever, purely
-           ambient like the nebula ships / subliminal glitch layer. AI jump
+      <!-- Was a static stock photo, then briefly a live Cloudflare Radar
+           rotator — now a decorative autoplay runner game, security-reskinned.
+           Pure attract mode: never reads input, dies and restarts forever,
+           purely ambient like the nebula ships / subliminal glitch layer. AI jump
            timing uses a fixed reaction distance that doesn't scale with the
            game's own speed ramp — deliberate, so it plays cleanly at first
            and eventually mistimes a jump as it speeds up, giving each run a
@@ -1759,9 +1757,25 @@ footer#site-footer{
   var newsHost=document.getElementById('news-list');
   var ctfHost=document.getElementById('ctf-items');
 
+  /* These URLs come from a feed (news thumbnails) and the iTunes API
+     (podcast art). Both get spliced into a CSS url("...") string, where an
+     unescaped " or ) would let feed data inject arbitrary CSS. Only accept a
+     plain http(s) URL, and additionally reject the breakout characters. */
+  function safeImgUrl(u){
+    u=String(u||'');
+    if(!/^https?:\/\//i.test(u)) return '';
+    if(/["\\\s]|[\x00-\x1f]/.test(u)) return '';   // " closes the url("...") string; the rest can't appear in a real URL
+    return u;
+  }
+  function setBgImage(el,u){
+    var s=safeImgUrl(u);
+    if(s) el.style.backgroundImage='url("'+s+'")';
+    return !!s;
+  }
+
   function row(title,meta,link,img){
     var a=document.createElement('a'); a.className='news-row'; a.href=link||'#'; a.target='_blank'; a.rel='noopener';
-    var b=document.createElement('span'); b.className='news-badge'; if(img){ b.style.backgroundImage='url("'+img+'")'; b.classList.add('has-img'); }
+    var b=document.createElement('span'); b.className='news-badge'; if(img&&setBgImage(b,img)){ b.classList.add('has-img'); }
     var body=document.createElement('span'); body.className='news-body';
     var t=document.createElement('span'); t.className='news-title'; t.textContent=title;
     var m=document.createElement('span'); m.className='news-meta'; m.textContent=meta;
@@ -1818,7 +1832,7 @@ footer#site-footer{
       fetch('https://itunes.apple.com/search?media=podcast&limit=1&term='+encodeURIComponent(link.textContent))
         .then(function(r){ return r.json(); }).then(function(d){
           var it=d&&d.results&&d.results[0]; if(!it) return;
-          if(it.artworkUrl100&&art){ art.textContent=''; art.style.backgroundImage='url("'+it.artworkUrl100.replace('100x100bb','300x300bb')+'")'; art.style.backgroundSize='cover'; art.style.backgroundPosition='center'; }
+          if(it.artworkUrl100&&art){ var art300=String(it.artworkUrl100).replace('100x100bb','300x300bb'); if(setBgImage(art,art300)){ art.textContent=''; art.style.backgroundSize='cover'; art.style.backgroundPosition='center'; } }
           if(it.collectionViewUrl) link.href=it.collectionViewUrl;
         }).catch(function(){});
     });
