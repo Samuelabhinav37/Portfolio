@@ -51,18 +51,20 @@
   packets=packets.filter(function(p){return p.t<1;});
   ctx.shadowColor='rgba(255,255,255,0.40)';
   nodes.map(function(n,i){return{n:n,p:proj[i],i:i};}).sort(function(a,b){return a.p.depth-b.p.depth;}).forEach(function(item){var n=item.n,p=item.p,glow=activeNodes[item.i]||0,r=(4+glow*2)*p.scale,da=0.20+(p.depth+1)/2*0.45;if(glow>0.05){ctx.beginPath();ctx.arc(p.sx,p.sy,r+5+glow*4,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,'+(0.09*glow).toFixed(3)+')';ctx.lineWidth=1.5;ctx.stroke();}ctx.beginPath();ctx.arc(p.sx,p.sy,r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+Math.min(0.92,da+glow*0.40).toFixed(3)+')';if(glow>0.1){ctx.shadowBlur=10;}ctx.fill();ctx.shadowBlur=0;if(p.depth>-0.3){var la=Math.min(0.50,(p.depth+1)/2*0.30+glow*0.38);ctx.font=(5*p.scale+2)+'px JetBrains Mono,monospace';ctx.fillStyle='rgba(255,255,255,'+la.toFixed(3)+')';ctx.textAlign='center';ctx.fillText(n.name,p.sx,p.sy-r-3);}});
-  if(!reduce&&_onScreen)requestAnimationFrame(draw);}
-  if('IntersectionObserver' in window){
-    _onScreen=false;
-    new IntersectionObserver(function(es){
-      var vis=es[0].isIntersecting;
-      if(vis&&!_onScreen){_onScreen=true;if(!reduce)requestAnimationFrame(draw);}
-      else if(!vis){_onScreen=false;}
-    },{rootMargin:'200px'}).observe(canvas);
-  }
+  if(!reduce&&_onScreen&&nodes.length)requestAnimationFrame(draw);}
   setTimeout(function(){
     init();
-    var _o=_onScreen; _onScreen=true; draw(); _onScreen=_o;   // paint one frame now, then the gate/observer take over
+    draw();   // first paint — safe now that init() has populated nodes
+    // Observer is wired AFTER init() so its callback can never call draw()
+    // before nodes exist (that raced on the about page, where #sig-canvas is
+    // in view on load — "Cannot read properties of undefined (reading 'depth')").
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(es){
+        var vis=es[0].isIntersecting;
+        if(vis&&!_onScreen){_onScreen=true;if(!reduce)requestAnimationFrame(draw);}
+        else if(!vis){_onScreen=false;}
+      },{rootMargin:'200px'}).observe(canvas);
+    }
     if(!reduce){setTimeout(fireConv,400);setTimeout(fireConv,1100);setTimeout(fireConv,1900);setInterval(fireConv,1600);}
   },200);
 })();
