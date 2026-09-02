@@ -240,6 +240,15 @@
   var ctx=canvas.getContext('2d');
   var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var W=0,H=0,PLAY_TOP=6,PLAY_BOTTOM=0;
+  /* On-screen gate: this decorative auto-play game lives near the bottom of
+     the editorial bento, so its physics + canvas draw were burning frames
+     the entire time a visitor was anywhere above it. Only run the loop while
+     the canvas is near the viewport. */
+  var _onScreen=true;
+  if('IntersectionObserver' in window){
+    _onScreen=false;
+    new IntersectionObserver(function(es){ _onScreen=es[0].isIntersecting; }, {rootMargin:'200px'}).observe(canvas);
+  }
 
   function fit(){
     var rect=canvas.getBoundingClientRect();
@@ -462,7 +471,7 @@
   var last=0;
   function loop(t){
     requestAnimationFrame(loop);
-    if(document.hidden) return;
+    if(document.hidden || !_onScreen){ last=0; return; }
     if(!last) last=t;
     var dt=Math.min(t-last,50); last=t;
     update(dt); draw();

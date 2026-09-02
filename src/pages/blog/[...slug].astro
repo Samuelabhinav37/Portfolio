@@ -1,5 +1,5 @@
 ---
-import { getCollection, getEntry, render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import type { CollectionEntry } from 'astro:content';
 export async function getStaticPaths() {
@@ -9,22 +9,30 @@ export async function getStaticPaths() {
   // public/sitemap.xml both keep filtering on `draft` separately.
   // Translations live under an `es/` (etc.) subfolder and get their own
   // route — src/pages/es/blog/[...slug].astro — so they're excluded here.
-  const posts = await getCollection('blog', ({ id }) => !id.includes('/'));
-  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+  const all = await getCollection('blog');
+  // Slugs that have a non-draft `es/` translation. Computed once here and
+  // passed through as a prop, rather than a per-page getEntry('blog', 'es/'+id)
+  // lookup — that logged a noisy "Entry ... was not found" at build for every
+  // post without a translation (i.e. almost all of them).
+  const esSlugs = new Set(
+    all.filter((e) => e.id.startsWith('es/') && !e.data.draft).map((e) => e.id.slice('es/'.length)),
+  );
+  const posts = all.filter((e) => !e.id.includes('/'));
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post, hasEs: esSlugs.has(post.id) },
+  }));
 }
 
-const { post } = Astro.props as { post: CollectionEntry<'blog'> };
+const { post, hasEs } = Astro.props as { post: CollectionEntry<'blog'>; hasEs: boolean };
 const { Content, headings } = await render(post);
 
 const words = post.body ? post.body.split(/\s+/).length : 0;
 
 // If a Spanish translation of this exact post exists (and isn't itself a
 // draft), the layout renders a language-switch link to it; otherwise the
-// page just stays English-only, same as before translations existed.
-// Skipped for drafts/templates (_blueprint, _template) — those never get
-// translated, and looking them up just logs a noisy "not found" at build.
-const esEntry = post.data.draft ? undefined : await getEntry('blog', 'es/' + post.id);
-const altHref = esEntry && !esEntry.data.draft ? `/es/blog/${post.id}/` : null;
+// page stays English-only. Drafts never advertise a translation.
+const altHref = hasEs && !post.data.draft ? `/es/blog/${post.id}/` : null;
 ---
 
 <BlogPost post={post} headings={headings} words={words} altHref={altHref}>
