@@ -29,12 +29,13 @@
     var r=v.ransom?'<span class="ed-ransom">RANSOMWARE</span>':'';
     var attrs=hidden?' aria-hidden="true" tabindex="-1"':'';
     var href='https://nvd.nist.gov/vuln/detail/'+esc(v.cveID);
-    /* aria-label must contain the full visible text (WCAG 2.5.3 Label in
-       Name) — it used to be just the CVE ID, dropping vendor/product/date/
-       ransomware-flag that are also rendered inside the link. */
-    var label=esc(v.cveID)+' · '+vp+' · '+esc(v.dateAdded)+(v.ransom?' RANSOMWARE':'')+' — view on NVD';
+    /* No aria-label: an earlier one hand-rebuilt the visible text with
+       different separator spacing ("A · B" vs the "A·B" the spans render),
+       which tripped WCAG 2.5.3 Label in Name. The concatenated span text
+       already carries CVE / vendor / product / date / ransomware, so the
+       visible content is the accessible name. */
     return '<a class="ed-kv" href="'+href+'" target="_blank" rel="noopener"'+attrs+
-           ' aria-label="'+label+'"><span class="ed-cve">'+esc(v.cveID)+'</span><span class="ed-sep">·</span>'+
+           '><span class="ed-cve">'+esc(v.cveID)+'</span><span class="ed-sep">·</span>'+
            '<span class="ed-vp">'+vp+'</span><span class="ed-sep">·</span>'+
            '<span class="ed-date">'+esc(v.dateAdded)+'</span>'+r+'</a>';
   }

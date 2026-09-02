@@ -97,7 +97,7 @@ window.SITE=window.SITE||{};
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style is:global>
 :root{
-  --bg:var(--c-bg);--ink:#ededee;--ink-soft:#c9c9cc;--muted:#94949a;--faint:#67676d;
+  --bg:var(--c-bg);--ink:#ededee;--ink-soft:#c9c9cc;--muted:#94949a;--faint:#87878d;
   --line:rgba(var(--c-white),.26);--line-soft:rgba(var(--c-white),.1);
   --e:cubic-bezier(.22,1,.36,1);
   /* Native OS font stack — same trick Apple's own site uses instead of
@@ -172,8 +172,8 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
 .hero2-side .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
 .hero2-item .meta{color:var(--faint);transition:color .3s}
 .hero2-item:hover .meta{color:var(--ink-soft)}
-.hero2-item h3{margin-top:8px;font-family:var(--apple-sans);font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
-.hero2-item:hover h3{color:#fff}
+.hero2-item h2{margin-top:8px;font-family:var(--apple-sans);font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
+.hero2-item:hover h2{color:#fff}
 
 /* ── THREAT WIRE — live ticker (NVD → CIRCL → static pills fallback).
    Awwwards-pattern mechanics: measured track duplication for a seamless
@@ -278,11 +278,11 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
   .grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px;transition:color .3s}
   .grid .card .cmeta span+span::before{content:"·";margin:0 8px}
   .grid .card:hover .cmeta{color:var(--ink-soft)}
-  .grid .card h3{font-family:var(--apple-sans);font-weight:600;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
+  .grid .card h2{font-family:var(--apple-sans);font-weight:600;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
     position:relative;display:inline-block;transition:color .3s}
-  .grid .card h3::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
-  .grid .card:hover h3{color:#fff}
-  .grid .card:hover h3::after{width:100%}
+  .grid .card h2::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
+  .grid .card:hover h2{color:#fff}
+  .grid .card:hover h2::after{width:100%}
   .grid .card .clead{margin-top:8px;font-family:var(--apple-sans);color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .grid .card:hover .clead{color:var(--muted)}
@@ -617,9 +617,6 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     id="heroFrame"
     href={heroHref || '#'}
     data-key={heroHref ? undefined : heroItem?.seed}
-    aria-label={heroItem
-      ? `${heroItem.kick} — ${heroItem.name}: ${heroHref ? 'read the post' : 'open case study'}`
-      : 'Nothing featured yet'}
   >
     <div class="hero2-imgwrap"><img alt="" loading="eager" src={heroItem?.img || undefined}></div>
     <span class="meta">{heroItem?.kick ?? ''}</span>
@@ -631,7 +628,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
       {sideItems.map((p) => (
         <a class="hero2-item" href={p.href}>
           <span class="meta">{p.kick}</span>
-          <h3>{p.name}</h3>
+          <h2>{p.name}</h2>
         </a>
       ))}
     </div>

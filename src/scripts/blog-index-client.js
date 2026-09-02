@@ -40,7 +40,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 // instead of one, but split cleanly by viewport rather than arbitrarily.
 const item=(p,d)=>`<a href="${esc(p.href||'#')}" class="card hero2-item" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
   <span class="meta">${esc(p.kick)}</span>
-  <h3>${esc(p.name)}</h3></a>`;
+  <h2>${esc(p.name)}</h2></a>`;
 
 // The 3 most recent posts get a real image card (wide heroImage on top,
 // category/date, title, excerpt). Posts without a heroImage get the
@@ -49,7 +49,7 @@ const card=(p,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.
   <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
   <div class="cbody">
     <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
-    <h3>${esc(p.name)}</h3>
+    <h2>${esc(p.name)}</h2>
     ${p.lead?`<p class="clead">${esc(p.lead)}</p>`:''}
   </div></a>`;
 
