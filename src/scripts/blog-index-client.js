@@ -1,5 +1,5 @@
 /* Blog index client logic — grid render/filter/sort, "See more" category
-   dialog, Threat Wire ticker, hero parallax + Lenis, and the case-study
+   dialog, Threat Wire ticker, and the case-study
    slide-over. Extracted from an inline <script define:vars> block so it's
    bundled/minified/cached as its own file instead of shipping unbundled
    inside every page load.
@@ -9,7 +9,6 @@
    only works for is:inline scripts, not external src files. */
 import { FAKE_PROJECTS } from '../data/projects.ts';
 import { PRIMARY_CATS, SECONDARY_CATS, PRIMARY_CAT_LABELS } from '../data/blog-categories.ts';
-import Lenis from '@studio-freight/lenis';
 
 /* Below 760px the four primary-category tabs are display:none (see
    blog/index.astro) to keep the tab row from wrapping — they're folded
@@ -291,18 +290,13 @@ addEventListener('resize',(()=>{let t;return()=>{clearTimeout(t);
 
 window.addEventListener('load',()=>{document.body.classList.add('is-loaded');render();});
 
-/* header hide-on-scroll removed with the header — the ported identity +
-   menu trigger stay fixed, matching the homepage.
-   Lenis is now a bundled import (self-hosted) instead of a CDN <script>
-   global, so no window.Lenis existence check is needed anymore. Kept only
-   for its stop()/start() pause during the case-study slide-over open/close
-   below — it used to also drive a hero parallax effect, but that moved a
-   glow layer the Anthropic-style static hero redesign removed. */
-let lenis;
-if(!reduce){
-  lenis=new Lenis({lerp:.085});
-  (function raf(t){lenis.raf(t);requestAnimationFrame(raf);})();
-}
+/* Native scrolling. Lenis (smooth-scroll) was removed here: it had been
+   reduced to just a stop()/start() pause during the case-study slide-over
+   (its old hero-parallax use was deleted with the static-hero redesign),
+   but it still hijacked every wheel event with a lerp:.085 ease — a single
+   wheel notch glided for ~2s (measured), which read as "the page won't stop
+   scrolling / feels clunky". The slide-over already locks scroll with
+   `document.body.style.overflow='hidden'` in openCase(), so nothing is lost. */
 
 /* case study */
 const cs=document.getElementById('cs');let opener=null;
@@ -351,12 +345,12 @@ function openCase(p,imgEl){
     requestAnimationFrame(()=>{fly.style.transition='transform .7s var(--e)';fly.style.transform='none';});
     fly.addEventListener('transitionend',()=>{hero.style.opacity=1;fly.remove();cs.classList.add('shown');countUp();},{once:true});
   }
-  cs.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';if(lenis)lenis.stop();
+  cs.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
   cs.scrollTop=0;document.getElementById('csBack').focus();
 }
 function closeCase(){
   cs.classList.remove('open','shown');cs.setAttribute('aria-hidden','true');
-  document.body.style.overflow='';if(lenis)lenis.start();
+  document.body.style.overflow='';
   setTimeout(()=>{cs.style.visibility='hidden';},360);
   if(opener)opener.focus();
 }

@@ -72,7 +72,10 @@ const {
   }
   #ldw-scrim{position:fixed;inset:0;z-index:1190;background:rgba(4,4,12,.5);opacity:0;pointer-events:none;
     transition:opacity .5s ease;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
-  #ldw-scrim.on{opacity:1;pointer-events:auto}
+  /* touch-action:none — the scrim's only job is tap-to-close; without this a
+     drag that starts on it pans the page behind the open drawer (mobile
+     "the UI fights back" when you try to scroll Luna). */
+  #ldw-scrim.on{opacity:1;pointer-events:auto;touch-action:none}
   #ldw-drawer{position:fixed;top:0;right:0;bottom:0;z-index:1200;width:var(--ldw-w);
     background:var(--ldw-panel);border-left:1px solid var(--ldw-hair);display:flex;flex-direction:column;
     transform:translateX(calc(100% + 2px));transition:transform .6s var(--ldw-spring);overflow:hidden;
@@ -104,7 +107,9 @@ const {
   .ldw-x::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
   .ldw-x:hover{color:var(--ldw-ink);background:rgba(var(--c-white),.05)} .ldw-x svg{width:15px;height:15px}
 
-  .ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
+  /* overscroll-behavior:contain — when the message list hits its top/bottom,
+     the scroll stops there instead of chaining to the page underneath. */
+  .ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
   .ldw-body::-webkit-scrollbar{display:none}
   .ldw-identity{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:200px;
     transition:max-height .5s var(--ldw-spring),opacity .35s ease,padding .5s var(--ldw-spring);max-height:520px;overflow:hidden}
@@ -185,6 +190,13 @@ const {
   }
 
   body.ldw-drawer-open #menu-trigger{opacity:0 !important;pointer-events:none;}
+  /* On touch devices the drawer + scrim cover the whole screen, so lock the
+     page scroll while it's open — otherwise a gesture that lands outside the
+     message list scrolls the page behind her. Scoped to coarse pointers so
+     desktop keeps its scrollbar (no width-shift when the drawer opens). */
+  @media (hover:none) and (pointer:coarse){
+    body.ldw-drawer-open{overflow:hidden}
+  }
 
   /* When the drawer is closed it only slides off-screen (transform), it is not
      removed — so its animations keep ticking. The aurora especially runs a

@@ -127,6 +127,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
    on top of her close button even for the brief window before/after the JS
    check runs. Same rule LunaDrawerShell.astro's pages already carry. */
 body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none; }
+/* On touch devices the drawer + scrim cover the whole screen — lock the page
+   scroll while it's open so a gesture outside the message list doesn't scroll
+   the article behind her. Coarse-pointer only so desktop keeps its scrollbar. */
+@media (hover:none) and (pointer:coarse){
+  body.ldw-drawer-open{overflow:hidden}
+}
 
 #menu-overlay {
   position: fixed; top: 56px; right: 22px; z-index: 10000;
@@ -1462,7 +1468,9 @@ a.social-icon { text-decoration: none; color: inherit; }
 }
 #ldw-scrim{position:fixed;inset:0;z-index:1190;background:rgba(4,4,12,.5);opacity:0;pointer-events:none;
   transition:opacity .5s ease;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px)}
-#ldw-scrim.on{opacity:1;pointer-events:auto}
+/* touch-action:none — scrim is tap-to-close only; without this a drag on it
+   pans the article behind the open drawer. */
+#ldw-scrim.on{opacity:1;pointer-events:auto;touch-action:none}
 #ldw-drawer{position:fixed;top:0;right:0;bottom:0;z-index:1200;width:var(--ldw-w);
   background:var(--ldw-panel);border-left:1px solid var(--ldw-hair);display:flex;flex-direction:column;
   transform:translateX(calc(100% + 2px));transition:transform .6s var(--ldw-spring);overflow:hidden;
@@ -1497,7 +1505,7 @@ a.social-icon { text-decoration: none; color: inherit; }
 .ldw-x::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 .ldw-x:hover{color:var(--ldw-ink);background:rgba(var(--c-white),.05)} .ldw-x svg{width:15px;height:15px}
 
-.ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;scrollbar-width:none}
+.ldw-body{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
 .ldw-body::-webkit-scrollbar{display:none}
 .ldw-identity{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:200px;
   transition:max-height .5s var(--ldw-spring),opacity .35s ease,padding .5s var(--ldw-spring);max-height:520px;overflow:hidden}
