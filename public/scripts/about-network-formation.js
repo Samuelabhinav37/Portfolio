@@ -58,10 +58,10 @@
     // Observer is wired AFTER init() so its callback can never call draw()
     // before nodes exist (that raced on the about page, where #sig-canvas is
     // in view on load — "Cannot read properties of undefined (reading 'depth')").
-    if('IntersectionObserver' in window){
+    if(!reduce && 'IntersectionObserver' in window){
       new IntersectionObserver(function(es){
         var vis=es[0].isIntersecting;
-        if(vis&&!_onScreen){_onScreen=true;if(!reduce)requestAnimationFrame(draw);}
+        if(vis&&!_onScreen){_onScreen=true;requestAnimationFrame(draw);}
         else if(!vis){_onScreen=false;}
       },{rootMargin:'200px'}).observe(canvas);
     }

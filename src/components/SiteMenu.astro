@@ -67,7 +67,11 @@ const links = [
     transition: left 0.55s cubic-bezier(0.22,1,0.36,1),
                 top  0.55s cubic-bezier(0.22,1,0.36,1);
   }
-  #site-identity :global(.name) {
+  /* .name is this component's own markup (see the template above), so plain
+     scoped selection reaches it — no :global() needed. Using :global() here
+     also made lightningcss's minify pass warn on every build
+     ("'global' is not recognized as a valid pseudo-class"). */
+  #site-identity .name {
     font-family: 'Cormorant Garamond', serif;
     font-size: 1.5rem;
     font-weight: 500;

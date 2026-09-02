@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import SiteMenu from '../../components/SiteMenu.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
+import ErrorReporter from '../../components/ErrorReporter.astro';
 import PortfolioLunaShell from '../../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../../components/NebulaBackground.astro';
 import LunaDrawerShell from '../../components/LunaDrawerShell.astro';
@@ -502,6 +503,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
   @media (--bp-900){ #luna-quip{ bottom:146px; } }
 </style>
+<ErrorReporter />
 <ClarityAnalytics />
 </head>
 <body>

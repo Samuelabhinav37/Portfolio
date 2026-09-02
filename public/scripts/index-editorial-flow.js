@@ -245,7 +245,7 @@
      the entire time a visitor was anywhere above it. Only run the loop while
      the canvas is near the viewport. */
   var _onScreen=true;
-  if('IntersectionObserver' in window){
+  if(!reduced && 'IntersectionObserver' in window){
     _onScreen=false;
     new IntersectionObserver(function(es){ _onScreen=es[0].isIntersecting; }, {rootMargin:'200px'}).observe(canvas);
   }

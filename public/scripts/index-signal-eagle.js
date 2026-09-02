@@ -191,11 +191,11 @@
 
   resize();
   window.addEventListener('resize', resize);
-  if('IntersectionObserver' in window){
+  if(!reduce && 'IntersectionObserver' in window){
     _onScreen=false;
     new IntersectionObserver(function(es){
       var vis=es[0].isIntersecting;
-      if(vis && !_onScreen){ _onScreen=true; last=0; if(!reduce) requestAnimationFrame(tick); }
+      if(vis && !_onScreen){ _onScreen=true; last=0; requestAnimationFrame(tick); }
       else if(!vis){ _onScreen=false; }
     }, {rootMargin:'200px'}).observe(canvas);
   }
