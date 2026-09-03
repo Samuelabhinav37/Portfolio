@@ -211,6 +211,16 @@ a.wire-item:hover{border-color:var(--line);color:var(--ink);background:rgba(var(
   .wire-track{animation:none;width:auto}
   .wire-view{overflow-x:auto;mask-image:none;-webkit-mask-image:none}
 }
+/* One plain line under the ticker so a non-security reader knows what the
+   scrolling entries and the severity number mean. position+z-index for the
+   same reason .wire/.hero2/.filter-count-wrap carry them: the #gc nebula
+   canvas (position:absolute;z-index:0) paints over any static sibling
+   regardless of DOM order, which left this <p> invisible. */
+.wire-explain{position:relative;z-index:1;margin:10px 22px 0;max-width:60ch;font-size:12.5px;line-height:1.5;color:var(--muted)}
+/* On mobile .hero-wire-wrap is a flex column with explicit order values that
+   pull the wire to the top (order:-1). Match it so the explainer stays
+   directly under the wire instead of drifting down next to the hero card. */
+@media (--bp-760){.wire-explain{order:-1;margin:9px 14px 0;font-size:12px}}
 
 .intro{position:relative;z-index:1;padding:104px 38px 70px;max-width:1100px}
 .intro p{font-weight:200;font-size:clamp(24px,3.4vw,46px);line-height:1.18;letter-spacing:-.5px;color:var(--ink-soft)}
@@ -640,6 +650,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
   <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
 </div>
+<p class="wire-explain">The newest security vulnerabilities as they&rsquo;re disclosed, most severe first. The number is severity, 0 to 10.</p>
 
 <div class="filter-count-wrap">
   <div class="filter">

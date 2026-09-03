@@ -231,7 +231,7 @@
    artifact-design guidance against hand-authored SVG path data — simple
    procedural shapes instead. ── */
 (function(){
-  var canvas=document.getElementById('ed-arcade-canvas'), scoreEl=document.getElementById('ed-arcade-score');
+  var canvas=document.getElementById('ed-arcade-canvas');
   if(!canvas || !canvas.getContext) return;
   // .ed-arcade (this canvas's whole figure) is display:none on phones
   // (<=600px, see index.astro) — never boot the physics/game loop behind a
@@ -281,10 +281,10 @@
   var EASE_RATE=0.075, IDLE_AMP=16, IDLE_FREQ=0.0011, BASE_SPEED=1.1, SPEED_RAMP=0.00009;
   var SHIP_X=24, SHIP_W=16, SHIP_H=11;
   var TRIGGER_DIST=130; // fixed on purpose
-  var shipY, vy, speed, score, obstacles, phase, phaseT, particles, tAccum;
+  var shipY, vy, speed, obstacles, phase, phaseT, particles, tAccum;
 
   function reset(){
-    shipY=H/2; vy=0; speed=BASE_SPEED; score=0;
+    shipY=H/2; vy=0; speed=BASE_SPEED;
     obstacles=[]; particles=[]; phase='run'; phaseT=0; tAccum=0;
     scheduleNext(true);
   }
@@ -347,7 +347,6 @@
     tAccum+=dt;
     speed+=SPEED_RAMP*dt;
     distSince+=speed*k;
-    score+=speed*k*0.4;
 
     // spawn
     if(distSince>=nextSpawnAt){ spawn(); scheduleNext(false); }
@@ -394,7 +393,6 @@
       }
     }
 
-    if(scoreEl) scoreEl.textContent=String(Math.floor(score)).padStart(4,'0');
   }
 
   function draw(){

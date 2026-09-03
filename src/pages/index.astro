@@ -1008,6 +1008,10 @@ footer#site-footer{
   #editorial .ed-kev__head .ed-lbl{ display:block; margin-bottom:14px; }
   #editorial .ed-kev__head h2{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; }
   #editorial .ed-kev__head h2 em{ font-style:normal; color:#94949a; }
+  /* One plain-language line so a non-security visitor knows this is a real,
+     live feed and what it is, not decoration. */
+  #editorial .ed-explain{ margin-top:10px; max-width:56ch; font-weight:300;
+    font-size:13px; line-height:1.55; color:#94949a; }
   #editorial .ed-kev__status{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.5px;
     color:#87878d; display:flex; align-items:center; gap:8px; }
   #editorial .ed-kev__status .ed-dot{ width:6px; height:6px; border-radius:50%; background:#87878d; }
@@ -1184,8 +1188,7 @@ footer#site-footer{
      regardless of game state. */
   #editorial .ed-arcade{ padding:clamp(16px,1.8vw,22px); box-sizing:border-box;
     display:flex; flex-direction:column; gap:14px; }
-  #editorial .ed-arcade__lbl{ display:flex; align-items:center; justify-content:space-between; gap:7px; }
-  #editorial .ed-arcade__score{ font-variant-numeric:tabular-nums; color:#c9c9cc; letter-spacing:1px; }
+  #editorial .ed-arcade__lbl{ display:flex; align-items:center; gap:7px; }
   #editorial #ed-arcade-canvas{ display:block; width:100%; height:130px; border-radius:2px;
     background:rgba(var(--c-white),.03); }
 
@@ -1272,6 +1275,7 @@ footer#site-footer{
     <div class="ed-kev__head">
       <div>
         <h2>Exploited in the <em>wild.</em></h2>
+        <p class="ed-explain">Software flaws that attackers are exploiting right now, published live by CISA, the U.S. cyber-defense agency. Each entry links to its official record.</p>
       </div>
       <div class="ed-kev__status" id="ed-status"><span class="ed-dot"></span><span id="ed-status-text">connecting…</span></div>
     </div>
@@ -1294,21 +1298,21 @@ footer#site-footer{
     <div class="ed-beliefs__imgs">
       <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: an animated dot-matrix eagle tracked by a reframing grid, live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
         <div class="ed-bento__cell ed-bento__pixels">
-          <span class="ed-bento__lbl">Signal</span>
+          <span class="ed-bento__lbl" title="Ambient animation, not a live readout.">Signal</span>
           <canvas id="ed-bento-pixels" aria-hidden="true"></canvas>
         </div>
         <div class="ed-bento__cell ed-bento__intel">
-          <span class="ed-bento__lbl"><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
+          <span class="ed-bento__lbl" title="Fresh threat reports shared by two open security-research communities, OTX and MISP."><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
           <div class="ed-intel__list" id="ed-intel-list"></div>
         </div>
         <div class="ed-bento__cell ed-bento__certs">
-          <span class="ed-bento__lbl">Certifications</span>
+          <span class="ed-bento__lbl" title="Six industry certifications, verified on Credly.">Certifications&#8202;·&#8202;6</span>
           <div class="ed-badges__wrap">
             <div class="ed-badges__track" id="ed-badges-track"></div>
           </div>
         </div>
         <div class="ed-bento__cell ed-bento__attck">
-          <span class="ed-bento__lbl">ATT&amp;CK spotlight</span>
+          <span class="ed-bento__lbl" title="Real attacker techniques from MITRE ATT&CK, the standard catalog of how intrusions happen. A new one every few seconds; click a dot to pick.">MITRE ATT&amp;CK · techniques</span>
           <div id="ed-attck-mount"></div>
         </div>
       </div>
@@ -1322,7 +1326,7 @@ footer#site-footer{
            natural ~15-25s length instead of running forever or looking
            obviously scripted. -->
       <figure class="ed-frame ed-frame--b ed-arcade" aria-label="Decorative animation: an autoplaying security-themed runner game, not interactive">
-        <span class="ed-bento__lbl ed-arcade__lbl">Auto-defense · watching the perimeter<span class="ed-arcade__score" id="ed-arcade-score">0000</span></span>
+        <span class="ed-bento__lbl ed-arcade__lbl" title="Decorative auto-playing animation. It plays itself and restarts forever.">Ambient · auto-playing</span>
         <canvas id="ed-arcade-canvas" aria-hidden="true"></canvas>
       </figure>
     </div>
