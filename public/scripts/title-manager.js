@@ -15,12 +15,12 @@
   // ── CONFIG ───────────────────────────────────────────────────────
   var PAGES = Object.freeze({
     home:    'Samuel Abhinav',
-    about:   '$ About',
-    blog:    '$ Blog',
-    contact: '$ Contact'
+    about:   '~/about',
+    blog:    '~/blog',
+    contact: '~/contact'
   });
   var CURSOR = '▌';
-  var SUBPAGE_PREFIX = '$ ';
+  var SUBPAGE_PREFIX = '~/';
   var GLITCH_BLOCKS = ['▓', '░', '▒', '█', '▌'];
   var GLITCH_PUNCT  = ['~', '`', '*', '#'];
   var WIDE_LETTERS  = new Set('mbanwesMBANWES'.split(''));
