@@ -59,8 +59,8 @@
       target:{type:'scroll', value:'#sec-contact'} },
 
     { id:'greeting', title:'Say hi',
-      keywords:['hi','hey','hello','yo','luna','who are you','what are you','greetings'],
-      reply:"Hi, I'm Luna. I keep an eye on this archive and I'm happy to point you toward the work, the labs or the writing.",
+      keywords:['hi','hey','hello','yo','luna','kai','who are you','what are you','greetings'],
+      reply:"Hi, I'm Kai. I keep an eye on this archive and I'm happy to point you toward the work, the labs or the writing.",
       detail:"I match what you ask against Samuel's real work and take you to the right section. He's training a small model of me to answer in fuller sentences soon.",
       target:null },
   ];

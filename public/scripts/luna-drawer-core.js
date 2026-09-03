@@ -117,7 +117,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
     const lines = KB.filter(t=>t.id!=='greeting').map(t =>
       '- ['+t.id+'] '+t.title+': '+t.reply);
     return [
-      "You are Luna, a terse, warm companion guarding Samuel's security portfolio.",
+      "You are Kai, a terse, warm companion guarding Samuel's security portfolio.",
       "Answer ONLY from the archive below, in 1-2 sentences, in a calm lowercase machine voice.",
       "After your answer, on a new line, cite the single most relevant section as [[cite: <id>]].",
       "If the question isn't covered by the archive, reply exactly: UNKNOWN",
@@ -288,7 +288,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
         const html=window.SITE.__LUNA_HTML; if(!html) return;
         const fr=document.createElement('iframe');
         fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
-        fr.setAttribute('title','Luna'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
+        fr.setAttribute('title','Kai'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
         fr.addEventListener('load', ()=>{ avatarWin=fr.contentWindow;
           setTimeout(()=>sendAvatarAction('wave'), 550);   // a little hello
           startAvatarIdle();                                // gentle life inside the bubble
@@ -424,7 +424,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
       if(result.grounded){
         const r=document.createElement('div'); r.className='ldw-readout';
         r.innerHTML = result.engine==='llm'
-          ? '<span class="ldw-tick">◇</span> inferred · '+(result.citeId||'archive')+' · luna'
+          ? '<span class="ldw-tick">◇</span> inferred · '+(result.citeId||'archive')+' · kai'
           : '<span class="ldw-tick">▸</span> matched · '+result.citeId+(result.signals!=null?(' · '+result.signals+' signal'+(result.signals===1?'':'s')):'');
         el.appendChild(r);
         const nav=navigate(result.target);

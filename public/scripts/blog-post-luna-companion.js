@@ -141,7 +141,7 @@
          point she stops nudging for the rest of the visit. Short, plain,
          friendly sentences on purpose — no dashes, no jargon. ── */
     var NUDGE_LINES = [
-      "hi, i'm Luna! ask me anything.",
+      "hi, i'm Kai! ask me anything.",
       "need a hand? ask.",
       "curious about something here? ask away.",
       "happy to help you find your way around."
