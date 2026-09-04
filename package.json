@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
-    "@astrojs/mdx": "^7",
+    "@astrojs/mdx": "^8",
     "@microsoft/clarity": "^1.0.2",
     "astro": "^7",
     "gsap": "3.12.5",
