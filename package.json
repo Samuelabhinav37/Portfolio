@@ -18,7 +18,7 @@
     "@microsoft/clarity": "^1.0.2",
     "astro": "^7",
     "gsap": "3.12.5",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^4.0.0",
