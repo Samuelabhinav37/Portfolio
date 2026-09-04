@@ -17,7 +17,7 @@
     "@astrojs/mdx": "^7",
     "@microsoft/clarity": "^1.0.2",
     "astro": "^7",
-    "gsap": "3.12.5",
+    "gsap": "3.15.0",
     "typescript": "^5"
   },
   "devDependencies": {
