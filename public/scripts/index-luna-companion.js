@@ -95,7 +95,7 @@
       if(!_quipEl || !text) return;
       _quipTopic = topic || null;
       _quipEl.innerHTML = '<span class="lq-cursor">&rsaquo; </span>' + text
-        + (topic ? '<span class="lq-hint">click to ask Luna</span>' : '');
+        + (topic ? '<span class="lq-hint">click to ask Kai</span>' : '');
       _quipEl.classList.toggle('lq-clickable', !!topic);
       _quipEl.classList.add('show');
       clearTimeout(_quipT);
@@ -231,7 +231,7 @@
         updateCostume();
         setTimeout(function(){ _send({type:'lunaEmote', name:'sparkle', hold:1800}); }, 400);
         setTimeout(function(){ _send({type:'lunaAction', name:'wave'}); }, 750);
-        setTimeout(function(){ showQuip("hey, i'm Luna. click me if you ever get lost.", 'greeting', 6500); _lastQuipAt=Date.now(); }, 1250);
+        setTimeout(function(){ showQuip("hey, i'm Kai. click me if you ever get lost.", 'greeting', 6500); _lastQuipAt=Date.now(); }, 1250);
         return;
       }
       setTimeout(waitArrival, 600);

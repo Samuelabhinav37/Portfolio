@@ -73,8 +73,8 @@ KB.push({ id:'author', title:'The author',
   target:null });
 
 KB.push({ id:'greeting', title:'Say hi',
-  keywords:['hi','hey','hello','yo','luna','who are you','what are you','greetings'],
-  reply:"Hi, I'm Luna. Ask about " + LP_categoryLower + " in this post or tell me where to jump.",
+  keywords:['hi','hey','hello','yo','luna','kai','who are you','what are you','greetings'],
+  reply:"Hi, I'm Kai. Ask about " + LP_categoryLower + " in this post or tell me where to jump.",
   detail:"I match what you ask against this post's content and take you to the right section.",
   target:null });
 
@@ -176,7 +176,7 @@ function buildSystemPrompt(){
   const lines = KB.filter(t=>t.id!=='greeting').map(t =>
     '- ['+t.id+'] '+t.title+': '+t.reply);
   return [
-    "You are Luna, a terse, warm assistant helping a reader navigate this blog post.",
+    "You are Kai, a terse, warm assistant helping a reader navigate this blog post.",
     "Answer ONLY from the archive below, in 1-2 sentences, in a calm lowercase machine voice.",
     "After your answer, on a new line, cite the single most relevant section as [[cite: <id>]].",
     "If the question isn't covered by the archive, reply exactly: UNKNOWN",
@@ -316,7 +316,7 @@ KB.forEach(function(entry, i){
       const html=window.SITE.__LUNA_HTML; if(!html) return;
       const fr=document.createElement('iframe');
       fr.setAttribute('tabindex','-1'); fr.setAttribute('scrolling','no'); fr.setAttribute('aria-hidden','true');
-      fr.setAttribute('title','Luna'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
+      fr.setAttribute('title','Kai'); fr.setAttribute('sandbox','allow-scripts allow-same-origin');
       fr.addEventListener('load', ()=>{ avatarWin=fr.contentWindow;
         setTimeout(()=>sendAvatarAction('wave'), 550);
         startAvatarIdle();
@@ -440,7 +440,7 @@ KB.forEach(function(entry, i){
     if(result.grounded){
       const r=document.createElement('div'); r.className='ldw-readout';
       r.innerHTML = result.engine==='llm'
-        ? '<span class="ldw-tick">◇</span> inferred · '+(result.citeId||'archive')+' · luna'
+        ? '<span class="ldw-tick">◇</span> inferred · '+(result.citeId||'archive')+' · kai'
         : '<span class="ldw-tick">▸</span> matched · '+result.citeId+(result.signals!=null?(' · '+result.signals+' signal'+(result.signals===1?'':'s')):'');
       el.appendChild(r);
       const nav=navigate(result.target);

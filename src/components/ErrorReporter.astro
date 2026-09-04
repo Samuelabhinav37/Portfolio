@@ -1,0 +1,79 @@
+---
+/**
+ * Client-side error beacon. Drop into every public page's <head> next to
+ * <ClarityAnalytics />. Catches uncaught errors + unhandled promise
+ * rejections and POSTs a small structured record to /api/clienterr
+ * (a Cloudflare Pages Function that just logs it).
+ *
+ * Why: the "site crashes on some phones" reports have no stack, no page, no
+ * device — this makes the next occurrence self-report. Deliberately
+ * conservative: capped beacons per page load, dedupes identical errors,
+ * ignores cross-origin "Script error." noise and obvious third-party
+ * sources, uses sendBeacon so it survives the page actually dying.
+ *
+ * is:inline + early in <head> so it's installed before the heavy
+ * canvas/WebGL scripts run and can catch their failures.
+ */
+---
+
+<script is:inline>
+  (function () {
+    if (window.__errReporter) return;
+    window.__errReporter = 1;
+
+    var ENDPOINT = '/api/clienterr';
+    var MAX = 5;               // beacons per page load
+    var sent = 0;
+    var seen = Object.create(null);
+
+    function thirdParty(src) {
+      return /clarity\.ms|bing\.com|challenges\.cloudflare\.com|googletagmanager|google-analytics|doubleclick|hotjar|fullstory/i.test(src || '');
+    }
+
+    function report(kind, msg, src, pos, stack) {
+      try {
+        if (sent >= MAX) return;
+        msg = String(msg || '').slice(0, 500);
+        // Cross-origin scripts collapse to this with no detail — nothing to act on.
+        if (!msg || msg === 'Script error.') return;
+        if (thirdParty(src) || thirdParty(stack)) return;
+        var key = kind + '|' + msg + '|' + (src || '') + '|' + (pos || '');
+        if (seen[key]) return;
+        seen[key] = 1;
+        sent++;
+
+        var payload = {
+          kind: kind,
+          msg: msg,
+          src: String(src || location.pathname).slice(0, 300),
+          pos: String(pos || ''),
+          stack: String(stack || '').slice(0, 1200),
+          page: location.pathname + location.search,
+          vp: (window.innerWidth || 0) + 'x' + (window.innerHeight || 0),
+        };
+        var data = JSON.stringify(payload);
+
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(ENDPOINT, new Blob([data], { type: 'application/json' }));
+        } else {
+          fetch(ENDPOINT, { method: 'POST', body: data, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(function () {});
+        }
+      } catch (e) { /* a reporter that throws is worse than one that misses */ }
+    }
+
+    window.addEventListener('error', function (e) {
+      // Resource-load failures (img/script/link 404) fire 'error' with no
+      // e.error and target !== window — skip those, they're not JS crashes.
+      if (e && e.target && e.target !== window && (e.target.src || e.target.href)) return;
+      var stack = e && e.error && e.error.stack ? e.error.stack : '';
+      report('error', e && e.message, e && e.filename, (e && e.lineno) + ':' + (e && e.colno), stack);
+    }, true);
+
+    window.addEventListener('unhandledrejection', function (e) {
+      var r = e && e.reason;
+      var msg = r && r.message ? r.message : String(r);
+      var stack = r && r.stack ? r.stack : '';
+      report('rejection', msg, '', '', stack);
+    });
+  })();
+</script>

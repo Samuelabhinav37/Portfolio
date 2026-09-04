@@ -156,7 +156,7 @@
       _quipEl.addEventListener('mouseleave', function(){ clearTimeout(_quipT); _quipT = setTimeout(function(){ _quipEl.classList.remove('show'); }, 1500); });
     }
     var NUDGE_LINES = [
-      "hi, i'm Luna! ask me anything.",
+      "hi, i'm Kai! ask me anything.",
       "need a hand? ask.",
       "curious about something here? ask away.",
       "happy to help you find your way around."

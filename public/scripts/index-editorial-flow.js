@@ -231,7 +231,7 @@
    artifact-design guidance against hand-authored SVG path data — simple
    procedural shapes instead. ── */
 (function(){
-  var canvas=document.getElementById('ed-arcade-canvas'), scoreEl=document.getElementById('ed-arcade-score');
+  var canvas=document.getElementById('ed-arcade-canvas');
   if(!canvas || !canvas.getContext) return;
   // .ed-arcade (this canvas's whole figure) is display:none on phones
   // (<=600px, see index.astro) — never boot the physics/game loop behind a
@@ -240,6 +240,15 @@
   var ctx=canvas.getContext('2d');
   var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var W=0,H=0,PLAY_TOP=6,PLAY_BOTTOM=0;
+  /* On-screen gate: this decorative auto-play game lives near the bottom of
+     the editorial bento, so its physics + canvas draw were burning frames
+     the entire time a visitor was anywhere above it. Only run the loop while
+     the canvas is near the viewport. */
+  var _onScreen=true;
+  if(!reduced && 'IntersectionObserver' in window){
+    _onScreen=false;
+    new IntersectionObserver(function(es){ _onScreen=es[0].isIntersecting; }, {rootMargin:'200px'}).observe(canvas);
+  }
 
   function fit(){
     var rect=canvas.getBoundingClientRect();
@@ -272,10 +281,10 @@
   var EASE_RATE=0.075, IDLE_AMP=16, IDLE_FREQ=0.0011, BASE_SPEED=1.1, SPEED_RAMP=0.00009;
   var SHIP_X=24, SHIP_W=16, SHIP_H=11;
   var TRIGGER_DIST=130; // fixed on purpose
-  var shipY, vy, speed, score, obstacles, phase, phaseT, particles, tAccum;
+  var shipY, vy, speed, obstacles, phase, phaseT, particles, tAccum;
 
   function reset(){
-    shipY=H/2; vy=0; speed=BASE_SPEED; score=0;
+    shipY=H/2; vy=0; speed=BASE_SPEED;
     obstacles=[]; particles=[]; phase='run'; phaseT=0; tAccum=0;
     scheduleNext(true);
   }
@@ -338,7 +347,6 @@
     tAccum+=dt;
     speed+=SPEED_RAMP*dt;
     distSince+=speed*k;
-    score+=speed*k*0.4;
 
     // spawn
     if(distSince>=nextSpawnAt){ spawn(); scheduleNext(false); }
@@ -385,7 +393,6 @@
       }
     }
 
-    if(scoreEl) scoreEl.textContent=String(Math.floor(score)).padStart(4,'0');
   }
 
   function draw(){
@@ -462,7 +469,7 @@
   var last=0;
   function loop(t){
     requestAnimationFrame(loop);
-    if(document.hidden) return;
+    if(document.hidden || !_onScreen){ last=0; return; }
     if(!last) last=t;
     var dt=Math.min(t-last,50); last=t;
     update(dt); draw();

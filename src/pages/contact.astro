@@ -1,6 +1,7 @@
 ---
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
+import ErrorReporter from '../components/ErrorReporter.astro';
 import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
@@ -383,7 +384,11 @@ window.SITE=window.SITE||{};
 
 </style>
 <style is:global>
-  :global(#luna-wrap) { top: min(calc(66vh + 80px), calc(100vh - 140px)); top: min(calc(66svh + 80px), calc(100svh - 140px)); }
+  /* Already inside an is:global block, so a plain selector reaches #luna-wrap
+     (which comes from PortfolioLunaShell, not this page's template). The
+     :global() wrapper here was redundant and made lightningcss's minify pass
+     warn on every build. */
+  #luna-wrap { top: min(calc(66vh + 80px), calc(100vh - 140px)); top: min(calc(66svh + 80px), calc(100svh - 140px)); }
 </style>
 <style is:global>
   /* ── Luna's speech: a small quip card that docks directly over #luna-wrap
@@ -407,6 +412,7 @@ window.SITE=window.SITE||{};
   #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
 </style>
+<ErrorReporter />
 <ClarityAnalytics />
 </head>
 <body>

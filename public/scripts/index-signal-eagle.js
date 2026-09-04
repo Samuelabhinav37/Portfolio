@@ -9,6 +9,12 @@
   var canvas=document.getElementById('ed-bento-pixels');
   if(!canvas || !canvas.getContext) return;
   var ctx=canvas.getContext('2d');
+  /* This canvas sits well below the fold in the editorial bento. Without an
+     on-screen gate its per-frame background/grid/eagle redraw kept running
+     the whole time a visitor read the rest of the page — a needless drain on
+     the homepage's already-crowded main thread. Animate only while it's near
+     the viewport; the loop is (re)started by the IntersectionObserver below. */
+  var _onScreen=true;
   // LOW_POWER (narrow viewport, set in index.astro's own inline script) is
   // independent of an explicit reduced-motion preference — a mobile visitor
   // who never touched that OS setting should still get the lighter path.
@@ -154,7 +160,7 @@
   var FRAME_MS=100;
   function tick(now){
     var dt=last?now-last:0; last=now;
-    if(document.hidden){ if(!reduce) requestAnimationFrame(tick); return; }
+    if(document.hidden){ if(!reduce && _onScreen) requestAnimationFrame(tick); return; }
     elapsed+=dt/1000;
     acc+=dt;
     if(!reduce && acc>FRAME_MS){
@@ -180,10 +186,19 @@
         }
       }
     }
-    if(!reduce) requestAnimationFrame(tick);
+    if(!reduce && _onScreen) requestAnimationFrame(tick);
   }
 
   resize();
   window.addEventListener('resize', resize);
-  tick(0); // reduced-motion: renders one static frame and stops; otherwise self-schedules via rAF above
+  if(!reduce && 'IntersectionObserver' in window){
+    _onScreen=false;
+    new IntersectionObserver(function(es){
+      var vis=es[0].isIntersecting;
+      if(vis && !_onScreen){ _onScreen=true; last=0; requestAnimationFrame(tick); }
+      else if(!vis){ _onScreen=false; }
+    }, {rootMargin:'200px'}).observe(canvas);
+  }
+  tick(0); // draws one frame now; reduced-motion stops there, otherwise the loop
+           // runs only while on-screen (kicked by the observer above)
 })();

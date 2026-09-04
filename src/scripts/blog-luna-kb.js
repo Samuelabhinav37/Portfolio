@@ -60,8 +60,8 @@ const KB = [
     target:null },
 
   { id:'greeting', title:'Say hi',
-    keywords:['hi','hey','hello','yo','luna','who are you','what are you','greetings'],
-    reply:"I am Luna. I keep watch over this archive. Ask about the work, the labs, or the writing.",
+    keywords:['hi','hey','hello','yo','luna','kai','who are you','what are you','greetings'],
+    reply:"I am Kai. I keep watch over this archive. Ask about the work, the labs, or the writing.",
     detail:"I match what you ask against Samuel's real work and take you to the right section. Soon he is training a small model of me to answer in fuller sentences.",
     target:null },
 ];
