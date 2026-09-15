@@ -5,7 +5,7 @@
    (index-signal-eagle.js, index-logo-glitch.js, etc.) — this was the one
    remaining large (~500 line) un-extracted block. */
 (function(){
-  var KEV='https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json';
+  var KEV='/api/kev';
   var track=document.getElementById('ed-track');
   var status=document.getElementById('ed-status');
   var statusText=document.getElementById('ed-status-text');
@@ -77,19 +77,18 @@
   paint(FALLBACK);
   function load(){
     fetch(KEV).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-      var v=(d.vulnerabilities||[]).slice();
-      v.sort(function(a,b){ return (b.dateAdded||'').localeCompare(a.dateAdded||''); });
-      var recent=v.slice(0,16).map(function(x){ return { cveID:x.cveID, vendorProject:x.vendorProject,
-        product:x.product, dateAdded:x.dateAdded, ransom:(x.knownRansomwareCampaignUse||'').toLowerCase()==='known' }; });
+      var recent=d.items||[];
       if(recent.length){ paint(recent); }
       if(status) status.classList.add('ed-live');
-      if(statusText) statusText.textContent='live · '+(d.count||v.length)+' tracked';
+      if(statusText) statusText.textContent='live · '+(d.count||recent.length)+' tracked';
       if(foot && d.dateReleased){ foot.textContent='Source: CISA KEV'; }
     }).catch(function(){ if(statusText) statusText.textContent='cached'; });
   }
-  /* Defer the KEV fetch (whole-catalog JSON, several hundred KB) until the
-     section is actually about to be seen, instead of firing it on every page
-     load regardless of whether the visitor scrolls past the hero. */
+  /* Defer the KEV fetch until the section is actually about to be seen,
+     instead of firing it on every page load regardless of whether the
+     visitor scrolls past the hero. The whole-catalog JSON (~1.7MB) is fetched
+     and trimmed server-side by functions/api/kev.js, edge-cached 6h — this
+     request only ever gets back the ~16 most recent entries. */
   if('IntersectionObserver' in window){
     var kevIo=new IntersectionObserver(function(es){
       if(es.some(function(e){ return e.isIntersecting; })){ kevIo.disconnect(); load(); }
