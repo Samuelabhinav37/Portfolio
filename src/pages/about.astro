@@ -2088,11 +2088,24 @@ document.addEventListener('touchend',e=&gt;{
    width/height it's given. Below 980px the layout stacks and is genuinely
    fluid instead (see the @media rules above), so this is a no-op there:
    real mobile/tablet content should reflow, not shrink to illegibility. */
+var _aboutLastDpr = window.devicePixelRatio;
 function scaleAboutInner() {
   var inner = document.getElementById('about-inner');
   if (!inner) return;
   if (matchMedia('(max-width:980px)').matches) {
     inner.style.transform = '';
+    return;
+  }
+  // Browser zoom (ctrl +/-) shrinks window.innerWidth/innerHeight in CSS px
+  // without the window actually getting smaller, so recomputing the fit-scale
+  // on a zoom-triggered resize event would shrink the layout right back down,
+  // canceling out a visitor's own zoom-in. Zoom moves devicePixelRatio; a real
+  // window resize doesn't. Skip the recompute when dpr just changed (keep the
+  // pre-zoom scale, which now reads larger thanks to the browser's own zoom),
+  // and adopt the new dpr as the baseline so a genuine resize at this zoom
+  // level still fits correctly afterward.
+  if (window.devicePixelRatio !== _aboutLastDpr) {
+    _aboutLastDpr = window.devicePixelRatio;
     return;
   }
   inner.style.transform = '';
