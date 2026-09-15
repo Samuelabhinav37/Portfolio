@@ -199,11 +199,11 @@ grid.addEventListener('click',e=>{
 })();
 
 /* ── THREAT WIRE ──────────────────────────────────────────────────────
-   Live recent-critical-CVE ticker. Source chain, first success wins:
-     1. NVD API 2.0 (keyless, last 7 days, CRITICAL) — one request,
-        cached in sessionStorage for an hour to respect keyless limits
-     2. CIRCL cve.circl.lu (keyless, most recent CVEs)
-     3. Static status pills — the wire can never render broken.
+   Live recent-critical-CVE ticker, proxied through /api/cve-wire (server-side
+   NVD fetch, edge-cached 1h) so the browser never hits NVD directly or shares
+   its keyless rate limit across visitors. sessionStorage caches the response
+   client-side for 15min on top of that. Falls back to static status pills if
+   the Function returns nothing — the wire can never render broken.
    Mechanics: items are appended, the row is measured, then cloned until
    the track spans ≥2× the view so translateX(-50%) loops seamlessly;
    duration is computed from real width for constant 55 px/s velocity. */
@@ -240,40 +240,19 @@ function mount(items){
     track.style.setProperty('--wire-dur',((track.scrollWidth/2)/VEL).toFixed(1)+'s');
   });
 }
-function fromNVD(){
-  const CK='wire-nvd-v1',cached=(()=>{try{return JSON.parse(sessionStorage.getItem(CK))}catch(e){return null}})();
-  if(cached&&Date.now()-cached.t<36e5)return Promise.resolve(cached.items);
-  const iso=d=>d.toISOString().slice(0,-1); // NVD wants no trailing Z
-  const end=new Date(),start=new Date(end-7*864e5);
-  const url='https://services.nvd.nist.gov/rest/json/cves/2.0?cvssV3Severity=CRITICAL'+
-    '&pubStartDate='+encodeURIComponent(iso(start))+'&pubEndDate='+encodeURIComponent(iso(end))+'&resultsPerPage=12';
-  return fetch(url).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{
-    const items=(j.vulnerabilities||[]).map(v=>{
-      const c=v.cve,m=((c.metrics||{}).cvssMetricV31||[])[0];
-      const score=m&&m.cvssData?m.cvssData.baseScore.toFixed(1):'';
-      const desc=((c.descriptions||[]).find(d=>d.lang==='en')||{}).value||'';
-      return {sev:score?score+' CRIT':'CRIT',id:c.id,tx:desc,href:'https://nvd.nist.gov/vuln/detail/'+c.id};
-    }).filter(it=>it.id);
+function fromWireApi(){
+  const CK='wire-cve-v2',cached=(()=>{try{return JSON.parse(sessionStorage.getItem(CK))}catch(e){return null}})();
+  if(cached&&Date.now()-cached.t<9e5)return Promise.resolve(cached.items);
+  return fetch('/api/cve-wire').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{
+    const items=Array.isArray(j.items)?j.items:[];
     if(!items.length)throw 0;
     try{sessionStorage.setItem(CK,JSON.stringify({t:Date.now(),items}))}catch(e){}
     return items;
   });
 }
-function fromCIRCL(){
-  return fetch('https://cve.circl.lu/api/last/12').then(r=>{if(!r.ok)throw 0;return r.json()}).then(list=>{
-    const items=(Array.isArray(list)?list:[]).map(c=>{
-      const id=c.id||c.cve_id||(c.aliases&&c.aliases[0])||'';
-      const tx=c.summary||(c.containers&&c.containers.cna&&c.containers.cna.descriptions&&c.containers.cna.descriptions[0]&&c.containers.cna.descriptions[0].value)||'';
-      const sc=c.cvss?Number(c.cvss).toFixed(1):'';
-      return id?{sev:sc?sc+' CVSS':'NEW',id:id,tx:tx,href:'https://nvd.nist.gov/vuln/detail/'+id}:null;
-    }).filter(Boolean);
-    if(!items.length)throw 0;
-    return items;
-  });
-}
 track.innerHTML='<span class="wire-item skel"></span>'.repeat(6); // shimmer while the feed loads
-function load(){ fromNVD().catch(fromCIRCL).catch(()=>STATIC).then(mount).catch(()=>mount(STATIC)); }
-// Defer the NVD/CIRCL fetch until the wire is actually about to be seen,
+function load(){ fromWireApi().catch(()=>STATIC).then(mount).catch(()=>mount(STATIC)); }
+// Defer the /api/cve-wire fetch until the wire is actually about to be seen,
 // instead of firing it on every page load regardless of whether the visitor
 // scrolls past the hero. Skeleton shimmer above still shows immediately.
 if('IntersectionObserver' in window){
