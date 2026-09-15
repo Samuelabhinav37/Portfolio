@@ -160,17 +160,19 @@
    decorative widgets below. */
 
 /* ── Bento: cert badges marquee (bottom-left quadrant) — real vendor-issued badge
-   artwork from Credly's CDN, not generic brand icons. ── */
+   artwork, self-hosted (originally hotlinked from Credly's CDN on every page
+   load, which leaked visitor IPs to a third party for no runtime benefit —
+   same self-hosting treatment already given to project images). ── */
 (function(){
   var track=document.getElementById('ed-badges-track');
   if(!track) return;
   var BADGES=[
-    {name:'Security+', img:'https://images.credly.com/images/d3cb5ac3-8bd2-471a-a27c-f447bf16da47/blob', framed:true},
-    {name:'Network+', img:'https://images.credly.com/images/3746480e-1d97-41f8-b27a-0b798d235306/CompTIA_Network_2B.png', framed:true},
-    {name:'ISC2 CC', img:'https://images.credly.com/images/2030e43f-8003-4d4b-9630-847add403c87/image.png'},
-    {name:'AWS CCP', img:'https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png'},
-    {name:'AZ-900', img:'https://images.credly.com/images/be8fcaeb-c769-4858-b567-ffaaa73ce8cf/image.png'},
-    {name:'HTB CJCA', img:'https://images.credly.com/images/95043c37-e916-4e4e-96ab-06fb66056648/blob'}
+    {name:'Security+', img:'/images/certs/security-plus.png', framed:true},
+    {name:'Network+', img:'/images/certs/network-plus.png', framed:true},
+    {name:'ISC2 CC', img:'/images/certs/isc2-cc.png'},
+    {name:'AWS CCP', img:'/images/certs/aws-ccp.png'},
+    {name:'AZ-900', img:'/images/certs/az-900.png'},
+    {name:'HTB CJCA', img:'/images/certs/htb-cjca.png'}
   ];
   function tok(b, hidden){
     return '<span class="ed-badge'+(b.framed?' ed-badge--framed':'')+'"'+(hidden?' aria-hidden="true"':'')+
