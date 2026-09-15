@@ -2144,10 +2144,25 @@ function _startBgIntroTimer(){
 /* Perf: cap the simulation to 30fps and fully pause when the tab is hidden,
    so this page stops competing for GPU/CPU with other tabs (e.g. video). */
 var _FRAME_MIN = 1000/30, _frameLast = 0, _loopPaused = false, _frameErrs = 0;
+/* index-globe-engine.js's __globeOwnsScreen full-takeover mode is dead in the
+   globe's current reactive-idle design (it's always set false there now — the
+   globe never covers the screen anymore, just a small persistent visual), so
+   the render-skip below it never fires today. The globe's genuinely heavier
+   per-frame work only happens while a project constellation is focused
+   (window.SITE.__globeFocus>=0, driving updateConstellation()/positionLabels()
+   every frame instead of an idle slerp) — halve the nebula's own frame budget
+   during that window instead of fully stopping it, so the two canvases share
+   the main thread/GPU rather than both running full-tilt at once, without
+   making the ambient background vanish for however much of the page the
+   globe happens to be in view. */
+function _nebulaFrameMin(){
+  var focused = typeof window.SITE.__globeFocus === 'number' && window.SITE.__globeFocus >= 0;
+  return focused ? (1000/15) : _FRAME_MIN;
+}
 function loop(ts){
   if(document.hidden){ _loopPaused = true; return; }
   requestAnimationFrame(loop);
-  if(ts && (ts - _frameLast) < _FRAME_MIN) return;
+  if(ts && (ts - _frameLast) < _nebulaFrameMin()) return;
   _frameLast = ts || 0;
   try{
     var rdt=Math.min(threeClock.getDelta(),0.05);   // real frame delta (seconds)
