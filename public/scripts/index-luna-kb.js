@@ -1,7 +1,9 @@
 /* Luna chat drawer knowledge base for the homepage. Extracted from an inline
    <script id="ldw-engine"> block. Content and case-jump targets are specific
    to this page (references the homepage's own case-study seeds), not shared
-   with the other pages' knowledge bases. */
+   with the other pages' knowledge bases. (About/contact now share
+   luna-kb-base.js instead of their own near-duplicate copies — this file's
+   different phrasing/targeting on every entry means it stays its own thing.) */
 /* ───────── shared archive (single source of truth for both engines) ───────── */
   const KB = [
     { id:'sentinel', title:'Sentinel',
