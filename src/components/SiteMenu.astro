@@ -16,7 +16,11 @@ interface Props {
 }
 const { currentPath, hasIntro = false } = Astro.props;
 
+// Projects live only as a mid-scroll homepage section (#projects-section),
+// not their own route, so this always links back to "/" + the anchor rather
+// than matching currentPath the way the other links do.
 const links = [
+  { href: '/#projects-section', label: 'Projects' },
   { href: '/about', label: 'About' },
   { href: '/blog', label: 'Blog' },
   { href: '/contact', label: 'Contact' },

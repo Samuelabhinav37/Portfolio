@@ -11,6 +11,7 @@
 const MISP_MANIFEST = 'https://www.circl.lu/doc/misp/feed-osint/manifest.json';
 const OTX_ACTIVITY = 'https://otx.alienvault.com/api/v1/pulses/activity?limit=6';
 const CACHE_TTL = 1800; // 30 minutes
+const SNAPSHOT_TTL = 604800; // 7 days — long-lived last-known-good store, separate from the normal response cache
 const FETCH_TIMEOUT = 6000; // ms — a single slow/hanging upstream shouldn't stall the whole panel
 
 function fetchWithTimeout(url, opts) {
@@ -66,6 +67,14 @@ export async function onRequestGet({ request, env }) {
   const cached = await cache.match(request);
   if (cached) return cached;
 
+  // Separate long-TTL cache entry used purely as a last-known-good snapshot,
+  // distinct from the normal short-TTL response cache above. Without this, a
+  // cold cache + both MISP and OTX failing/timing out would return an empty
+  // items array with a 200, and that empty result would itself get cached
+  // for the full 30-minute TTL — actively serving "nothing here" for up to
+  // 30 minutes instead of the last real content.
+  const snapshotKey = new Request(request.url + (request.url.includes('?') ? '&' : '?') + '__snapshot=1');
+
   const [misp, otx] = await Promise.all([
     fromMisp().catch((err) => {
       console.error('MISP fetch failed:', err);
@@ -78,7 +87,25 @@ export async function onRequestGet({ request, env }) {
   ]);
 
   const items = [...otx, ...misp].sort((a, b) => b.ts - a.ts).slice(0, 5);
-  const response = json({ items, generatedAt: Date.now() });
+  let payload = { items, generatedAt: Date.now() };
+  const useful = items.length > 0;
+
+  if (!useful) {
+    const snapHit = await cache.match(snapshotKey);
+    const prev = snapHit ? await snapHit.json().catch(() => null) : null;
+    if (prev) payload = { ...prev, stale: true };
+  }
+
+  const response = json(payload);
   await cache.put(request, response.clone());
+  if (useful) {
+    await cache.put(
+      snapshotKey,
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${SNAPSHOT_TTL}` },
+      })
+    );
+  }
   return response;
 }

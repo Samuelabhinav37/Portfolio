@@ -462,12 +462,12 @@ html, body {
     <div class="card c-certs">
       <span class="c-certs-lbl">Certifications</span>
       <div class="c-certs-grid">
-        <div class="c-cert"><img src="https://images.credly.com/images/d3cb5ac3-8bd2-471a-a27c-f447bf16da47/blob" alt="" loading="lazy"><span>Security+</span></div>
-        <div class="c-cert"><img src="https://images.credly.com/images/3746480e-1d97-41f8-b27a-0b798d235306/CompTIA_Network_2B.png" alt="" loading="lazy"><span>Network+</span></div>
-        <div class="c-cert"><img src="https://images.credly.com/images/2030e43f-8003-4d4b-9630-847add403c87/image.png" alt="" loading="lazy"><span>ISC2 CC</span></div>
-        <div class="c-cert"><img src="https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png" alt="" loading="lazy"><span>AWS CCP</span></div>
-        <div class="c-cert"><img src="https://images.credly.com/images/be8fcaeb-c769-4858-b567-ffaaa73ce8cf/image.png" alt="" loading="lazy"><span>AZ-900</span></div>
-        <div class="c-cert"><img src="https://images.credly.com/images/95043c37-e916-4e4e-96ab-06fb66056648/blob" alt="" loading="lazy"><span>HTB CJCA</span></div>
+        <div class="c-cert"><img src="/images/certs/security-plus.png" alt="" loading="lazy"><span>Security+</span></div>
+        <div class="c-cert"><img src="/images/certs/network-plus.png" alt="" loading="lazy"><span>Network+</span></div>
+        <div class="c-cert"><img src="/images/certs/isc2-cc.png" alt="" loading="lazy"><span>ISC2 CC</span></div>
+        <div class="c-cert"><img src="/images/certs/aws-ccp.png" alt="" loading="lazy"><span>AWS CCP</span></div>
+        <div class="c-cert"><img src="/images/certs/az-900.png" alt="" loading="lazy"><span>AZ-900</span></div>
+        <div class="c-cert"><img src="/images/certs/htb-cjca.png" alt="" loading="lazy"><span>HTB CJCA</span></div>
       </div>
     </div>
     <div class="card c-signal">
@@ -2088,11 +2088,24 @@ document.addEventListener('touchend',e=&gt;{
    width/height it's given. Below 980px the layout stacks and is genuinely
    fluid instead (see the @media rules above), so this is a no-op there:
    real mobile/tablet content should reflow, not shrink to illegibility. */
+var _aboutLastDpr = window.devicePixelRatio;
 function scaleAboutInner() {
   var inner = document.getElementById('about-inner');
   if (!inner) return;
   if (matchMedia('(max-width:980px)').matches) {
     inner.style.transform = '';
+    return;
+  }
+  // Browser zoom (ctrl +/-) shrinks window.innerWidth/innerHeight in CSS px
+  // without the window actually getting smaller, so recomputing the fit-scale
+  // on a zoom-triggered resize event would shrink the layout right back down,
+  // canceling out a visitor's own zoom-in. Zoom moves devicePixelRatio; a real
+  // window resize doesn't. Skip the recompute when dpr just changed (keep the
+  // pre-zoom scale, which now reads larger thanks to the browser's own zoom),
+  // and adopt the new dpr as the baseline so a genuine resize at this zoom
+  // level still fits correctly afterward.
+  if (window.devicePixelRatio !== _aboutLastDpr) {
+    _aboutLastDpr = window.devicePixelRatio;
     return;
   }
   inner.style.transform = '';

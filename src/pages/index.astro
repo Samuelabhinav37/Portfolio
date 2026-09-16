@@ -1838,11 +1838,10 @@ footer#site-footer{
   function loadPodcastArt(){
     [].slice.call(document.querySelectorAll('#signal .pod-row')).forEach(function(rw){
       var link=rw.querySelector('.pod-name a'), art=rw.querySelector('.pod-art'); if(!link) return;
-      fetch('https://itunes.apple.com/search?media=podcast&limit=1&term='+encodeURIComponent(link.textContent))
+      fetch('/api/podcast-art?term='+encodeURIComponent(link.textContent))
         .then(function(r){ return r.json(); }).then(function(d){
-          var it=d&&d.results&&d.results[0]; if(!it) return;
-          if(it.artworkUrl100&&art){ var art300=String(it.artworkUrl100).replace('100x100bb','300x300bb'); if(setBgImage(art,art300)){ art.textContent=''; art.style.backgroundSize='cover'; art.style.backgroundPosition='center'; } }
-          if(it.collectionViewUrl) link.href=it.collectionViewUrl;
+          if(d.artworkUrl&&art){ if(setBgImage(art,d.artworkUrl)){ art.textContent=''; art.style.backgroundSize='cover'; art.style.backgroundPosition='center'; } }
+          if(d.collectionViewUrl) link.href=d.collectionViewUrl;
         }).catch(function(){});
     });
   }

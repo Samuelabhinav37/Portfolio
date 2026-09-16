@@ -5,7 +5,7 @@
    (index-signal-eagle.js, index-logo-glitch.js, etc.) — this was the one
    remaining large (~500 line) un-extracted block. */
 (function(){
-  var KEV='https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json';
+  var KEV='/api/kev';
   var track=document.getElementById('ed-track');
   var status=document.getElementById('ed-status');
   var statusText=document.getElementById('ed-status-text');
@@ -77,19 +77,18 @@
   paint(FALLBACK);
   function load(){
     fetch(KEV).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-      var v=(d.vulnerabilities||[]).slice();
-      v.sort(function(a,b){ return (b.dateAdded||'').localeCompare(a.dateAdded||''); });
-      var recent=v.slice(0,16).map(function(x){ return { cveID:x.cveID, vendorProject:x.vendorProject,
-        product:x.product, dateAdded:x.dateAdded, ransom:(x.knownRansomwareCampaignUse||'').toLowerCase()==='known' }; });
+      var recent=d.items||[];
       if(recent.length){ paint(recent); }
       if(status) status.classList.add('ed-live');
-      if(statusText) statusText.textContent='live · '+(d.count||v.length)+' tracked';
+      if(statusText) statusText.textContent='live · '+(d.count||recent.length)+' tracked';
       if(foot && d.dateReleased){ foot.textContent='Source: CISA KEV'; }
     }).catch(function(){ if(statusText) statusText.textContent='cached'; });
   }
-  /* Defer the KEV fetch (whole-catalog JSON, several hundred KB) until the
-     section is actually about to be seen, instead of firing it on every page
-     load regardless of whether the visitor scrolls past the hero. */
+  /* Defer the KEV fetch until the section is actually about to be seen,
+     instead of firing it on every page load regardless of whether the
+     visitor scrolls past the hero. The whole-catalog JSON (~1.7MB) is fetched
+     and trimmed server-side by functions/api/kev.js, edge-cached 6h — this
+     request only ever gets back the ~16 most recent entries. */
   if('IntersectionObserver' in window){
     var kevIo=new IntersectionObserver(function(es){
       if(es.some(function(e){ return e.isIntersecting; })){ kevIo.disconnect(); load(); }
@@ -161,17 +160,19 @@
    decorative widgets below. */
 
 /* ── Bento: cert badges marquee (bottom-left quadrant) — real vendor-issued badge
-   artwork from Credly's CDN, not generic brand icons. ── */
+   artwork, self-hosted (originally hotlinked from Credly's CDN on every page
+   load, which leaked visitor IPs to a third party for no runtime benefit —
+   same self-hosting treatment already given to project images). ── */
 (function(){
   var track=document.getElementById('ed-badges-track');
   if(!track) return;
   var BADGES=[
-    {name:'Security+', img:'https://images.credly.com/images/d3cb5ac3-8bd2-471a-a27c-f447bf16da47/blob', framed:true},
-    {name:'Network+', img:'https://images.credly.com/images/3746480e-1d97-41f8-b27a-0b798d235306/CompTIA_Network_2B.png', framed:true},
-    {name:'ISC2 CC', img:'https://images.credly.com/images/2030e43f-8003-4d4b-9630-847add403c87/image.png'},
-    {name:'AWS CCP', img:'https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png'},
-    {name:'AZ-900', img:'https://images.credly.com/images/be8fcaeb-c769-4858-b567-ffaaa73ce8cf/image.png'},
-    {name:'HTB CJCA', img:'https://images.credly.com/images/95043c37-e916-4e4e-96ab-06fb66056648/blob'}
+    {name:'Security+', img:'/images/certs/security-plus.png', framed:true},
+    {name:'Network+', img:'/images/certs/network-plus.png', framed:true},
+    {name:'ISC2 CC', img:'/images/certs/isc2-cc.png'},
+    {name:'AWS CCP', img:'/images/certs/aws-ccp.png'},
+    {name:'AZ-900', img:'/images/certs/az-900.png'},
+    {name:'HTB CJCA', img:'/images/certs/htb-cjca.png'}
   ];
   function tok(b, hidden){
     return '<span class="ed-badge'+(b.framed?' ed-badge--framed':'')+'"'+(hidden?' aria-hidden="true"':'')+

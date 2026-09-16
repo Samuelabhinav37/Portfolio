@@ -11,6 +11,7 @@ const NEWS_FEEDS = [
   { n: 'Krebs on Security', u: 'https://krebsonsecurity.com/feed/', site: 'https://krebsonsecurity.com' },
 ];
 const CACHE_TTL = 900; // 15 minutes
+const SNAPSHOT_TTL = 604800; // 7 days — long-lived last-known-good store, separate from the normal response cache
 const UA = 'Mozilla/5.0 (compatible; SignalFeedBot/1.0; +https://samuelabhinav.com)';
 const FETCH_TIMEOUT = 6000; // ms — a single slow/hanging upstream shouldn't stall the whole panel
 
@@ -107,6 +108,14 @@ export async function onRequestGet({ request }) {
   const cached = await cache.match(request);
   if (cached) return cached;
 
+  // Separate long-TTL cache entry used purely as a last-known-good snapshot,
+  // distinct from the normal short-TTL response cache above. Without this, a
+  // cold cache + every upstream failing/timing out would return {news:[],
+  // ctfs:[]} with a 200, and that empty result would itself get cached for
+  // the full 15-minute TTL — actively serving "nothing here" for up to 15
+  // minutes instead of the last real content.
+  const snapshotKey = new Request(request.url + (request.url.includes('?') ? '&' : '?') + '__snapshot=1');
+
   const [news, ctfs] = await Promise.all([
     fromNews().catch((err) => {
       console.error('Signal news fetch failed:', err);
@@ -118,7 +127,25 @@ export async function onRequestGet({ request }) {
     }),
   ]);
 
-  const response = json({ news, ctfs, generatedAt: Date.now() });
+  let payload = { news, ctfs, generatedAt: Date.now() };
+  const useful = news.length > 0 || ctfs.length > 0;
+
+  if (!useful) {
+    const snapHit = await cache.match(snapshotKey);
+    const prev = snapHit ? await snapHit.json().catch(() => null) : null;
+    if (prev) payload = { ...prev, stale: true };
+  }
+
+  const response = json(payload);
   await cache.put(request, response.clone());
+  if (useful) {
+    await cache.put(
+      snapshotKey,
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${SNAPSHOT_TTL}` },
+      })
+    );
+  }
   return response;
 }
