@@ -7,7 +7,24 @@
         she doesn't just sit there blinking. Skips when the document is
         hidden so she doesn't burn cycles in a background tab.
    Extracted from an inline <script> block — fully self-contained, no
-   dependency on the grid/filter script that used to sit above it. */
+   dependency on the grid/filter script that used to sit above it.
+
+   Deliberately NOT migrated onto luna-companion-core.js (unlike about/
+   contact/blog-post's companion scripts): the gaze-tracking, idle-action
+   scheduler, and discovery-quip/nudge logic below is otherwise near-
+   identical to the shared core and WOULD fit its cfg-object shape, but the
+   performance-trigger mechanism is genuinely different — this page fires
+   set-pieces on real scroll-depth milestones (mid-page "signal", near-
+   bottom "startle"+"patrol"), not the core's time-based dwellPerform
+   cycling. That's the same category of divergence documented in
+   index-luna-companion.js's own header for staying separate — not the
+   Vite-bundled-module-vs-plain-script difference (this page's
+   blog-luna-kb.js sibling proves that split alone doesn't block sharing;
+   it now consumes luna-kb-base.js just fine). Extending the core's cfg
+   shape to support a scroll-depth trigger mode would let this migrate
+   too, but wasn't attempted here — the dwell/scroll distinction runs
+   through several interacting closures (_perfBusy, the depth/nearBottom
+   flags) and deserves its own careful pass, not a rushed addition. */
 (function(){
   var f = document.getElementById('luna-frame');
 

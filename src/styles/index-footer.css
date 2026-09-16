@@ -1,0 +1,229 @@
+
+
+/* ===== v9 CRT VIDEO FOOTER (scoped, self-contained) ===== */
+#site-footer{
+  --fbg:#070710; --fink:#eef0f6; --fdim:#717890; --fline:rgba(220,225,235,0.12);
+  --faccent:#8fb8ff; --faccent-gray:#52565f;
+  --fserif:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fsans:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fmono:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fspec:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
+}
+footer#site-footer{
+    position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:rgba(4,4,10,0.9);
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0;
+    opacity:1; pointer-events:auto;   /* same calm panel as #editorial; ::before bloom sits on top */
+  }
+  footer#site-footer.fpin{ pointer-events:auto; opacity:1; }
+  /* Footer entrance — mirrors the project-tile reveal (scale + slide + fade), staggered.
+     Elements start hidden/shifted; .fenter (added by JS when footer calm crosses in)
+     animates them to rest. Same easing language as the tour tiles so it reads continuous. */
+  #site-footer .crt, #site-footer .f-eyebrow, #site-footer .f-tagline,
+  #site-footer .f-cta, #site-footer .f-copy, #site-footer .f-links{
+    opacity:0; transform:translateY(24px) scale(0.965);
+    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+  }
+  /* exit stagger (scroll up): reverse order — links leave first, CRT last */
+  #site-footer .f-links{transition-delay:0s}
+  #site-footer .f-copy{transition-delay:.06s}
+  #site-footer .f-cta{transition-delay:.12s}
+  #site-footer .f-tagline{transition-delay:.18s}
+  #site-footer .f-eyebrow{transition-delay:.24s}
+  #site-footer .crt{transition-delay:.30s}
+  #site-footer.fenter .crt{opacity:1; transform:translateY(0) scale(1); transition-delay:0s}
+  #site-footer.fenter .f-eyebrow{opacity:1; transform:translateY(0) scale(1); transition-delay:.12s}
+  #site-footer.fenter .f-tagline{opacity:1; transform:translateY(0) scale(1); transition-delay:.20s}
+  #site-footer.fenter .f-cta{opacity:1; transform:translateY(0) scale(1); transition-delay:.30s}
+  #site-footer.fenter .f-copy{opacity:1; transform:translateY(0) scale(1); transition-delay:.44s}
+  #site-footer.fenter .f-links{opacity:1; transform:translateY(0) scale(1); transition-delay:.46s}
+  @media (prefers-reduced-motion: reduce){
+    #site-footer .crt, #site-footer .f-eyebrow, #site-footer .f-tagline,
+    #site-footer .f-cta, #site-footer .f-copy, #site-footer .f-links{opacity:1; transform:none; transition:none}
+  }
+
+  /* soft halo behind the CRT — seats it in the space scene with a glow, the way the globe
+     has its own bloom, rather than a hard-edged panel pasted over the background */
+  footer#site-footer::before{
+    content:''; position:absolute; z-index:0; width:min(1900px,104vw); height:110vh;
+    left:50%; bottom:-18vh; transform:translateX(-50%);
+    background:radial-gradient(ellipse at 50% 70%, rgba(20,26,48,0.55) 0%, rgba(8,8,20,0.25) 45%, transparent 72%);
+    filter:blur(30px); pointer-events:none;
+  }
+  /* the CRT — a full terminal window, same grammar as the hero frame: 34px
+     titlebar (icons / mono title / status), screen below with the video as a
+     faint feed, corner brackets inside. 10px radius + the hero's triple glow
+     shadow so it reads as the same physical object returning at page end. */
+  /* Sized to match #signal's "Security news" + "On rotation" cards combined —
+     same width formula as .sig-inner (max 1500px minus its clamp(24-80px)
+     side padding, twice) and the same measured rendered height of that grid. */
+  .f-card{
+    position:relative; z-index:1; width:min(1340px, calc(100vw - clamp(48px,10vw,160px))); min-height:560px; margin:158px auto 0;
+    display:flex; align-items:center; justify-content:space-between; gap:56px;
+    padding:96px 64px; border-radius:20px; overflow:visible;
+    background:linear-gradient(155deg, rgba(15,17,27,0.94) 0%, rgba(7,7,14,0.90) 55%, rgba(3,3,8,0.94) 100%);
+    border:1px solid rgba(var(--c-white),0.07);
+    box-shadow:0 60px 130px -35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(var(--c-white),0.04);
+  }
+  /* dot-grid + bottom bloom — same device as the reference hero mock, tinted
+     into the site's own blue (the exact tone already used in #term-window's
+     box-shadow) rather than the reference's amber. Dot-grid favors the left
+     column where the copy lives; the bloom rises from the bottom edge. */
+  .f-card::before{
+    content:''; position:absolute; inset:0; z-index:0; opacity:.4; pointer-events:none; border-radius:inherit;
+    background-image:radial-gradient(rgba(var(--c-ice),0.6) 1px, transparent 1.5px);
+    background-size:22px 22px;
+    -webkit-mask-image:radial-gradient(ellipse 70% 65% at 28% 50%, #000 0%, transparent 75%);
+            mask-image:radial-gradient(ellipse 70% 65% at 28% 50%, #000 0%, transparent 75%);
+  }
+  .f-card::after{
+    content:''; position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit;
+    background:radial-gradient(ellipse 60% 50% at 38% 112%, rgba(96,132,196,0.42), transparent 68%);
+  }
+  /* faint grain + a fine diagonal grid sheen so the card reads as a textured
+     surface rather than a flat gradient fill; sits behind the text/crt layers. */
+  .f-card-tex{ position:absolute; inset:0; z-index:0; border-radius:inherit; overflow:hidden; pointer-events:none; }
+  .f-card-tex::before{
+    content:''; position:absolute; inset:-20%; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .f-card-tex::after{
+    content:''; position:absolute; inset:0; opacity:.55;
+    background:
+      linear-gradient(122deg, rgba(var(--c-white),0.06) 0%, transparent 32%),
+      linear-gradient(rgba(var(--c-white),.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--c-white),.035) 1px, transparent 1px);
+    background-size:auto, 42px 42px, 42px 42px;
+    -webkit-mask-image:radial-gradient(120% 100% at 26% 18%, #000 42%, transparent 100%);
+    mask-image:radial-gradient(120% 100% at 26% 18%, #000 42%, transparent 100%);
+  }
+  .f-left{
+    position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center;
+    gap:18px; flex:1 1 300px; max-width:540px;
+  }
+  /* the terminal/recon-map panel is now the card's visual hook — same object as
+     before, just reframed to pop out of the card's top-right edge like a photo,
+     floating along the same top-right diagonal the reference image sits on. A
+     slight rotation gives it an intentionally "placed" artistic tilt rather than
+     sitting flush/aligned with the card. Fixed aspect ratio (not vh) so it stays
+     a wide landscape rectangle instead of squashing into a taller/squarer crop. */
+  .crt{
+    position:relative; z-index:3; align-self:flex-start;
+    width:min(320px,26%); aspect-ratio:240/427; height:auto; flex:0 0 auto;
+    border-radius:12px; overflow:hidden; background:#000;
+    margin:-190px -30px 0 0;
+    box-shadow:0 60px 130px -18px rgba(0,0,0,0.82),
+               0 0 0 1px rgba(var(--c-white),0.06),
+               0 0 140px 24px rgba(90,120,185,0.10);
+    display:flex; flex-direction:column;
+    transform:translateZ(0) rotate(-1.6deg); will-change:transform; contain:layout paint;
+  }
+  .crt-inner{
+    position:relative; flex:1; min-height:0; width:100%;
+    display:flex; flex-direction:column;
+  }
+  @media (--bp-980){
+    /* The CRT (live ascii.cam video render) is the heaviest thing in the
+       footer — dropped entirely on phone/tablet rather than shrunk, same
+       call as the globe. index-ascii-footer.js skips booting it under
+       LOW_POWER so the video/canvas loop never runs either. */
+    .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
+    .f-left{ max-width:none; }
+    .crt{ display:none; }
+    /* .f-links wraps below .f-copy at this width and was landing directly
+       under Luna's fixed 120px corner widget (she docks to bottom:16px on
+       mobile) — real, confirmed overlap, not just visually close. Extra
+       bottom padding pushes the whole row up clear of her footprint. */
+    .f-bottom{ padding-bottom:170px; }
+  }
+  /* ascii.cam widget — ported from the About page's skills card, same spot
+     the CRT recon map used to occupy. Renders a baked-in default clip (or a
+     dropped/picked video or photo) as a live luminance-ramp ASCII render. */
+  .ascii-card{ position:relative; flex:1; min-height:0; display:flex; flex-direction:column; }
+  .ascii-stage{ flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; background:#050506; }
+  .ascii-out{ margin:0; white-space:pre; font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;
+    color:rgba(var(--c-white),0.84); font-size:2px; line-height:2px; letter-spacing:0; }
+  /* subtle screen-curve via inset shadow + a faint vignette so edges fall into the bezel */
+  .crt-curve{
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:radial-gradient(140% 42% at 50% -8%, rgba(var(--c-white),0.05), transparent 60%),
+               radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.48) 100%);
+    box-shadow:inset 0 0 90px 16px rgba(0,0,0,0.5), inset 0 0 220px 40px rgba(0,0,0,0.26);
+  }
+  /* scanlines — thin horizontal dark lines, classic CRT phosphor rows */
+  .crt-scan{
+    position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.6;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.28) 3px, rgba(0,0,0,0) 4px);
+  }
+  /* faint flicker — very subtle brightness pulse, the CRT "alive" cue */
+  .crt-flicker{position:absolute; inset:0; z-index:2; pointer-events:none; background:rgba(var(--c-white),0.015); animation:flicker 5s steps(60) infinite}
+  @keyframes flicker{0%,100%{opacity:.3}50%{opacity:.7}92%{opacity:.4}94%{opacity:.9}96%{opacity:.5}}
+  @media (prefers-reduced-motion: reduce){ .crt-flicker{animation:none} }
+  /* grain, kept from the styled version */
+  .f-grain{position:absolute; inset:-20%; z-index:2; pointer-events:none; opacity:.06; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    animation:grainShift 2.4s steps(3) infinite; will-change:transform; transform:translateZ(0)}
+  @keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-1%,1%)}50%{transform:translate(1%,-1%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}}
+
+  .f-eyebrow{
+    font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:#a6abba; margin:0 0 8px; display:flex; align-items:center; gap:6px;
+  }
+  .f-eyebrow::before{
+    content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.95);
+    box-shadow:0 0 6px 1px rgba(120,225,170,0.55), 0 0 14px 3px rgba(120,225,170,0.35);
+    animation:dotGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes dotGlow{
+    0%,100%{box-shadow:0 0 6px 1px rgba(120,225,170,0.55), 0 0 14px 3px rgba(120,225,170,0.35)}
+    50%{box-shadow:0 0 10px 3px rgba(120,225,170,0.7), 0 0 22px 7px rgba(120,225,170,0.5)}
+  }
+  @media (prefers-reduced-motion: reduce){ .f-eyebrow::before{animation:none} }
+  .f-tagline{font-family:var(--fsans); font-style:normal; font-weight:400; color:var(--fink);
+    font-size:clamp(27px,2.6vw,34px); line-height:1.34; letter-spacing:-0.01em; white-space:nowrap; margin:0; text-shadow:0 4px 24px rgba(0,0,0,.55)}
+  @media (--bp-820){ .f-tagline{ white-space:normal; } }
+  /* rotating word — four words cross-fade in an 8s loop, one every 2s. All
+     words share one grid cell (instead of being absolutely positioned) so the
+     box sizes to natural line height and sits on the same baseline as the
+     rest of the sentence — no manual height/vertical-align guessing needed. */
+  .rotator{ position:relative; display:inline-grid; min-width:185px; overflow:hidden; vertical-align:baseline; }
+  .rotating-word{ grid-row:1; grid-column:1; white-space:nowrap; opacity:0; transform:translateY(55%);
+    animation:wordRotate 8s ease-in-out infinite; }
+  .rotating-word:nth-child(2){ animation-delay:2s; }
+  .rotating-word:nth-child(3){ animation-delay:4s; }
+  .rotating-word:nth-child(4){ animation-delay:6s; }
+  @keyframes wordRotate{
+    0%,3%{ opacity:0; transform:translateY(55%); }
+    8%,17%{ opacity:1; transform:translateY(0); }
+    22%,100%{ opacity:0; transform:translateY(-55%); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .rotator{ overflow:visible; }
+    .rotating-word{ animation:none; opacity:0; }
+    .rotating-word:first-child{ opacity:1; }
+  }
+  .f-cta{
+    font-family:var(--fsans); font-weight:500; font-size:14px; letter-spacing:0; text-transform:none;
+    color:rgba(238,241,247,0.94); text-decoration:none; background:rgba(var(--c-white),0.06); border-radius:6px;
+    border:1px solid rgba(226,232,244,0.14);
+    padding:11px 19px; white-space:nowrap; transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .5s ease, background .5s ease, box-shadow .5s ease;
+    display:inline-flex; align-items:center; gap:5px; position:relative; align-self:flex-start;
+  }
+  .f-cta .arrow{display:inline-block; transition:transform .5s cubic-bezier(.16,1,.3,1)}
+  .f-cta:hover{transform:translateY(-1px); background:rgba(var(--c-white),0.11); border-color:rgba(226,232,244,0.4); box-shadow:0 0 0 1px rgba(226,232,244,0.06), 0 10px 30px -14px rgba(0,0,0,0.8)}
+  .f-cta:hover .arrow{transform:translateX(5px)}
+
+  .f-bottom{
+    position:relative; z-index:1; width:min(1760px,92vw); margin:44px auto 0;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:20px; padding:22px 4px 40px; flex-wrap:wrap; border-top:1px solid var(--fline);
+  }
+  .f-copy{font-family:var(--fsans); font-size:10.5px; letter-spacing:.05em; color:#7a8098}
+  .f-links{display:flex; align-items:center; gap:14px; font-family:var(--fsans); font-weight:500; font-size:10.5px;
+    letter-spacing:.14em; text-transform:uppercase}
+  .f-links a{color:rgba(226,232,244,0.52); text-decoration:none; transition:color .25s; display:inline-flex; align-items:center; gap:6px}
+  .f-links a:hover{color:rgba(238,241,247,0.95)}
+  .f-links .sep{color:rgba(226,232,244,0.18)}
+  .f-links .fic{ width:12.5px; height:12.5px; fill:currentColor; opacity:0.9; flex:none; }
+  .f-links .fic.line{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+
+

@@ -1,0 +1,518 @@
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%;
+  background:var(--c-bg);
+  overflow-x:clip;   /* clip (not hidden) so it doesn't create a scroll container that breaks position:sticky */
+}
+html { height:auto; }
+body { min-height:100%; }
+
+/* Screen-reader-only: visually hidden but available to assistive tech.
+   The focusable variant becomes visible when tabbed to (the skip link). */
+.sr-only{
+  position:absolute !important; width:1px; height:1px;
+  padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0);
+  white-space:nowrap; border:0;
+}
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-visible{
+  position:fixed !important; top:10px; left:10px;
+  width:auto; height:auto; margin:0; padding:8px 14px; clip:auto;
+  z-index:100000; background:var(--c-bg); color:#d6e0f4;
+  border:1px solid rgba(214,224,244,.4); border-radius:6px;
+  font:13px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.04em;
+}
+
+/* ── T2 geometry: written by JS each frame, never authored by hand ───── */
+:root{
+  --gt-x:0px; --gt-y:0px; --gt-w:100vw; --gt-h:100vh; --gt-h:100svh; --gt-r:0px;
+  --gt-chrome:0; --gt-o:1; --gt-bar:34px;
+  --gl-x:0px; --gl-y:0px; --gl-s:100vh; --gl-s:100svh;
+  --rail-o:0;
+}
+#globe-term{
+  position:relative; z-index:1;
+  width:100%; height:100vh; height:100svh;
+  overflow:hidden;                 /* keeps the globe + chrome inside the section */
+  pointer-events:none; opacity:1;
+  background:rgba(4,4,10,0.9);     /* same calm panel as #editorial for a continuous field */
+}
+/* box-shadow copied verbatim from T3's .crt so the two frames read as the same
+   object. Background stays translucent rather than T3's #000: the nebula and
+   ships have to remain visible behind this one. */
+#globe-term::before{
+  content:''; position:absolute; inset:0; z-index:6; pointer-events:none;
+  border-radius:inherit; opacity:var(--gt-chrome);
+  background:rgba(3,4,10,0.16);
+  box-shadow:0 0 60px 10px rgba(var(--c-white),0.04),
+             0 0 170px 36px rgba(90,120,185,0.12);
+}
+#globe-term .gt-chrome{ position:absolute; inset:0; z-index:5;
+  pointer-events:none; opacity:var(--gt-chrome); border-radius:inherit; overflow:hidden; }
+#globe-gl{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(86vh,86vw); height:min(86vh,86vw); display:block; z-index:1;
+  pointer-events:none; opacity:0; transition:opacity .8s ease; }
+body.globe-active #globe-gl{ opacity:1; }
+#globe-term .gt-bar{
+  position:absolute; top:0; left:0; right:0; height:34px; z-index:7;   /* 34px = T3's .fterm-bar */
+  display:flex; align-items:center; gap:9px; padding:0 13px;
+  background:rgba(16,16,16,0.98); border-bottom:1px solid rgba(188,217,255,0.13);
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9.5px;
+  letter-spacing:0.16em; text-transform:uppercase; color:rgba(238,241,247,0.42); }
+#globe-term .gt-led{ width:5px; height:5px; border-radius:50%; background:#bcd9ff; opacity:.55; }
+#globe-term .gt-sweep{ position:absolute; left:0; right:0; height:38%; z-index:8; opacity:0; top:-40%;
+  pointer-events:none;
+  background:linear-gradient(to bottom, transparent, rgba(188,217,255,0.16) 46%, rgba(var(--c-white),0.30) 52%, transparent); }
+#globe-term.sweep .gt-sweep{ animation:gtSweep .52s cubic-bezier(.5,0,.4,1); }
+@keyframes gtSweep{ 0%{opacity:1; top:-40%} 100%{opacity:1; top:110%} }
+#globe-term.capture .crt-scan{ animation:gtGlitch .42s steps(8); }
+@keyframes gtGlitch{ 0%,100%{opacity:.40} 20%{opacity:.95} 40%{opacity:.10} 60%{opacity:.85} 80%{opacity:.28} }
+
+/* ── host chrome: rail + the metadata evicted from inside T2 ─────────── */
+#case-rail{ position:fixed; left:clamp(16px,3vw,48px); top:14vh;
+  width:clamp(160px,17vw,240px); z-index:1100; opacity:var(--rail-o);   /* was 471, under the drawer at 1200 */
+  transform:translateX(calc((1 - var(--rail-o)) * -12px)); pointer-events:none; }
+/* Parent stays none so it never blocks the canvas; the BUTTONS carry their
+   own auto, which works through a pointer-events:none ancestor. Visibility
+   is what gates them, so an invisible rail cannot be clicked. */
+#case-rail button, #case-rail a{ pointer-events:auto; }
+#case-rail .cr-head{ display:flex; justify-content:space-between; padding:0 0 10px;
+  border-bottom:1px solid rgba(188,217,255,0.30); }
+#case-rail .cr-lbl{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9.5px;
+  letter-spacing:0.16em; text-transform:uppercase; color:rgba(238,241,247,0.40); }
+#case-rail ul{ list-style:none; margin:0; padding:0; }
+#case-rail button{ position:relative; display:grid; grid-template-columns:auto 1fr;
+  align-items:baseline; gap:10px; width:100%; background:none; border:0;
+  border-bottom:1px solid rgba(188,217,255,0.13); padding:12px 4px 12px 0;
+  text-align:left; cursor:pointer; color:rgba(238,241,247,0.40); font:inherit;
+  transition:color .3s, background .3s, padding-left .3s; }
+#case-rail button:hover{ color:#eef1f7; background:rgba(188,217,255,0.035); padding-left:9px; }
+#case-rail .cr-id{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:10px;
+  letter-spacing:0.06em; color:rgba(238,241,247,0.22); transition:color .3s; }
+#case-rail .cr-nm{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:18px;
+  line-height:1.15; color:currentColor; }
+#case-rail button[aria-selected="true"]{ color:#eef1f7; padding-left:9px; }
+#case-rail button[aria-selected="true"] .cr-id{ color:#bcd9ff; }
+#case-rail button[aria-selected="true"] .cr-nm{ font-style:italic; }
+#case-rail button[aria-selected="true"]::before{ content:''; position:absolute; left:0; top:50%;
+  width:2px; height:19px; margin-top:-9px; background:#bcd9ff; }
+/* the case detail: title, metric and spec, all of which used to be inside T2 */
+#cr-detail{ display:none; }   /* names only; the case detail lives in T2 */
+#cr-detail .cd-kick{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9px;
+  letter-spacing:0.24em; text-transform:uppercase; color:rgba(150,190,255,0.55); }
+#cr-detail .cd-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; font-size:2.5rem;
+  line-height:1; margin:5px 0 3px; color:#eef1f7; }
+#cr-detail .cd-cap{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-style:italic; font-size:14px;
+  line-height:1.35; color:rgba(238,241,247,0.50); margin:0 0 16px; }
+#cr-detail .cd-metric{ display:flex; align-items:baseline; gap:8px; padding:0 0 14px;
+  border-bottom:1px solid rgba(188,217,255,0.13); }
+#cr-detail .cd-mv{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:1.5rem; color:#bcd9ff; }
+#cr-detail .cd-ml{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.18em;
+  text-transform:uppercase; color:rgba(238,241,247,0.38); }
+#cr-detail ul.cd-spec{ list-style:none; margin:0; padding:0; }
+#cr-detail .cd-spec li{ padding:9px 0; border-bottom:1px solid rgba(188,217,255,0.09); }
+#cr-detail .cd-k{ display:block; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8px;
+  letter-spacing:0.24em; text-transform:uppercase; color:rgba(238,241,247,0.32); margin-bottom:3px; }
+#cr-detail .cd-v{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11.5px; line-height:1.45;
+  color:rgba(238,241,247,0.82); }
+#cr-detail .cd-more{ display:inline-flex; gap:7px; margin-top:16px; text-decoration:none;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9.5px; letter-spacing:0.16em;
+  text-transform:uppercase; color:rgba(238,241,247,0.55);
+  border-bottom:1px solid rgba(188,217,255,0.22); padding-bottom:3px; transition:.25s; }
+#cr-detail .cd-more:hover{ color:#bcd9ff; border-color:rgba(188,217,255,0.55); }
+@media (--bp-980){
+  #case-rail{ left:4vw; right:4vw; width:auto; top:9vh; }
+  #case-rail ul{ display:flex; gap:6px; }
+  #case-rail li{ flex:1; }
+  #case-rail button{ grid-template-columns:1fr; gap:2px; padding:8px; }
+  #case-rail button[aria-selected="true"]::before{ top:auto; bottom:-1px; left:0; right:0;
+    width:auto; height:2px; margin:0; }
+  #cr-detail{ display:none; }
+}
+
+/* ── Luna's speech: a small quip card above her head — used to sit to her
+   left, but that ate horizontal space and clashed with nearby content, so
+   it now docks directly over #luna-wrap instead (same right:18px anchor,
+   positioned by "bottom" so it always clears her regardless of viewport). ── */
+#luna-quip{
+  position:fixed; right:18px; top:auto; bottom:calc(34vh - 70px);
+  z-index:999; max-width:min(180px,60vw); text-align:right; pointer-events:none;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size:12.5px; line-height:1.45; letter-spacing:0.01em;
+  color:rgba(226,232,240,0.92);
+  background:rgba(10,11,16,0.82); border:1px solid rgba(205,214,226,0.14);
+  border-radius:12px; padding:9px 13px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  opacity:0; transform:translateY(6px) scale(0.98);
+  transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
+}
+#luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
+#luna-quip .lq-cursor{ color:rgba(202,210,226,0.6); }
+#luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
+#luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
+#luna-quip .lq-hint{ display:block; margin-top:5px; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(202,210,226,0.5); }
+@media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
+
+/* ── Intro ── */
+/* (intro-vignette removed — wordmark sits over the live boot, no dark veil) */
+
+#intro-logo {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) translateY(10px);
+  z-index: 9001; pointer-events: none;
+  display: flex; align-items: baseline; gap: 0.55rem;
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1),
+              transform 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+#intro-logo.in { opacity: 1; transform: translate(-50%, -50%) translateY(0px); }
+#intro-logo h1 {
+  font-family: 'Cormorant Garamond', serif;
+  /* fixed 2.80rem (44.8px) had no mobile fallback — "Samuel " + italic
+     "Abhinav" side by side at that size runs close to or past the edges of
+     a ~320-360px phone viewport and silently clips (page uses overflow-x:clip,
+     so no scrollbar to reveal it, just a cut-off wordmark). */
+  font-size: clamp(1.9rem, 9vw, 2.80rem); font-weight: 400;
+  color: rgba(var(--c-white),0.92); letter-spacing: 0.01em;
+}
+#intro-logo .port {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.9rem, 9vw, 2.80rem); font-weight: 400;
+  font-style: italic; color: rgba(var(--c-white),0.6);
+}
+
+/* ── intro idle glitch: monochrome char-scramble + split (HELLO DRIBBBLE style) ── */
+#intro-logo .gtxt { position:relative; }
+#intro-logo .gtxt::before, #intro-logo .gtxt::after {
+  content:attr(data-text); position:absolute; top:0; left:0; width:100%;
+  overflow:hidden; opacity:0; pointer-events:none;
+}
+#intro-logo .gtxt::before { color:rgba(var(--c-white),0.95); }   /* white ghost, shifts left */
+#intro-logo .gtxt::after  { color:rgba(150,150,150,0.9); }    /* gray ghost, shifts right */
+#intro-logo .port .gtxt::before { color:rgba(var(--c-white),0.55); }
+#intro-logo .port .gtxt::after  { color:rgba(150,150,150,0.5); }
+#intro-logo.glitch-flick .gtxt::before { opacity:.55; transform:translate(-1.5px,0); }
+#intro-logo.glitch-flick .gtxt::after  { opacity:.5;  transform:translate(1.5px,0); }
+@media (prefers-reduced-motion: reduce){
+  #intro-logo.glitch-flick .gtxt::before, #intro-logo.glitch-flick .gtxt::after { opacity:0 !important; transform:none !important; }
+}
+
+/* system-sans direction: keep live numeric readouts on tabular figures so
+   ticking digits don't shift width each update */
+.ptile--spec .v, .ptile--metric .mv,
+#cr-detail .cd-v, #cr-detail .cd-mv { font-variant-numeric: tabular-nums; }
+
+
+/* ── Luna portal arrival ── */
+#luna-portal {
+  position:fixed;
+  right:18px; top:calc(66vh + 80px);  /* concentric with Luna's new box */
+  width:120px; height:120px;
+  border-radius:50%;
+  z-index:998;
+  pointer-events:none; opacity:0;
+  background:radial-gradient(circle,
+    rgba(160,195,255,0.22) 0%,
+    rgba(130,170,245,0.10) 38%,
+    rgba(120,160,240,0.03) 58%,
+    transparent 72%);                  /* soft bloom, no hard ring — she coalesces from light */
+  box-shadow:0 0 18px 2px rgba(120,170,255,0.10);
+}
+#luna-portal.opening {
+  animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes lunaPortal {
+  0%   { opacity:0;    transform:scale(1.12); }   /* a faint wide gather */
+  38%  { opacity:0.55; transform:scale(1.00); }   /* light draws onto her — she arrives */
+  100% { opacity:0;    transform:scale(0.97); }   /* quietly fades */
+}
+/* Below 900px #luna-wrap docks to the bottom-right corner instead of its
+   vh-based spot (see PortfolioLunaShell.astro's .luna-hidden rule) — keep
+   the arrival bloom and speech bubble anchored to that same corner so they
+   still read as "at her" instead of floating at the old mid-page position. */
+@media (--bp-900){
+  #luna-portal{ top:auto; bottom:16px; right:14px; }
+  #luna-quip{ bottom:146px; }
+}
+
+/* ── chrome dampening — soft dark pools that keep the UI legible over the
+      brightened canvas; sits above the canvas, below the chrome; fades in
+      together with the canvas brightness lift on Luna's arrival ── */
+#chrome-damp {
+  position:fixed; inset:0; z-index:600;
+  pointer-events:none; opacity:0;
+  transition:opacity 1.3s ease;
+  background:
+    radial-gradient(ellipse 780px 110px at 50% 18px,
+      rgba(6,7,16,0.62) 0%, rgba(6,7,16,0) 72%),
+    radial-gradient(ellipse 260px 260px at calc(100% - 64px) calc(9vh + 50px),
+      rgba(6,7,16,0.20) 0%, rgba(6,7,16,0) 70%);
+}
+
+/* pullback CSS removed — terminal window replaces the window-wall */
+
+
+/* ════════════════ Terminal window — floating CRT, Beat 1 expands to fullscreen ════════════════ */
+#term-stage {
+  position:relative; z-index:1;
+  width:100%; min-height:100vh; min-height:100svh;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 1.1s cubic-bezier(0.22,1,0.36,1);
+}
+body.intro-done #term-stage { opacity:1; }
+#term-window {
+  position:relative; pointer-events:auto;
+  width:68vw; height:70vh;
+  transform:translateY(0);             /* centered; beat 1 keeps y at 0 while expanding */
+  border-radius:10px;
+  display:flex; flex-direction:column; overflow:hidden;
+  border:none;
+  box-shadow:
+    0 0 60px 10px rgba(var(--c-white),0.04),
+    0 0 170px 36px rgba(90,120,185,0.12),
+    0 40px 90px rgba(0,0,0,0.80);
+  will-change:transform;
+}
+#term-window::before {
+  content:''; position:absolute; inset:0; z-index:200; pointer-events:none; border-radius:inherit;
+  background:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 4px);
+}
+#term-window::after {
+  content:''; position:absolute; inset:0; z-index:199; pointer-events:none; border-radius:inherit;
+  background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,0.34) 100%);
+}
+#term-titlebar {
+  position:relative; z-index:201; width:100%; height:34px; flex-shrink:0;
+  background:rgba(16,16,16,0.98); border-bottom:1px solid rgba(var(--c-white),0.07);
+  display:flex; align-items:center; justify-content:space-between; padding:0 16px; user-select:none;
+}
+#term-icons { display:flex; align-items:center; gap:11px; }
+#term-icons .ticon { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.82rem; color:rgba(var(--c-white),0.24); line-height:1; }
+#term-title {
+  position:absolute; left:50%; transform:translateX(-50%);
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.65rem; color:rgba(var(--c-white),0.22); text-transform:uppercase;
+  letter-spacing:0.10em; white-space:nowrap; pointer-events:none;
+}
+#term-status { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.52rem; color:rgba(var(--c-white),0.12); letter-spacing:0.14em; text-transform:uppercase; }
+#term-screen { position:relative; flex:1; background:var(--c-bg); overflow:hidden; }
+.tcorner { position:absolute; z-index:10; width:20px; height:20px; border-color:rgba(var(--c-white),0.10); border-style:solid; }
+.tcorner.tl { top:20px; left:20px;  border-width:1px 0 0 1px; }
+.tcorner.tr { top:20px; right:20px; border-width:1px 1px 0 0; }
+.tcorner.bl { bottom:20px; left:20px;  border-width:0 0 1px 1px; }
+.tcorner.br { bottom:20px; right:20px; border-width:0 1px 1px 0; }
+#term-feed { position:absolute; inset:0; pointer-events:none; }
+/* poster (a real, compressed still pulled from the video's own first frame) paints
+   instantly and carries the same filter, so on a slow connection the CRT shows a
+   frozen frame of the feed rather than a loading state — the video fades in over
+   it once playable and the swap reads as "it started moving", not "it loaded". */
+#term-feed-video { width:100%; height:100%; object-fit:cover; display:block;
+  filter:grayscale(1) contrast(1.08) brightness(0.95); background:#000; }
+
+/* Pinned hero tagline — inset from the .tcorner brackets, bottom-left of the
+   CRT feed. Fades in with the rest of the hero chrome on body.intro-done, a
+   beat after the stage itself so it reads as a second, deliberate reveal.
+   No scrim needed: the video's own grayscale/contrast filter above already
+   keeps it dark enough for white text to read cleanly. */
+#hero-tagline { position:absolute; z-index:11; left:52px; right:52px; bottom:48px; max-width:760px;
+  pointer-events:none; opacity:0; transition:opacity 1.1s cubic-bezier(0.22,1,0.36,1); transition-delay:.4s; }
+body.intro-done #hero-tagline { opacity:1; }
+#hero-tagline p { margin:0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500;
+  font-size:clamp(28px,3.4vw,44px); line-height:1.15; letter-spacing:-0.005em;
+  color:rgba(var(--c-white),0.92); text-shadow:0 4px 20px rgba(0,0,0,0.65); }
+#hero-tagline-cursor { display:inline-block; margin-left:1px; color:rgba(var(--c-white),0.65);
+  animation:heroCursorBlink .95s step-start infinite; }
+@keyframes heroCursorBlink { 50%{ opacity:0; } }
+/* Functional positioning line — the mood copy above says nothing about who I
+   am or what I do, and (per an audit) that information otherwise only exists
+   in sr-only/meta text a sighted visitor never sees. Secondary weight/size so
+   it reads as the plain-facts line under the atmosphere, not competing with it. */
+#hero-tagline .hero-tagline-sub { margin:14px 0 0; font-weight:400;
+  font-size:clamp(15px,1.3vw,18px); line-height:1.5; letter-spacing:0;
+  color:rgba(var(--c-white),0.72); max-width:58ch; }
+@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:34px; } #hero-tagline .hero-tagline-sub { max-width:100%; } }
+@media (prefers-reduced-motion: reduce) { #hero-tagline-cursor { animation:none; } }
+
+/* ════ Globe arc overlays ════ */
+/* GUEST of T2, so window-relative. Edited in place rather than overridden
+   earlier in the sheet, because this rule is the one that wins. */
+#globe-labels { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.glbl { position:absolute; transform:translateY(-50%); padding-left:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size:11px; letter-spacing:0.22em; color:rgba(214,226,250,0.95); white-space:nowrap;
+  pointer-events:auto; cursor:pointer; opacity:0; transition:opacity .25s ease;
+  text-shadow:0 0 12px rgba(20,30,60,0.9); }
+/* the dot IS the node marker: anchor its CENTRE exactly on the projected node
+   point (the JS sets the element's left/top to that point), text offset to the
+   right. Was translate(-50%,-50%) which centred the TEXT on the node and left
+   the dot ~half-the-text-width to the left — hence the "labels off the globe". */
+.glbl::before { content:''; position:absolute; left:0; top:50%; width:6px; height:6px;
+  margin-left:-3px; margin-top:-3px; border-radius:50%; background:rgba(150,185,255,0.9); box-shadow:0 0 10px rgba(150,200,255,0.9); }
+.glbl:hover { color:#fff; }
+/* signal tier — the knowledge-field / neighbor labels: whisper-size telemetry text.
+   Non-interactive atmosphere; opacity driven per-frame (facing + phase). */
+.gsig { position:absolute; transform:translateY(-50%); padding-left:11px;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.16em;
+  color:rgba(190,208,240,0.85); white-space:nowrap; pointer-events:none; opacity:0; z-index:640; }
+.gsig::before { content:''; position:absolute; left:0; top:50%; width:3px; height:3px;
+  transform:translateY(-50%); border-radius:50%; background:rgba(170,195,240,0.8); }
+.gsig.sig-n { color:rgba(210,224,250,0.95); font-size:9px; }   /* neighbor tier: a step brighter */
+
+/* ════════════════ Project tour — blueprint window clusters ════════════════
+   Each project shows an asymmetric stack of windows (one large blueprint image +
+   offset title / spec / metric tiles) that stagger in as the globe lands. A focus
+   scrim darkens the background during each hold so the windows read clearly. Swap
+   real photos via the <img> src; the blueprint duotone stays in CSS. */
+#tour-scrim { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:0;
+  background:radial-gradient(150% 120% at 50% 46%, rgba(3,4,10,0.90) 0%, rgba(1,2,6,0.985) 68%); }
+#project-cards { position:absolute; inset:var(--gt-bar) 0 0 0; z-index:3; pointer-events:none; display:none; }
+.pcluster { position:absolute; top:50%; right:4%; width:min(440px,34%); height:540px; transform:translateY(-50%); }
+.ptile { position:absolute; opacity:0; pointer-events:none; }
+/* will-change is applied per-tile in JS only while the tile's cluster is
+   focused, then cleared — permanent promotion on all 21 tiles wastes GPU memory. */
+.ptile.live { pointer-events:auto; }
+/* v9's composition, restored inside T2. The element count was never the real
+   problem: the terminal RESIZING under them was. Now that it is born at final
+   size and only translates, the original layout holds. */
+.ptile--title { top:0; right:8px; text-align:right; }
+.ptile--title .pk { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; letter-spacing:0.34em;
+  text-transform:uppercase; color:rgba(226,232,244,0.74); margin-bottom:5px; }
+.ptile--title .pt { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; font-size:3.6rem; line-height:0.9;
+  color:#eef3ff; letter-spacing:-0.005em; text-shadow:0 0 24px rgba(210,220,240,0.14); }
+.ptile--img { top:72px; left:0; width:min(300px,96%); }
+.pblue { position:relative; width:100%; aspect-ratio:4/3; overflow:hidden;
+  border:1px solid rgba(226,232,244,0.30); background:#0a0a0b; }
+/* fine blueprint grid + soft core glow — shown only when no real image is loaded,
+   so the empty state reads as a schematic viewport rather than a blank void */
+.pblue--empty { background-image:
+    repeating-linear-gradient(0deg, rgba(226,232,244,0.06) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(90deg, rgba(226,232,244,0.06) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(0deg, rgba(226,232,244,0.12) 0 1px, transparent 1px 52px),
+    repeating-linear-gradient(90deg, rgba(226,232,244,0.12) 0 1px, transparent 1px 52px),
+    radial-gradient(130% 110% at 50% 50%, rgba(120,134,160,0.16), transparent 68%); }
+.pblue img { width:100%; height:100%; object-fit:cover; display:block; mix-blend-mode:screen; opacity:0.92;
+  filter:grayscale(1) contrast(0.92) brightness(0.82) blur(0.4px); }
+/* light-background source images (white-paper diagrams) invert first so the sheet
+   drops into the dark tile and the line-art glows, matching the dark screenshots */
+.pblue--invert img { filter:invert(1) grayscale(1) contrast(0.96) brightness(0.85) blur(0.4px); }
+/* ── scene integration: dissolve the loaded screenshots into the starfield.
+   feather every edge so the rectangle melts into the dark, drop the hard frame,
+   and lay film grain over the content so tile and scene share one surface. */
+.pblue:not(.pblue--empty){ background:transparent; border-color:transparent; }
+.pblue:not(.pblue--empty) img{
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); mask-composite:intersect; }
+.pblue:not(.pblue--empty)::before{ display:none; }
+.pblue:not(.pblue--empty)::after{ background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' preserveAspectRatio='none'><g stroke='rgb(216,216,220)' stroke-width='1' opacity='0.32'><path d='M27 30h14M34 23v14'/><path d='M359 30h14M366 23v14'/><path d='M27 270h14M34 263v14'/><path d='M359 270h14M366 263v14'/></g><g stroke='white' stroke-width='0.7' fill='none'><line x1='88' y1='20' x2='86' y2='280' opacity='0.15'/><line x1='210' y1='42' x2='212' y2='300' opacity='0.1'/><line x1='322' y1='0' x2='321' y2='214' opacity='0.16'/></g><g fill='white'><circle cx='120' cy='70' r='1.1' opacity='0.28'/><circle cx='262' cy='108' r='0.8' opacity='0.22'/><circle cx='182' cy='200' r='1.3' opacity='0.26'/><circle cx='340' cy='240' r='0.9' opacity='0.2'/><circle cx='60' cy='152' r='0.7' opacity='0.22'/><circle cx='300' cy='58' r='1.0' opacity='0.24'/><circle cx='150' cy='122' r='0.6' opacity='0.18'/><circle cx='232' cy='252' r='0.8' opacity='0.22'/></g></svg>") 0 0/100% 100% no-repeat, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='tg'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23tg)' opacity='0.6'/></svg>") 0 0/160px 160px, repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 4px), radial-gradient(120% 120% at 50% 45%, transparent 44%, rgba(0,0,0,0.66) 100%); mix-blend-mode:overlay; opacity:.66;
+  box-shadow:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); mask-composite:intersect; }
+/* depth: push the two flanking frames back so the hero reads first (opacity only,
+   so PRISM's invert filter is preserved) */
+.ptile--limg .pblue:not(.pblue--empty) img{ opacity:.58; }
+.ptile--img  .pblue:not(.pblue--empty) img{ opacity:.78; }
+
+/* engineering corner brackets — always frame the viewport (over image too) */
+.pblue::before { content:''; position:absolute; inset:0; pointer-events:none; z-index:3;
+  background:
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 0/15px 1px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 0/1px 15px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 0/15px 1px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 0/1px 15px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 100%/15px 1px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 100%/1px 15px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 100%/15px 1px no-repeat,
+    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 100%/1px 15px no-repeat; }
+.pblue::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+  background:linear-gradient(180deg, rgba(10,16,30,0) 56%, rgba(6,8,16,0.6) 100%);
+  box-shadow:inset 0 0 0 1px rgba(226,232,244,0.10); }
+/* HUD status tag, top-left */
+.phud-tag { position:absolute; top:8px; left:9px; z-index:4; pointer-events:none;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.24em;
+  text-transform:uppercase; color:rgba(210,210,214,0.7); }
+.phud-tag::before { content:'\25A6  '; color:rgba(205,205,210,0.85); }
+/* faded archival scan stamp, bottom-right of each recon tile */
+.phud-meta{ position:absolute; right:9px; bottom:7px; z-index:4; pointer-events:none;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:7px; letter-spacing:0.18em;
+  text-transform:uppercase; color:rgba(210,210,214,0.4); }
+/* centered reticle + label, only on the empty (schematic) state */
+.phud-ret, .phud-empty { display:none; }
+.pblue--empty .phud-ret { display:block; position:absolute; left:50%; top:46%; z-index:3;
+  width:50px; height:50px; transform:translate(-50%,-50%); pointer-events:none;
+  border:1px solid rgba(226,232,244,0.26); border-radius:50%; }
+.pblue--empty .phud-ret::before, .pblue--empty .phud-ret::after { content:''; position:absolute; background:rgba(226,232,244,0.30); }
+.pblue--empty .phud-ret::before { left:50%; top:-13px; width:1px; height:76px; transform:translateX(-50%); }
+.pblue--empty .phud-ret::after { top:50%; left:-13px; height:1px; width:76px; transform:translateY(-50%); }
+.pblue--empty .phud-empty { display:block; position:absolute; left:0; right:0; top:64%; z-index:4;
+  text-align:center; pointer-events:none; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size:8.5px; letter-spacing:0.34em; text-transform:uppercase; color:rgba(226,232,244,0.42); }
+.ptile--img .pcap { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; letter-spacing:0.01em; line-height:1.6;
+  color:rgba(224,228,238,0.62); margin-top:9px; padding-left:1px; }
+.ptile--spec { bottom:26px; right:0; width:336px; padding:16px 18px;
+  background:linear-gradient(180deg, rgba(20,20,22,0.66), rgba(12,12,14,0.66)), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='sg'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23sg)' opacity='0.55'/></svg>") 0 0/150px 150px;
+  border:1px solid rgba(205,205,210,0.15); }
+/* backdrop-filter only once the tile has settled (.live). A backdrop blur
+   re-samples everything behind it every frame; doing that while the tile is
+   simultaneously transformed and faded (the reveal/exit stagger) is a jank
+   multiplier. The blur appears when the tile stops moving. */
+.ptile--spec.live { backdrop-filter:blur(6px); }
+.ptile--spec::before { content:''; position:absolute; top:-1px; left:-1px; width:11px; height:11px;
+  border-top:1px solid rgba(210,210,215,0.55); border-left:1px solid rgba(210,210,215,0.55); }
+.ptile--spec::after { content:''; position:absolute; bottom:-1px; right:-1px; width:11px; height:11px;
+  border-bottom:1px solid rgba(210,210,215,0.45); border-right:1px solid rgba(210,210,215,0.45); }
+.ptile--spec ul { list-style:none; margin:0; padding:0; }
+/* spec-sheet grammar (Atmospheric Depth Gallery reference): each row is a strict
+   two-column dt/dd — labels and values both use JetBrains Mono (the machine voice); values move
+   to a lighter weight for the document voice. The column alignment is what reads as
+   a real datasheet rather than stacked captions. */
+.ptile--spec li { padding:9px 0; border-top:1px solid rgba(205,205,210,0.10);
+  display:grid; grid-template-columns:58px 1fr; column-gap:14px; align-items:baseline; }
+.ptile--spec li:first-child { border-top:none; padding-top:0; }
+.ptile--spec li .k { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.24em;
+  text-transform:uppercase; color:rgba(200,200,206,0.58); padding-top:1px; }
+.ptile--spec li .v { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11px; line-height:1.5; letter-spacing:0.005em;
+  color:rgba(226,226,230,0.9); text-wrap:pretty; }
+.ptile--metric { top:34px; left:236px; width:168px; background:rgba(9,12,22,0.6);
+  border:1px solid rgba(226,232,244,0.16); padding:11px 12px; }
+.ptile--metric .mv { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; font-size:1.85rem; color:#eef0f6; line-height:1.02; }
+.ptile--metric .ml { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:9px; letter-spacing:0.18em;
+  text-transform:uppercase; color:rgba(226,232,244,0.6); margin-top:4px; }
+.ptile--link { bottom:0; left:4px; }
+.ptile--link a { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; letter-spacing:0.22em;
+  text-transform:uppercase; color:rgba(160,198,255,0.92); text-decoration:none; pointer-events:auto;
+  border-bottom:1px solid rgba(226,232,244,0); transition:color .2s, border-color .2s; padding-bottom:2px; }
+/* [ bracket ] control grammar (Son Daven-style ASCII UI): brackets sit dim,
+   brighten with the label on hover — reads as an interface control, not a link */
+.ptile--link a::before { content:'[ '; color:rgba(226,232,244,0.45); transition:color .2s; }
+.ptile--link a::after  { content:' ]'; color:rgba(226,232,244,0.45); transition:color .2s; }
+.ptile--link a:hover { color:#fff; border-bottom-color:rgba(226,232,244,0.6); }
+.ptile--link a:hover::before, .ptile--link a:hover::after { color:rgba(226,232,244,0.95); }
+
+/* left-side discovery windows — smaller + simpler than the right blueprint:
+   clean thin frame, subtle grid, no brackets / tag / reticle */
+.pcluster-l { position:absolute; inset:0; pointer-events:none; }   /* full area; each screen placed individually */
+.ptile--limg { position:absolute; }
+/* deliberately uneven: different x, y and size so it reads editorial, not gridded */
+.ptile--limg.l1 { top:13%; left:2%;  width:min(244px,18%); }   /* top-left, dropped clear of the logo */
+.ptile--limg.l2 { top:59%; left:7%; right:auto; width:min(272px,20%); }   /* lower, pushed right, a touch bigger */
+.ptile--limg .pblue { border-color:transparent; }
+.ptile--limg .pblue::before { display:none; }      /* no corner brackets */
+.ptile--limg .phud-tag { display:none; }            /* no status tag */
+.ptile--limg .pblue--empty .phud-ret { display:none; } /* no reticle crosshair */
+.ptile--limg .pblue--empty .phud-empty { top:auto; bottom:9px; font-size:7.5px; letter-spacing:0.28em;
+  color:rgba(226,232,244,0.34); }
+.ptile--limg .pcap { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.05em;
+  color:rgba(224,228,238,0.5); margin-top:6px; padding-left:1px; }
+
+@media (--bp-820){
+  .pcluster { right:3vw; left:3vw; width:auto; height:auto; min-height:62vh; }
+  .ptile { position:relative; left:auto; right:auto; top:auto; bottom:auto; margin-bottom:12px; text-align:left; }
+  .ptile--metric { left:auto; }
+  .pcluster-l { display:none; }       /* single-column on small screens */
+}
+
+/* Beat 1 scroll distance */
+/* beat spacers removed — sections are normal-flow now */
+
