@@ -1,7 +1,9 @@
 /* Luna iframe companion (gaze-tracking, idle actions, costume, reading-paced
    quips) for the homepage. Extracted from an inline <script> block. This page's
    version has a bespoke section-aware quip system distinct from the other
-   pages' — verified via diff before extracting, not merged with theirs. */
+   pages' — verified via diff before extracting, not merged with theirs.
+   (About/contact/blog-post now share luna-companion-core.js instead of their
+   own near-duplicate copies — this file stays its own thing on purpose.) */
 (function(){
   var f = document.getElementById('luna-frame');
   /* Viewport height + document height, cached instead of read live —

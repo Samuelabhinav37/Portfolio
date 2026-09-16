@@ -1,5 +1,11 @@
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://challenges.cloudflare.com https://www.clarity.ms https://*.clarity.ms; frame-src 'self' https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  # Content-Security-Policy is NOT set here — it moved to
+  # functions/_middleware.js. The real script-src needs a per-build hash
+  # list (see scripts/obfuscate.mjs) that runs well past the 2000-char
+  # limit Cloudflare enforces per line in THIS file (confirmed via an
+  # actual wrangler pages dev run: it silently drops any rule over that,
+  # which would have shipped with no CSP at all). A Function response's
+  # headers have no such limit, so that's where it lives now.
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 0
