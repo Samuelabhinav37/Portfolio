@@ -99,59 +99,6 @@
   }
 })();
 
-/* ── Beliefs copy — scroll-linked light reveal: a soft mask sweeps down the
-   paragraph block as it passes through the viewport, so the text visibly
-   lights up while you scroll instead of just sitting there fully visible.
-   Bidirectional (dims again scrolling back up) and gated by an
-   IntersectionObserver so the scroll listener only runs while the block is
-   actually near the viewport. Position is derived from a cached document
-   offset + scrollY rather than a fresh getBoundingClientRect() every scroll
-   frame — the latter forces a synchronous layout on a page this animation-
-   heavy, which is where scroll-linked effects usually go janky. ── */
-(function(){
-  var copy=document.querySelector('#editorial .ed-beliefs__copy');
-  if(!copy) return;
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    copy.style.setProperty('--reveal','200%');
-    return;
-  }
-  function clamp01(n){ return Math.max(0, Math.min(1, n)); }
-  var docTop=0, elHeight=0;
-  function measure(){
-    var r=copy.getBoundingClientRect();
-    docTop=r.top + window.scrollY;
-    elHeight=r.height;
-  }
-  measure();
-  if('ResizeObserver' in window){ new ResizeObserver(measure).observe(copy); }
-  else { window.addEventListener('resize', measure); }
-  var ticking=false;
-  function update(){
-    ticking=false;
-    var vh=window.innerHeight||800;
-    var top=docTop - window.scrollY;
-    var start=vh*0.88, end=vh*0.22;
-    var span=(elHeight + (start-end)) || 1;
-    var progress=clamp01((start - top) / span);
-    copy.style.setProperty('--reveal', (progress*124).toFixed(2)+'%');
-  }
-  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } }
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting){
-        window.addEventListener('scroll', onScroll, {passive:true});
-        update();
-      } else {
-        window.removeEventListener('scroll', onScroll);
-      }
-    }, {rootMargin:'25% 0px'});
-    io.observe(copy);
-  } else {
-    window.addEventListener('scroll', onScroll, {passive:true});
-  }
-  update();
-})();
-
 /* Bento: signal canvas (decorative, top-left quadrant) — moved to
    /scripts/index-signal-eagle.js (own file, not inlined here) since it
    carries ~34KB of packed animation data extracted from a reference clip;
