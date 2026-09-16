@@ -1008,7 +1008,15 @@ footer#site-footer{
      on scroll and the globe stays unformed until its band, so nothing overlaps. -->
 <style is:global id="ed-styles">
   #editorial{ position:relative; z-index:300; background:rgba(4,4,10,0.9); color:#ededee;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400;
+    /* Well below the fold — skip layout/paint until near-viewport. The
+       estimate below is a rough read of this section's own CSS (KEV ticker +
+       Beliefs grid + research log), not a measured DevTools value; if a real
+       measurement later shows a visible pop-in/scrollbar jump, tighten it.
+       Safe to combine with the #editorial-lazy-anchor IntersectionObserver
+       above and editorial-flow.js's own internal IOs — content-visibility
+       doesn't stop IntersectionObserver from firing on elements inside it. */
+    content-visibility:auto; contain-intrinsic-size:auto 1800px; }
   #editorial .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
     letter-spacing:2px; text-transform:uppercase; color:#87878d; }
 
@@ -1667,7 +1675,10 @@ footer#site-footer{
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
 #signal{ position:relative; z-index:1; background:rgba(4,4,10,0.9);
-  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1); }
+  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1);
+  /* Below the fold, same reasoning as #editorial above — rough estimate
+     from the news+podcast grid and CTF strip, not a measured value. */
+  content-visibility:auto; contain-intrinsic-size:auto 700px; }
 #signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
 #signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
 #signal .sig-head{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
