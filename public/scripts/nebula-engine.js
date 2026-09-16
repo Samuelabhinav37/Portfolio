@@ -1,3 +1,15 @@
+/* Sibling: nebula-engine-home.js. Investigated merging these into one
+   parameterized module (tech-debt item) and deliberately did NOT — the two
+   have diverged past a simple config-knob split: different foreground-
+   avoidance ALGORITHMS (this file's rectangular safe-zone system vs. home's
+   circular globe-swing-by physics, ~100 lines of its own), independent perf
+   work only ported to one side (home's cached alive-hubs list + reused
+   scratch buffers aren't here yet), and real per-page tuning (font-family,
+   pulse timing) that's design intent, not accidental drift. A safe merge
+   needs deciding which avoidance algorithm wins where and porting home's
+   perf fixes back here first — a real refactor project, not a rename. Left
+   as two files rather than force a risky same-session merge on a WebGL
+   background that's hard to visually regression-test in this environment. */
 var glslCanvas = document.getElementById('gc');
 var SCR        = document.getElementById('screen');
 var SW = window.innerWidth, SH = window.innerHeight;

@@ -1,3 +1,9 @@
+/* Sibling: nebula-engine.js (about/contact/blog-index). See that file's
+   header for why this pair is staying two files instead of one merged
+   module — the short version: divergent avoidance algorithms (this file's
+   globe-swing-by physics vs. the sibling's rectangular safe zones) and perf
+   work (this file's cached alive-hubs list, reused scratch buffers) that
+   hasn't been ported both ways yet. */
 var glslCanvas = document.getElementById('gc');
 var SCR        = document.getElementById('screen');
 var SW = window.innerWidth, SH = window.innerHeight;
