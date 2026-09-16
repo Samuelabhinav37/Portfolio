@@ -1,0 +1,282 @@
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  background:var(--c-bg);
+  color:rgba(var(--c-white),0.9);
+  overflow:hidden;
+}
+/* Desktop (side-by-side) stays a fixed single viewport, scaled to fit, no
+   scroll — see scaleAboutInner() below. Below the stacking breakpoint the
+   layout is genuinely fluid instead of scaled, so let it scroll. */
+@media (--bp-980){
+  html, body { height:auto; overflow-x:hidden; overflow-y:auto; }
+}
+
+/* Extra dark-glass pane over the ambient background, this page only (not
+   index). #bg-dim (from the shared NebulaBackground component) normally
+   sits BELOW #sc on purpose, so it never re-darkens ships/satellites that
+   CRAFT's brightness boost already lifted. Without index's constellation
+   running here, that restraint just reads as thin — moving this page's
+   copy of #bg-dim above #sc (z-index 2, same tier as #bg-grain, later in
+   DOM so it wins) and darkening it puts a real dim pane in front of the
+   whole scene, ships included, for a deeper "behind glass" depth. Tuned to
+   match the blog hero's frosted-glass overlay: light tint + a soft blur
+   rather than a flat dark wash, so ships stay visible through it. */
+#bg-dim{ z-index:2; background:rgba(8,8,10,0.15);
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+
+/* ===== ported homepage living-chrome nav ===== */
+
+#luna-portal {
+  position:fixed;
+  right:18px; top:calc(66vh + 80px);   /* concentric with Luna's box */
+  width:120px; height:120px;
+  border-radius:50%;
+  z-index:998;
+  pointer-events:none; opacity:0;
+  background:radial-gradient(circle,
+    rgba(160,195,255,0.22) 0%,
+    rgba(130,170,245,0.10) 38%,
+    rgba(120,160,240,0.03) 58%,
+    transparent 72%);
+  box-shadow:0 0 18px 2px rgba(120,170,255,0.10);
+}
+#luna-portal.opening {
+  animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes lunaPortal {
+  0%   { opacity:0;    transform:scale(1.12); }
+  38%  { opacity:0.55; transform:scale(1.00); }
+  100% { opacity:0;    transform:scale(0.97); }
+}
+/* Below 980px #luna-wrap docks to the bottom-right corner instead of its
+   vh-based spot (see PortfolioLunaShell.astro's .about-hidden rule) — keep
+   the arrival bloom anchored to that same corner. */
+@media (--bp-980){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
+
+
+#about-main {
+  position:relative;
+  z-index:500;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  height:100vh; height:100svh;
+  padding: calc(9vh + 72px) 24px 48px;
+  overflow:hidden;
+}
+@media (--bp-980){
+  #about-main { height:auto; min-height:100vh; min-height:100svh; overflow:visible; padding:calc(9vh + 72px) 3vw 48px; }
+}
+
+#about-inner {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+#about-row {
+  display:flex;
+  flex-direction:row;
+  align-items:flex-start;
+  gap:10px;
+}
+@media (--bp-980){
+  #about-row { flex-direction:column; align-items:center; }
+}
+
+.pg-footer{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:10px 20px; padding-top:12px; border-top:1px solid rgba(var(--c-white),0.08);
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em;
+  color:rgba(var(--c-white),0.55); }
+.pg-footer .f-links{ display:flex; align-items:center; gap:14px; letter-spacing:.16em; text-transform:uppercase; }
+.pg-footer .f-links a{ color:rgba(var(--c-white),0.55); text-decoration:none; transition:color .25s;
+  display:inline-flex; align-items:center; gap:5px; }
+.pg-footer .f-links a:hover{ color:rgba(var(--c-white),0.92); }
+.pg-footer .f-links .fic{ width:11px; height:11px; fill:currentColor; opacity:0.9; flex:none; }
+
+/* ══ BENTO + GAME PANEL ══ */
+
+/* removed */
+/* removed */
+
+/* ── OUTER WRAPPER ── */
+.about-inner{display:flex;gap:10px;align-items:stretch;}
+
+/* ── BENTO ── */
+.bento{
+  display:grid;
+  grid-template-columns:210px 1fr 1.5fr;
+  grid-template-rows:auto auto auto auto auto;
+  gap:7px;
+  /* Side by side with .game-panel down to the 980px stacking breakpoint, so
+     both cards shrink together to fit rather than jumping straight from
+     "full 700px, room for both" to "stacked" — 58px = #about-main's 24px
+     side padding *2 + #about-inner's 10px gap. */
+  width:min(700px, calc((100vw - 58px) / 2));
+  flex-shrink:0;
+}
+@media (--bp-980){
+  .bento{ width:min(700px, 94vw); }
+}
+
+.card{background:#000;border:1px solid rgba(var(--c-white),0.07);border-top:1px solid rgba(var(--c-white),0.13);border-radius:10px;overflow:hidden;}
+
+/* photo */
+.c-photo{grid-row:1/4;grid-column:1;position:relative;min-height:340px;}
+.c-photo img{width:100%;height:100%;object-fit:contain;object-position:center center;display:block;background:#000;filter:grayscale(100%) brightness(0.85);transform:scale(1.42) translateY(10%);transform-origin:center center;}
+.photo-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);pointer-events:none;}
+.photo-vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.60) 100%);pointer-events:none;}
+
+/* about */
+.c-about{grid-row:1/3;grid-column:2/4;padding:28px 28px 24px;display:flex;flex-direction:column;justify-content:space-between;}
+.about-headline{font-family:'Cormorant Garamond',serif;font-size:2.60rem;font-weight:500;line-height:1.10;color:rgba(var(--c-white),0.92);}
+.about-headline sup{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.80rem;font-weight:300;color:rgba(var(--c-white),0.55);vertical-align:super;margin-left:5px;}
+.about-bio{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.72rem;font-weight:300;line-height:1.70;color:rgba(var(--c-white),0.58);margin-top:20px;}
+
+/* certifications — mobile only. Desktop already shows these on the
+   homepage bento; on mobile that cell is hidden (--bp-600, index.astro) for
+   space, so they move here instead, right after .c-tools in DOM order —
+   the mobile single-column stack has no grid-row override and falls back
+   to document order, same trick already used for .c-tools itself. Same six
+   badges/images as the homepage marquee, just laid out as a static grid
+   instead of scrolling — a mobile-only card doesn't need the motion. */
+.c-certs{display:none;padding:16px;}
+.c-certs-lbl{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(var(--c-white),0.55);display:block;margin-bottom:10px;}
+.c-certs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.c-cert{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.c-cert img{width:34px;height:34px;object-fit:contain;filter:grayscale(1) contrast(1.05);}
+.c-cert span{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.56rem;font-weight:400;color:rgba(var(--c-white),0.5);}
+
+/* signal */
+.c-signal{grid-row:3;grid-column:3;padding:0;height:230px;display:flex;flex-direction:column;}
+.sig-graph{padding:8px 8px 4px;border-bottom:1px solid rgba(var(--c-white),0.04);flex:1;display:flex;flex-direction:column;min-height:0;}
+.sig-canvas{display:block;width:100%;flex:1;min-height:82px;}
+.sig-foot{display:flex;justify-content:space-between;padding:0 0 4px;}
+.sig-gf{font-family:'JetBrains Mono',monospace;font-size:0.32rem;letter-spacing:0.14em;color:rgba(var(--c-white),0.32);}
+.sig-sep{padding:8px 10px 0;display:flex;align-items:center;gap:6px;}
+.sig-sep span{font-family:'JetBrains Mono',monospace;font-size:0.30rem;letter-spacing:0.20em;color:rgba(var(--c-white),0.30);text-transform:uppercase;white-space:nowrap;}
+.sig-sep::after{content:"";flex:1;height:1px;background:rgba(var(--c-white),0.04);}
+.sig-log{height:76px;flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;padding:2px 0 6px;}
+.sig-log::before{content:"";position:absolute;left:0;right:0;top:0;height:28px;background:linear-gradient(#000,transparent);pointer-events:none;z-index:2;}
+.sig-line{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.58rem;font-weight:300;line-height:1.42;color:rgba(var(--c-white),0.45);padding:1.5px 12px;display:flex;gap:7px;white-space:nowrap;overflow:hidden;animation:sigslide 0.4s ease;transition:opacity 0.45s ease;}
+@keyframes sigslide{from{transform:translateY(6px);}to{transform:translateY(0);}}
+.sig-ts{color:rgba(var(--c-white),0.32);font-family:'JetBrains Mono',monospace;font-size:0.58rem;flex-shrink:0;}
+.sig-msg{overflow:hidden;text-overflow:ellipsis;flex:1;}
+
+/* skills */
+.c-skills{grid-row:3;grid-column:2;height:230px;display:flex;flex-direction:column;gap:0;padding:0 !important;}
+.sk-cap{padding:13px 14px 14px;flex:1;display:flex;flex-direction:column;justify-content:center;}
+.sk-now{padding:12px 14px 13px;border-top:1px solid rgba(var(--c-white),0.06);}
+.sk-lbl{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.sk-lbl span{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:0.2em;color:rgba(var(--c-white),0.38);text-transform:uppercase;white-space:nowrap;}
+.sk-lbl::after{content:"";flex:1;height:1px;background:rgba(var(--c-white),0.05);}
+.sk-live{color:rgba(120,225,170,0.75) !important;}
+.now-row{display:flex;align-items:baseline;gap:9px;padding:5px 0;}
+.now-row+.now-row{border-top:1px solid rgba(var(--c-white),0.03);}
+.now-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;transform:translateY(-1px);}
+.now-dot.on{background:rgba(120,225,170,0.85);box-shadow:0 0 6px rgba(120,225,170,0.6);animation:nowpulse 2.2s infinite;}
+.now-dot.off{background:rgba(var(--c-white),0.22);}
+@keyframes nowpulse{50%{opacity:0.35;}}
+.now-k{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.6rem;color:rgba(var(--c-white),0.62);white-space:nowrap;}
+.now-lead{flex:1;border-bottom:1px dotted rgba(var(--c-white),0.12);transform:translateY(-3px);}
+.now-v{font-family:'JetBrains Mono',monospace;font-size:0.55rem;letter-spacing:0.04em;color:rgba(var(--c-white),0.38);white-space:nowrap;}
+.skills-pills{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;justify-content:flex-start;}
+.ascii-card{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;}
+.ascii-bar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid rgba(var(--c-white),0.06);flex-shrink:0;}
+.ascii-title{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;color:rgba(var(--c-white),0.28);}
+.ascii-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.ascii-out{margin:0;white-space:pre;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;color:rgba(var(--c-white),0.84);font-size:2px;line-height:2px;letter-spacing:0;}
+.pill{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.58rem;font-weight:400;color:rgba(var(--c-white),0.52);background:rgba(var(--c-white),0.05);border:1px solid rgba(var(--c-white),0.08);border-radius:50px;padding:5px 11px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+.pill img{width:10px;height:10px;opacity:.55;filter:grayscale(1) brightness(2);flex-shrink:0;}
+
+/* quote */
+.c-quote{grid-row:4;grid-column:1/3;padding:16px 20px 14px;display:flex;flex-direction:column;justify-content:center;}
+.quote-grid{display:grid;grid-template-areas:"q";align-items:center;}
+.quote-slide{grid-area:q;transition:opacity .4s ease;}
+.quote-slide.hidden{opacity:0;visibility:hidden;}
+.quote-text{font-family:'Cormorant Garamond',serif;font-size:1.18rem;font-style:italic;line-height:1.55;color:rgba(var(--c-white),0.65);}
+.quote-attr{font-family:'JetBrains Mono',monospace;font-size:0.34rem;letter-spacing:0.12em;color:rgba(var(--c-white),0.55);margin-top:9px;}
+.quote-dots{display:flex;gap:5px;margin-top:10px;}
+.qdot{width:4px;height:4px;border-radius:50%;background:rgba(var(--c-white),0.12);transition:background .3s;}
+.qdot.on{background:rgba(var(--c-white),0.42);}
+
+/* pokemon */
+.c-pokemon{grid-row:4/6;grid-column:3;padding:14px 14px 12px;}
+.poke-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
+.poke-lbl{font-family:'JetBrains Mono',monospace;font-size:0.40rem;letter-spacing:0.22em;color:rgba(var(--c-white),0.55);text-transform:uppercase;}
+.poke-count{font-family:'JetBrains Mono',monospace;font-size:0.34rem;color:rgba(var(--c-white),0.55);}
+.poke-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.poke-slot{background:rgba(var(--c-white),0.03);border:1px solid rgba(var(--c-white),0.06);border-radius:7px;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.poke-slot img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated;filter:grayscale(100%) brightness(0.82) contrast(1.08);}
+.poke-name{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.50rem;font-weight:400;color:rgba(var(--c-white),0.55);text-align:center;}
+.poke-sub{font-family:'JetBrains Mono',monospace;font-size:0.30rem;letter-spacing:0.06em;color:rgba(var(--c-white),0.55);text-align:center;}
+
+/* tools */
+.c-tools{grid-row:5;grid-column:1/3;padding:10px 0 8px;}
+.marquee-wrap{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 6%,black 94%,transparent);}
+.marquee-track{display:flex;gap:7px;width:max-content;margin-bottom:6px;}
+.marquee-track.fwd{animation:mfwd 22s linear infinite;}
+.marquee-track.rev{animation:mrev 26s linear infinite;}
+@keyframes mfwd{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes mrev{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+.tool-chip{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.64rem;font-weight:400;color:rgba(var(--c-white),0.55);background:rgba(var(--c-white),0.04);border:1px solid rgba(var(--c-white),0.07);border-radius:20px;padding:5px 13px;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.tool-chip img{width:11px;height:11px;opacity:.55;filter:grayscale(1) brightness(2);}
+
+
+
+/* ── GAME PANEL ── */
+.game-panel{width:min(700px, calc((100vw - 58px) / 2));flex-shrink:0;background:#000;border:1px solid rgba(var(--c-white),0.07);border-top:1px solid rgba(var(--c-white),0.13);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;align-self:stretch;}
+@media (--bp-980){ .game-panel{ width:min(700px, 94vw); } }
+.game-hdr{
+  padding:8px 12px 7px;
+  border-bottom:1px solid rgba(var(--c-white),0.05);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.game-hdr-title{font-family:'JetBrains Mono',monospace;font-size:0.40rem;letter-spacing:0.26em;color:rgba(var(--c-white),0.34);text-transform:uppercase;}
+.game-hdr-dot{width:5px;height:5px;border-radius:50%;background:#3DB87A;box-shadow:0 0 6px #3DB87A;animation:gdot 2s ease-in-out infinite;}
+@keyframes gdot{0%,100%{opacity:1}50%{opacity:.3}}
+#game-canvas{display:block;width:100%;height:100%;}
+/* This page already gates #luna-quip and the subliminal layer on reduced
+   motion (below) — these three were the remaining always-on infinite
+   animations, matching how every other infinite-scroll/pulse element
+   site-wide (index.astro's .crt-flicker/.f-eyebrow::before, blog/index's
+   .wire-track, contact's .fill::after sweep) already respects it. */
+@media (prefers-reduced-motion: reduce){
+  .marquee-track.fwd, .marquee-track.rev{ animation:none; }
+  .now-dot.on{ animation:none; }
+  .game-hdr-dot{ animation:none; }
+}
+
+/* ── Fluid mobile/tablet layout ──
+   #about-inner stacks below 1480px (see rule near #about-main above). Below
+   900px (this codebase's sitewide LOW_POWER breakpoint) also collapse the
+   bento's 3-column grid to a single column, stacking cards in DOM order,
+   and drop the picture, the live ascii.cam feed, and the maze game entirely
+   rather than shrinking them — the heaviest/least essential things on this
+   page, same call as the homepage globe/footer and the contact page's
+   window stack. (The game iframe's srcdoc is gated in JS above so it never
+   even boots behind display:none.) */
+@media (--bp-900){
+  .bento{ grid-template-columns:1fr; }
+  .c-about,.c-signal,.c-quote,.c-pokemon,.c-tools{
+    grid-column:1 !important; grid-row:auto !important;
+  }
+  .c-photo,.c-skills,.game-panel,.c-signal{ display:none; }
+  .c-certs{ display:block; }
+  /* The desktop scale-compensation transform (scaleAboutInner()) is a no-op
+     below the 980px stacking breakpoint, so these bento labels — sized for
+     a scaled-down desktop layout — would otherwise render at their literal,
+     near-illegible sub-6px size on mobile. Give them real mobile sizes. */
+  .sig-gf{ font-size:0.68rem; }
+  .sig-sep span{ font-size:0.62rem; }
+  .quote-attr{ font-size:0.68rem; }
+  .poke-count{ font-size:0.68rem; }
+  .poke-sub{ font-size:0.62rem; }
+}
+
+
