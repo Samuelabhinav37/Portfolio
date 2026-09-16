@@ -1279,7 +1279,45 @@ footer#site-footer{
   }
 </style>
 
+<!-- index-signal-eagle.js/index-editorial-flow.js both target elements inside
+     #editorial and already gate their own render loops behind an
+     IntersectionObserver — but as plain eager deferred script tags they
+     still fetched+parsed at t=0 for a section nobody had scrolled to yet.
+     This loader defers the fetch/parse itself too, injecting both real
+     script elements only once #editorial nears the viewport (same 200px
+     rootMargin convention used by every other IO in this codebase).
+     NOTE: this comment deliberately avoids writing a literal "<script"
+     substring — scripts/obfuscate.mjs's SCRIPT_TAG_RE regex matches HTML
+     comments too (it runs before comment-stripping), so a fake opening
+     tag in prose with no matching close gets treated as a real one and
+     swallows everything up to the next real closing tag, silently
+     deleting it. Hit this for real once; don't reintroduce it. -->
+<script is:inline>
+(function(){
+  var target = document.getElementById('editorial-lazy-anchor');
+  if(!target || !('IntersectionObserver' in window)){
+    // No IO support: load eagerly rather than never loading at all.
+    ['/scripts/index-signal-eagle.js','/scripts/index-editorial-flow.js'].forEach(function(src){
+      var s=document.createElement('script'); s.src=src; s.defer=true; document.body.appendChild(s);
+    });
+    return;
+  }
+  var fired=false;
+  function loadNow(){
+    if(fired) return; fired=true; io.disconnect();
+    ['/scripts/index-signal-eagle.js','/scripts/index-editorial-flow.js'].forEach(function(src){
+      var s=document.createElement('script'); s.src=src; s.defer=true; document.body.appendChild(s);
+    });
+  }
+  var io = new IntersectionObserver(function(es){
+    if(es[0].isIntersecting) loadNow();
+  }, {rootMargin:'200px'});
+  io.observe(target);
+})();
+</script>
+
 <div id="editorial">
+<div id="editorial-lazy-anchor" aria-hidden="true"></div>
 
   <!-- KEV feed -->
   <section class="ed-kev" aria-label="Live threat feed from the CISA KEV catalog">
@@ -1366,7 +1404,7 @@ footer#site-footer{
 
 </div>
 
-<script is:inline defer src="/scripts/index-editorial-flow.js"></script>
+<!-- index-editorial-flow.js is now lazy-loaded from the anchor at the top of #editorial, see above -->
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- Focus scrim retained (empty) so the globe module's scrim ref stays valid -->
@@ -1783,7 +1821,7 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-logo-glitch.js"></script>
 <script is:inline defer src="/scripts/index-hero-tagline.js"></script>
 
-<script is:inline defer src="/scripts/index-signal-eagle.js"></script>
+<!-- index-signal-eagle.js is now lazy-loaded from the anchor at the top of #editorial, see above -->
 
 <!-- ════════════════ Globe arc (Three.js) — composites over the live nebula ════════════════
      Reuses #term-window as the shrinking CRT. Drives: fullscreen -> rest -> seed
