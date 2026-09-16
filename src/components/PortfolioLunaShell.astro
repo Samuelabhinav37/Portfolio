@@ -125,8 +125,14 @@ const { hasIntro = false } = Astro.props;
 <LunaEngine />
 
 <script>
-  const pill = document.getElementById('luna-pill');
-  if (pill) {
+  /* luna-companion-core.js (about/contact/blog-post's shared companion
+     module) also wires this same #luna-pill on pages that load both this
+     shell and that script — the dataset guard lets whichever attaches
+     first win, instead of both firing on one click (open() then immediately
+     close(), a no-op). See that file's own comment for the fuller story. */
+  const pill = document.getElementById('luna-pill') as HTMLButtonElement | null;
+  if (pill && !pill.dataset.lunaPillBound) {
+    pill.dataset.lunaPillBound = '1';
     pill.addEventListener('click', () => {
       const chat = (window as any).SITE && (window as any).SITE.LunaChat;
       if (!chat) return;

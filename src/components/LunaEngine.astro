@@ -1237,7 +1237,16 @@ function frame(now){
   _fLast=now;
   const dt=Math.min(now-last,50); last=now;
   update(now,dt);
-  if(window.__globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
+  /* This script runs inside #luna-frame's own iframe document, so window
+     here is the IFRAME's global — index-globe-engine.js sets the flag on
+     the parent PAGE's window.SITE, which is a different object entirely.
+     The bare window.__globeOwnsScreen read below was always undefined,
+     so this guard never actually fired (harmless — it just meant an extra,
+     unnecessary draw call while the globe covers her — but worth fixing
+     since it is clearly meant to do real work). */
+  var globeOwnsScreen = false;
+  try { globeOwnsScreen = !!(parent.SITE && parent.SITE.__globeOwnsScreen); } catch(e) {}
+  if(globeOwnsScreen){ return; }   // globe is opaque over Luna -> skip the draw
   draw(now);
 }
 requestAnimationFrame(frame);

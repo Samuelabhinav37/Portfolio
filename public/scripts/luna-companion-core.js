@@ -208,13 +208,20 @@ window.SITE.initLunaCompanion = function(cfg){
     }, 1250);
   }
 
-  /* Blog-post-only extras — no-op elsewhere since these elements only exist
-     on that page template. Fade the whole slot (creature + quip) in
-     shortly after load, and wire the hidden-until-keyboard-focus trigger. */
+  /* #luna-slot is genuinely blog-post-only (Luna.astro) — no-op elsewhere.
+     #luna-pill is NOT page-specific though: PortfolioLunaShell.astro (about/
+     contact/index/blog-index) renders the same #luna-pill and wires its own
+     click handler for it. Blog-post's own shell (Luna.astro) has no such
+     wiring of its own and relies entirely on this one — so this handler is
+     still needed here, but on any page where PortfolioLunaShell's handler
+     also runs, both would fire on the same click (open() then immediately
+     close(), a no-op) without the data-attribute guard below, which lets
+     whichever script attaches first win regardless of load order. */
   var slot = document.getElementById('luna-slot');
   if(slot) setTimeout(function(){ slot.classList.add('luna-in'); }, 400);
   var pill = document.getElementById('luna-pill');
-  if(pill){
+  if(pill && !pill.dataset.lunaPillBound){
+    pill.dataset.lunaPillBound = '1';
     pill.addEventListener('click', function(){
       if(!window.SITE.LunaChat) return;
       if(window.SITE.LunaChat.isOpen()) window.SITE.LunaChat.close(); else window.SITE.LunaChat.open();
