@@ -415,7 +415,14 @@ body.intro-done #hero-tagline { opacity:1; }
 #hero-tagline-cursor { display:inline-block; margin-left:1px; color:rgba(var(--c-white),0.65);
   animation:heroCursorBlink .95s step-start infinite; }
 @keyframes heroCursorBlink { 50%{ opacity:0; } }
-@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:34px; } }
+/* Functional positioning line — the mood copy above says nothing about who I
+   am or what I do, and (per an audit) that information otherwise only exists
+   in sr-only/meta text a sighted visitor never sees. Secondary weight/size so
+   it reads as the plain-facts line under the atmosphere, not competing with it. */
+#hero-tagline .hero-tagline-sub { margin:14px 0 0; font-weight:400;
+  font-size:clamp(15px,1.3vw,18px); line-height:1.5; letter-spacing:0;
+  color:rgba(var(--c-white),0.72); max-width:58ch; }
+@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:34px; } #hero-tagline .hero-tagline-sub { max-width:100%; } }
 @media (prefers-reduced-motion: reduce) { #hero-tagline-cursor { animation:none; } }
 
 /* ════ Globe arc overlays ════ */
@@ -835,7 +842,7 @@ footer#site-footer{
 <body>
 
 <SiteMenu currentPath="/" hasIntro={true} />
-<h1 class="sr-only">Samuel Abhinav — Cybersecurity &amp; Creative Developer</h1>
+<h1 class="sr-only">Samuel Abhinav — Cybersecurity Engineer</h1>
 
 <div id="intro-logo" aria-hidden="true">
   <h1><span class="gtxt" data-text="Samuel&nbsp;">Samuel&nbsp;</span><span class="port"><span class="gtxt" data-text="Abhinav">Abhinav</span></span></h1>
@@ -936,6 +943,7 @@ footer#site-footer{
       </div>
       <div id="hero-tagline">
         <p>Everything is connected.<br>Everything must be <span id="hero-tagline-word" data-text="protected">protected</span><span id="hero-tagline-cursor" aria-hidden="true">|</span></p>
+        <p class="hero-tagline-sub">I write detection logic, hunt bugs on HackerOne, and build things like a federated anomaly detector for industrial networks — currently looking for a team that reads its own logs.</p>
       </div>
     </div>
   </div>
