@@ -53,6 +53,6 @@ TURNSTILE_HOSTNAMES = "samuelabhinav.com"
 # that id in. No dashboard step needed (bindings live here once this file
 # exists), which also means: don't add this in the dashboard, it won't take.
 #
-# [[kv_namespaces]]
-# binding = "RATE_LIMIT_KV"
-# id = "REPLACE_WITH_THE_ID_FROM_WRANGLER_KV_NAMESPACE_CREATE"
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "cd4d0186c98b4ec3922da48bd5475456"
