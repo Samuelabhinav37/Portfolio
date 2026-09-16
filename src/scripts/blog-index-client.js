@@ -241,7 +241,7 @@ function mount(items){
   });
 }
 function fromWireApi(){
-  const CK='wire-cve-v2',cached=(()=>{try{return JSON.parse(sessionStorage.getItem(CK))}catch(e){return null}})();
+  const CK='wire-cve-v3',cached=(()=>{try{return JSON.parse(sessionStorage.getItem(CK))}catch(e){return null}})();
   if(cached&&Date.now()-cached.t<9e5)return Promise.resolve(cached.items);
   return fetch('/api/cve-wire').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{
     const items=Array.isArray(j.items)?j.items:[];
