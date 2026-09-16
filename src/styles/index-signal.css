@@ -1,0 +1,92 @@
+
+#signal{ position:relative; z-index:1; background:rgba(4,4,10,0.9);
+  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1);
+  /* Below the fold, same reasoning as #editorial above — rough estimate
+     from the news+podcast grid and CTF strip, not a measured value. */
+  content-visibility:auto; contain-intrinsic-size:auto 700px; }
+#signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
+#signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
+#signal .sig-head{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
+#signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
+@media (--bp-820){
+  #signal .sig-grid{ grid-template-columns:1fr; }
+  #signal .sig-head{ font-size:1.3rem; }
+  .sig-card{ padding:18px; }
+  .news-row, .pod-row{ padding:10px 0; gap:10px; }
+  .news-badge{ width:40px; height:32px; }
+  .pod-art{ width:36px; height:36px; font-size:11px; }
+  .news-title, .pod-name{ font-size:12px; }
+  .pod-why{ font-size:10.5px; }
+  .news-meta, .ctf-meta{ font-size:8px; }
+  .pod-stars{ font-size:9.5px; }
+  /* Not enough room for the full list on a phone — cap both to 3 rows;
+     the rest are still reachable through each card's own "See more" dialog. */
+  #news-list .news-row:nth-child(n+4){ display:none; }
+  .pod-shelf .pod-row:nth-child(n+4){ display:none; }
+}
+.sig-card{ border:1px solid rgba(var(--c-white),.1); border-radius:4px; background:rgba(var(--c-white),.015); padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
+.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
+.sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
+.news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
+.news-row:first-child{ border-top:0; }
+.news-badge{ width:52px; height:40px; flex:none; border-radius:3px; background:rgba(var(--c-white),.05) center/cover no-repeat; border:1px solid rgba(var(--c-white),.08); }
+.news-badge.has-img{ background-color:#05060b; filter:grayscale(1) brightness(.72) contrast(.95);
+  transition:filter .5s cubic-bezier(.22,1,.36,1); }
+.news-row:hover .news-badge.has-img{ filter:grayscale(0) brightness(.92) contrast(1); }
+.news-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+.news-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13.5px; line-height:1.32; color:#d8dced; transition:color .2s; }
+.news-row:hover .news-title{ color:#fff; }
+.news-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.pod-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid rgba(var(--c-white),.06); }
+.pod-row:first-child{ border-top:0; }
+.pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(226,232,244,0.55);
+  filter:grayscale(1) brightness(.75) contrast(.95); transition:filter .5s cubic-bezier(.22,1,.36,1); }
+/* .pod-art gets swapped for real cover art via inline style.backgroundImage
+   (fetched from the iTunes API below) — filter applies regardless of whether
+   that's landed yet, so this stays consistent with .news-badge's treatment. */
+.pod-row:hover .pod-art{ filter:grayscale(0) brightness(.95) contrast(1); }
+.pod-body{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
+.pod-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:13.5px; color:#e8ebf4; }
+.pod-name a{ color:inherit; text-decoration:none; }
+.pod-name a:hover{ color:#fff; }
+.pod-why{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:11.5px; line-height:1.35; color:rgba(226,232,244,0.5); }
+.pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.42); letter-spacing:1px; flex:none; transition:color .3s ease; }
+.pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
+.ctf-strip{ margin-top:clamp(20px,2.5vw,36px); border:1px solid rgba(var(--c-white),.1); border-radius:4px; padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
+.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.ctf-item{ display:flex; flex-direction:column; gap:2px; }
+.ctf-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
+.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(226,232,244,0.6); background:none; border:none; cursor:pointer; padding:0; }
+.ctf-more:hover{ color:#fff; }
+
+.sig-card__head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.sig-more{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.5); background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
+.sig-more:hover{ color:#fff; }
+
+.sig-dialog{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px;
+  opacity:0; visibility:hidden; transition:opacity .3s ease; }
+.sig-dialog[aria-hidden="false"]{ opacity:1; visibility:visible; }
+.sig-dialog__backdrop{ position:absolute; inset:0; background:rgba(4,4,12,0.72); backdrop-filter:blur(3px); }
+.sig-dialog__panel{
+  position:relative; z-index:1; width:min(480px,100%); max-height:min(560px,86vh); overflow-y:auto;
+  background:#0b0b14; border:1px solid rgba(var(--c-white),0.12); border-radius:8px;
+  padding:clamp(20px,3vw,28px); box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);
+  transform:translateY(10px); transition:transform .35s cubic-bezier(.22,1,.36,1);
+}
+.sig-dialog[aria-hidden="false"] .sig-dialog__panel{ transform:none; }
+.sig-dialog__close{ position:absolute; top:10px; right:10px; width:36px; height:36px; display:grid; place-items:center;
+  background:rgba(var(--c-white),0.06); border:1px solid rgba(var(--c-white),0.12); border-radius:50%;
+  color:#dfe4f0; font-size:16px; line-height:1; cursor:pointer; }
+.sig-dialog__close::before{ content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
+.sig-dialog__close:hover{ background:rgba(var(--c-white),0.12); }
+.sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); margin:0 0 6px; }
+.sig-dialog__title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }
+.sig-dialog__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.sig-dialog__list li{ display:flex; gap:12px; align-items:flex-start; }
+.sig-dialog__list img{ width:20px; height:20px; border-radius:4px; margin-top:2px; flex:none; background:rgba(var(--c-white),0.06); }
+.sig-dialog__list a{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
+.sig-dialog__list a:hover{ text-decoration:underline; }
+.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
+@media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } .sig-dialog, .sig-dialog__panel{ transition:none; } }
+
