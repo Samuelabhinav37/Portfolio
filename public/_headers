@@ -4,7 +4,7 @@
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 0
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=(), browsing-topics=()
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=(), browsing-topics=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), fullscreen=(), picture-in-picture=(), clipboard-read=(), clipboard-write=(self)
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
