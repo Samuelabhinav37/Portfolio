@@ -29,14 +29,30 @@ TURNSTILE_HOSTNAMES = "samuelabhinav.com"
 # verification (expected: those hostnames aren't in the allowlist). Test
 # against the production domain instead.
 
-# functions/api/contact.js optionally rate-limits (5 requests/60s per IP) via
-# an env.RATE_LIMITER binding — deliberately left unconfigured. Pages
-# projects' wrangler.toml does not support the top-level [[ratelimits]]
-# block, rate-limiting bindings declared elsewhere in wrangler.toml are
-# unreliable for Pages production deploys, and once this file exists the
-# dashboard's own binding UI is locked out anyway — three dead ends for one
-# binding. Skipped as not worth it: Turnstile already requires a fresh,
-# single-use solve per submission, which caps abuse throughput on its own,
-# and Cloudflare's network-level DDoS protection covers volumetric attacks
-# regardless. The contact function already guards for RATE_LIMITER's absence
-# (`if (env.RATE_LIMITER)`), so revisit this only if abuse actually shows up.
+# functions/api/{contact,clienterr,luna-miss}.js rate-limit via a shared
+# RATE_LIMIT_KV binding (functions/_lib/rate-limit.js) — deliberately left
+# unconfigured for now. Cloudflare's native Rate Limiting binding (the one
+# with a .limit({key}) method) is what these three used to call, but it's
+# unreliable to configure for this Pages project (no top-level [[ratelimits]]
+# support, and once this file exists the dashboard's own binding UI is
+# locked out for everything, including that binding type). A plain KV
+# namespace binding doesn't have that problem — it's the well-supported case
+# — so the rate limiter is now implemented on top of one instead (a simple
+# fixed-window counter per key, see rate-limit.js).
+#
+# Contact.js's own case for skipping this originally still mostly holds:
+# Turnstile already requires a fresh, single-use solve per submission, which
+# caps abuse throughput on its own, and Cloudflare's network-level DDoS
+# protection covers volumetric attacks regardless. clienterr.js/luna-miss.js
+# have no such protection of their own, though, so they're the ones that
+# actually benefit from this being real. All three fail open if the binding
+# below stays commented out — nothing breaks by leaving this as-is.
+#
+# To activate: `wrangler login`, then `wrangler kv namespace create
+# rate-limit` — it prints an id — then uncomment the block below and paste
+# that id in. No dashboard step needed (bindings live here once this file
+# exists), which also means: don't add this in the dashboard, it won't take.
+#
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "REPLACE_WITH_THE_ID_FROM_WRANGLER_KV_NAMESPACE_CREATE"

@@ -2,6 +2,8 @@
 // Relays the portfolio contact form to samuelabhinav37@gmail.com via Resend.
 // Requires RESEND_API_KEY and TURNSTILE_SECRET_KEY secrets set on the Pages project.
 
+import { checkRateLimit } from '../_lib/rate-limit.js';
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const TO_EMAIL = 'samuelabhinav37@gmail.com';
 
@@ -77,10 +79,9 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'Too long' }, 400);
   }
 
-  if (env.RATE_LIMITER) {
-    const { success } = await env.RATE_LIMITER.limit({
-      key: request.headers.get('CF-Connecting-IP') || 'unknown',
-    });
+  {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const { success } = await checkRateLimit(env, 'contact:' + ip, { limit: 5, windowSeconds: 60 });
     if (!success) return json({ error: 'Too many requests' }, 429);
   }
 

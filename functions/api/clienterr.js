@@ -6,11 +6,13 @@
 // real-time logs or `wrangler pages deployment tail`. Upgrade to a KV/D1
 // write later if a queryable history is worth the provisioning.
 //
-// Mirrors functions/api/luna-miss.js: POST-only, optional shared rate-limit
-// binding with its own key prefix, returns fast, never throws back at the
-// client. The client hook (src/components/ErrorReporter.astro) already caps
-// itself to a few beacons per page load and dedupes, so this endpoint stays
-// cheap even during an error loop.
+// Mirrors functions/api/luna-miss.js: POST-only, shared KV rate-limit with
+// its own key prefix, returns fast, never throws back at the client. The
+// client hook (src/components/ErrorReporter.astro) already caps itself to a
+// few beacons per page load and dedupes, so this endpoint stays cheap even
+// during an error loop.
+
+import { checkRateLimit } from '../_lib/rate-limit.js';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -24,11 +26,10 @@ const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
 export async function onRequestPost({ request, env }) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
-  // Shares the (currently unconfigured — see wrangler.toml) contact
-  // rate-limit binding, with a distinct key prefix so an error storm can't
-  // also lock someone out of the contact form or Luna.
-  if (env.RATE_LIMITER) {
-    const { success } = await env.RATE_LIMITER.limit({ key: 'err:' + ip });
+  // Shares the RATE_LIMIT_KV namespace with contact/luna-miss, distinct key
+  // prefix, so an error storm can't also lock someone out of those.
+  {
+    const { success } = await checkRateLimit(env, 'err:' + ip, { limit: 20, windowSeconds: 60 });
     if (!success) return json({ ok: false }, 429);
   }
 
