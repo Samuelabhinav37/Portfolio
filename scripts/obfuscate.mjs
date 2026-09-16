@@ -21,11 +21,20 @@
    encoder. That's disqualifying for a build step; a broken site is worse
    than a readable one. Every minified block is re-parsed with acorn before
    being written back — if that check ever fails, the original source for
-   that block is kept untouched rather than shipping something broken. */
+   that block is kept untouched rather than shipping something broken.
 
-import { readFile, writeFile } from 'node:fs/promises';
+   Same pass also collects a sha256 hash of every inline <script>'s FINAL
+   shipped content (after minification, so the hash matches byte-for-byte)
+   and writes them out for functions/_middleware.js to add to the CSP
+   script-src at request time — see writeScriptHashes() below for why (the
+   static _headers file can't hold a hash list this long) and
+   _middleware.js itself for why 'unsafe-inline' stays alongside them
+   rather than being removed. */
+
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import * as terser from 'terser';
 import * as acorn from 'acorn';
 
@@ -46,11 +55,27 @@ const SCRIPT_TAG_RE = /<script((?:\s+(?:"[^"]*"|'[^']*'|[^"'>])*)?)>([\s\S]*?)<\
 // before hunting for real <script> tags, then restore them untouched.
 const SRCDOC_RE = /srcdoc="[\s\S]*?"/g;
 
+function isExternal(attrs) {
+  return /\bsrc\s*=/.test(attrs);
+}
+// application/json and application/ld+json <script> blocks are inert data,
+// not executable script — the CSP spec exempts these "data block" types
+// from script-src entirely, so they need neither minifying nor a hash.
+function isJsonType(attrs) {
+  return /type\s*=\s*["']?application\/(ld\+)?json["']?/i.test(attrs);
+}
 function shouldSkip(attrs) {
-  if (/\bsrc\s*=/.test(attrs)) return true; // external script
-  if (/type\s*=\s*["']?(importmap|application\/(ld\+)?json)["']?/i.test(attrs)) return true;
-  if (/type\s*=\s*["']?module["']?/i.test(attrs)) return true; // import/export — left untouched
+  if (isExternal(attrs)) return true;
+  if (isJsonType(attrs)) return true;
+  if (/type\s*=\s*["']?(importmap|module)["']?/i.test(attrs)) return true; // left unminified to avoid parser edge cases — still hashed below, since these ARE real script-src-governed content
   return false;
+}
+// Whether this block's shipped content needs a CSP hash — true for every
+// real inline script, including the ones shouldSkip() left unminified
+// (importmap, the Three.js module block). Only external <script src> and
+// inert JSON data blocks are exempt from script-src.
+function needsHash(attrs) {
+  return !isExternal(attrs) && !isJsonType(attrs);
 }
 
 const HTML_COMMENT_RE = /<!--[\s\S]*?-->/g;
@@ -102,7 +127,11 @@ function stripHtmlComments(html) {
   return masked;
 }
 
-async function processFile(path) {
+function sha256Base64(str) {
+  return createHash('sha256').update(str, 'utf8').digest('base64');
+}
+
+async function processFile(path, hashSet) {
   const html = await readFile(path, 'utf8');
   let changed = false;
   let totalBefore = 0, totalAfter = 0, kept = 0;
@@ -118,7 +147,15 @@ async function processFile(path) {
     const m = matches[i];
     const attrs = m[1] || '';
     const code = m[2];
-    if (shouldSkip(attrs) || !code.trim()) continue;
+    if (!code.trim()) continue; // empty block, nothing to hash or minify
+
+    // shouldSkip() blocks (importmap, the Three.js module block) still ship
+    // inline and are still script-src-governed — hash their as-shipped
+    // content, just don't attempt to minify them.
+    if (shouldSkip(attrs)) {
+      if (needsHash(attrs)) hashSet.add(`'sha256-${sha256Base64(code)}'`);
+      continue;
+    }
 
     let finalCode = code;
     try {
@@ -138,6 +175,8 @@ async function processFile(path) {
       kept++;
       console.warn(`  ! kept original (terser error: ${err.message}) in ${path.pathname.split('/dist/')[1] || path}`);
     }
+
+    hashSet.add(`'sha256-${sha256Base64(finalCode)}'`);
 
     if (finalCode !== code) {
       totalBefore += code.length;
@@ -192,11 +231,55 @@ async function processJsFile(path) {
   }
 }
 
+// Cloudflare Pages' static _headers file caps every line at 2000
+// characters (undocumented in the file itself, but real — confirmed via
+// `wrangler pages dev`, which logs "Ignoring line ... as it exceeds the
+// maximum allowed length of 2000" and silently drops the WHOLE rule). A
+// real hash list for this site's ~40+ distinct inline scripts alone runs
+// ~2500 characters before even adding the rest of the CSP directives — so
+// writing the hashes into dist/_headers, the obvious first approach, does
+// not work: it would silently ship with NO Content-Security-Policy header
+// at all (worse than today), not a broken-but-present one. Caught this via
+// an actual wrangler pages dev run, not by reasoning about the format.
+//
+// Real fix: CSP now lives in functions/_middleware.js instead, set via
+// `Response.headers`, which has no such per-line length ceiling — Pages
+// Functions responses aren't parsed as a text file. This script writes the
+// computed hash list to functions/_generated/csp-hashes.js, which that
+// middleware imports. See that file for the 'unsafe-inline'-stays-alongside-
+// the-hashes reasoning (CSP2+ browsers ignore it once a hash is present;
+// keeping it is a safety net, not an oversight) and for why style-src's
+// 'unsafe-inline' is untouched (Astro's own scoped-CSS <style> blocks +
+// broader is:global usage make that a materially bigger, separate effort).
+async function writeScriptHashes(hashSet) {
+  const MIN_EXPECTED_HASHES = 15; // sanity floor — a real build sees 40+; a near-zero count means the collection loop broke, not that the site suddenly has almost no inline scripts
+  if (hashSet.size < MIN_EXPECTED_HASHES) {
+    throw new Error(
+      `CSP hash collection found only ${hashSet.size} distinct inline-script hash(es) ` +
+      `(expected ${MIN_EXPECTED_HASHES}+) — something in the collection loop is likely broken. ` +
+      `Failing the build rather than shipping csp-hashes.js that's silently wrong.`
+    );
+  }
+  const hashes = [...hashSet].sort();
+  const outDir = new URL('../functions/_generated/', import.meta.url);
+  await mkdir(outDir, { recursive: true });
+  const outPath = new URL('csp-hashes.js', outDir);
+  const contents =
+    '// GENERATED by scripts/obfuscate.mjs at build time — do not hand-edit.\n' +
+    '// Committed with a real value so the repo is never left with a stale or\n' +
+    "// missing file if someone runs `wrangler pages dev` without building first;\n" +
+    '// every real build overwrites this before Functions get bundled.\n' +
+    `export const CSP_SCRIPT_HASHES = ${JSON.stringify(hashes, null, 2)};\n`;
+  await writeFile(outPath, contents, 'utf8');
+  console.log(`Wrote ${hashSet.size} script-src hashes to functions/_generated/csp-hashes.js.`);
+}
+
 async function main() {
   let files = 0, blocksBefore = 0, blocksAfter = 0, keptTotal = 0;
+  const hashSet = new Set();
   for await (const entry of glob('**/*.html', { cwd: DIST_PATH })) {
     const path = new URL(entry, DIST);
-    const { changed, totalBefore, totalAfter, kept } = await processFile(path);
+    const { changed, totalBefore, totalAfter, kept } = await processFile(path, hashSet);
     keptTotal += kept;
     if (changed) {
       files++;
@@ -206,6 +289,8 @@ async function main() {
     }
   }
   console.log(`\nDone. ${files} file(s) touched, ${blocksBefore} -> ${blocksAfter} bytes of inline script. ${keptTotal} block(s) kept as original source.`);
+
+  await writeScriptHashes(hashSet);
 
   let jsFiles = 0, jsBefore = 0, jsAfter = 0, jsKept = 0;
   for await (const entry of glob('scripts/**/*.js', { cwd: DIST_PATH })) {
