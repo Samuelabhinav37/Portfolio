@@ -726,7 +726,15 @@ footer#site-footer{
     /* The CRT (live ascii.cam video render) is the heaviest thing in the
        footer — dropped entirely on phone/tablet rather than shrunk, same
        call as the globe. index-ascii-footer.js skips booting it under
-       LOW_POWER so the video/canvas loop never runs either. */
+       LOW_POWER so the video/canvas loop never runs either.
+       footer#site-footer itself is min-height:100vh so the CRT panel (the
+       thing that actually fills that height on desktop) has room — with
+       the CRT gone here, that same 100vh became mostly empty black space
+       above a small text card pinned to the bottom (justify-content:
+       flex-end), which on a real phone reads as an endless black screen
+       while scrolling through it. Let the footer size to its actual
+       content instead of forcing a full viewport of empty space. */
+    footer#site-footer{ min-height:0; }
     .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
     .f-left{ max-width:none; }
     .crt{ display:none; }
