@@ -1326,17 +1326,17 @@ footer#site-footer{
         </div>
       </div>
       <!-- Was a static stock photo, then briefly a live Cloudflare Radar
-           rotator — now a decorative autoplay runner game, security-reskinned.
-           Pure attract mode: never reads input, dies and restarts forever,
-           purely ambient like the nebula ships / subliminal glitch layer. AI jump
-           timing uses a fixed reaction distance that doesn't scale with the
-           game's own speed ramp — deliberate, so it plays cleanly at first
-           and eventually mistimes a jump as it speeds up, giving each run a
-           natural ~15-25s length instead of running forever or looking
-           obviously scripted. -->
-      <figure class="ed-frame ed-frame--b ed-arcade" aria-label="Decorative animation: an autoplaying security-themed runner game, not interactive">
-        <span class="ed-bento__lbl ed-arcade__lbl" title="Decorative auto-playing animation. It plays itself and restarts forever.">Ambient · auto-playing</span>
-        <canvas id="ed-arcade-canvas" aria-hidden="true"></canvas>
+           rotator, then a decorative autoplay runner game — back to a live
+           Radar widget again, this time a real chart: Layer 3 DDoS attack
+           share by targeted industry over the last 24h, proxied through
+           /api/radar-industries (see that Function's own header comment —
+           it needs a Cloudflare API token not yet provisioned, and
+           gracefully degrades to a labeled static fallback shape until it
+           is). See public/scripts/index-editorial-flow.js for the render
+           logic. -->
+      <figure class="ed-frame ed-frame--b ed-arcade" aria-label="Live chart: DDoS attack share by targeted industry, last 24 hours, from Cloudflare Radar">
+        <span class="ed-bento__lbl ed-arcade__lbl" title="Layer 3 DDoS attack share by targeted industry, last 24h — Cloudflare Radar">Ambient · auto-playing</span>
+        <canvas id="ed-arcade-canvas"></canvas>
       </figure>
     </div>
   </section>
