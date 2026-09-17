@@ -425,9 +425,19 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
      first thing on the page — now the wire ticker is (see order:-1 below),
      so that clearance moves there instead and this only needs normal
      breathing room under it. */
-  .hero2{gap:36px;padding:24px 20px 40px}
+  /* .hero2's bottom padding (was 40px) + section.block's top padding (was
+     8px) summed to a 48px gap between .hero2-side's last recent-post row
+     and .grid's first archive row. Both use identical .hero2-item/.card
+     row styling on mobile (the "unified kicker+title list" this file's own
+     header comment describes), so that 48px read as a blank, missing card
+     slot in what's visually one continuous list, not as a section break —
+     nothing marks it as intentional (no label, no divider). Closed the gap
+     to match the flush, border-only spacing already used between rows
+     within each list, so the transition reads as the next row instead of a
+     hole. */
+  .hero2{gap:36px;padding:24px 20px 0}
   .hero2-feat,.hero2-side{flex-basis:100%}
-  .intro{padding:72px 20px 50px}section.block{padding:8px 20px 64px}
+  .intro{padding:72px 20px 50px}section.block{padding:0 20px 64px}
 
   /* Threat wire above everything, filter/sort right above the archive
      grid it controls, grid last — .hero-wire-wrap only becomes a flex
