@@ -99,59 +99,6 @@
   }
 })();
 
-/* ── Beliefs copy — scroll-linked light reveal: a soft mask sweeps down the
-   paragraph block as it passes through the viewport, so the text visibly
-   lights up while you scroll instead of just sitting there fully visible.
-   Bidirectional (dims again scrolling back up) and gated by an
-   IntersectionObserver so the scroll listener only runs while the block is
-   actually near the viewport. Position is derived from a cached document
-   offset + scrollY rather than a fresh getBoundingClientRect() every scroll
-   frame — the latter forces a synchronous layout on a page this animation-
-   heavy, which is where scroll-linked effects usually go janky. ── */
-(function(){
-  var copy=document.querySelector('#editorial .ed-beliefs__copy');
-  if(!copy) return;
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    copy.style.setProperty('--reveal','200%');
-    return;
-  }
-  function clamp01(n){ return Math.max(0, Math.min(1, n)); }
-  var docTop=0, elHeight=0;
-  function measure(){
-    var r=copy.getBoundingClientRect();
-    docTop=r.top + window.scrollY;
-    elHeight=r.height;
-  }
-  measure();
-  if('ResizeObserver' in window){ new ResizeObserver(measure).observe(copy); }
-  else { window.addEventListener('resize', measure); }
-  var ticking=false;
-  function update(){
-    ticking=false;
-    var vh=window.innerHeight||800;
-    var top=docTop - window.scrollY;
-    var start=vh*0.88, end=vh*0.22;
-    var span=(elHeight + (start-end)) || 1;
-    var progress=clamp01((start - top) / span);
-    copy.style.setProperty('--reveal', (progress*124).toFixed(2)+'%');
-  }
-  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } }
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting){
-        window.addEventListener('scroll', onScroll, {passive:true});
-        update();
-      } else {
-        window.removeEventListener('scroll', onScroll);
-      }
-    }, {rootMargin:'25% 0px'});
-    io.observe(copy);
-  } else {
-    window.addEventListener('scroll', onScroll, {passive:true});
-  }
-  update();
-})();
-
 /* Bento: signal canvas (decorative, top-left quadrant) — moved to
    /scripts/index-signal-eagle.js (own file, not inlined here) since it
    carries ~34KB of packed animation data extracted from a reference clip;
@@ -218,264 +165,128 @@
   }).catch(function(){ /* keep fallback rows */ });
 })();
 
-/* ── Auto-defense (decorative arcade runner) — a security-reskinned endless
-   runner, pure attract mode: never reads input, ever. A terminal-cursor
-   "agent" auto-jumps threat icons (spikes = exploits, bugs = malware).
-   The AI's jump-trigger distance is a FIXED value that doesn't scale with
-   the game's own speed ramp (speed increases steadily over each run) — so
-   early on it dodges cleanly, and as speed climbs past what that fixed
-   reaction distance can safely clear, it eventually mistimes a jump and
-   "dies". That's deliberate: gives each run a natural, non-identical
-   ~15-25s length before a brief "BREACH DETECTED" beat and a full reset,
-   rather than running forever (boring) or looking like a hand-scripted
-   loop (uncanny). Canvas-drawn (no image assets), same reasoning as the
-   artifact-design guidance against hand-authored SVG path data — simple
-   procedural shapes instead. ── */
+/* ── Auto-defense -> Radar industries (live DDoS-share-by-industry chart) —
+   this bento slot used to hold a purely decorative, non-interactive autoplay
+   arcade runner (attract-mode only, never read input). Replaced with a real
+   live widget: Layer 3 DDoS attack share by targeted industry over the last
+   24h, from Cloudflare's own public Radar API, proxied through
+   /api/radar-industries the same way every other live feed on this site is
+   proxied (never fetched directly from the browser). Multiple thin lines,
+   one per industry, normalized 0-100% and drawn against a light vertical
+   grid — the "stock chart" shape the data actually has, not a decorative
+   loop pretending to be data.
+   NOTE: /api/radar-industries needs a Cloudflare API token
+   (CLOUDFLARE_RADAR_API_TOKEN) that isn't provisioned yet — until it is,
+   the endpoint returns an empty series list and FALLBACK below renders
+   instead, same convention as every other feed on this page. ── */
 (function(){
   var canvas=document.getElementById('ed-arcade-canvas');
   if(!canvas || !canvas.getContext) return;
   // .ed-arcade (this canvas's whole figure) is display:none on phones
-  // (<=600px, see index.astro) — never boot the physics/game loop behind a
-  // hidden canvas at all, same treatment as prefers-reduced-motion below.
+  // (<=600px, see index.astro) — don't fetch or draw behind a hidden canvas.
   if(window.matchMedia('(max-width:600px)').matches) return;
+  var lbl=document.querySelector('.ed-arcade__lbl');
+  if(lbl){ lbl.textContent='Live · DDoS by industry'; lbl.title='Layer 3 DDoS attack share by targeted industry, last 24h — Cloudflare Radar'; }
   var ctx=canvas.getContext('2d');
-  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var W=0,H=0,PLAY_TOP=6,PLAY_BOTTOM=0;
-  /* On-screen gate: this decorative auto-play game lives near the bottom of
-     the editorial bento, so its physics + canvas draw were burning frames
-     the entire time a visitor was anywhere above it. Only run the loop while
-     the canvas is near the viewport. */
-  var _onScreen=true;
-  if(!reduced && 'IntersectionObserver' in window){
-    _onScreen=false;
-    new IntersectionObserver(function(es){ _onScreen=es[0].isIntersecting; }, {rootMargin:'200px'}).observe(canvas);
+  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2);
+  function sizeCanvas(){
+    var r=canvas.getBoundingClientRect();
+    W=r.width; H=r.height;
+    canvas.width=Math.max(1,Math.round(W*DPR));
+    canvas.height=Math.max(1,Math.round(H*DPR));
+    ctx.setTransform(DPR,0,0,DPR,0,0);
   }
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas, {passive:true});
 
-  function fit(){
-    var rect=canvas.getBoundingClientRect();
-    var dpr=Math.min(window.devicePixelRatio||1,2);
-    W=rect.width; H=rect.height; PLAY_BOTTOM=H-6;
-    canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  var stars=[];
-  function makeStars(){
-    stars=[];
-    for(var i=0;i<20;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+0.4,tw:Math.random()*Math.PI*2,par:0.1+Math.random()*0.12});
-  }
-  fit();
-  makeStars();
-  var fitT=null;
-  addEventListener('resize',function(){ clearTimeout(fitT); fitT=setTimeout(function(){ fit(); makeStars(); },150); },{passive:true});
+  // Muted, mono-hued palette so the lines read as one coherent dataset
+  // rather than a rainbow — same restrained approach as the rest of this
+  // page's canvas widgets (index-signal-eagle.js, the KEV ticker dots).
+  var COLORS=['rgba(226,232,244,.85)','rgba(148,178,225,.70)','rgba(120,225,170,.62)','rgba(226,180,120,.60)','rgba(200,150,220,.55)'];
 
-  // ── physics/state ── free flight, not a ground-runner: gravity pulls the
-  // probe down continuously, small rate-limited "boosts" (flappy-bird taps)
-  // eases smoothly toward wherever it needs to be next — maneuvering
-  // thrusters, not a bird's wingbeat, so no gravity/discrete impulses.
-  // When nothing's ahead it glides on a slow idle sine drift instead of
-  // sitting dead still. The AI's reaction distance + ease rate are FIXED
-  // and don't scale with the speed ramp below — same difficulty philosophy
-  // as before: early on there's plenty of time to smoothly reach the next
-  // gap/gate, and as speed climbs the correction window shrinks below what
-  // the fixed ease rate can cover in time, producing a natural ~15-25s run
-  // before a miss, not a hard cutoff.
-  var EASE_RATE=0.075, IDLE_AMP=16, IDLE_FREQ=0.0011, BASE_SPEED=1.1, SPEED_RAMP=0.00009;
-  var SHIP_X=24, SHIP_W=16, SHIP_H=11;
-  var TRIGGER_DIST=130; // fixed on purpose
-  var shipY, vy, speed, obstacles, phase, phaseT, particles, tAccum;
+  // Static, clearly-labeled placeholder shape used until the real feed
+  // resolves (or if it never does — no token provisioned yet, or the
+  // request fails). Same fallback-then-upgrade pattern as the KEV ticker
+  // and threat-intel widgets above: paint something immediately, replace
+  // it in place if /api/radar-industries returns real series.
+  var FALLBACK=(function(){
+    var pts=12,industries=['Gaming','Telecom','Financial Services','Gov/Public Sector'];
+    return {
+      timestamps:Array.from({length:pts},function(_,i){return i;}),
+      series:industries.map(function(name,i){
+        return {industry:name, values:Array.from({length:pts},function(_,j){
+          var base=[34,26,22,18][i]||15;
+          return Math.max(2, base + Math.sin(j*0.7+i)*6 + (Math.random()*4-2));
+        })};
+      }),
+      isFallback:true,
+    };
+  })();
 
-  function reset(){
-    shipY=H/2; vy=0; speed=BASE_SPEED;
-    obstacles=[]; particles=[]; phase='run'; phaseT=0; tAccum=0;
-    scheduleNext(true);
-  }
-  var nextSpawnAt=0, distSince=0;
-  function scheduleNext(first){ nextSpawnAt=distSince+230+Math.random()*190+(first?70:0); }
-  function spawn(){
-    // 'gate' — a checkpoint frame the probe threads through; its opening
-    // starts wide (GATE_OPEN) and narrows toward GATE_CLOSE as it crosses
-    // the tile, the "slowly closing" effect — computed from spawnX/x each
-    // frame, not animated on its own timer, so it stays in sync if the tab
-    // was backgrounded and time jumped.
-    // 'asteroid' — jagged debris (points fixed once at spawn so its
-    // silhouette doesn't jitter) that slowly bobs up/down as it drifts by.
-    var kind=Math.random()<0.42?'gate':'asteroid';
-    if(kind==='gate'){
-      var gapY=PLAY_TOP+30+Math.random()*Math.max(10,(PLAY_BOTTOM-PLAY_TOP-60));
-      obstacles.push({x:W+10,spawnX:W+10,kind:kind,w:7,gapY:gapY,openH:46,closeH:24});
-    } else {
-      var w=13+Math.random()*5,h=11+Math.random()*5,n=6,pts=[];
-      for(var k=0;k<n;k++) pts.push({a:(k/n)*Math.PI*2,r:0.68+Math.random()*0.32});
-      var baseY=PLAY_TOP+16+Math.random()*Math.max(10,(PLAY_BOTTOM-PLAY_TOP-32));
-      obstacles.push({x:W+10,kind:kind,w:w,h:h,pts:pts,baseY:baseY,amp:7+Math.random()*7,freq:0.0009+Math.random()*0.0007,ph0:Math.random()*Math.PI*2,curY:baseY});
-    }
-  }
-  function explode(x,y){
-    particles=[];
-    for(var i=0;i<9;i++){
-      var ang=Math.random()*Math.PI*2, spd=1+Math.random()*2.4;
-      particles.push({x:x,y:y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,life:1});
-    }
-  }
-
-  function nearestAhead(){
-    var best=null;
-    for(var i=0;i<obstacles.length;i++){
-      var o=obstacles[i];
-      if(o.x+o.w>=SHIP_X && (!best || o.x<best.x)) best=o;
-    }
-    return best;
-  }
-  function gateGapH(o){
-    var prog=1-((o.x-SHIP_X)/Math.max(1,(o.spawnX-SHIP_X)));
-    prog=Math.max(0,Math.min(1,prog));
-    return o.openH+(o.closeH-o.openH)*prog;
-  }
-  function pickTarget(o){
-    if(o.kind==='gate') return o.gapY;
-    var above=Math.max(PLAY_TOP+6,o.curY-o.h/2-13), below=Math.min(PLAY_BOTTOM-6,o.curY+o.h/2+13);
-    return Math.abs(shipY-above)<=Math.abs(shipY-below)?above:below;
-  }
-
-  function update(dt){
-    var k=dt/16.67;
-    if(phase==='over'){
-      phaseT+=dt;
-      for(var p=0;p<particles.length;p++){ particles[p].x+=particles[p].vx*k; particles[p].y+=particles[p].vy*k; particles[p].life-=dt/450; }
-      if(phaseT>1300) reset();
+  function draw(data){
+    ctx.clearRect(0,0,W,H);
+    var series=(data.series||[]).slice(0,5);
+    if(!series.length){
+      ctx.fillStyle='rgba(226,232,244,.32)';
+      ctx.font="10px 'JetBrains Mono',monospace";
+      ctx.fillText('No attack data available right now', 4, H/2);
       return;
     }
-    tAccum+=dt;
-    speed+=SPEED_RAMP*dt;
-    distSince+=speed*k;
-
-    // spawn
-    if(distSince>=nextSpawnAt){ spawn(); scheduleNext(false); }
-
-    // move + cull obstacles, update asteroid bob, drift starfield (parallax)
-    for(var i=obstacles.length-1;i>=0;i--){
-      var o=obstacles[i]; o.x-=speed*k;
-      if(o.kind==='asteroid') o.curY=o.baseY+Math.sin(tAccum*o.freq+o.ph0)*o.amp;
-      if(o.x+o.w<0) obstacles.splice(i,1);
+    var padL=4,padR=4,padT=6,padB=16;
+    var plotW=W-padL-padR, plotH=H-padT-padB;
+    var maxV=0;
+    series.forEach(function(s){ s.values.forEach(function(v){ if(v>maxV) maxV=v; }); });
+    maxV=Math.max(maxV,1);
+    var n=(series[0]&&series[0].values.length)||1;
+    // Light horizontal grid — same restrained-gridline language as other
+    // bento widgets on this page, not a full chart-library axis treatment.
+    ctx.strokeStyle='rgba(226,232,244,.08)'; ctx.lineWidth=1;
+    for(var g=0;g<=2;g++){
+      var gy=padT+plotH*(g/2);
+      ctx.beginPath(); ctx.moveTo(padL,gy); ctx.lineTo(padL+plotW,gy); ctx.stroke();
     }
-    for(var s=0;s<stars.length;s++){
-      stars[s].x-=speed*stars[s].par*k;
-      if(stars[s].x<-2){ stars[s].x=W+2; stars[s].y=Math.random()*H; }
-    }
-
-    // AI: fixed reaction distance, smooth ease toward the target — see file
-    // comment. No obstacle ahead → drift on a slow idle sine instead of
-    // holding still, so it still reads as "flying" between hazards.
-    var n=nearestAhead(), desiredY;
-    if(n && (n.x-SHIP_X)<=TRIGGER_DIST){
-      desiredY=pickTarget(n);
-    } else {
-      desiredY=H/2+Math.sin(tAccum*IDLE_FREQ)*IDLE_AMP;
-    }
-    var prevY=shipY;
-    shipY+=(desiredY-shipY)*Math.min(1,EASE_RATE*k);
-    if(shipY<PLAY_TOP) shipY=PLAY_TOP;
-    if(shipY>PLAY_BOTTOM-SHIP_H) shipY=PLAY_BOTTOM-SHIP_H;
-    vy=(shipY-prevY)/k; // derived from actual motion, purely for the hull-tilt/thruster visual below
-
-    // collision
-    for(var j=0;j<obstacles.length;j++){
-      var ob=obstacles[j];
-      if(ob.kind==='gate'){
-        if(ob.x<SHIP_X+SHIP_W-3 && ob.x+ob.w>SHIP_X+3){
-          var gh=gateGapH(ob), top=ob.gapY-gh/2, bot=ob.gapY+gh/2;
-          var shipCenter=shipY+SHIP_H/2;
-          if(shipCenter-4<top || shipCenter+4>bot){ explode(SHIP_X+SHIP_W/2,shipY+SHIP_H/2); phase='over'; phaseT=0; break; }
-        }
-      } else {
-        var rx=SHIP_X+3,rw=SHIP_W-6,ry=shipY+2,rh=SHIP_H-2;
-        var ox=ob.x+2,ow=ob.w-4,oy=ob.curY-ob.h/2+1,oh=ob.h-2;
-        if(rx<ox+ow && rx+rw>ox && ry<oy+oh && ry+rh>oy){ explode(SHIP_X+SHIP_W/2,shipY+SHIP_H/2); phase='over'; phaseT=0; break; }
-      }
-    }
-
+    series.forEach(function(s,si){
+      ctx.strokeStyle=COLORS[si%COLORS.length]; ctx.lineWidth=1.4;
+      ctx.beginPath();
+      s.values.forEach(function(v,i){
+        var x=padL+(n>1? (i/(n-1))*plotW : 0);
+        var y=padT+plotH-(v/maxV)*plotH;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    });
+    // Legend: top industries by their final (most recent) share.
+    var legend=series.map(function(s,si){ return {name:s.industry, si:si, last:s.values[s.values.length-1]||0}; })
+      .sort(function(a,b){ return b.last-a.last; });
+    ctx.font="9px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+    ctx.textBaseline='alphabetic';
+    var lx=padL;
+    legend.forEach(function(l){
+      var text=l.name+' '+l.last.toFixed(0)+'%';
+      ctx.fillStyle=COLORS[l.si%COLORS.length];
+      ctx.fillText(text, lx, H-4);
+      lx+=ctx.measureText(text).width+14;
+    });
   }
 
-  function draw(){
-    ctx.clearRect(0,0,W,H);
+  draw(FALLBACK);
 
-    // faint scattered starfield — open space, no ground/horizon
-    for(var s=0;s<stars.length;s++){
-      var st=stars[s], tw=0.5+0.5*Math.sin(tAccum*0.0016+st.tw);
-      ctx.fillStyle='rgba(237,237,238,'+(0.12+0.22*tw).toFixed(2)+')';
-      ctx.fillRect(st.x,st.y,st.r,st.r);
-    }
-
-    // obstacles
-    for(var i=0;i<obstacles.length;i++){
-      var o=obstacles[i];
-      if(o.kind==='gate'){
-        var gh=gateGapH(o), top=o.gapY-gh/2, bot=o.gapY+gh/2;
-        ctx.strokeStyle='rgba(237,237,238,.8)'; ctx.lineWidth=1.5;
-        ctx.beginPath(); ctx.moveTo(o.x,PLAY_TOP-4); ctx.lineTo(o.x,top); ctx.moveTo(o.x+o.w,PLAY_TOP-4); ctx.lineTo(o.x+o.w,top); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(o.x,bot); ctx.lineTo(o.x,PLAY_BOTTOM+4); ctx.moveTo(o.x+o.w,bot); ctx.lineTo(o.x+o.w,PLAY_BOTTOM+4); ctx.stroke();
-        ctx.strokeStyle='rgba(237,237,238,.4)'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(o.x,top); ctx.lineTo(o.x+o.w,top); ctx.moveTo(o.x,bot); ctx.lineTo(o.x+o.w,bot); ctx.stroke();
-      } else {
-        var cx=o.x+o.w/2, cy=o.curY;
-        ctx.fillStyle='rgba(156,156,162,.82)';
-        ctx.beginPath();
-        for(var pi=0;pi<o.pts.length;pi++){
-          var pt=o.pts[pi], px=cx+Math.cos(pt.a)*pt.r*o.w/2, py=cy+Math.sin(pt.a)*pt.r*o.h/2;
-          if(pi===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-        }
-        ctx.closePath(); ctx.fill();
-      }
-    }
-
-    // probe: a small triangular hull that pitches with vertical velocity,
-    // a fading thruster flame behind it (flicker via a light random jitter),
-    // and a "cockpit" dot — black and white throughout, no accent color,
-    // same restrained mono palette as everywhere else on the page.
-    if(phase!=='over'){
-      var cx=SHIP_X+SHIP_W/2, cy=shipY+SHIP_H/2;
-      var tilt=Math.max(-0.5,Math.min(0.5,-vy*0.09));
-      ctx.save(); ctx.translate(cx,cy); ctx.rotate(tilt);
-      var flick=0.65+Math.random()*0.35, flameLen=9*flick;
-      var grd=ctx.createLinearGradient(-SHIP_W/2-flameLen,0,-SHIP_W/2,0);
-      grd.addColorStop(0,'rgba(237,237,238,0)'); grd.addColorStop(1,'rgba(237,237,238,.8)');
-      ctx.fillStyle=grd;
-      ctx.beginPath(); ctx.moveTo(-SHIP_W/2,-2.5); ctx.lineTo(-SHIP_W/2-flameLen,0); ctx.lineTo(-SHIP_W/2,2.5); ctx.closePath(); ctx.fill();
-      ctx.fillStyle='#ededee';
-      ctx.beginPath(); ctx.moveTo(SHIP_W/2,0); ctx.lineTo(-SHIP_W/2,-SHIP_H/2); ctx.lineTo(-SHIP_W/2,SHIP_H/2); ctx.closePath(); ctx.fill();
-      ctx.fillStyle='rgba(237,237,238,.9)';
-      ctx.beginPath(); ctx.arc(SHIP_W/6,0,1.6,0,Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
-
-    if(phase==='over'){
-      ctx.fillStyle='rgba(4,4,10,.6)'; ctx.fillRect(0,0,W,H);
-      for(var p=0;p<particles.length;p++){
-        var pt=particles[p]; if(pt.life<=0) continue;
-        ctx.fillStyle='rgba(237,237,238,'+Math.max(0,pt.life*0.85).toFixed(2)+')';
-        ctx.beginPath(); ctx.arc(pt.x,pt.y,1.6,0,Math.PI*2); ctx.fill();
-      }
-      ctx.fillStyle='#ededee'; ctx.font="11px 'JetBrains Mono',monospace"; ctx.textAlign='center';
-      ctx.fillText('BREACH DETECTED — RESETTING…', W/2, H/2+4);
-      ctx.textAlign='left';
-    }
+  // Defer the real fetch until the widget is actually about to be seen —
+  // same IntersectionObserver-gated pattern already used for the below-fold
+  // canvas widgets on this page.
+  function load(){
+    fetch('/api/radar-industries').then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+      if(Array.isArray(j.series) && j.series.length) draw(j);
+    }).catch(function(){ /* keep the fallback drawn above */ });
   }
-
-  if(reduced){
-    reset(); draw(); // one static frame, no loop — respects prefers-reduced-motion
-    return;
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      if(es.some(function(e){ return e.isIntersecting; })){ io.disconnect(); load(); }
+    }, {rootMargin:'200px'});
+    io.observe(canvas);
+  } else {
+    load();
   }
-
-  reset();
-  var last=0;
-  function loop(t){
-    requestAnimationFrame(loop);
-    if(document.hidden || !_onScreen){ last=0; return; }
-    if(!last) last=t;
-    var dt=Math.min(t-last,50); last=t;
-    update(dt); draw();
-  }
-  requestAnimationFrame(loop);
 })();
 
 /* ── Bento: MITRE ATT&CK technique spotlight (bottom-right quadrant) — a rotating

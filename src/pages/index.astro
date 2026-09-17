@@ -726,7 +726,15 @@ footer#site-footer{
     /* The CRT (live ascii.cam video render) is the heaviest thing in the
        footer — dropped entirely on phone/tablet rather than shrunk, same
        call as the globe. index-ascii-footer.js skips booting it under
-       LOW_POWER so the video/canvas loop never runs either. */
+       LOW_POWER so the video/canvas loop never runs either.
+       footer#site-footer itself is min-height:100vh so the CRT panel (the
+       thing that actually fills that height on desktop) has room — with
+       the CRT gone here, that same 100vh became mostly empty black space
+       above a small text card pinned to the bottom (justify-content:
+       flex-end), which on a real phone reads as an endless black screen
+       while scrolling through it. Let the footer size to its actual
+       content instead of forcing a full viewport of empty space. */
+    footer#site-footer{ min-height:0; }
     .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
     .f-left{ max-width:none; }
     .crt{ display:none; }
@@ -1069,9 +1077,7 @@ footer#site-footer{
   #editorial .ed-beliefs__head .ed-lbl{ display:block; margin-bottom:18px; }
   #editorial .ed-beliefs__head h2{ font-weight:300; font-size:clamp(1.6rem,2.2vw,2rem);
     letter-spacing:-.3px; color:#ededee; }
-  #editorial .ed-beliefs__copy{ max-width:52ch; padding-top:6px; --reveal:0%; will-change:mask-image;
-    -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 var(--reveal),transparent calc(var(--reveal) + 26%));
-            mask-image:linear-gradient(180deg,#000 0%,#000 var(--reveal),transparent calc(var(--reveal) + 26%)); }
+  #editorial .ed-beliefs__copy{ max-width:52ch; padding-top:6px; }
   #editorial .ed-beliefs__copy p{ font-weight:300; font-size:clamp(1.05rem,1.35vw,1.28rem);
     line-height:1.62; color:#c9c9cc; }
   #editorial .ed-beliefs__copy p em{ font-style:normal; color:#fff; }
@@ -1320,17 +1326,17 @@ footer#site-footer{
         </div>
       </div>
       <!-- Was a static stock photo, then briefly a live Cloudflare Radar
-           rotator — now a decorative autoplay runner game, security-reskinned.
-           Pure attract mode: never reads input, dies and restarts forever,
-           purely ambient like the nebula ships / subliminal glitch layer. AI jump
-           timing uses a fixed reaction distance that doesn't scale with the
-           game's own speed ramp — deliberate, so it plays cleanly at first
-           and eventually mistimes a jump as it speeds up, giving each run a
-           natural ~15-25s length instead of running forever or looking
-           obviously scripted. -->
-      <figure class="ed-frame ed-frame--b ed-arcade" aria-label="Decorative animation: an autoplaying security-themed runner game, not interactive">
-        <span class="ed-bento__lbl ed-arcade__lbl" title="Decorative auto-playing animation. It plays itself and restarts forever.">Ambient · auto-playing</span>
-        <canvas id="ed-arcade-canvas" aria-hidden="true"></canvas>
+           rotator, then a decorative autoplay runner game — back to a live
+           Radar widget again, this time a real chart: Layer 3 DDoS attack
+           share by targeted industry over the last 24h, proxied through
+           /api/radar-industries (see that Function's own header comment —
+           it needs a Cloudflare API token not yet provisioned, and
+           gracefully degrades to a labeled static fallback shape until it
+           is). See public/scripts/index-editorial-flow.js for the render
+           logic. -->
+      <figure class="ed-frame ed-frame--b ed-arcade" aria-label="Live chart: DDoS attack share by targeted industry, last 24 hours, from Cloudflare Radar">
+        <span class="ed-bento__lbl ed-arcade__lbl" title="Layer 3 DDoS attack share by targeted industry, last 24h — Cloudflare Radar">Live · DDoS by industry</span>
+        <canvas id="ed-arcade-canvas"></canvas>
       </figure>
     </div>
   </section>
@@ -1801,7 +1807,7 @@ footer#site-footer{
         <p class="f-eyebrow">Open to work</p>
         <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
       </div>
-      <a class="f-cta" href="mailto:hello@samuelabhinav.com">Get in touch <span class="arrow">→</span></a>
+      <a class="f-cta" href="/contact">Get in touch <span class="arrow">→</span></a>
     </div>
 
     <div class="crt">

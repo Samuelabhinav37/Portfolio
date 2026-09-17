@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- Throwaway research prototype, NOT wired into the real site. Proves out a
+     lighter, non-three.js alternative to public/scripts/index-globe-engine.js:
+     a plain 2D canvas rendering a sparse dot-matrix sphere via basic trig
+     projection (no WebGL, no external library). Open directly in a browser
+     to eyeball it. Delete this file — it's not meant to ship. -->
+<html><head><meta charset="utf-8"><style>
+  body{background:#05060d;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
+  canvas{border-radius:50%}
+</style></head><body>
+<canvas id="c" width="440" height="440"></canvas>
+<script>
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+const R = 170, CX = 220, CY = 220;
+// Sparse lat/lon dot grid — density tuned down deliberately (this is the
+// whole point: WAY fewer points than a real point-cloud globe needs, since
+// there's no lighting/fresnel/fog to sell depth, just perspective + size/
+// opacity falloff for the front/back read).
+const dots = [];
+for (let lat = -80; lat <= 80; lat += 12) {
+  const latRad = lat * Math.PI / 180;
+  const ringR = Math.cos(latRad);
+  const n = Math.max(6, Math.round(24 * ringR));
+  for (let i = 0; i < n; i++) {
+    const lon = (i / n) * Math.PI * 2;
+    dots.push({ lat: latRad, lon });
+  }
+}
+let t = 0;
+function frame() {
+  t += 0.004;
+  ctx.clearRect(0, 0, c.width, c.height);
+  // Sort back-to-front so front dots draw over back ones (no z-buffer here).
+  const projected = dots.map(d => {
+    const lon = d.lon + t;
+    const x = Math.cos(d.lat) * Math.sin(lon);
+    const y = Math.sin(d.lat);
+    const z = Math.cos(d.lat) * Math.cos(lon);
+    return { sx: CX + x * R, sy: CY - y * R, z };
+  }).sort((a, b) => a.z - b.z);
+  projected.forEach(p => {
+    // z ranges -1 (far side) to 1 (near side) — use it for both size and
+    // opacity falloff, the same "front reads brighter/bigger" cue three.js's
+    // fresnel shader was doing with actual lighting math, just faked cheaply.
+    const depth = (p.z + 1) / 2; // 0..1
+    const size = 0.6 + depth * 1.6;
+    const alpha = 0.15 + depth * 0.75;
+    ctx.beginPath();
+    ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(238,243,255,${alpha.toFixed(2)})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body></html>
