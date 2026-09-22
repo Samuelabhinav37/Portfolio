@@ -255,7 +255,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       data-label-closed={i18n.openMenu}
       data-label-open={i18n.closeMenu}
     >{lang === 'es' ? 'Menú' : 'Menu'}</button>
-    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
+    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
       <ul id="menu-list">
         <li><a href={SITE.links.about}><span>{i18n.navAbout}</span></a></li>
         <li><a href={SITE.links.blogIndex} class="active"><span>{i18n.navBlog}</span></a></li>

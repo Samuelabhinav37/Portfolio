@@ -229,6 +229,7 @@ document.addEventListener('click', (ev) => {
     trigger.setAttribute('aria-label', open ? labelOpen : labelClosed);
     trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
     overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+    overlay.inert = !open; // closed menu links must not take keyboard focus
     if (open) {
       /* Luna's drawer sits at a much lower z-index than this menu overlay —
          with both open at once the menu covers her drawer, including its

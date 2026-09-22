@@ -38,7 +38,7 @@ const links = [
 </div>
 
 <button id="menu-trigger" aria-label="Open menu" aria-expanded="false">Menu</button>
-<nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
+<nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
   <ul id="menu-list">
     {links.map((l) => (
       <li><a href={l.href} class={l.href === currentPath + '/' ? 'current' : undefined}><span>{l.label}</span></a></li>
@@ -215,6 +215,9 @@ const links = [
          "open" a menu that's already open */
       trigger!.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       overlay!.setAttribute('aria-hidden', open ? 'false' : 'true');
+      /* inert, not just aria-hidden: a closed menu's links must not take
+         keyboard focus either (aria-hidden alone leaves them tabbable). */
+      overlay!.inert = !open;
       if(open){
         /* Luna's drawer (z-index 1200) sits well below this overlay
            (z-index 10000+) — with both open at once the menu covers her

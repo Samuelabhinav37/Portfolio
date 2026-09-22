@@ -385,14 +385,14 @@ KB.forEach(function(entry, i){
     lastFocused = (document.activeElement && document.activeElement !== document.body)
       ? document.activeElement : pillBtn;
     drawer.classList.add('on'); scrim.classList.add('on');
-    document.body.classList.add('ldw-drawer-open'); drawer.setAttribute('aria-hidden','false');
+    document.body.classList.add('ldw-drawer-open'); drawer.setAttribute('aria-hidden','false'); drawer.inert=false;
     if(pillBtn) pillBtn.setAttribute('aria-expanded','true');
     mountLuna(); startTypewriter();
     statusTimer=setInterval(refreshStatus,400);
     setTimeout(()=>{ $('ldw-close').focus(); }, reduce?0:80);
     if(Router.getMode()==='auto') LLMEngine.load(()=>refreshStatus()); }
   function closeD(){ if(!open)return; open=false; drawer.classList.remove('on'); scrim.classList.remove('on');
-    document.body.classList.remove('ldw-drawer-open'); drawer.setAttribute('aria-hidden','true'); ask.blur();
+    document.body.classList.remove('ldw-drawer-open'); drawer.setAttribute('aria-hidden','true'); drawer.inert=true; ask.blur();
     if(pillBtn) pillBtn.setAttribute('aria-expanded','false');
     clearInterval(statusTimer); statusTimer=null;
     setTimeout(unmountLuna, reduce?0:650); stopTypewriter();
