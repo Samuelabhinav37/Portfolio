@@ -165,125 +165,54 @@
   }).catch(function(){ /* keep fallback rows */ });
 })();
 
-/* ── Auto-defense -> Radar industries (live DDoS-share-by-industry chart) —
-   this bento slot used to hold a purely decorative, non-interactive autoplay
-   arcade runner (attract-mode only, never read input). Replaced with a real
-   live widget: Layer 3 DDoS attack share by targeted industry over the last
-   24h, from Cloudflare's own public Radar API, proxied through
-   /api/radar-industries the same way every other live feed on this site is
-   proxied (never fetched directly from the browser). Multiple thin lines,
-   one per industry, normalized 0-100% and drawn against a light vertical
-   grid — the "stock chart" shape the data actually has, not a decorative
-   loop pretending to be data.
-   NOTE: /api/radar-industries needs a Cloudflare API token
-   (CLOUDFLARE_RADAR_API_TOKEN) that isn't provisioned yet — until it is,
-   the endpoint returns an empty series list and FALLBACK below renders
-   instead, same convention as every other feed on this page. ── */
+/* ── DDoS targets: the five industries taking the largest share of Layer 3
+   DDoS attacks over the last 7 days, from Cloudflare Radar via
+   /api/radar-industries. Rendered as a ranked DOM list (not canvas) so it's
+   legible at bento size and readable by screen readers. No invented
+   numbers: if the feed has no data (no API token provisioned, or upstream
+   failed), the tile says so and links to Radar instead. ── */
 (function(){
-  var canvas=document.getElementById('ed-arcade-canvas');
-  if(!canvas || !canvas.getContext) return;
-  // .ed-arcade (this canvas's whole figure) is display:none on phones
-  // (<=600px, see index.astro) — don't fetch or draw behind a hidden canvas.
+  var list=document.getElementById('ed-ddos-list');
+  if(!list) return;
+  // The tile is display:none on phones (<=600px, see index.astro).
   if(window.matchMedia('(max-width:600px)').matches) return;
-  var lbl=document.querySelector('.ed-arcade__lbl');
-  if(lbl){ lbl.textContent='Live · DDoS by industry'; lbl.title='Layer 3 DDoS attack share by targeted industry, last 24h — Cloudflare Radar'; }
-  var ctx=canvas.getContext('2d');
-  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2);
-  function sizeCanvas(){
-    var r=canvas.getBoundingClientRect();
-    W=r.width; H=r.height;
-    canvas.width=Math.max(1,Math.round(W*DPR));
-    canvas.height=Math.max(1,Math.round(H*DPR));
-    ctx.setTransform(DPR,0,0,DPR,0,0);
+
+  function pretty(s){
+    return String(s||'').replace(/_/g,' ').toLowerCase().replace(/\b\w/g,function(c){ return c.toUpperCase(); })
+      .replace(/\bAnd\b/g,'&').replace(/\bIt\b/g,'IT');
   }
-  sizeCanvas();
-  window.addEventListener('resize', sizeCanvas, {passive:true});
-
-  // Muted, mono-hued palette so the lines read as one coherent dataset
-  // rather than a rainbow — same restrained approach as the rest of this
-  // page's canvas widgets (index-signal-eagle.js, the KEV ticker dots).
-  var COLORS=['rgba(226,232,244,.85)','rgba(148,178,225,.70)','rgba(120,225,170,.62)','rgba(226,180,120,.60)','rgba(200,150,220,.55)'];
-
-  // Static, clearly-labeled placeholder shape used until the real feed
-  // resolves (or if it never does — no token provisioned yet, or the
-  // request fails). Same fallback-then-upgrade pattern as the KEV ticker
-  // and threat-intel widgets above: paint something immediately, replace
-  // it in place if /api/radar-industries returns real series.
-  var FALLBACK=(function(){
-    var pts=12,industries=['Gaming','Telecom','Financial Services','Gov/Public Sector'];
-    return {
-      timestamps:Array.from({length:pts},function(_,i){return i;}),
-      series:industries.map(function(name,i){
-        return {industry:name, values:Array.from({length:pts},function(_,j){
-          var base=[34,26,22,18][i]||15;
-          return Math.max(2, base + Math.sin(j*0.7+i)*6 + (Math.random()*4-2));
-        })};
-      }),
-      isFallback:true,
-    };
-  })();
-
-  function draw(data){
-    ctx.clearRect(0,0,W,H);
-    var series=(data.series||[]).slice(0,5);
-    if(!series.length){
-      ctx.fillStyle='rgba(226,232,244,.32)';
-      ctx.font="10px 'JetBrains Mono',monospace";
-      ctx.fillText('No attack data available right now', 4, H/2);
-      return;
-    }
-    var padL=4,padR=4,padT=6,padB=16;
-    var plotW=W-padL-padR, plotH=H-padT-padB;
-    var maxV=0;
-    series.forEach(function(s){ s.values.forEach(function(v){ if(v>maxV) maxV=v; }); });
-    maxV=Math.max(maxV,1);
-    var n=(series[0]&&series[0].values.length)||1;
-    // Light horizontal grid — same restrained-gridline language as other
-    // bento widgets on this page, not a full chart-library axis treatment.
-    ctx.strokeStyle='rgba(226,232,244,.08)'; ctx.lineWidth=1;
-    for(var g=0;g<=2;g++){
-      var gy=padT+plotH*(g/2);
-      ctx.beginPath(); ctx.moveTo(padL,gy); ctx.lineTo(padL+plotW,gy); ctx.stroke();
-    }
-    series.forEach(function(s,si){
-      ctx.strokeStyle=COLORS[si%COLORS.length]; ctx.lineWidth=1.4;
-      ctx.beginPath();
-      s.values.forEach(function(v,i){
-        var x=padL+(n>1? (i/(n-1))*plotW : 0);
-        var y=padT+plotH-(v/maxV)*plotH;
-        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      });
-      ctx.stroke();
+  function render(items){
+    list.innerHTML='';
+    var max=items.reduce(function(m,x){ return Math.max(m,x.share); },0)||1;
+    var bars=[];
+    items.forEach(function(x,i){
+      var li=document.createElement('li'); li.className='ed-ddos__row';
+      var r=document.createElement('span'); r.className='ed-ddos__rank'; r.textContent=String(i+1).padStart(2,'0');
+      var n=document.createElement('span'); n.className='ed-ddos__name'; n.textContent=pretty(x.industry); n.title=n.textContent;
+      var p=document.createElement('span'); p.className='ed-ddos__pct'; p.textContent=(x.share<10?x.share.toFixed(1):Math.round(x.share))+'%';
+      var bar=document.createElement('span'); bar.className='ed-ddos__bar'; bar.setAttribute('aria-hidden','true');
+      var fill=document.createElement('i'); bar.appendChild(fill); bars.push([fill,x.share/max]);
+      li.appendChild(r); li.appendChild(n); li.appendChild(p); li.appendChild(bar); list.appendChild(li);
     });
-    // Legend: top industries by their final (most recent) share.
-    var legend=series.map(function(s,si){ return {name:s.industry, si:si, last:s.values[s.values.length-1]||0}; })
-      .sort(function(a,b){ return b.last-a.last; });
-    ctx.font="9px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-    ctx.textBaseline='alphabetic';
-    var lx=padL;
-    legend.forEach(function(l){
-      var text=l.name+' '+l.last.toFixed(0)+'%';
-      ctx.fillStyle=COLORS[l.si%COLORS.length];
-      ctx.fillText(text, lx, H-4);
-      lx+=ctx.measureText(text).width+14;
-    });
+    // Next frame so the width transition actually runs from 0.
+    requestAnimationFrame(function(){ bars.forEach(function(b){ b[0].style.width=(b[1]*100).toFixed(1)+'%'; }); });
   }
-
-  draw(FALLBACK);
-
-  // Defer the real fetch until the widget is actually about to be seen —
-  // same IntersectionObserver-gated pattern already used for the below-fold
-  // canvas widgets on this page.
+  function empty(){
+    list.innerHTML='';
+    var li=document.createElement('li'); li.className='ed-ddos__empty';
+    li.textContent='Live attack data isn’t connected right now. The current breakdown is on Cloudflare Radar.';
+    list.appendChild(li);
+  }
   function load(){
     fetch('/api/radar-industries').then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
-      if(Array.isArray(j.series) && j.series.length) draw(j);
-    }).catch(function(){ /* keep the fallback drawn above */ });
+      if(Array.isArray(j.items) && j.items.length) render(j.items); else empty();
+    }).catch(empty);
   }
   if('IntersectionObserver' in window){
     var io=new IntersectionObserver(function(es){
       if(es.some(function(e){ return e.isIntersecting; })){ io.disconnect(); load(); }
     }, {rootMargin:'200px'});
-    io.observe(canvas);
+    io.observe(list);
   } else {
     load();
   }

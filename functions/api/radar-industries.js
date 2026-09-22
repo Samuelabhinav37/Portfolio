@@ -1,37 +1,21 @@
 // Cloudflare Pages Function — GET /api/radar-industries
-// Server-side proxy for the homepage's "Auto-defense" bento slot, which used
-// to hold a purely decorative autoplay arcade runner. Replaced with a real
-// live widget: Layer 3 (network-layer) DDoS attack share by targeted
-// industry vertical, over the last 24h, from Cloudflare's own public Radar
-// API — the same company already proxied for the KEV/CVE feeds elsewhere on
-// this site, and a genuine "stock chart"-shaped dataset (multiple named
-// series over time), not a fabricated one.
+// Server-side proxy for the homepage bento's "DDoS targets" tile: the five
+// industries receiving the largest share of Layer 3 DDoS attacks over the
+// last 7 days, from Cloudflare Radar.
 //
-// Endpoint used: GET /radar/attacks/layer3/timeseries_groups/industry.
-// Cloudflare's own docs mark this specific path deprecated in favor of a
-// newer generic "timeseries_groups by dimension" endpoint — but the
-// deprecated path is still live and fully documented today, and the
-// dimension-based replacement's exact current path wasn't confirmed at the
-// time this was written (WebFetch to Cloudflare's own docs site was
-// unreliable in this sandbox). If Cloudflare ever removes this path outright
-// rather than just deprecating it, re-check developers.cloudflare.com/api
-// for the current "Layer 3 Attacks Timeseries Groups By Dimension" endpoint
-// and swap the URL below — the rest of this file (response shaping, cache,
-// fallback) shouldn't need to change.
+// Endpoint: GET /radar/attacks/layer3/summary/INDUSTRY (the by-dimension
+// summary path; the older /timeseries_groups/industry path is deprecated).
 //
-// REQUIRES A SECRET NOT YET PROVISIONED: this endpoint needs a real
-// Cloudflare API token with "User Details Read" (or "Write") permission,
-// sent as a Bearer token — not the same secret used anywhere else on this
-// site. Until CLOUDFLARE_RADAR_API_TOKEN is set (via
-// `wrangler pages secret put CLOUDFLARE_RADAR_API_TOKEN`), this function
-// returns an empty result (200, not an error) and the client's own static
-// fallback data renders instead — same graceful-degrade convention as every
-// other feed on this site.
+// Needs a Cloudflare API token with Radar read access, as the
+// CLOUDFLARE_RADAR_API_TOKEN (or legacy RADAR_API_TOKEN) Pages secret:
+//   wrangler pages secret put CLOUDFLARE_RADAR_API_TOKEN
+// Without one it returns { items: [], reason: 'no-token' } (200, not an
+// error) and the tile says the feed isn't connected rather than faking data.
 
 const RADAR_URL =
-  'https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/industry' +
-  '?dateRange=1d&aggInterval=1h&limitPerGroup=5&normalization=PERCENTAGE';
-const CACHE_TTL = 1800; // 30 minutes — a 24h DDoS share breakdown doesn't shift fast enough to need fresher polling
+  'https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/INDUSTRY' +
+  '?dateRange=7d&limitPerGroup=6&format=json';
+const CACHE_TTL = 1800; // 30 minutes; a 7-day share breakdown barely moves in that time
 const FETCH_TIMEOUT = 6000; // ms
 
 function fetchWithTimeout(url, opts) {
@@ -50,27 +34,25 @@ function json(data, status = 200) {
   });
 }
 
+// Ranked list of the most-targeted industries by share of L3 DDoS attacks
+// over the last 7 days. The summary endpoint returns summary_0 as an
+// { industry: "percent" } map; "other" is dropped so the list only names
+// real industries.
 async function fromRadar(token) {
-  if (!token) return { timestamps: [], series: [] };
+  if (!token) return { items: [], reason: 'no-token' };
   const resp = await fetchWithTimeout(RADAR_URL, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!resp.ok) throw new Error('radar ' + resp.status);
   const data = await resp.json();
-  const result = (data && data.result) || {};
-  const timestamps = (result.serie_0 && result.serie_0.timestamps) || [];
-  // Every other key on serie_0 besides "timestamps" is one industry's own
-  // array of values, aligned index-for-index with `timestamps` — standard
-  // shape for every Radar "timeseries_groups" endpoint (confirmed against
-  // the sibling by-industry *summary* endpoint's analogous "summary_0"
-  // industry->value map).
-  const series = Object.keys(result.serie_0 || {})
-    .filter((k) => k !== 'timestamps')
-    .map((industry) => ({
-      industry,
-      values: (result.serie_0[industry] || []).map((v) => Number(v) || 0),
-    }));
-  return { timestamps, series };
+  const summary = (data && data.result && data.result.summary_0) || {};
+  const items = Object.entries(summary)
+    .filter(([k]) => k && k.toLowerCase() !== 'other')
+    .map(([industry, v]) => ({ industry, share: Number(v) || 0 }))
+    .filter((x) => x.share > 0)
+    .sort((a, b) => b.share - a.share)
+    .slice(0, 5);
+  return { items, range: '7d' };
 }
 
 export async function onRequestGet({ request, env }) {
@@ -78,9 +60,12 @@ export async function onRequestGet({ request, env }) {
   const cached = await cache.match(request);
   if (cached) return cached;
 
-  const result = await fromRadar(env.CLOUDFLARE_RADAR_API_TOKEN).catch((err) => {
+  // Either secret name works: RADAR_API_TOKEN is what the earlier radar
+  // widget on this site used, so it may already be provisioned.
+  const token = env.CLOUDFLARE_RADAR_API_TOKEN || env.RADAR_API_TOKEN;
+  const result = await fromRadar(token).catch((err) => {
     console.error('Radar industries fetch failed:', err);
-    return { timestamps: [], series: [] };
+    return { items: [], reason: 'upstream' };
   });
 
   const response = json({ ...result, generatedAt: Date.now() });

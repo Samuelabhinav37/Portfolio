@@ -1193,15 +1193,24 @@ footer#site-footer{
   #editorial .ed-attck__dots button:focus-visible{ outline:1px solid #ededee; outline-offset:3px; }
   #editorial .ed-attck__dots button.active{ background:#ededee; }
 
-  /* Auto-defense (decorative arcade runner) — same dark/mono bento language
-     as the cells above, sits in the ed-frame--b slot. Pure attract mode:
-     never reads input. Fixed canvas height so the card sizes consistently
-     regardless of game state. */
-  #editorial .ed-arcade{ padding:clamp(16px,1.8vw,22px); box-sizing:border-box;
-    display:flex; flex-direction:column; gap:14px; }
-  #editorial .ed-arcade__lbl{ display:flex; align-items:center; gap:7px; }
-  #editorial #ed-arcade-canvas{ display:block; width:100%; height:130px; border-radius:2px;
-    background:rgba(var(--c-white),.03); }
+  /* DDoS targets: ranked share bars. Same dark/mono bento language as the
+     cells above; bar fill is the one accent, no per-industry colors. */
+  #editorial .ed-ddos{ padding:clamp(16px,1.8vw,22px); box-sizing:border-box;
+    display:flex; flex-direction:column; gap:14px; justify-content:space-between; }
+  #editorial .ed-ddos__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px; }
+  #editorial .ed-ddos__row{ display:grid; grid-template-columns:14px 1fr auto; column-gap:10px; row-gap:5px; align-items:baseline;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:13px; color:#dfe4f0; }
+  #editorial .ed-ddos__rank{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:rgba(226,232,244,.45); }
+  #editorial .ed-ddos__name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #editorial .ed-ddos__pct{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,.8); font-variant-numeric:tabular-nums; }
+  #editorial .ed-ddos__bar{ grid-column:2 / 4; height:3px; border-radius:2px; background:rgba(var(--c-white),.07); overflow:hidden; }
+  #editorial .ed-ddos__bar > i{ display:block; height:100%; width:0; background:rgba(226,232,244,.7); transition:width .9s cubic-bezier(.22,1,.36,1); }
+  #editorial .ed-ddos__row.is-skel{ height:26px; border-radius:3px; background:rgba(var(--c-white),.04); }
+  #editorial .ed-ddos__empty{ font-size:12.5px; line-height:1.55; color:rgba(226,232,244,.6); }
+  #editorial .ed-ddos__src{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,.5); }
+  #editorial .ed-ddos__src a{ color:inherit; }
+  #editorial .ed-ddos__src a:hover{ color:#fff; }
+  @media (prefers-reduced-motion: reduce){ #editorial .ed-ddos__bar > i{ transition:none; } }
 
   @media (--bp-600){
     /* Signal (the eagle canvas) and Auto-defense (the arcade runner) are
@@ -1214,7 +1223,7 @@ footer#site-footer{
        bento's down to one cell (Certifications) at this width, so the grid
        collapses to a single row instead of two empty ones. */
     #editorial .ed-bento{ display:none; }
-    #editorial .ed-frame--b.ed-arcade{ display:none; }
+    #editorial .ed-frame--b.ed-ddos{ display:none; }
   }
 
   /* ── Research log — Work-grammar cards ── */
@@ -1327,18 +1336,17 @@ footer#site-footer{
           <div id="ed-attck-mount"></div>
         </div>
       </div>
-      <!-- Was a static stock photo, then briefly a live Cloudflare Radar
-           rotator, then a decorative autoplay runner game — back to a live
-           Radar widget again, this time a real chart: Layer 3 DDoS attack
-           share by targeted industry over the last 24h, proxied through
-           /api/radar-industries (see that Function's own header comment —
-           it needs a Cloudflare API token not yet provisioned, and
-           gracefully degrades to a labeled static fallback shape until it
-           is). See public/scripts/index-editorial-flow.js for the render
-           logic. -->
-      <figure class="ed-frame ed-frame--b ed-arcade" aria-label="Live chart: DDoS attack share by targeted industry, last 24 hours, from Cloudflare Radar">
-        <span class="ed-bento__lbl ed-arcade__lbl" title="Layer 3 DDoS attack share by targeted industry, last 24h — Cloudflare Radar">Live · DDoS by industry</span>
-        <canvas id="ed-arcade-canvas"></canvas>
+      <!-- DDoS targets: the five industries taking the largest share of
+           Layer 3 DDoS attacks over the last 7 days, from Cloudflare Radar via
+           /api/radar-industries. A ranked bar list, not a canvas chart: at
+           this tile size five thin lines were unreadable. Render logic in
+           public/scripts/index-editorial-flow.js. -->
+      <figure class="ed-frame ed-frame--b ed-ddos" aria-labelledby="ed-ddos-lbl">
+        <span class="ed-bento__lbl" id="ed-ddos-lbl">DDoS targets · by industry, 7d</span>
+        <ol class="ed-ddos__list" id="ed-ddos-list" aria-live="polite">
+          <li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li>
+        </ol>
+        <figcaption class="ed-ddos__src" id="ed-ddos-src">Share of Layer 3 DDoS attacks · <a href="https://radar.cloudflare.com/security/network-layer" target="_blank" rel="noopener">Cloudflare Radar</a></figcaption>
       </figure>
     </div>
   </section>
@@ -1667,9 +1675,11 @@ footer#site-footer{
 .pod-row:first-child{ border-top:0; }
 .pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(226,232,244,0.55);
   filter:grayscale(1) brightness(.75) contrast(.95); transition:filter .5s cubic-bezier(.22,1,.36,1); }
-/* .pod-art gets swapped for real cover art via inline style.backgroundImage
-   (fetched from the iTunes API below) — filter applies regardless of whether
-   that's landed yet, so this stays consistent with .news-badge's treatment. */
+/* Cover art is self-hosted under /images/podcasts/. It used to be looked up
+   live through an iTunes proxy, but Apple's search API returns nothing to
+   Cloudflare's Worker IPs, so the art never loaded in production. */
+.pod-art{ overflow:hidden; }
+.pod-art img{ width:100%; height:100%; object-fit:cover; display:block; }
 .pod-row:hover .pod-art{ filter:grayscale(0) brightness(.95) contrast(1); }
 .pod-body{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
 .pod-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:13.5px; color:#e8ebf4; }
@@ -1680,7 +1690,11 @@ footer#site-footer{
 .pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
 .ctf-strip{ margin-top:clamp(20px,2.5vw,36px); border:1px solid rgba(var(--c-white),.1); border-radius:4px; padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
 .ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
-.ctf-item{ display:flex; flex-direction:column; gap:2px; }
+.ctf-item{ display:grid; grid-template-columns:30px auto; column-gap:10px; row-gap:2px; align-items:center; }
+.ctf-item > :not(.ctf-logo){ grid-column:2; }
+.ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
+.ctf-logo img{ width:100%; height:100%; object-fit:cover; display:block; background:#fff; }
+.ctf-item:hover .ctf-logo{ filter:none; }
 .ctf-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
 .ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
 .ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(226,232,244,0.6); background:none; border:none; cursor:pointer; padding:0; }
@@ -1728,11 +1742,11 @@ footer#site-footer{
       <div class="sig-card">
         <div class="sig-card__head"><p class="sig-card__lbl">Security podcasts</p><button type="button" class="sig-more" data-more="podcasts">See more &rarr;</button></div>
         <div class="pod-shelf">
-          <div class="pod-row"><div class="pod-art">DD</div><div class="pod-body"><div class="pod-name"><a href="https://darknetdiaries.com" target="_blank" rel="noopener">Darknet Diaries</a></div><div class="pod-why">True stories from the dark side of the internet.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
-          <div class="pod-row"><div class="pod-art">ML</div><div class="pod-body"><div class="pod-name"><a href="https://malicious.life" target="_blank" rel="noopener">Malicious Life</a></div><div class="pod-why">The history behind the threats we face.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-          <div class="pod-row"><div class="pod-art">RB</div><div class="pod-body"><div class="pod-name"><a href="https://risky.biz" target="_blank" rel="noopener">Risky Business</a></div><div class="pod-why">Weekly news and analysis for practitioners.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-          <div class="pod-row"><div class="pod-art">SN</div><div class="pod-body"><div class="pod-name"><a href="https://twit.tv/shows/security-now" target="_blank" rel="noopener">Security Now</a></div><div class="pod-why">Deep, weekly breakdowns of what actually happened.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-          <div class="pod-row"><div class="pod-art">CT</div><div class="pod-body"><div class="pod-name"><a href="https://www.criticalthinkingpodcast.io" target="_blank" rel="noopener">Critical Thinking — Bug Bounty</a></div><div class="pod-why">How top hunters actually think through a target.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
+          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/darknet-diaries.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://darknetdiaries.com" target="_blank" rel="noopener">Darknet Diaries</a></div><div class="pod-why">True stories from the dark side of the internet.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
+          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/malicious-life.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://malicious.life" target="_blank" rel="noopener">Malicious Life</a></div><div class="pod-why">The history behind the threats we face.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
+          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/risky-business.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://risky.biz" target="_blank" rel="noopener">Risky Business</a></div><div class="pod-why">Weekly news and analysis for practitioners.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
+          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/security-now.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://twit.tv/shows/security-now" target="_blank" rel="noopener">Security Now</a></div><div class="pod-why">Deep, weekly breakdowns of what actually happened.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
+          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/critical-thinking.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://www.criticalthinkingpodcast.io" target="_blank" rel="noopener">Critical Thinking — Bug Bounty</a></div><div class="pod-why">How top hunters actually think through a target.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
         </div>
       </div>
     </div>
