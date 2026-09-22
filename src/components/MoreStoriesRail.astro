@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { variant } from '../image-variant';
 
 interface Props {
   posts: CollectionEntry<'blog'>[];
@@ -25,7 +26,7 @@ const fmt = (d: Date) =>
         <a class="rail-story" href={`/blog/${p.id}/`}>
           <div class="rail-story-thumb">
             {p.data.cardImage
-              ? <img src={p.data.cardImage} alt="" loading="lazy" />
+              ? <img src={variant(p.data.cardImage, 160)} alt="" loading="lazy" decoding="async" width="160" height="200" />
               : <div class="story-image-ph" aria-hidden="true"></div>}
           </div>
           <div class="rail-story-body">

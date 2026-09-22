@@ -9,6 +9,8 @@ import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
 import { SITE } from '../config';
 import '../styles/tokens.css';
+import Fonts from '../components/Fonts.astro';
+import { variant, srcsetWith } from '../image-variant';
 
 // Person schema — the only structured data on the site scoped to Samuel
 // himself rather than a specific post; blog posts already carry their own
@@ -34,7 +36,8 @@ const recentPosts = (await getCollection('blog', ({ id, data }) => !data.draft &
     const hasLocalCard = fs.existsSync(`public${localCard}`);
     return {
     href: '/blog/' + p.id + '/',
-    img: p.data.cardImage || p.data.heroImage || (hasLocalCard ? localCard : `https://picsum.photos/seed/${p.id}/600/750?grayscale`),
+    img: variant(p.data.cardImage, 480) || p.data.heroImage || (hasLocalCard ? localCard : `https://picsum.photos/seed/${p.id}/600/750?grayscale`),
+    srcset: srcsetWith(p.data.cardImage, 480, 800),
     cat: p.data.category,
     date: p.data.pubDate.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
     title: p.data.title,
@@ -77,16 +80,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline defer src="/scripts/title-manager.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- serif restored for the NAME only (corner identity + intro wordmark); rest of the site stays system-sans.
-     Cormorant Garamond covers both jobs now (400/400-italic for the intro wordmark, 500 for the corner
-     identity in SiteMenu.astro) — EB Garamond was a second serif doing the same "brand wordmark" job. -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<!-- JetBrains Mono only styles the #editorial section (scrolled well past the
-     intro/hero), so it's loaded non-render-blocking (print-swap trick, same
-     as blog/index.astro) instead of holding up first paint for it. -->
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<Fonts />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -1363,7 +1357,7 @@ footer#site-footer{
     <div class="ed-grid">
       {recentPosts.map((p, i) => (
         <a class="ed-card" href={p.href}>
-          <div class="ed-ph"><span class="ed-num">{String(i + 1).padStart(2, '0')}</span><img loading="lazy" src={p.img} alt={p.title}></div>
+          <div class="ed-ph"><span class="ed-num">{String(i + 1).padStart(2, '0')}</span><img loading="lazy" decoding="async" src={p.img} srcset={p.srcset} sizes="(max-width: 760px) 92vw, 30vw" alt={p.title}></div>
           <div class="ed-cmeta"><span>{p.cat}</span><span>{p.date}</span></div>
           <h3>{p.title}</h3>
           <p>{p.desc}</p>

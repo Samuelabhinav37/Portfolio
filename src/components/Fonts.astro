@@ -1,0 +1,27 @@
+---
+/**
+ * Self-hosted web fonts. Replaces the render-blocking Google Fonts
+ * stylesheet, which cost mobile first paint a full extra round trip to two
+ * third-party origins (fonts.googleapis.com, then fonts.gstatic.com).
+ *
+ * The @font-face rules are inlined (no extra request) and read from
+ * public/fonts/fonts.css at build time, so there's one source of truth.
+ * The Cormorant Garamond wordmark is on every page's first paint, so it's
+ * always preloaded. JetBrains Mono is preloaded only where it's above the
+ * fold (`mono`); elsewhere a preload would compete with the LCP image.
+ * Everything else, italics and latin-ext included, downloads only if a page
+ * actually uses it.
+ */
+interface Props {
+  mono?: boolean;
+}
+const { mono = false } = Astro.props;
+import fontsCss from '../../public/fonts/fonts.css?raw';
+
+const css = fontsCss
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .trim();
+---
+<link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
+{mono && <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />}
+<style is:inline set:html={css}></style>

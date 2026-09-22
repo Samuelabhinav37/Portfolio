@@ -26,3 +26,20 @@
 # immutable, unlike the max-age=14400 Cloudflare Pages applies by default.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Self-hosted fonts. Filenames don't carry a content hash, so if a font file
+# is ever replaced, give it a new filename rather than overwriting in place.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images and videos aren't fingerprinted either, but they're effectively
+# write-once (a changed image gets a new name in practice). A week of fresh
+# cache plus a day of stale-while-revalidate, instead of Cloudflare Pages'
+# default 4h must-revalidate, so returning visitors skip the round trip.
+# /scripts/* deliberately keeps the default: those filenames stay the same
+# when their content changes, and a long cache could pair new HTML with old JS.
+/images/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/videos/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400

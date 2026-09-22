@@ -13,6 +13,8 @@ import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
+import Fonts from '../components/Fonts.astro';
+import { srcsetWith } from '../image-variant';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -197,12 +199,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:wght@500&display=swap"
-      rel="stylesheet"
-    />
+    <Fonts mono />
 
     <script type="application/ld+json" set:html={jsonLd} />
     <style is:global>
@@ -300,7 +297,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <div class="hero-right">
         {d.heroImage
           ? <div class="hero-art"><div class="hero-art-frame">
-              <img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
+              <img class="hero-art-img" src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 620px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
               {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
             </div></div>
           : <div class="hero-art"><div class="hero-art-frame hero-art--placeholder" aria-hidden="true">

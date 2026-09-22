@@ -45,7 +45,7 @@ const item=(p,d)=>`<a href="${esc(p.href||'#')}" class="card hero2-item" data-ke
 // category/date, title, excerpt). Posts without a heroImage get the
 // site's static gradient placeholder instead of a random unrelated photo.
 const card=(p,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
-  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}">`:''}</div>
+  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" decoding="async" src="${esc(p.img)}"${p.srcset?` srcset="${esc(p.srcset)}" sizes="(max-width: 760px) 92vw, 33vw"`:''} alt="${esc(p.name)}">`:''}</div>
   <div class="cbody">
     <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
     <h2>${esc(p.name)}</h2>

@@ -28,6 +28,24 @@
   };
   var busy = false;
 
+  /* Turnstile loads on first interaction with the form, not with the page.
+     Its script plus challenge payload is ~600KB, which every visitor paid
+     on arrival whether or not they ever wrote anything. Implicit rendering
+     still works: api.js scans for .cf-turnstile when it loads, and a
+     managed challenge usually clears while the visitor is still typing. */
+  var turnstileRequested = false;
+  function loadTurnstile(){
+    if(turnstileRequested) return;
+    turnstileRequested = true;
+    var s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+  ['focusin', 'pointerdown', 'input'].forEach(function(t){
+    form.addEventListener(t, loadTurnstile, { once: true, passive: true });
+  });
+
   /* deliberately permissive — the server is the real validator; this is only
      here to catch the obvious typo before it costs a round trip */
   function emailish(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
@@ -85,7 +103,7 @@
     var data = validate();
     if(!data) return;
     if(data.company){ done(true, 'Received.'); return; }   /* honeypot: silent no-op */
-    if(!data.turnstileToken){ say('Please complete the verification check.', 'bad'); return; }
+    if(!data.turnstileToken){ loadTurnstile(); say('Please complete the verification check.', 'bad'); return; }
 
     busy = true;
     btn.disabled = true;

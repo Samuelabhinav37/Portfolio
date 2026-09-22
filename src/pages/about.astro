@@ -6,6 +6,7 @@ import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
 import '../styles/tokens.css';
+import Fonts from '../components/Fonts.astro';
 ---
 
 <!DOCTYPE html>
@@ -41,13 +42,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline src="/scripts/title-manager.js"></script>
-<!-- Cormorant Garamond covers #site-identity (SiteMenu, above the fold) —
-     stays render-blocking. JetBrains Mono and Press Start 2P only style the
-     certifications label, footer signature, and the embedded arcade game —
-     none visible without scrolling — so they're split into their own
-     request and loaded non-render-blocking (print-swap trick). -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Press+Start+2P&display=swap" rel="stylesheet">
+<Fonts />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -464,12 +459,12 @@ html, body {
     <div class="card c-certs">
       <span class="c-certs-lbl">Certifications</span>
       <div class="c-certs-grid">
-        <div class="c-cert"><img src="/images/certs/security-plus.png" alt="" loading="lazy"><span>Security+</span></div>
-        <div class="c-cert"><img src="/images/certs/network-plus.png" alt="" loading="lazy"><span>Network+</span></div>
-        <div class="c-cert"><img src="/images/certs/isc2-cc.png" alt="" loading="lazy"><span>ISC2 CC</span></div>
-        <div class="c-cert"><img src="/images/certs/aws-ccp.png" alt="" loading="lazy"><span>AWS CCP</span></div>
-        <div class="c-cert"><img src="/images/certs/az-900.png" alt="" loading="lazy"><span>AZ-900</span></div>
-        <div class="c-cert"><img src="/images/certs/htb-cjca.png" alt="" loading="lazy"><span>HTB CJCA</span></div>
+        <div class="c-cert"><img src="/images/certs/security-plus.webp" alt="" loading="lazy"><span>Security+</span></div>
+        <div class="c-cert"><img src="/images/certs/network-plus.webp" alt="" loading="lazy"><span>Network+</span></div>
+        <div class="c-cert"><img src="/images/certs/isc2-cc.webp" alt="" loading="lazy"><span>ISC2 CC</span></div>
+        <div class="c-cert"><img src="/images/certs/aws-ccp.webp" alt="" loading="lazy"><span>AWS CCP</span></div>
+        <div class="c-cert"><img src="/images/certs/az-900.webp" alt="" loading="lazy"><span>AZ-900</span></div>
+        <div class="c-cert"><img src="/images/certs/htb-cjca.webp" alt="" loading="lazy"><span>HTB CJCA</span></div>
       </div>
     </div>
     <div class="card c-signal">
@@ -514,7 +509,7 @@ html, body {
 &lt;meta charset=&quot;UTF-8&quot;&gt;
 &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
 &lt;title&gt;INFILTRATE // DEFEND&lt;/title&gt;
-&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;/fonts/fonts.css&quot; rel=&quot;stylesheet&quot;&gt;
 &lt;style&gt;
 :root{--cyan:#00e5ff;--green:#00ff88;--gold:#ffcc00;--red:#ff2244;--purple:#cc44ff;--orange:#ff8800;}
 *{margin:0;padding:0;box-sizing:border-box;image-rendering:pixelated;}
