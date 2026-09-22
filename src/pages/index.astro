@@ -60,16 +60,16 @@ window.SITE=window.SITE||{};
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
-<title>Samuel Abhinav — Cybersecurity Engineer</title>
-<meta name="description" content="Hi, I'm Samuel — a cybersecurity engineer in California writing detection logic, hunting bugs on HackerOne, and building labs like a federated anomaly detector for industrial networks. This is where that work lives.">
+<title>Samuel Abhinav — Security Engineer, Detection &amp; Response</title>
+<meta name="description" content="Hi, I'm Samuel — a security engineer in California focused on detection and response. I write detection logic, hunt bugs on HackerOne, and build labs like a federated anomaly detector for industrial networks. This is where that work lives.">
 <link rel="canonical" href="https://samuelabhinav.com/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Samuel Abhinav — Cybersecurity Engineer">
+<meta property="og:title" content="Samuel Abhinav — Security Engineer, Detection &amp; Response">
 <meta property="og:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <meta property="og:site_name" content="Samuel · Security Engineer">
 <meta property="og:url" content="https://samuelabhinav.com/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Samuel Abhinav — Cybersecurity Engineer">
+<meta name="twitter:title" content="Samuel Abhinav — Security Engineer, Detection &amp; Response">
 <meta name="twitter:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <script type="application/ld+json" set:html={personJsonLd} />
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -241,6 +241,8 @@ body.globe-active #globe-gl{ opacity:1; }
 #luna-quip .lq-cursor{ color:rgba(202,210,226,0.6); }
 #luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
 #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
+/* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
+#luna-quip.lq-clickable:not(.show){ pointer-events:none; }
 #luna-quip .lq-hint{ display:block; margin-top:5px; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(202,210,226,0.5); }
 @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
 
@@ -843,7 +845,7 @@ footer#site-footer{
 <body>
 
 <SiteMenu currentPath="/" hasIntro={true} />
-<h1 class="sr-only">Samuel Abhinav — Cybersecurity Engineer</h1>
+<h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
 
 <div id="intro-logo" aria-hidden="true">
   <h1><span class="gtxt" data-text="Samuel&nbsp;">Samuel&nbsp;</span><span class="port"><span class="gtxt" data-text="Abhinav">Abhinav</span></span></h1>
