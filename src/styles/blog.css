@@ -1427,6 +1427,13 @@ a.social-icon { text-decoration: none; color: inherit; }
   box-shadow: 0 0 6px 1px rgba(120,225,170,0.55);
 }
 @media (prefers-reduced-motion: reduce) { .luna-pill { transition: opacity .15s ease; transform: none !important; } }
+/* Touch devices never fire :hover, so the pill was unreachable there. Show
+   it by default on touch, stepping aside while the greeting quip occupies
+   the same spot above her. */
+@media (hover: none) {
+  .luna-pill { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  body:has(#luna-quip.show) .luna-pill { opacity: 0; pointer-events: none; }
+}
 
 /* Speech bubble — a one-time greeting hint. Used to anchor beside the stack
    on roomy viewports (only reflowing above it on narrow ones), but sitting
@@ -1449,6 +1456,8 @@ a.social-icon { text-decoration: none; color: inherit; }
 #luna-quip.show { opacity: 1; transform: translateY(0) scale(1); }
 #luna-quip.lq-clickable { pointer-events: auto; cursor: pointer; }
 #luna-quip.lq-clickable:hover { border-color: rgba(205,214,226,0.30); background: rgba(14,16,22,0.92); }
+/* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
+#luna-quip.lq-clickable:not(.show) { pointer-events: none; }
 #luna-quip .lq-hint { display: block; margin-top: 6px; font-size: 11px; font-style: italic; font-weight: 400; color: rgba(202,210,226,0.55); }
 @media (prefers-reduced-motion: reduce) { #luna-quip { transition: opacity .3s ease; transform: none; } }
 

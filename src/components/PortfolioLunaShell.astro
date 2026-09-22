@@ -90,6 +90,14 @@ const { hasIntro = false } = Astro.props;
     box-shadow: 0 0 6px 1px rgba(120,225,170,0.55);
   }
   @media (prefers-reduced-motion: reduce) { .luna-pill { transition: opacity .15s ease; transform: none !important; } }
+  /* Touch devices never fire :hover, so the hover-revealed pill above was
+     unreachable there and docked Kai carried no visible label at all. Show
+     it by default on touch, stepping aside while a greeting quip occupies
+     the same spot above her. */
+  @media (hover: none) {
+    .luna-pill { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    :global(body:has(#luna-quip.show)) .luna-pill { opacity: 0; pointer-events: none; }
+  }
   /* Below the mobile/tablet breakpoint (each page's own inline script toggles
      these classes via matchMedia), her default top:calc(66vh+80px) spot
      overlaps scrolling content for a much larger share of a narrow viewport

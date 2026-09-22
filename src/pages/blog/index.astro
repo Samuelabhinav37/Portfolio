@@ -522,6 +522,8 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   #luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
   #luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
   #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
+  /* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
+  #luna-quip.lq-clickable:not(.show){ pointer-events:none; }
   #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
   @media (--bp-900){ #luna-quip{ bottom:146px; } }
