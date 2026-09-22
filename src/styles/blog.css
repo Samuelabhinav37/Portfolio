@@ -75,8 +75,26 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .post-footer .f-links .fic { width: 12.5px; height: 12.5px; fill: currentColor; opacity: 0.9; flex: none; }
 
 
-/* ── Site identity (fixed corner) — swaps "Samuel Abhinav" for the Threat
-   Intel Blog mark on scroll (see blog-client.js's navName/navBrand toggle). ── */
+/* ── Top bar: a light fade at the top of the page that becomes a solid,
+   blurred bar once scrolled (html.is-scrolled, set in blog-client.js), so
+   article text never reads through behind the wordmark and Menu. Same
+   treatment as SiteMenu.astro on the portfolio pages. ── */
+#topbar-scrim {
+  position: fixed; top: 0; left: 0; right: 0; height: 100px;
+  z-index: 999; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
+  border-bottom: 1px solid transparent;
+  transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
+}
+html.is-scrolled #topbar-scrim {
+  height: 56px;
+  background: rgba(5,5,10,0.82);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-bottom-color: rgba(var(--c-white),0.06);
+}
+
+/* ── Site identity (fixed corner): the "Samuel Abhinav" wordmark, kept
+   visible on scroll like every other page. ── */
 #site-identity {
   position: fixed;
   top: 14px; left: 28px;
@@ -92,27 +110,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   line-height: 1;
   display: block;
 }
-.nav-brand {
-  display: flex; align-items: center; gap: 10px;
-  opacity: 0; pointer-events: none;
-  position: absolute; left: 0; top: 50%;
-  transform: translateY(-50%);
-  transition: opacity 0.4s;
-}
-.nav-brand.visible { opacity: 1; pointer-events: all; }
-.nav-brand-mark {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-weight: 300; font-size: 1.95rem;
-  color: rgba(var(--c-white),0.42); line-height: 0.7;
-}
-.nav-brand-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; letter-spacing: 0.16em;
-  color: rgba(var(--c-white),0.62); line-height: 1.2;
-  text-transform: uppercase;
-}
-.nav-name.hidden { opacity: 0; pointer-events: none; }
-
 /* ── Collapsed menu — plain-text trigger + black floating card ── */
 #menu-trigger {
   position: fixed; top: 16px; right: 28px; z-index: 10001;

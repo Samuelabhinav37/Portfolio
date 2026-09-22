@@ -2,7 +2,7 @@
    at build time from the post's headings; this file only adds the dynamic
    pieces: scroll UI, scrollspy, anchors, copy actions, FAQ, collapsed menu. */
 
-/* ── Scroll-driven UI: navbar swap (mid-hero), reading progress, back-to-top.
+/* ── Scroll-driven UI: reading progress, back-to-top.
    Single rAF-throttled handler. The "More stories" rail used to need its own
    scroll-threshold show/hide logic here (fixed-positioned, faded in past the
    author bar, hidden again before the FAQ) — now that it's a real sticky grid
@@ -11,14 +11,9 @@
    stops sticking on its own once .page-grid (which ends where the article
    does) scrolls past. ── */
 (() => {
-  const hero = document.getElementById('hero');
-  const navName = document.getElementById('navName');
-  const navBrand = document.getElementById('navBrand');
   const backTop = document.getElementById('back-to-top');
   const ring = document.querySelector('.btt-ring-fill');
-  if (!navName || !navBrand || !backTop) return;
-
-  const thresholdNav = hero ? hero.offsetHeight * 0.6 : 0;
+  if (!backTop) return;
 
   // Circumference from the circle's own r= in the markup, not a hardcoded
   // number here — stays correct if that radius ever changes.
@@ -37,8 +32,6 @@
       const scrollTop = window.scrollY;
       const docH = document.documentElement.scrollHeight - window.innerHeight;
       const pct = docH > 0 ? scrollTop / docH : 0;
-      navName.classList.toggle('hidden', scrollTop > thresholdNav);
-      navBrand.classList.toggle('visible', scrollTop > thresholdNav);
       if (ring) ring.style.strokeDashoffset = String(ringC * (1 - pct));
       backTop.classList.toggle('visible', scrollTop > 400);
       ticking = false;
@@ -263,4 +256,16 @@ document.addEventListener('click', (ev) => {
     a.addEventListener('click', () => setOpen(false));
   });
 
+})();
+
+/* html.is-scrolled drives the solid top bar (#topbar-scrim in blog.css). A
+   sentinel + IntersectionObserver, not a scroll listener. */
+(() => {
+  const s = document.createElement('div');
+  s.setAttribute('aria-hidden', 'true');
+  s.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:48px;pointer-events:none;visibility:hidden';
+  document.body.prepend(s);
+  new IntersectionObserver((es) => {
+    document.documentElement.classList.toggle('is-scrolled', !es[0].isIntersecting);
+  }).observe(s);
 })();

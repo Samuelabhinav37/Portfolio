@@ -77,6 +77,17 @@ const links = [
     z-index: 999;
     background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
     pointer-events: none;
+    transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
+    border-bottom: 1px solid transparent;
+  }
+  /* The fade alone let page text show straight through behind the name and
+     Menu once scrolled. Past the top it becomes a real bar: solid enough
+     that nothing reads through, blurred so it still feels light. */
+  :global(html.is-scrolled) #topbar-scrim {
+    height: 56px;
+    background: rgba(5,5,10,0.82);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom-color: rgba(var(--c-white),0.06);
   }
 
   #site-identity {
@@ -158,6 +169,19 @@ const links = [
 )}
 
 <script>
+  /* html.is-scrolled drives the solid top bar (see #topbar-scrim). An
+     IntersectionObserver on a sentinel at the top of the page, not a scroll
+     listener, so it costs nothing per scroll frame. */
+  (function(){
+    var s = document.createElement('div');
+    s.setAttribute('aria-hidden', 'true');
+    s.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:48px;pointer-events:none;visibility:hidden';
+    document.body.prepend(s);
+    new IntersectionObserver(function(es){
+      document.documentElement.classList.toggle('is-scrolled', !es[0].isIntersecting);
+    }).observe(s);
+  })();
+
   (function(){
     "use strict";
     var trigger = document.getElementById('menu-trigger');

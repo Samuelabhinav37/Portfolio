@@ -152,7 +152,11 @@ var threeClock;
   var gl = glslCanvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
   if(!gl){ console.warn('WebGL unavailable; nebula will not render.'); return; }
 
-  var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  /* Half resolution, upscaled by CSS (the canvas is sized 100% below). The
+     nebula is a soft cloud with no hard edges, so this is visually
+     indistinguishable, but it quarters the pixels the per-frame crossfade
+     composites. That crossfade was most of the blog index's frame time. */
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.5) * 0.5;
 
   function compile(type, src){
     var s = gl.createShader(type);
