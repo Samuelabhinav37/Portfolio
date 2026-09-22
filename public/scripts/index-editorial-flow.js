@@ -123,9 +123,14 @@
   ];
   function tok(b, hidden){
     return '<span class="ed-badge'+(b.framed?' ed-badge--framed':'')+'"'+(hidden?' aria-hidden="true"':'')+
-           '><img loading="lazy" src="'+b.img+'" alt="'+b.name+' certification badge" onerror="this.style.visibility=\'hidden\'"><span>'+b.name+'</span></span>';
+           '><img loading="lazy" src="'+b.img+'" alt="'+b.name+' certification badge"><span>'+b.name+'</span></span>';
   }
   track.innerHTML=BADGES.map(function(b){ return tok(b,false); }).join('')+BADGES.map(function(b){ return tok(b,true); }).join('');
+  // Hide a badge image that fails to load. A listener, not an onerror=""
+  // attribute, which the site's hash-based CSP blocks.
+  track.querySelectorAll('img').forEach(function(img){
+    img.addEventListener('error', function(){ img.style.visibility='hidden'; });
+  });
 })();
 
 /* ── Bento: threat intel (top-right quadrant) — OTX + CIRCL MISP via a same-origin

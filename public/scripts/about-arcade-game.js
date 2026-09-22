@@ -202,12 +202,18 @@ const THEMES=[
 ];
 function buildThemeSel(){
   document.getElementById('th-grid').innerHTML=THEMES.map(th=>`
-    <div class="th-tile${selTheme===th.id?' sel':''}" style="--tc:${th.col}" onclick="pickTheme('${th.id}')" onmouseenter="hoverTheme('${th.id}')">
+    <div class="th-tile${selTheme===th.id?' sel':''}" style="--tc:${th.col}" data-theme="${th.id}">
       <div class="ttsw" style="background:linear-gradient(155deg,${th.sw[0]} 0%,${th.sw[1]} 40%,${th.sw[2]} 70%,${th.sw[3]}55 100%)"></div>
       <div class="ttnm" style="color:${th.col}">${th.nm}</div>
       <div class="ttsg">${th.sg}</div>
       <div class="ttchk">${selTheme===th.id?'✓':''}</div>
     </div>`).join('');
+  // Listeners, not onclick=""/onmouseenter="" attributes: this document is
+  // a srcdoc under the page's hash-based CSP, which blocks inline handlers.
+  document.querySelectorAll('#th-grid .th-tile').forEach(el=>{
+    el.addEventListener('click',()=>pickTheme(el.dataset.theme));
+    el.addEventListener('mouseenter',()=>hoverTheme(el.dataset.theme));
+  });
   updateLaunch();drawMiniPrev();
 }
 function pickTheme(id){selTheme=id;buildThemeSel();}

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { CSP } from '../functions/_middleware.js';
 
 /**
  * Smoke tests, not feature tests: for every real page, confirm it actually
@@ -48,6 +49,52 @@ const KNOWN_ERRORS: RegExp[] = [
   /frame requesting access has a protocol of "https".*Protocols must match/,
 ];
 
+/**
+ * `astro preview` doesn't run functions/_middleware.js, so without this the
+ * tests never saw the production Content-Security-Policy, and an inline
+ * script the CSP blocks (Kai's srcdoc engine, inline onload handlers) passed
+ * CI while being broken in production. Every document response gets the
+ * exact production header, and every CSP violation, in the page or in any
+ * srcdoc iframe, fails the test.
+ */
+test.beforeEach(async ({ page, baseURL }) => {
+  const siteOrigin = new URL(baseURL!).origin;
+  await page.route('**/*', async (route) => {
+    // Only this site's own documents: third-party frames (Turnstile) send
+    // their own CSP, and ours would block them from being framed at all.
+    const req = route.request();
+    if (req.resourceType() !== 'document' || new URL(req.url()).origin !== siteOrigin) {
+      return route.continue();
+    }
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      headers: { ...response.headers(), 'content-security-policy': CSP },
+    });
+  });
+  await page.addInitScript(() => {
+    (window as any).__cspViolations = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+      (window as any).__cspViolations.push(
+        `${e.effectiveDirective} blocked ${e.blockedURI || 'inline'} in ${location.href.slice(0, 60)}` +
+          (e.sourceFile ? ` (${e.sourceFile}:${e.lineNumber})` : ''),
+      );
+    });
+  });
+});
+
+async function collectCspViolations(page: import('@playwright/test').Page): Promise<string[]> {
+  const all: string[] = [];
+  for (const frame of page.frames()) {
+    try {
+      all.push(...(await frame.evaluate(() => (window as any).__cspViolations || [])));
+    } catch {
+      // cross-origin or detached frame (e.g. Turnstile): nothing to read
+    }
+  }
+  return [...new Set(all)];
+}
+
 for (const path of PAGES) {
   test(`${path} loads with no console errors`, async ({ page }) => {
     const errors: string[] = [];
@@ -77,5 +124,10 @@ for (const path of PAGES) {
 
     const unexpected = errors.filter((e) => !KNOWN_ERRORS.some((known) => known.test(e)));
     expect(unexpected, `unexpected console errors on ${path}:\n${unexpected.join('\n')}`).toEqual([]);
+
+    // Analytics hosts only load on the real domain, so anything reported
+    // here is first-party inline code the production CSP will block.
+    const violations = await collectCspViolations(page);
+    expect(violations, `CSP violations on ${path}:\n${violations.join('\n')}`).toEqual([]);
   });
 }

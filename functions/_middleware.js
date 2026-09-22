@@ -54,15 +54,24 @@ function buildCsp() {
     "form-action 'self'",
     "frame-ancestors 'none'",
     'upgrade-insecure-requests',
+    // Violations get reported to /api/csp-report and logged as [csp] lines,
+    // so a blocked script shows up in the logs instead of breaking silently.
+    // report-uri is the widely supported form; report-to (plus the
+    // Reporting-Endpoints header below) is its successor.
+    'report-uri /api/csp-report',
+    'report-to csp',
   ].join('; ');
 }
 
-const CSP = buildCsp(); // built once per Worker isolate, not per request — CSP_SCRIPT_HASHES is static per deploy
+// Exported so tests/smoke.spec.ts can apply the exact production policy
+// (astro preview doesn't run this middleware).
+export const CSP = buildCsp(); // built once per Worker isolate, not per request — CSP_SCRIPT_HASHES is static per deploy
 
 export async function onRequest({ next }) {
   const response = await next();
   const headers = new Headers(response.headers);
   headers.set('Content-Security-Policy', CSP);
+  headers.set('Reporting-Endpoints', 'csp="/api/csp-report"');
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
