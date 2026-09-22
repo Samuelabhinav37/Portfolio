@@ -10,23 +10,17 @@
 // other header (HSTS, X-Frame-Options, Permissions-Policy, etc.) stays in
 // public/_headers — they're short and have no reason to move.
 //
-// 'unsafe-inline' stays in script-src alongside the hashes, deliberately.
-// Per the CSP2+ spec, once a script-src directive contains ANY hash-source,
-// browsers that understand hash-source syntax (everything shipped since
-// ~2016 — Chrome 40+, Firefox 31+, Safari 15.4+) ignore 'unsafe-inline'
-// entirely for that directive; only a browser too old to parse
-// 'sha256-...' sources at all falls back to it. So real-world protection
-// already matches removing 'unsafe-inline' outright — full hash-enforced
-// allowlisting on every browser that matters — while this keeps a built-in
-// safety net: if CSP_SCRIPT_HASHES is ever wrong (a missed inline block,
-// this file's own bundling somehow shipping stale hashes), the site fails
-// open to today's already-shipping behavior instead of breaking for
-// everyone. That safety net is the whole point — don't "clean up" this
-// header by deleting 'unsafe-inline' later; it costs nothing once a hash is
-// present, and it's the only thing standing between a bad hash and a
-// broken site. (A security scanner or reviewer reading raw header text
-// won't know that and may still flag the literal string — a real, known
-// cosmetic tradeoff of this approach, not a mistake.)
+// 'unsafe-inline' stays in script-src alongside the hashes, but it is NOT a
+// safety net. Per CSP2+, once script-src contains any hash-source, every
+// modern browser ignores 'unsafe-inline' for that directive, so an inline
+// script or inline event handler (onload="...") without a matching hash is
+// simply BLOCKED. It only matters to browsers too old to parse hash
+// sources. This bit the site once: Kai's srcdoc iframe inherits this CSP and
+// its inline engine script had no hash, so Kai silently never rendered; and
+// the async-font `onload="this.media='all'"` trick never fired. Anything
+// inline must either be hashed by scripts/obfuscate.mjs or moved to a file
+// under /scripts/ ('self'). Inline event-handler attributes can't be hashed
+// here at all (that would need 'unsafe-hashes'), so don't use them.
 //
 // style-src's 'unsafe-inline' is untouched — deliberately out of scope.
 // Astro emits its own scoped-CSS <style> blocks with build-generated
@@ -42,6 +36,8 @@ function buildCsp() {
     'https://cdnjs.cloudflare.com',
     'https://challenges.cloudflare.com',
     'https://www.clarity.ms',
+    'https://scripts.clarity.ms', // clarity's tag loader pulls the real script from here
+    'https://static.cloudflareinsights.com', // Cloudflare Web Analytics beacon
     ...CSP_SCRIPT_HASHES,
   ].join(' ');
   return [
@@ -51,7 +47,7 @@ function buildCsp() {
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https:",
     "media-src 'self' data: blob:",
-    "connect-src 'self' https://challenges.cloudflare.com https://www.clarity.ms https://*.clarity.ms",
+    "connect-src 'self' https://challenges.cloudflare.com https://www.clarity.ms https://*.clarity.ms https://cloudflareinsights.com",
     "frame-src 'self' https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'self'",

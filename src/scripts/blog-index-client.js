@@ -45,7 +45,7 @@ const item=(p,d)=>`<a href="${esc(p.href||'#')}" class="card hero2-item" data-ke
 // category/date, title, excerpt). Posts without a heroImage get the
 // site's static gradient placeholder instead of a random unrelated photo.
 const card=(p,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
-  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}" onload="this.closest('.ph').classList.add('loaded')">`:''}</div>
+  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}">`:''}</div>
   <div class="cbody">
     <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
     <h2>${esc(p.name)}</h2>
@@ -61,6 +61,11 @@ const row=(p,d)=>`<a href="${esc(p.href||'#')}" class="card trow" data-key="${es
   <span class="trow-title">${esc(p.name)}</span></a>`;
 
 const grid=document.getElementById('grid'),tbl=document.getElementById('tbl'),countEl=document.getElementById('count');
+// Card images fade in once .ph gets .loaded. This used to be an inline
+// onload="" attribute, which the hash-based CSP silently blocks, so photos
+// sat at opacity:0 forever. load doesn't bubble, but it does capture, so
+// one listener here covers every card render() ever writes.
+grid.addEventListener('load',e=>{ const ph=e.target.closest&&e.target.closest('.ph'); if(ph) ph.classList.add('loaded'); },true);
 // Paired with the --bp-760 (max-width:760px) breakpoint used everywhere
 // else on this page — 761px is desktop by that same line.
 const isDesktop=()=>matchMedia('(min-width:761px)').matches;
