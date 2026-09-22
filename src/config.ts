@@ -8,9 +8,9 @@ export const SITE = {
   // Set these once; the icon rail, mission section and footer all read them.
   links: {
     portfolio: 'https://samuelabhinav.com',
-    about: 'https://samuelabhinav.com/about',
-    contact: 'https://samuelabhinav.com/contact',
-    blogIndex: '/blog',
+    about: 'https://samuelabhinav.com/about/',
+    contact: 'https://samuelabhinav.com/contact/',
+    blogIndex: '/blog/',
     github: 'https://github.com/Samuelabhinav37',
     linkedin: 'https://www.linkedin.com/in/samuelabhinav/',
     x: 'https://x.com/SamuelAbhinav37',

@@ -21,9 +21,9 @@ const { currentPath, hasIntro = false } = Astro.props;
 // than matching currentPath the way the other links do.
 const links = [
   { href: '/#projects-section', label: 'Projects' },
-  { href: '/about', label: 'About' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/about/', label: 'About' },
+  { href: '/blog/', label: 'Blog' },
+  { href: '/contact/', label: 'Contact' },
 ];
 ---
 
@@ -41,7 +41,7 @@ const links = [
 <nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
   <ul id="menu-list">
     {links.map((l) => (
-      <li><a href={l.href} class={l.href === currentPath ? 'current' : undefined}><span>{l.label}</span></a></li>
+      <li><a href={l.href} class={l.href === currentPath + '/' ? 'current' : undefined}><span>{l.label}</span></a></li>
     ))}
   </ul>
 </nav>

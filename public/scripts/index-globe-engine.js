@@ -83,7 +83,7 @@
   /* Routing. Projects now point at per-project anchors on /blog — CONFIRM these
      match your real Blog-page routing (anchor ids / slugs). The rest mirror the
      nav slugs (same caveat as the living-chrome nav). */
-  var LABEL_HREF=['/blog#sentinel','/blog#prism','/blog#axon',null,null,null];
+  var LABEL_HREF=['/blog/#sentinel','/blog/#prism','/blog/#axon',null,null,null];
   var SEED_NODE=0;
 
   var canvas=document.getElementById('globe-gl');
