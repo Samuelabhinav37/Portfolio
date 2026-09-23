@@ -68,6 +68,14 @@ export async function onRequestGet({ request, env }) {
     return { items: [], reason: 'upstream' };
   });
 
+  // Only real data is cached. An empty answer (no token yet, or Radar
+  // failing) used to be cached for the full 30 minutes too, so the tile kept
+  // saying "not connected" for half an hour after the problem was fixed.
+  if (!result.items.length) {
+    const empty = json({ ...result, generatedAt: Date.now() });
+    empty.headers.set('Cache-Control', 'no-store');
+    return empty;
+  }
   const response = json({ ...result, generatedAt: Date.now() });
   await cache.put(request, response.clone());
   return response;
