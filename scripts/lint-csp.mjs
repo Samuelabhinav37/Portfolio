@@ -32,8 +32,9 @@ const NESTED_INLINE_SCRIPT = /(?:<|&lt;)script(?:\s+(?![^>]*\bsrc=)[^>]*)?(?:>|&
 
 // Not a sanitizer: this only reads our own build output, to lint the markup
 // that sits outside <script> blocks. It repeats until stable anyway, and the
-// end-tag pattern tolerates `</script >`, so no fragment can slip through.
-const SCRIPT_BLOCK = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+// end-tag pattern accepts anything browsers do (`</script >`, `</script x>`),
+// so no fragment can slip through.
+const SCRIPT_BLOCK = /<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi;
 function stripTopLevelScripts(html) {
   let prev;
   do {
