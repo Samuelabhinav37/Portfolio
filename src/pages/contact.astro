@@ -6,6 +6,7 @@ import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
 import '../styles/tokens.css';
+import Fonts from '../components/Fonts.astro';
 ---
 
 <!DOCTYPE html>
@@ -40,9 +41,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<Fonts />
 <script is:inline src="/scripts/title-manager.js"></script>
 <style is:global>
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -294,7 +293,9 @@ window.SITE=window.SITE||{};
   /* Cloudflare's own chrome can't be restyled (cross-origin iframe), but a filter
      composites over the rendered pixels fine — dims/desaturates it to sit closer
      to the page's muted palette instead of popping as a bright foreign box. */
-  #turnstile-widget{ margin:2px 0 20px; filter:grayscale(.4) brightness(.88) contrast(.94); }
+  /* min-height reserves the widget's 65px so the form doesn't jump when it
+     loads on first interaction (see contact-form-handler.js). */
+  #turnstile-widget{ margin:2px 0 20px; min-height:65px; filter:grayscale(.4) brightness(.88) contrast(.94); }
   .cta{ width:100%; margin-top:6px; padding:14px; cursor:pointer;
     background:rgba(var(--c-white),0.94); color:#0a0c16; border:1px solid rgba(var(--c-white),0.94);
     border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.58rem;
@@ -636,10 +637,10 @@ window.SITE=window.SITE||{};
 </div>
 
 <script is:inline src="/scripts/contact-window-stack.js"></script>
-<!-- Cloudflare Turnstile widget script — deliberately no SRI/integrity: Cloudflare
-     serves this from a rotating, frequently-updated URL and explicitly recommends
-     against pinning it (https://developers.cloudflare.com/turnstile/). -->
-<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<!-- Cloudflare Turnstile's api.js is injected by contact-form-handler.js on
+     first interaction with the form, not loaded here. Still deliberately no
+     SRI: Cloudflare serves it from a rotating URL and recommends against
+     pinning it (https://developers.cloudflare.com/turnstile/). -->
 <script is:inline src="/scripts/contact-form-handler.js"></script>
 <script is:inline>
 /* The case-file cards cluster on the left; the form column (mostly thin

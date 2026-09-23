@@ -63,12 +63,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
   gap: 12px; padding: 40px 48px 70px;
   border-top: 1px solid rgba(var(--c-white),0.08);
-  color: rgba(var(--c-white),0.30);
+  color: rgba(var(--c-white),0.52);
   font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em;
 }
 .post-footer .f-links { display: flex; align-items: center; gap: 16px; text-transform: uppercase; }
 .post-footer .f-links a {
-  color: rgba(var(--c-white),0.30); text-decoration: none; transition: color 0.25s;
+  color: rgba(var(--c-white),0.52); text-decoration: none; transition: color 0.25s;
   display: inline-flex; align-items: center; gap: 6px;
 }
 .post-footer .f-links a:hover { color: #fff; }
@@ -376,7 +376,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   margin-top: 5px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.40);
+  color: rgba(var(--c-white),0.52);
   line-height: 1.5;
 }
 .author-bar-meta-sep { color: rgba(var(--c-white),0.20); margin: 0 1px; }
@@ -496,7 +496,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
 .rail-story-cat {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.54rem; letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.45); margin-bottom: 5px;
+  color: rgba(var(--c-white),0.55); margin-bottom: 5px;
 }
 .rail-story-title {
   font-family: var(--article-font); font-weight: 500; font-size: 0.98rem;
@@ -506,7 +506,7 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   margin-top: 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.56rem; letter-spacing: 0.06em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.34);
+  color: rgba(var(--c-white),0.52);
 }
 /* Flat quiet circle — utility chrome (share, not content), so it stays
    out of the way rather than competing with the byline next to it. No
@@ -1129,7 +1129,7 @@ td.ioc-act { width: 70px; text-align: right; }
   flex: 0 0 108px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.38); padding-top: 4px;
+  color: rgba(var(--c-white),0.55); padding-top: 4px;
 }
 .case-file-row dd {
   margin: 0;
@@ -1173,7 +1173,7 @@ td.ioc-act { width: 70px; text-align: right; }
 .mnote-sub {
   display: block; margin-top: 5px;
   font-family: var(--article-font); font-style: italic;
-  font-size: 0.98rem; color: rgba(var(--c-white),0.42);
+  font-size: 0.98rem; color: rgba(var(--c-white),0.52);
 }
 .mnote-tag {
   display: inline-block; margin-top: 9px;
@@ -1606,3 +1606,11 @@ a.social-icon { text-decoration: none; color: inherit; }
 .ldw-fu:active{transform:translateY(0)}
 .ldw-fu .ldw-plus{color:rgba(var(--c-ice),.5);margin-right:5px}
 @media (--bp-640){ #ldw-drawer{ --ldw-w: 100vw; } }
+
+/* ── Tap targets (WCAG 2.5.8: at least 24x24 CSS px). Hit box grows with
+   padding offset by an equal negative margin; the layout doesn't move. ── */
+.post-footer .f-links a { padding-block: 6px; margin-block: -6px; }
+.post-footer .f-links a[aria-label] { padding-inline: 6px; margin-inline: -6px; }
+.hero-breadcrumb a { display: inline-block; padding-block: 6px; margin-block: -6px; }
+.copy-btn { min-height: 24px; }
+.nav-name { padding-block: 2px; margin-block: -2px; }

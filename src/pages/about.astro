@@ -6,6 +6,7 @@ import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
 import LunaDrawerShell from '../components/LunaDrawerShell.astro';
 import '../styles/tokens.css';
+import Fonts from '../components/Fonts.astro';
 ---
 
 <!DOCTYPE html>
@@ -41,13 +42,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline src="/scripts/title-manager.js"></script>
-<!-- Cormorant Garamond covers #site-identity (SiteMenu, above the fold) —
-     stays render-blocking. JetBrains Mono and Press Start 2P only style the
-     certifications label, footer signature, and the embedded arcade game —
-     none visible without scrolling — so they're split into their own
-     request and loaded non-render-blocking (print-swap trick). -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Press+Start+2P&display=swap" rel="stylesheet">
+<Fonts />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -204,9 +199,9 @@ html, body {
 .sig-graph{padding:8px 8px 4px;border-bottom:1px solid rgba(var(--c-white),0.04);flex:1;display:flex;flex-direction:column;min-height:0;}
 .sig-canvas{display:block;width:100%;flex:1;min-height:82px;}
 .sig-foot{display:flex;justify-content:space-between;padding:0 0 4px;}
-.sig-gf{font-family:'JetBrains Mono',monospace;font-size:0.32rem;letter-spacing:0.14em;color:rgba(var(--c-white),0.32);}
+.sig-gf{font-family:'JetBrains Mono',monospace;font-size:0.32rem;letter-spacing:0.14em;color:rgba(var(--c-white),0.55);}
 .sig-sep{padding:8px 10px 0;display:flex;align-items:center;gap:6px;}
-.sig-sep span{font-family:'JetBrains Mono',monospace;font-size:0.30rem;letter-spacing:0.20em;color:rgba(var(--c-white),0.30);text-transform:uppercase;white-space:nowrap;}
+.sig-sep span{font-family:'JetBrains Mono',monospace;font-size:0.30rem;letter-spacing:0.20em;color:rgba(var(--c-white),0.55);text-transform:uppercase;white-space:nowrap;}
 .sig-sep::after{content:"";flex:1;height:1px;background:rgba(var(--c-white),0.04);}
 .sig-log{height:76px;flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;padding:2px 0 6px;}
 .sig-log::before{content:"";position:absolute;left:0;right:0;top:0;height:28px;background:linear-gradient(#000,transparent);pointer-events:none;z-index:2;}
@@ -235,7 +230,7 @@ html, body {
 .skills-pills{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;justify-content:flex-start;}
 .ascii-card{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;}
 .ascii-bar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid rgba(var(--c-white),0.06);flex-shrink:0;}
-.ascii-title{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;color:rgba(var(--c-white),0.28);}
+.ascii-title{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;color:rgba(var(--c-white),0.55);}
 .ascii-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .ascii-out{margin:0;white-space:pre;font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;color:rgba(var(--c-white),0.84);font-size:2px;line-height:2px;letter-spacing:0;}
 .pill{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:0.58rem;font-weight:400;color:rgba(var(--c-white),0.52);background:rgba(var(--c-white),0.05);border:1px solid rgba(var(--c-white),0.08);border-radius:50px;padding:5px 11px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
@@ -287,7 +282,7 @@ html, body {
   justify-content:space-between;
   flex-shrink:0;
 }
-.game-hdr-title{font-family:'JetBrains Mono',monospace;font-size:0.40rem;letter-spacing:0.26em;color:rgba(var(--c-white),0.34);text-transform:uppercase;}
+.game-hdr-title{font-family:'JetBrains Mono',monospace;font-size:0.40rem;letter-spacing:0.26em;color:rgba(var(--c-white),0.55);text-transform:uppercase;}
 .game-hdr-dot{width:5px;height:5px;border-radius:50%;background:#3DB87A;box-shadow:0 0 6px #3DB87A;animation:gdot 2s ease-in-out infinite;}
 @keyframes gdot{0%,100%{opacity:1}50%{opacity:.3}}
 #game-canvas{display:block;width:100%;height:100%;}
@@ -464,12 +459,12 @@ html, body {
     <div class="card c-certs">
       <span class="c-certs-lbl">Certifications</span>
       <div class="c-certs-grid">
-        <div class="c-cert"><img src="/images/certs/security-plus.png" alt="" loading="lazy"><span>Security+</span></div>
-        <div class="c-cert"><img src="/images/certs/network-plus.png" alt="" loading="lazy"><span>Network+</span></div>
-        <div class="c-cert"><img src="/images/certs/isc2-cc.png" alt="" loading="lazy"><span>ISC2 CC</span></div>
-        <div class="c-cert"><img src="/images/certs/aws-ccp.png" alt="" loading="lazy"><span>AWS CCP</span></div>
-        <div class="c-cert"><img src="/images/certs/az-900.png" alt="" loading="lazy"><span>AZ-900</span></div>
-        <div class="c-cert"><img src="/images/certs/htb-cjca.png" alt="" loading="lazy"><span>HTB CJCA</span></div>
+        <div class="c-cert"><img src="/images/certs/security-plus.webp" alt="" loading="lazy"><span>Security+</span></div>
+        <div class="c-cert"><img src="/images/certs/network-plus.webp" alt="" loading="lazy"><span>Network+</span></div>
+        <div class="c-cert"><img src="/images/certs/isc2-cc.webp" alt="" loading="lazy"><span>ISC2 CC</span></div>
+        <div class="c-cert"><img src="/images/certs/aws-ccp.webp" alt="" loading="lazy"><span>AWS CCP</span></div>
+        <div class="c-cert"><img src="/images/certs/az-900.webp" alt="" loading="lazy"><span>AZ-900</span></div>
+        <div class="c-cert"><img src="/images/certs/htb-cjca.webp" alt="" loading="lazy"><span>HTB CJCA</span></div>
       </div>
     </div>
     <div class="card c-signal">
@@ -514,7 +509,7 @@ html, body {
 &lt;meta charset=&quot;UTF-8&quot;&gt;
 &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
 &lt;title&gt;INFILTRATE // DEFEND&lt;/title&gt;
-&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;/fonts/fonts.css&quot; rel=&quot;stylesheet&quot;&gt;
 &lt;style&gt;
 :root{--cyan:#00e5ff;--green:#00ff88;--gold:#ffcc00;--red:#ff2244;--purple:#cc44ff;--orange:#ff8800;}
 *{margin:0;padding:0;box-sizing:border-box;image-rendering:pixelated;}

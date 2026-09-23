@@ -45,7 +45,7 @@ const item=(p,d)=>`<a href="${esc(p.href||'#')}" class="card hero2-item" data-ke
 // category/date, title, excerpt). Posts without a heroImage get the
 // site's static gradient placeholder instead of a random unrelated photo.
 const card=(p,d)=>`<a href="${esc(p.href||'#')}" class="card" data-key="${esc(p.seed)}" style="transition-delay:${d}s">
-  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" src="${esc(p.img)}" alt="${esc(p.name)}">`:''}</div>
+  <div class="ph${p.img?'':' noimg loaded'}">${p.img?`<img loading="lazy" decoding="async" src="${esc(p.img)}"${p.srcset?` srcset="${esc(p.srcset)}" sizes="(max-width: 760px) 92vw, 33vw"`:''} alt="${esc(p.name)}">`:''}</div>
   <div class="cbody">
     <div class="cmeta meta"><span>${esc(p.kick.split('·')[0].trim())}</span><span>${esc(p.year)}</span></div>
     <h2>${esc(p.name)}</h2>
@@ -272,7 +272,12 @@ addEventListener('resize',(()=>{let t;return()=>{clearTimeout(t);
   t=setTimeout(()=>{if(LAST)mount(LAST);},200);};})());
 })();
 
-window.addEventListener('load',()=>{document.body.classList.add('is-loaded');render();});
+// Reveal the hero and render the grid as soon as this (deferred module)
+// script runs, not on window 'load'. 'load' waits for every image, font and
+// script on the page, including the nebula engine, which held the hero
+// (this page's LCP element) at opacity:0 for 3-4s after its image had
+// already arrived. One frame's wait keeps the fade-in transition playing.
+requestAnimationFrame(()=>{document.body.classList.add('is-loaded');render();});
 
 /* Native scrolling. Lenis (smooth-scroll) was removed here: it had been
    reduced to just a stop()/start() pause during the case-study slide-over

@@ -13,6 +13,8 @@ import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
+import Fonts from '../components/Fonts.astro';
+import { srcsetWith, variant } from '../image-variant';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -197,12 +199,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:wght@500&display=swap"
-      rel="stylesheet"
-    />
+    <Fonts />
 
     <script type="application/ld+json" set:html={jsonLd} />
     <style is:global>
@@ -258,7 +255,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       data-label-closed={i18n.openMenu}
       data-label-open={i18n.closeMenu}
     >{lang === 'es' ? 'Menú' : 'Menu'}</button>
-    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true">
+    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
       <ul id="menu-list">
         <li><a href={SITE.links.about}><span>{i18n.navAbout}</span></a></li>
         <li><a href={SITE.links.blogIndex} class="active"><span>{i18n.navBlog}</span></a></li>
@@ -300,7 +297,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <div class="hero-right">
         {d.heroImage
           ? <div class="hero-art"><div class="hero-art-frame">
-              <img class="hero-art-img" src={d.heroImage} alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
+              <img class="hero-art-img" src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 620px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
               {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
             </div></div>
           : <div class="hero-art"><div class="hero-art-frame hero-art--placeholder" aria-hidden="true">
@@ -420,7 +417,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div class="share-card share-card--x">
             <div class="share-card__img-wrap">
               {shareImage
-                ? <img src={shareImage} alt="" class="share-card__img" />
+                ? <img src={variant(shareImage, 800)} alt="" class="share-card__img" loading="lazy" decoding="async" />
                 : <div class="share-card__img share-card__img--ph" aria-hidden="true"></div>}
             </div>
             <div class="share-card__body">
@@ -434,7 +431,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div class="share-card share-card--linkedin">
             <div class="share-card__img-wrap">
               {shareImage
-                ? <img src={shareImage} alt="" class="share-card__img" />
+                ? <img src={variant(shareImage, 800)} alt="" class="share-card__img" loading="lazy" decoding="async" />
                 : <div class="share-card__img share-card__img--ph" aria-hidden="true"></div>}
             </div>
             <div class="share-card__body">

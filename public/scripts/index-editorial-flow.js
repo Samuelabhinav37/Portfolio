@@ -114,12 +114,12 @@
   var track=document.getElementById('ed-badges-track');
   if(!track) return;
   var BADGES=[
-    {name:'Security+', img:'/images/certs/security-plus.png', framed:true},
-    {name:'Network+', img:'/images/certs/network-plus.png', framed:true},
-    {name:'ISC2 CC', img:'/images/certs/isc2-cc.png'},
-    {name:'AWS CCP', img:'/images/certs/aws-ccp.png'},
-    {name:'AZ-900', img:'/images/certs/az-900.png'},
-    {name:'HTB CJCA', img:'/images/certs/htb-cjca.png'}
+    {name:'Security+', img:'/images/certs/security-plus.webp', framed:true},
+    {name:'Network+', img:'/images/certs/network-plus.webp', framed:true},
+    {name:'ISC2 CC', img:'/images/certs/isc2-cc.webp'},
+    {name:'AWS CCP', img:'/images/certs/aws-ccp.webp'},
+    {name:'AZ-900', img:'/images/certs/az-900.webp'},
+    {name:'HTB CJCA', img:'/images/certs/htb-cjca.webp'}
   ];
   function tok(b, hidden){
     return '<span class="ed-badge'+(b.framed?' ed-badge--framed':'')+'"'+(hidden?' aria-hidden="true"':'')+

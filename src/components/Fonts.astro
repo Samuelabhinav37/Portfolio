@@ -1,0 +1,25 @@
+---
+/**
+ * Self-hosted web fonts. Replaces the render-blocking Google Fonts
+ * stylesheet, which cost mobile first paint a full extra round trip to two
+ * third-party origins (fonts.googleapis.com, then fonts.gstatic.com).
+ *
+ * The @font-face rules are inlined (no extra request) and read from
+ * public/fonts/fonts.css at build time, so there's one source of truth.
+ * Each face downloads only when the page actually uses it, and
+ * font-display:swap keeps text visible meanwhile.
+ *
+ * Deliberately no <link rel="preload">: measured on a throttled mobile
+ * profile (4x CPU, 1.6Mbps, 150ms RTT), preloading even the one wordmark
+ * face competed with the CSS for bandwidth and pushed first paint back
+ * 0.2-0.4s on every page. Without it, FCP and LCP matched or beat the old
+ * Google Fonts build everywhere. The cost is a brief fallback serif on the
+ * name before Cormorant swaps in.
+ */
+import fontsCss from '../../public/fonts/fonts.css?raw';
+
+const css = fontsCss
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .trim();
+---
+<style is:inline set:html={css}></style>

@@ -43,8 +43,8 @@ function buildCsp() {
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com data:",
+    "style-src 'self' 'unsafe-inline'", // fonts are self-hosted under /fonts/
+    "font-src 'self' data:",
     "img-src 'self' data: blob: https:",
     "media-src 'self' data: blob:",
     "connect-src 'self' https://challenges.cloudflare.com https://www.clarity.ms https://*.clarity.ms https://cloudflareinsights.com",

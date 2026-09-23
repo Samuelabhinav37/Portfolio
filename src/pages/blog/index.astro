@@ -8,6 +8,8 @@ import NebulaBackground from '../../components/NebulaBackground.astro';
 import LunaDrawerShell from '../../components/LunaDrawerShell.astro';
 import { FAKE_PROJECTS } from '../../data/projects.ts';
 import '../../styles/tokens.css';
+import Fonts from '../../components/Fonts.astro';
+import { srcsetWith } from '../../image-variant';
 
 // Translations (e.g. es/anatomy-of-a-supply-chain-attack) live under a
 // locale subfolder and get their own index-free route — the grid here
@@ -29,6 +31,8 @@ const postCards = posts.map((p) => ({
   // that happens to have one set without a heroImage, not something new
   // posts need to supply.
   img: p.data.heroImage || p.data.cardImage || null,
+  // 800w variant for list cards and phones; the original stays for 2x desktop.
+  srcset: srcsetWith(p.data.heroImage, 800, 1600) || null,
   lead: p.data.description,
   href: '/blog/' + p.id + '/',
 }));
@@ -84,21 +88,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline src="/scripts/title-manager.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Body/UI text now uses the native -apple-system OS font stack (see --sans
-     above) instead of a hosted Hanken Grotesk webfont — one less render-
-     blocking request, and it's genuinely faster since there's nothing to
-     download at all. Cormorant Garamond is the one exception: it's the
-     "Samuel Abhinav" corner identity (#site-identity in SiteMenu.astro),
-     visible above the fold on every page, so it loads render-blocking here
-     same as the other pages. -->
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap" rel="stylesheet">
-<!-- JetBrains Mono is only used by Luna's chat drawer's mono accents, which
-     most visitors never open — loaded non-render-blocking (classic "print"
-     media-swap trick) instead of holding up first paint for every visitor
-     whether or not they ever click her. -->
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<Fonts />
 <style is:global>
 :root{
   --bg:var(--c-bg);--ink:#ededee;--ink-soft:#c9c9cc;--muted:#94949a;--faint:#87878d;
@@ -145,9 +135,12 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
    actually need and sit snug next to each other, centered as one group. */
 .hero2{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;
   gap:56px;padding:96px 38px 64px;max-width:1400px;margin:0 auto}
-.hero2-feat{position:relative;display:block;flex:0 1 540px;text-decoration:none;color:inherit;cursor:pointer;
-  opacity:0;transform:translateY(24px);transition:opacity 1s var(--e),transform 1s var(--e)}
-.is-loaded .hero2-feat{opacity:1;transform:none;transition-delay:.3s}
+/* The featured card is this page's LCP element, so it renders immediately
+   instead of fading in from opacity:0. Chrome doesn't count an invisible
+   element as painted, so the old 0.3s-delayed fade let any main-thread
+   stall (the nebula engine's startup task) push LCP back by seconds. The
+   side list below still fades in. */
+.hero2-feat{position:relative;display:block;flex:0 1 540px;text-decoration:none;color:inherit;cursor:pointer}
 .hero2-imgwrap{position:relative;aspect-ratio:16/10;overflow:hidden;border-radius:6px;background:#101012;margin-bottom:22px}
 .hero2-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;
   filter:grayscale(.35) brightness(.75);transition:filter .5s var(--e),transform .7s var(--e)}
@@ -644,7 +637,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     href={heroHref || '#'}
     data-key={heroHref ? undefined : heroItem?.seed}
   >
-    <div class="hero2-imgwrap"><img alt="" loading="eager" src={heroItem?.img || undefined}></div>
+    <div class="hero2-imgwrap"><img alt="" loading="eager" fetchpriority="high" src={heroItem?.img || undefined} srcset={(heroItem && 'srcset' in heroItem && heroItem.srcset) || undefined} sizes="(max-width: 760px) 92vw, 560px"></div>
     <span class="meta">{heroItem?.kick ?? ''}</span>
     <h1>{heroItem?.name ?? 'More stories soon'}</h1>
     {heroItem?.lead && <p>{heroItem.lead}</p>}
