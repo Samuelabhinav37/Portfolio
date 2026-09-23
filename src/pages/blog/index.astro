@@ -135,9 +135,12 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
    actually need and sit snug next to each other, centered as one group. */
 .hero2{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;
   gap:56px;padding:96px 38px 64px;max-width:1400px;margin:0 auto}
-.hero2-feat{position:relative;display:block;flex:0 1 540px;text-decoration:none;color:inherit;cursor:pointer;
-  opacity:0;transform:translateY(24px);transition:opacity 1s var(--e),transform 1s var(--e)}
-.is-loaded .hero2-feat{opacity:1;transform:none;transition-delay:.3s}
+/* The featured card is this page's LCP element, so it renders immediately
+   instead of fading in from opacity:0. Chrome doesn't count an invisible
+   element as painted, so the old 0.3s-delayed fade let any main-thread
+   stall (the nebula engine's startup task) push LCP back by seconds. The
+   side list below still fades in. */
+.hero2-feat{position:relative;display:block;flex:0 1 540px;text-decoration:none;color:inherit;cursor:pointer}
 .hero2-imgwrap{position:relative;aspect-ratio:16/10;overflow:hidden;border-radius:6px;background:#101012;margin-bottom:22px}
 .hero2-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;
   filter:grayscale(.35) brightness(.75);transition:filter .5s var(--e),transform .7s var(--e)}
@@ -634,7 +637,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     href={heroHref || '#'}
     data-key={heroHref ? undefined : heroItem?.seed}
   >
-    <div class="hero2-imgwrap"><img alt="" loading="eager" fetchpriority="high" decoding="async" src={heroItem?.img || undefined} srcset={(heroItem && 'srcset' in heroItem && heroItem.srcset) || undefined} sizes="(max-width: 760px) 92vw, 560px"></div>
+    <div class="hero2-imgwrap"><img alt="" loading="eager" fetchpriority="high" src={heroItem?.img || undefined} srcset={(heroItem && 'srcset' in heroItem && heroItem.srcset) || undefined} sizes="(max-width: 760px) 92vw, 560px"></div>
     <span class="meta">{heroItem?.kick ?? ''}</span>
     <h1>{heroItem?.name ?? 'More stories soon'}</h1>
     {heroItem?.lead && <p>{heroItem.lead}</p>}

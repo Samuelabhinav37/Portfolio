@@ -6,22 +6,20 @@
  *
  * The @font-face rules are inlined (no extra request) and read from
  * public/fonts/fonts.css at build time, so there's one source of truth.
- * The Cormorant Garamond wordmark is on every page's first paint, so it's
- * always preloaded. JetBrains Mono is preloaded only where it's above the
- * fold (`mono`); elsewhere a preload would compete with the LCP image.
- * Everything else, italics and latin-ext included, downloads only if a page
- * actually uses it.
+ * Each face downloads only when the page actually uses it, and
+ * font-display:swap keeps text visible meanwhile.
+ *
+ * Deliberately no <link rel="preload">: measured on a throttled mobile
+ * profile (4x CPU, 1.6Mbps, 150ms RTT), preloading even the one wordmark
+ * face competed with the CSS for bandwidth and pushed first paint back
+ * 0.2-0.4s on every page. Without it, FCP and LCP matched or beat the old
+ * Google Fonts build everywhere. The cost is a brief fallback serif on the
+ * name before Cormorant swaps in.
  */
-interface Props {
-  mono?: boolean;
-}
-const { mono = false } = Astro.props;
 import fontsCss from '../../public/fonts/fonts.css?raw';
 
 const css = fontsCss
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .trim();
 ---
-<link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
-{mono && <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />}
 <style is:inline set:html={css}></style>

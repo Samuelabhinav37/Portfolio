@@ -272,7 +272,12 @@ addEventListener('resize',(()=>{let t;return()=>{clearTimeout(t);
   t=setTimeout(()=>{if(LAST)mount(LAST);},200);};})());
 })();
 
-window.addEventListener('load',()=>{document.body.classList.add('is-loaded');render();});
+// Reveal the hero and render the grid as soon as this (deferred module)
+// script runs, not on window 'load'. 'load' waits for every image, font and
+// script on the page, including the nebula engine, which held the hero
+// (this page's LCP element) at opacity:0 for 3-4s after its image had
+// already arrived. One frame's wait keeps the fade-in transition playing.
+requestAnimationFrame(()=>{document.body.classList.add('is-loaded');render();});
 
 /* Native scrolling. Lenis (smooth-scroll) was removed here: it had been
    reduced to just a stop()/start() pause during the case-study slide-over
