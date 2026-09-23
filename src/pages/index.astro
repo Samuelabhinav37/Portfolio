@@ -1070,6 +1070,8 @@ footer#site-footer{
     max-width:1500px; margin:0 auto; }
   #editorial .ed-beliefs__text{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(30px,6vw,90px);
     align-items:start; margin-bottom:clamp(70px,13vh,160px); }
+  /* The bento/DDoS block that followed moved to #snapshot; don't leave its gap. */
+  #editorial .ed-beliefs__text:last-child{ margin-bottom:0; }
   #editorial .ed-beliefs__head .ed-lbl{ display:block; margin-bottom:18px; }
   #editorial .ed-beliefs__head h2{ font-weight:300; font-size:clamp(1.6rem,2.2vw,2rem);
     letter-spacing:-.3px; color:#ededee; }
@@ -1078,71 +1080,71 @@ footer#site-footer{
     line-height:1.62; color:#c9c9cc; }
   #editorial .ed-beliefs__copy p em{ font-style:normal; color:#fff; }
   #editorial .ed-beliefs__copy p + p{ margin-top:22px; font-size:clamp(.95rem,1.1vw,1.05rem); color:#94949a; }
-  #editorial .ed-beliefs__imgs{ display:grid; grid-template-columns:repeat(12,1fr); align-items:start;
+  #snapshot .ed-beliefs__imgs{ display:grid; grid-template-columns:repeat(12,1fr); align-items:start;
     row-gap:clamp(40px,9vh,120px); }
-  #editorial .ed-frame{ position:relative; overflow:hidden; background:#101012; }
-  #editorial .ed-frame img{ width:100%; height:100%; object-fit:cover; display:block;
+  #snapshot .ed-frame{ position:relative; overflow:hidden; background:#101012; }
+  #snapshot .ed-frame img{ width:100%; height:100%; object-fit:cover; display:block;
     filter:grayscale(1) brightness(.8);
     transition:filter 1.1s cubic-bezier(.22,1,.36,1), transform 1.3s cubic-bezier(.22,1,.36,1); }
-  #editorial .ed-frame:hover img{ filter:grayscale(0) brightness(.95); transform:scale(1.04); }
-  #editorial .ed-frame--a{ grid-column:1 / 7; aspect-ratio:16/12.5; margin-top:clamp(40px,9vh,120px); }
+  #snapshot .ed-frame:hover img{ filter:grayscale(0) brightness(.95); transform:scale(1.04); }
+  #snapshot .ed-frame--a{ grid-column:1 / 7; aspect-ratio:16/12.5; margin-top:clamp(40px,9vh,120px); }
   /* No aspect-ratio (unlike ed-frame--a): sizes to the arcade canvas's own
      height instead of being forced to match its neighbor. .ed-beliefs__imgs
      already has align-items:start, so the grid row doesn't stretch it either. */
-  #editorial .ed-frame--b{ grid-column:9 / 13; }
+  #snapshot .ed-frame--b{ grid-column:9 / 13; }
 
   /* ── Beliefs — bento (replaces the landscape frame) ── */
-  #editorial .ed-bento{ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
+  #snapshot .ed-bento{ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
     gap:1px; background:rgba(var(--c-white),.08); }
-  #editorial .ed-bento__cell{ background:#101012; padding:clamp(14px,1.6vw,20px); display:flex; flex-direction:column;
+  #snapshot .ed-bento__cell{ background:#101012; padding:clamp(14px,1.6vw,20px); display:flex; flex-direction:column;
     gap:10px; position:relative; overflow:hidden; transition:background .4s ease; }
-  #editorial .ed-bento__cell:hover{ background:#151517; }
-  #editorial .ed-bento__lbl{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500;
+  #snapshot .ed-bento__cell:hover{ background:#151517; }
+  #snapshot .ed-bento__lbl{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500;
     letter-spacing:1.3px; text-transform:uppercase; color:#87878d; position:relative; z-index:2; }
 
   /* Threat intel — terminal/log feel: colored left-rule per source, hairline-divided rows.
      Spans the whole top row (the decorative Signal canvas that shared it is gone), so the
      feed runs as a 2x2 grid of four reports with 2-line titles, rather than three rows
      stretched across a wide empty cell. */
-  #editorial .ed-bento__intel{ grid-column:1 / -1; }
-  #editorial .ed-bento__intel .ed-bento__lbl{ display:flex; align-items:center; gap:7px; }
-  #editorial .ed-intel__dot{ width:5px; height:5px; border-radius:50%; background:rgba(226,232,244,.85);
+  #snapshot .ed-bento__intel{ grid-column:1 / -1; }
+  #snapshot .ed-bento__intel .ed-bento__lbl{ display:flex; align-items:center; gap:7px; }
+  #snapshot .ed-intel__dot{ width:5px; height:5px; border-radius:50%; background:rgba(226,232,244,.85);
     box-shadow:0 0 6px rgba(226,232,244,.55); animation:edpulse 2.2s infinite; }
-  #editorial .ed-intel__list{ display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; align-content:center;
+  #snapshot .ed-intel__list{ display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; align-content:center;
     gap:14px clamp(18px,2.4vw,32px); overflow:hidden; flex:1; min-height:0; font-family:'JetBrains Mono',monospace; }
-  #editorial .ed-intel__row{ display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
+  #snapshot .ed-intel__row{ display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
     padding:1px 0 13px 12px; border-left:2px solid transparent; border-bottom:1px solid rgba(var(--c-white),.06);
     transition:border-color .25s, background .25s; }
-  #editorial .ed-intel__row:nth-last-child(-n+2){ border-bottom:none; padding-bottom:0; }
-  #editorial .ed-intel__row.otx{ border-left-color:rgba(226,232,244,.38); }
-  #editorial .ed-intel__row.misp{ border-left-color:rgba(226,232,244,.20); }
-  #editorial .ed-intel__row:hover{ background:rgba(var(--c-white),.04); }
-  #editorial .ed-intel__meta{ display:flex; gap:8px; align-items:center; font-size:9.5px; letter-spacing:.6px; text-transform:uppercase; }
-  #editorial .ed-intel__meta .src{ font-weight:700; padding:2px 6px; border-radius:3px; line-height:1; }
-  #editorial .ed-intel__meta .src.otx{ color:#dcdce0; background:rgba(226,232,244,.10); }
-  #editorial .ed-intel__meta .src.misp{ color:#9c9ca2; background:rgba(226,232,244,.06); }
-  #editorial .ed-intel__meta .org{ color:#8a8a92; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform:none; letter-spacing:0; }
-  #editorial .ed-intel__title{ font-size:12px; font-weight:400; color:#c9c9cc; line-height:1.4;
+  #snapshot .ed-intel__row:nth-last-child(-n+2){ border-bottom:none; padding-bottom:0; }
+  #snapshot .ed-intel__row.otx{ border-left-color:rgba(226,232,244,.38); }
+  #snapshot .ed-intel__row.misp{ border-left-color:rgba(226,232,244,.20); }
+  #snapshot .ed-intel__row:hover{ background:rgba(var(--c-white),.04); }
+  #snapshot .ed-intel__meta{ display:flex; gap:8px; align-items:center; font-size:9.5px; letter-spacing:.6px; text-transform:uppercase; }
+  #snapshot .ed-intel__meta .src{ font-weight:700; padding:2px 6px; border-radius:3px; line-height:1; }
+  #snapshot .ed-intel__meta .src.otx{ color:#dcdce0; background:rgba(226,232,244,.10); }
+  #snapshot .ed-intel__meta .src.misp{ color:#9c9ca2; background:rgba(226,232,244,.06); }
+  #snapshot .ed-intel__meta .org{ color:#8a8a92; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform:none; letter-spacing:0; }
+  #snapshot .ed-intel__title{ font-size:12px; font-weight:400; color:#c9c9cc; line-height:1.4;
     font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
     overflow:hidden; }
-  #editorial .ed-intel__row:hover .ed-intel__title{ color:#fff; }
+  #snapshot .ed-intel__row:hover .ed-intel__title{ color:#fff; }
 
   /* Cert badges marquee — real vendor-issued badge art, not icon chips */
-  #editorial .ed-badges__wrap{ position:relative; flex:1; display:flex; align-items:center; overflow:hidden;
+  #snapshot .ed-badges__wrap{ position:relative; flex:1; display:flex; align-items:center; overflow:hidden;
     -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
             mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); }
-  #editorial .ed-badges__track{ display:inline-flex; gap:22px; white-space:nowrap; will-change:transform;
+  #snapshot .ed-badges__track{ display:inline-flex; gap:22px; white-space:nowrap; will-change:transform;
     animation:edscroll 34s linear infinite; }
-  #editorial .ed-badges__wrap:hover .ed-badges__track{ animation-play-state:paused; }
-  #editorial .ed-badge{ display:inline-flex; flex-direction:column; align-items:center; gap:9px; width:92px; }
-  #editorial .ed-badge img{ width:60px; height:60px; object-fit:contain; box-sizing:content-box;
+  #snapshot .ed-badges__wrap:hover .ed-badges__track{ animation-play-state:paused; }
+  #snapshot .ed-badge{ display:inline-flex; flex-direction:column; align-items:center; gap:9px; width:92px; }
+  #snapshot .ed-badge img{ width:60px; height:60px; object-fit:contain; box-sizing:content-box;
     transition:transform .3s ease; }
-  #editorial .ed-badge:hover img{ transform:translateY(-2px) scale(1.05); }
+  #snapshot .ed-badge:hover img{ transform:translateY(-2px) scale(1.05); }
   /* Only CompTIA's badge art ships an opaque white square baked into the PNG — everything
      else (ISC2/AWS/Azure/HTB) is already transparent and needs no backing at all. */
-  #editorial .ed-badge--framed img{ background:#f2f1ee; border-radius:11px; padding:6px;
+  #snapshot .ed-badge--framed img{ background:#f2f1ee; border-radius:11px; padding:6px;
     box-shadow:0 3px 14px rgba(0,0,0,.4); }
-  #editorial .ed-badge span{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.3px;
+  #snapshot .ed-badge span{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.3px;
     color:#94949a; white-space:normal; text-align:center; line-height:1.2; }
 
   /* ATT&CK spotlight — rotating technique card, deliberately distinct from the intel log.
@@ -1151,64 +1153,64 @@ footer#site-footer{
      so extra cell height (from taller viewports) becomes a deliberate gap, not dead space.
      Tactic/ID live inside .ed-attck__text, after the description, so they read as a caption
      under the copy instead of a stray row wedged under the icon. */
-  #editorial .ed-bento__attck{ gap:26px; }
-  #editorial .ed-bento__attck > div{ flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0; }
-  #editorial .ed-attck{ display:flex; flex-direction:column; gap:12px; text-decoration:none; color:inherit; }
-  #editorial .ed-attck__top{ display:flex; align-items:flex-start; gap:12px; }
-  #editorial .ed-attck__icon{ flex:none; width:32px; height:32px; border-radius:9px;
+  #snapshot .ed-bento__attck{ gap:26px; }
+  #snapshot .ed-bento__attck > div{ flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0; }
+  #snapshot .ed-attck{ display:flex; flex-direction:column; gap:12px; text-decoration:none; color:inherit; }
+  #snapshot .ed-attck__top{ display:flex; align-items:flex-start; gap:12px; }
+  #snapshot .ed-attck__icon{ flex:none; width:32px; height:32px; border-radius:9px;
     background:rgba(226,232,244,.08); display:flex; align-items:center; justify-content:center;
     color:#c9c9cc; transition:background .25s; }
-  #editorial .ed-attck:hover .ed-attck__icon{ background:rgba(226,232,244,.14); }
-  #editorial .ed-attck__icon svg{ width:16px; height:16px; }
-  #editorial .ed-attck__text{ display:flex; flex-direction:column; gap:7px; min-width:0; }
-  #editorial .ed-attck__name{ font-weight:400; font-size:clamp(.86rem,1.05vw,.96rem); color:#ededee;
+  #snapshot .ed-attck:hover .ed-attck__icon{ background:rgba(226,232,244,.14); }
+  #snapshot .ed-attck__icon svg{ width:16px; height:16px; }
+  #snapshot .ed-attck__text{ display:flex; flex-direction:column; gap:7px; min-width:0; }
+  #snapshot .ed-attck__name{ font-weight:400; font-size:clamp(.86rem,1.05vw,.96rem); color:#ededee;
     line-height:1.3; letter-spacing:-.1px; transition:color .25s; }
-  #editorial .ed-attck:hover .ed-attck__name{ color:#fff; }
-  #editorial .ed-attck__desc{ font-weight:300; font-size:11.5px; color:#94949a; line-height:1.55; max-width:42ch;
+  #snapshot .ed-attck:hover .ed-attck__name{ color:#fff; }
+  #snapshot .ed-attck__desc{ font-weight:300; font-size:11.5px; color:#94949a; line-height:1.55; max-width:42ch;
     display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; }
-  #editorial .ed-attck__meta{ display:flex; align-items:center; gap:9px; margin-top:2px; }
-  #editorial .ed-attck__tactic{ font-family:'JetBrains Mono',monospace; font-size:9.5px;
+  #snapshot .ed-attck__meta{ display:flex; align-items:center; gap:9px; margin-top:2px; }
+  #snapshot .ed-attck__tactic{ font-family:'JetBrains Mono',monospace; font-size:9.5px;
     font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:#dcdce0;
     background:rgba(226,232,244,.10); border-radius:2px; padding:3px 7px; }
-  #editorial .ed-attck__id{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#87878d; letter-spacing:.5px; }
-  #editorial .ed-attck__dots{ display:flex; align-items:center; gap:0; padding-top:4px; margin-left:-10px;
+  #snapshot .ed-attck__id{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#87878d; letter-spacing:.5px; }
+  #snapshot .ed-attck__dots{ display:flex; align-items:center; gap:0; padding-top:4px; margin-left:-10px;
     border-top:1px solid rgba(var(--c-white),.07); }
   /* Each button is a real 24x24 target (WCAG 2.5.8) with the 4px dot drawn
      in its center. The old version kept 4px buttons with a 24px ::before
      hit area, but dots 9px apart meant neighbouring hit areas overlapped.
      margin-left:-10px keeps the first dot aligned with the text above. */
-  #editorial .ed-attck__dots button{ position:relative; width:24px; height:24px; background:none;
+  #snapshot .ed-attck__dots button{ position:relative; width:24px; height:24px; background:none;
     cursor:pointer; border:0; padding:0; appearance:none; }
-  #editorial .ed-attck__dots button::after{ content:''; position:absolute; left:10px; top:10px; width:4px; height:4px;
+  #snapshot .ed-attck__dots button::after{ content:''; position:absolute; left:10px; top:10px; width:4px; height:4px;
     border-radius:50%; background:rgba(var(--c-white),.18); transition:background .3s; }
-  #editorial .ed-attck__dots button:focus-visible{ outline:1px solid #ededee; outline-offset:-6px; border-radius:50%; }
-  #editorial .ed-attck__dots button.active::after{ background:#ededee; }
+  #snapshot .ed-attck__dots button:focus-visible{ outline:1px solid #ededee; outline-offset:-6px; border-radius:50%; }
+  #snapshot .ed-attck__dots button.active::after{ background:#ededee; }
 
   /* DDoS targets: ranked share bars. Same dark/mono bento language as the
      cells above; bar fill is the one accent, no per-industry colors. */
-  #editorial .ed-ddos{ padding:clamp(16px,1.8vw,22px); box-sizing:border-box;
+  #snapshot .ed-ddos{ padding:clamp(16px,1.8vw,22px); box-sizing:border-box;
     display:flex; flex-direction:column; gap:14px; justify-content:space-between; }
-  #editorial .ed-ddos__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px; }
-  #editorial .ed-ddos__row{ display:grid; grid-template-columns:14px 1fr auto; column-gap:10px; row-gap:5px; align-items:baseline;
+  #snapshot .ed-ddos__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px; }
+  #snapshot .ed-ddos__row{ display:grid; grid-template-columns:14px 1fr auto; column-gap:10px; row-gap:5px; align-items:baseline;
     font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:13px; color:#dfe4f0; }
-  #editorial .ed-ddos__rank{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:rgba(226,232,244,.45); }
-  #editorial .ed-ddos__name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #editorial .ed-ddos__pct{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,.8); font-variant-numeric:tabular-nums; }
-  #editorial .ed-ddos__bar{ grid-column:2 / 4; height:3px; border-radius:2px; background:rgba(var(--c-white),.07); overflow:hidden; }
-  #editorial .ed-ddos__bar > i{ display:block; height:100%; width:0; background:rgba(226,232,244,.7); transition:width .9s cubic-bezier(.22,1,.36,1); }
-  #editorial .ed-ddos__row.is-skel{ height:26px; border-radius:3px; background:rgba(var(--c-white),.04); }
-  #editorial .ed-ddos__empty{ font-size:12.5px; line-height:1.55; color:rgba(226,232,244,.6); }
-  #editorial .ed-ddos__src{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,.5); }
-  #editorial .ed-ddos__src a{ color:inherit; }
-  #editorial .ed-ddos__src a:hover{ color:#fff; }
-  @media (prefers-reduced-motion: reduce){ #editorial .ed-ddos__bar > i{ transition:none; } }
+  #snapshot .ed-ddos__rank{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:rgba(226,232,244,.45); }
+  #snapshot .ed-ddos__name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #snapshot .ed-ddos__pct{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,.8); font-variant-numeric:tabular-nums; }
+  #snapshot .ed-ddos__bar{ grid-column:2 / 4; height:3px; border-radius:2px; background:rgba(var(--c-white),.07); overflow:hidden; }
+  #snapshot .ed-ddos__bar > i{ display:block; height:100%; width:0; background:rgba(226,232,244,.7); transition:width .9s cubic-bezier(.22,1,.36,1); }
+  #snapshot .ed-ddos__row.is-skel{ height:26px; border-radius:3px; background:rgba(var(--c-white),.04); }
+  #snapshot .ed-ddos__empty{ font-size:12.5px; line-height:1.55; color:rgba(226,232,244,.6); }
+  #snapshot .ed-ddos__src{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,.5); }
+  #snapshot .ed-ddos__src a{ color:inherit; }
+  #snapshot .ed-ddos__src a:hover{ color:#fff; }
+  @media (prefers-reduced-motion: reduce){ #snapshot .ed-ddos__bar > i{ transition:none; } }
 
   @media (--bp-600){
     /* The whole bento (threat intel, certifications, ATT&CK) and the DDoS
        tile are cut on phones rather than shrunk: too dense to read at this
        width, and the same content lives elsewhere on the page. */
-    #editorial .ed-bento{ display:none; }
-    #editorial .ed-frame--b.ed-ddos{ display:none; }
+    #snapshot .ed-bento{ display:none; }
+    #snapshot .ed-frame--b.ed-ddos{ display:none; }
   }
 
   /* ── Research log — Work-grammar cards ── */
@@ -1252,8 +1254,8 @@ footer#site-footer{
      of the narrower breakpoint below (which still handles the beliefs text
      column and the research-log card grid). */
   @media (--bp-1100){
-    #editorial .ed-frame--a{ grid-column:1 / 13; margin-top:0; }
-    #editorial .ed-frame--b{ grid-column:1 / 13; }
+    #snapshot .ed-frame--a{ grid-column:1 / 13; margin-top:0; }
+    #snapshot .ed-frame--b{ grid-column:1 / 13; }
   }
   @media (--bp-820){
     #editorial .ed-beliefs__text{ grid-template-columns:1fr; gap:20px; }
@@ -1299,36 +1301,6 @@ footer#site-footer{
         <p>Security only works when the architecture actually survives contact with a <em>live adversary</em>. Building resilient systems means tracking behavioral tradecraft instead of just chasing indicators, treating trust as something that must be earned continuously. A network will only hold up under pressure if the environment remains <em>completely legible</em>.</p>
         <p>Ultimately, this profession is just figuring out how things break and engineering them to be much harder to crack. I have always loved that part.</p>
       </div>
-    </div>
-    <div class="ed-beliefs__imgs">
-      <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
-        <div class="ed-bento__cell ed-bento__intel">
-          <span class="ed-bento__lbl" title="Fresh threat reports shared by two open security-research communities, OTX and MISP."><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
-          <div class="ed-intel__list" id="ed-intel-list"></div>
-        </div>
-        <div class="ed-bento__cell ed-bento__certs">
-          <span class="ed-bento__lbl" title="Six industry certifications, verified on Credly.">Certifications&#8202;·&#8202;6</span>
-          <div class="ed-badges__wrap">
-            <div class="ed-badges__track" id="ed-badges-track"></div>
-          </div>
-        </div>
-        <div class="ed-bento__cell ed-bento__attck">
-          <span class="ed-bento__lbl" title="Real attacker techniques from MITRE ATT&CK, the standard catalog of how intrusions happen. A new one every few seconds; click a dot to pick.">MITRE ATT&amp;CK · techniques</span>
-          <div id="ed-attck-mount"></div>
-        </div>
-      </div>
-      <!-- DDoS targets: the five industries taking the largest share of
-           Layer 3 DDoS attacks over the last 7 days, from Cloudflare Radar via
-           /api/radar-industries. A ranked bar list, not a canvas chart: at
-           this tile size five thin lines were unreadable. Render logic in
-           public/scripts/index-editorial-flow.js. -->
-      <figure class="ed-frame ed-frame--b ed-ddos" aria-labelledby="ed-ddos-lbl">
-        <span class="ed-bento__lbl" id="ed-ddos-lbl">DDoS targets · by industry, 7d</span>
-        <ol class="ed-ddos__list" id="ed-ddos-list" aria-live="polite">
-          <li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li>
-        </ol>
-        <figcaption class="ed-ddos__src" id="ed-ddos-src">Share of Layer 3 DDoS attacks · <a href="https://radar.cloudflare.com/security/network-layer" target="_blank" rel="noopener">Cloudflare Radar</a></figcaption>
-      </figure>
     </div>
   </section>
 
@@ -1623,6 +1595,21 @@ footer#site-footer{
 #signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
 #signal .sig-head{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
 #signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
+/* Snapshot: same section chrome as Signal. The grid/tile rules inside are the
+   former "#editorial .ed-*" ones, re-scoped to #snapshot unchanged. */
+#snapshot{ position:relative; z-index:1; background:rgba(4,4,10,0.9); color:#ededee;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1); }
+#snapshot .snap-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
+#snapshot .snap-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
+#snapshot .snap-head{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
+/* Phones: the grid and DDoS tile were already hidden there, so the whole
+   section goes too rather than leaving a heading over nothing. */
+@media (--bp-600){
+  #snapshot{ display:none; }
+  /* Phones keep their original Beliefs spacing untouched. */
+  #editorial .ed-beliefs__text:last-child{ margin-bottom:clamp(70px,13vh,160px); }
+}
 @media (--bp-820){
   #signal .sig-grid{ grid-template-columns:1fr; }
   #signal .sig-head{ font-size:1.3rem; }
@@ -1795,6 +1782,47 @@ footer#site-footer{
      footer's reveal (same pattern as #beat-tour driving the project cards). The footer
      itself is position:fixed and animates in place; you scroll through this spacer. -->
 <!-- beat-footer removed: footer is now a normal-flow section -->
+<!-- ═══════════════ SNAPSHOT — live threat intel, certifications, ATT&CK, DDoS ═══════════════
+     Moved down from beside the Beliefs copy to sit just before the footer's
+     "Open to work" card; the grid and DDoS tile keep their exact layout.
+     Hidden on phones, same as before (see the --bp-600 rule). -->
+<section id="snapshot" aria-label="Snapshot: live security feeds">
+  <div class="snap-inner">
+    <p class="snap-lbl">Snapshot</p>
+    <h2 class="snap-head">Live security feed.</h2>
+    <div class="ed-beliefs__imgs">
+      <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
+        <div class="ed-bento__cell ed-bento__intel">
+          <span class="ed-bento__lbl" title="Fresh threat reports shared by two open security-research communities, OTX and MISP."><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
+          <div class="ed-intel__list" id="ed-intel-list"></div>
+        </div>
+        <div class="ed-bento__cell ed-bento__certs">
+          <span class="ed-bento__lbl" title="Six industry certifications, verified on Credly.">Certifications&#8202;·&#8202;6</span>
+          <div class="ed-badges__wrap">
+            <div class="ed-badges__track" id="ed-badges-track"></div>
+          </div>
+        </div>
+        <div class="ed-bento__cell ed-bento__attck">
+          <span class="ed-bento__lbl" title="Real attacker techniques from MITRE ATT&CK, the standard catalog of how intrusions happen. A new one every few seconds; click a dot to pick.">MITRE ATT&amp;CK · techniques</span>
+          <div id="ed-attck-mount"></div>
+        </div>
+      </div>
+      <!-- DDoS targets: the five industries taking the largest share of
+           Layer 3 DDoS attacks over the last 7 days, from Cloudflare Radar via
+           /api/radar-industries. A ranked bar list, not a canvas chart: at
+           this tile size five thin lines were unreadable. Render logic in
+           public/scripts/index-editorial-flow.js. -->
+      <figure class="ed-frame ed-frame--b ed-ddos" aria-labelledby="ed-ddos-lbl">
+        <span class="ed-bento__lbl" id="ed-ddos-lbl">DDoS targets · by industry, 7d</span>
+        <ol class="ed-ddos__list" id="ed-ddos-list" aria-live="polite">
+          <li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li>
+        </ol>
+        <figcaption class="ed-ddos__src" id="ed-ddos-src">Share of Layer 3 DDoS attacks · <a href="https://radar.cloudflare.com/security/network-layer" target="_blank" rel="noopener">Cloudflare Radar</a></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
 <footer id="site-footer">
   <div class="f-card">
     <div class="f-card-tex" aria-hidden="true"></div>
