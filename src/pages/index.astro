@@ -1100,24 +1100,20 @@ footer#site-footer{
   #editorial .ed-bento__lbl{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500;
     letter-spacing:1.3px; text-transform:uppercase; color:#87878d; position:relative; z-index:2; }
 
-  /* Signal canvas — tracked eagle animation */
-  #editorial .ed-bento__pixels{ padding:0; }
-  #editorial .ed-bento__pixels .ed-bento__lbl{ position:absolute; top:14px; left:16px; color:#9c9ca2;
-    text-shadow:0 1px 3px rgba(0,0,0,.8); }
-  #editorial .ed-bento__pixels canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
-
   /* Threat intel — terminal/log feel: colored left-rule per source, hairline-divided rows.
-     Shows 3 rows (not 5) with 2-line titles so headlines read in full instead of getting
-     ellipsis-truncated at a fixed one-line width. */
+     Spans the whole top row (the decorative Signal canvas that shared it is gone), so the
+     feed runs as a 2x2 grid of four reports with 2-line titles, rather than three rows
+     stretched across a wide empty cell. */
+  #editorial .ed-bento__intel{ grid-column:1 / -1; }
   #editorial .ed-bento__intel .ed-bento__lbl{ display:flex; align-items:center; gap:7px; }
   #editorial .ed-intel__dot{ width:5px; height:5px; border-radius:50%; background:rgba(226,232,244,.85);
     box-shadow:0 0 6px rgba(226,232,244,.55); animation:edpulse 2.2s infinite; }
-  #editorial .ed-intel__list{ display:flex; flex-direction:column; gap:14px; overflow:hidden;
-    flex:1; min-height:0; font-family:'JetBrains Mono',monospace; }
+  #editorial .ed-intel__list{ display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; align-content:center;
+    gap:14px clamp(18px,2.4vw,32px); overflow:hidden; flex:1; min-height:0; font-family:'JetBrains Mono',monospace; }
   #editorial .ed-intel__row{ display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
     padding:1px 0 13px 12px; border-left:2px solid transparent; border-bottom:1px solid rgba(var(--c-white),.06);
     transition:border-color .25s, background .25s; }
-  #editorial .ed-intel__row:last-child{ border-bottom:none; padding-bottom:0; }
+  #editorial .ed-intel__row:nth-last-child(-n+2){ border-bottom:none; padding-bottom:0; }
   #editorial .ed-intel__row.otx{ border-left-color:rgba(226,232,244,.38); }
   #editorial .ed-intel__row.misp{ border-left-color:rgba(226,232,244,.20); }
   #editorial .ed-intel__row:hover{ background:rgba(var(--c-white),.04); }
@@ -1208,15 +1204,9 @@ footer#site-footer{
   @media (prefers-reduced-motion: reduce){ #editorial .ed-ddos__bar > i{ transition:none; } }
 
   @media (--bp-600){
-    /* Signal (the eagle canvas) and Auto-defense (the arcade runner) are
-       both purely decorative/ambient — cut on phones rather than shrunk,
-       same call as the homepage globe/footer earlier. The eagle canvas
-       already stops animating under LOW_POWER (index-signal-eagle.js), but
-       still painted a static frame behind display:none; the arcade loop
-       had no such gate at all and needs one (see index-editorial-flow.js).
-       Threat intel and the ATT&CK spotlight cut too, mobile only — the
-       bento's down to one cell (Certifications) at this width, so the grid
-       collapses to a single row instead of two empty ones. */
+    /* The whole bento (threat intel, certifications, ATT&CK) and the DDoS
+       tile are cut on phones rather than shrunk: too dense to read at this
+       width, and the same content lives elsewhere on the page. */
     #editorial .ed-bento{ display:none; }
     #editorial .ed-frame--b.ed-ddos{ display:none; }
   }
@@ -1311,11 +1301,7 @@ footer#site-footer{
       </div>
     </div>
     <div class="ed-beliefs__imgs">
-      <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: an animated dot-matrix eagle tracked by a reframing grid, live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
-        <div class="ed-bento__cell ed-bento__pixels">
-          <span class="ed-bento__lbl" title="Ambient animation, not a live readout.">Signal</span>
-          <canvas id="ed-bento-pixels" aria-hidden="true"></canvas>
-        </div>
+      <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
         <div class="ed-bento__cell ed-bento__intel">
           <span class="ed-bento__lbl" title="Fresh threat reports shared by two open security-research communities, OTX and MISP."><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
           <div class="ed-intel__list" id="ed-intel-list"></div>
@@ -1792,7 +1778,6 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-logo-glitch.js"></script>
 <script is:inline defer src="/scripts/index-hero-tagline.js"></script>
 
-<script is:inline defer src="/scripts/index-signal-eagle.js"></script>
 
 <!-- ════════════════ Globe arc (Three.js) — composites over the live nebula ════════════════
      Reuses #term-window as the shrinking CRT. Drives: fullscreen -> rest -> seed

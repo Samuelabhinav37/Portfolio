@@ -1,9 +1,7 @@
 /* Homepage editorial-flow widgets: CISA KEV live ticker, Beliefs scroll-reveal,
-   cert badges marquee, threat-intel feed, decorative auto-defense arcade runner,
-   and the MITRE ATT&CK technique spotlight. Extracted from an inline <script>
-   block, unmodified, matching every other homepage widget already split out
-   (index-signal-eagle.js, index-logo-glitch.js, etc.) — this was the one
-   remaining large (~500 line) un-extracted block. */
+   cert badges marquee, threat-intel feed, DDoS-targets tile, and the MITRE
+   ATT&CK technique spotlight. Extracted from an inline <script> block, matching
+   every other homepage widget already split out (index-logo-glitch.js, etc.). */
 (function(){
   var KEV='/api/kev';
   var track=document.getElementById('ed-track');
@@ -99,13 +97,6 @@
   }
 })();
 
-/* Bento: signal canvas (decorative, top-left quadrant) — moved to
-   /scripts/index-signal-eagle.js (own file, not inlined here) since it
-   carries ~34KB of packed animation data extracted from a reference clip;
-   keeping that out of this shared inline block avoids bloating every
-   homepage load's HTML payload. See the script tag near the other
-   decorative widgets below. */
-
 /* ── Bento: cert badges marquee (bottom-left quadrant) — real vendor-issued badge
    artwork, self-hosted (originally hotlinked from Credly's CDN on every page
    load, which leaked visitor IPs to a third party for no runtime benefit —
@@ -133,7 +124,7 @@
   });
 })();
 
-/* ── Bento: threat intel (top-right quadrant) — OTX + CIRCL MISP via a same-origin
+/* ── Bento: threat intel (full-width top row) — OTX + CIRCL MISP via a same-origin
    proxy function (functions/api/threat-feed.js). Never ships a key to the browser;
    falls back to static sample rows if the endpoint 404s (e.g. local `astro dev`,
    where Cloudflare Pages Functions don't run) or the fetch fails. Each row links to
@@ -157,7 +148,7 @@
      browser side too — reject anything that isn't actually http(s). */
   function safeHref(h){ return /^https?:\/\//i.test(h||'') ? h : '#'; }
   function paint(items){
-    list.innerHTML=items.slice(0,3).map(function(it){
+    list.innerHTML=items.slice(0,4).map(function(it){
       var cls=(it.source||'').toLowerCase()==='otx'?'otx':'misp';
       return '<a class="ed-intel__row '+cls+'" href="'+esc(safeHref(it.href))+'" target="_blank" rel="noopener">'+
              '<span class="ed-intel__meta"><span class="src '+cls+'">'+esc(it.source)+'</span><span class="org">'+esc(it.org||'')+'</span></span>'+
