@@ -30,8 +30,17 @@ const HANDLER_IN_JS = /\son(?:load|error|click|mouse\w+|key\w+|change|input|subm
 // or an entity-escaped srcdoc: i.e. markup for a nested document.
 const NESTED_INLINE_SCRIPT = /(?:<|&lt;)script(?:\s+(?![^>]*\bsrc=)[^>]*)?(?:>|&gt;)\s*(?!(?:<|&lt;)\\?\/script)\S/gi;
 
+// Not a sanitizer: this only reads our own build output, to lint the markup
+// that sits outside <script> blocks. It repeats until stable anyway, and the
+// end-tag pattern tolerates `</script >`, so no fragment can slip through.
+const SCRIPT_BLOCK = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 function stripTopLevelScripts(html) {
-  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  let prev;
+  do {
+    prev = html;
+    html = html.replace(SCRIPT_BLOCK, '');
+  } while (html !== prev);
+  return html;
 }
 
 function lineOf(text, index) {
@@ -50,7 +59,7 @@ for await (const entry of glob('**/*.html', { cwd: DIST_PATH })) {
   }
 
   // 1b + 2. inside inline <script> bodies: handler strings, nested inline scripts
-  for (const s of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+  for (const s of html.matchAll(SCRIPT_BLOCK)) {
     const [, attrs, body] = s;
     if (/\bsrc=|type\s*=\s*["']?application\/(ld\+)?json/i.test(attrs)) continue;
     for (const m of body.matchAll(HANDLER_IN_JS)) {
