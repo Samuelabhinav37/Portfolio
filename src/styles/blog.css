@@ -75,8 +75,26 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .post-footer .f-links .fic { width: 12.5px; height: 12.5px; fill: currentColor; opacity: 0.9; flex: none; }
 
 
-/* ── Site identity (fixed corner) — swaps "Samuel Abhinav" for the Threat
-   Intel Blog mark on scroll (see blog-client.js's navName/navBrand toggle). ── */
+/* ── Top bar: a light fade at the top of the page that becomes a solid,
+   blurred bar once scrolled (html.is-scrolled, set in blog-client.js), so
+   article text never reads through behind the wordmark and Menu. Same
+   treatment as SiteMenu.astro on the portfolio pages. ── */
+#topbar-scrim {
+  position: fixed; top: 0; left: 0; right: 0; height: 100px;
+  z-index: 999; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
+  border-bottom: 1px solid transparent;
+  transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
+}
+html.is-scrolled #topbar-scrim {
+  height: 56px;
+  background: rgba(5,5,10,0.82);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-bottom-color: rgba(var(--c-white),0.06);
+}
+
+/* ── Site identity (fixed corner): the "Samuel Abhinav" wordmark, kept
+   visible on scroll like every other page. ── */
 #site-identity {
   position: fixed;
   top: 14px; left: 28px;
@@ -92,27 +110,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   line-height: 1;
   display: block;
 }
-.nav-brand {
-  display: flex; align-items: center; gap: 10px;
-  opacity: 0; pointer-events: none;
-  position: absolute; left: 0; top: 50%;
-  transform: translateY(-50%);
-  transition: opacity 0.4s;
-}
-.nav-brand.visible { opacity: 1; pointer-events: all; }
-.nav-brand-mark {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-weight: 300; font-size: 1.95rem;
-  color: rgba(var(--c-white),0.42); line-height: 0.7;
-}
-.nav-brand-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; letter-spacing: 0.16em;
-  color: rgba(var(--c-white),0.62); line-height: 1.2;
-  text-transform: uppercase;
-}
-.nav-name.hidden { opacity: 0; pointer-events: none; }
-
 /* ── Collapsed menu — plain-text trigger + black floating card ── */
 #menu-trigger {
   position: fixed; top: 16px; right: 28px; z-index: 10001;
@@ -1427,6 +1424,13 @@ a.social-icon { text-decoration: none; color: inherit; }
   box-shadow: 0 0 6px 1px rgba(120,225,170,0.55);
 }
 @media (prefers-reduced-motion: reduce) { .luna-pill { transition: opacity .15s ease; transform: none !important; } }
+/* Touch devices never fire :hover, so the pill was unreachable there. Show
+   it by default on touch, stepping aside while the greeting quip occupies
+   the same spot above her. */
+@media (hover: none) {
+  .luna-pill { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  body:has(#luna-quip.show) .luna-pill { opacity: 0; pointer-events: none; }
+}
 
 /* Speech bubble — a one-time greeting hint. Used to anchor beside the stack
    on roomy viewports (only reflowing above it on narrow ones), but sitting
@@ -1449,6 +1453,8 @@ a.social-icon { text-decoration: none; color: inherit; }
 #luna-quip.show { opacity: 1; transform: translateY(0) scale(1); }
 #luna-quip.lq-clickable { pointer-events: auto; cursor: pointer; }
 #luna-quip.lq-clickable:hover { border-color: rgba(205,214,226,0.30); background: rgba(14,16,22,0.92); }
+/* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
+#luna-quip.lq-clickable:not(.show) { pointer-events: none; }
 #luna-quip .lq-hint { display: block; margin-top: 6px; font-size: 11px; font-style: italic; font-weight: 400; color: rgba(202,210,226,0.55); }
 @media (prefers-reduced-motion: reduce) { #luna-quip { transition: opacity .3s ease; transform: none; } }
 

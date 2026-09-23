@@ -2,17 +2,16 @@
    Cloudflare Pages Function (functions/api/signal-feed.js) instead of a public
    CORS proxy (allorigins.win, corsproxy.io have no uptime SLA and go down
    independently of each other — same reasoning as functions/api/threat-feed.js
-   for the bento panel). Podcast art is proxied the same way, through
-   functions/api/podcast-art.js — it used to hit the iTunes API directly from
-   here, moved server-side along with the others. Everything here is
+   for the bento panel). Podcast cover art is static, self-hosted in
+   /images/podcasts/. Everything here is
    deferred until #signal is actually about to be seen. Extracted from an
    inline <script> block, unmodified. */
 (function(){
   var newsHost=document.getElementById('news-list');
   var ctfHost=document.getElementById('ctf-items');
 
-  /* These URLs come from a feed (news thumbnails) and the iTunes API
-     (podcast art). Both get spliced into a CSS url("...") string, where an
+  /* These URLs come from a feed (news thumbnails) and CTFtime
+     (event logos). Both get spliced into a CSS url("...") string, where an
      unescaped " or ) would let feed data inject arbitrary CSS. Only accept a
      plain http(s) URL, and additionally reject the breakout characters. */
   function safeImgUrl(u){
@@ -61,6 +60,23 @@
     items.forEach(function(it){ var d=it.date, ds=(d&&d>0)?' · '+new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
       newsHost.appendChild(row(it.title, it.source+ds, it.link, it.img)); });
   }
+  /* Event logo, or a monogram tile when there isn't one (or /api/ctf-logo
+     refuses it as oversized). The error listener is attached in JS, not as an
+     onerror="" attribute, which the site's hash-based CSP would block. */
+  function ctfMonogram(title){
+    return String(title||'').replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase() || 'CTF';
+  }
+  function ctfLogo(e){
+    var box=document.createElement('span'); box.className='ctf-logo'; box.setAttribute('aria-hidden','true');
+    var mono=function(){ box.textContent=ctfMonogram(e.title); };
+    if(e.logo && /^[\w][\w.\-]*$/.test(e.logo)){
+      var img=document.createElement('img'); img.alt=''; img.loading='lazy'; img.decoding='async'; img.width=30; img.height=30;
+      img.addEventListener('error', function(){ box.innerHTML=''; mono(); });
+      img.src='/api/ctf-logo?p='+encodeURIComponent(e.logo);
+      box.appendChild(img);
+    } else mono();
+    return box;
+  }
   function renderCtfs(items){
     if(!ctfHost || !items || !items.length) return ctfFallback();
     ctfHost.innerHTML='';
@@ -69,7 +85,7 @@
       var a=document.createElement('a'); a.href=e.href||'#'; a.target='_blank'; a.rel='noopener'; a.style.textDecoration='none';
       var nm=document.createElement('span'); nm.className='ctf-name'; nm.textContent=e.title;
       var mt=document.createElement('span'); mt.className='ctf-meta'; mt.textContent=e.format+' · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
-      a.appendChild(nm); it.appendChild(a); it.appendChild(mt); ctfHost.appendChild(it);
+      a.appendChild(nm); it.appendChild(ctfLogo(e)); it.appendChild(a); it.appendChild(mt); ctfHost.appendChild(it);
     });
   }
 
@@ -80,18 +96,7 @@
     }).catch(function(){ newsFallback(); ctfFallback(); });
   }
 
-  function loadPodcastArt(){
-    [].slice.call(document.querySelectorAll('#signal .pod-row')).forEach(function(rw){
-      var link=rw.querySelector('.pod-name a'), art=rw.querySelector('.pod-art'); if(!link) return;
-      fetch('/api/podcast-art?term='+encodeURIComponent(link.textContent))
-        .then(function(r){ return r.json(); }).then(function(d){
-          if(d.artworkUrl&&art){ if(setBgImage(art,d.artworkUrl)){ art.textContent=''; art.style.backgroundSize='cover'; art.style.backgroundPosition='center'; } }
-          if(d.collectionViewUrl) link.href=d.collectionViewUrl;
-        }).catch(function(){});
-    });
-  }
-
-  function loadAll(){ loadNewsAndCtfs(); loadPodcastArt(); }
+  function loadAll(){ loadNewsAndCtfs(); }
   var signalSection=document.getElementById('signal');
   if('IntersectionObserver' in window && signalSection){
     var sigIo=new IntersectionObserver(function(es){

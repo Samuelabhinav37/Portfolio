@@ -130,7 +130,7 @@ const graph: object[] = [
   {
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Blog', item: new URL('/blog', Astro.site).href },
+      { '@type': 'ListItem', position: 1, name: 'Blog', item: new URL('/blog/', Astro.site).href },
       { '@type': 'ListItem', position: 2, name: d.category },
       { '@type': 'ListItem', position: 3, name: d.title },
     ],
@@ -242,13 +242,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
 
-    <!-- Site identity (fixed corner; swaps to the Threat Intel Blog mark on scroll) -->
+    <div id="topbar-scrim" aria-hidden="true"></div>
+    <!-- Site identity (fixed corner wordmark) -->
     <div id="site-identity">
       <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
-      <div class="nav-brand" id="navBrand" aria-hidden="true">
-        <div class="nav-brand-mark">&ldquo;</div>
-        <div class="nav-brand-text">Threat<br />Intel Blog</div>
-      </div>
     </div>
 
     <button

@@ -62,21 +62,21 @@ async function main() {
 
   const urls = [
     { loc: `${SITE}/`, priority: '1.0' },
-    { loc: `${SITE}/blog`, priority: '0.9' },
-    { loc: `${SITE}/about`, priority: '0.8' },
-    { loc: `${SITE}/contact`, priority: '0.8' },
+    { loc: `${SITE}/blog/`, priority: '0.9' },
+    { loc: `${SITE}/about/`, priority: '0.8' },
+    { loc: `${SITE}/contact/`, priority: '0.8' },
   ];
 
   for (const post of englishPosts.sort((a, b) => a.data.pubDate - b.data.pubDate)) {
     urls.push({
-      loc: `${SITE}/blog/${post.id}`,
+      loc: `${SITE}/blog/${post.id}/`,
       lastmod: fmtDate(post.data.updatedDate ?? post.data.pubDate),
       priority: '0.7',
     });
     if (esSlugs.has(post.id)) {
       const esPost = posts.find((p) => p.id === `es/${post.id}`);
       urls.push({
-        loc: `${SITE}/es/blog/${post.id}`,
+        loc: `${SITE}/es/blog/${post.id}/`,
         lastmod: fmtDate(esPost.data.updatedDate ?? esPost.data.pubDate),
         priority: '0.6',
       });

@@ -28,11 +28,11 @@ window.SITE=window.SITE||{};
 <meta name="description" content="Get in touch with Samuel Abhinav — SIEM, incident response, and anything that runs on a network." />
 <meta name="theme-color" content="#080814" />
 <meta name="color-scheme" content="dark" />
-<link rel="canonical" href="https://samuelabhinav.com/contact" />
+<link rel="canonical" href="https://samuelabhinav.com/contact/" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Samuel Abhinav — Contact" />
 <meta property="og:description" content="Roles, findings, or anything that runs on a network." />
-<meta property="og:url" content="https://samuelabhinav.com/contact" />
+<meta property="og:url" content="https://samuelabhinav.com/contact/" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Samuel Abhinav — Contact" />
 <meta name="twitter:description" content="Roles, findings, or anything that runs on a network." />
@@ -412,6 +412,8 @@ window.SITE=window.SITE||{};
   #luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
   #luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
   #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
+  /* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
+  #luna-quip.lq-clickable:not(.show){ pointer-events:none; }
   #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
   @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
 </style>

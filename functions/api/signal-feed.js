@@ -100,6 +100,9 @@ async function fromCtf() {
       href: e.ctftime_url || e.url || '',
       format: e.format || 'CTF',
       start: e.start,
+      // Just the filename under ctftime.org/media/events/; the client loads
+      // it through /api/ctf-logo, which size-caps and caches it.
+      logo: (String(e.logo || '').match(/^https:\/\/ctftime\.org\/+media\/events\/([^/?#]+)$/) || [])[1] || '',
     }));
 }
 
