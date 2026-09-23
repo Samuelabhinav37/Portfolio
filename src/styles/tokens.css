@@ -36,7 +36,7 @@
 :root .f-links a { padding-block: 8px; margin-block: -8px; }
 /* icon-only links (X) need width too */
 :root .f-links a[aria-label] { padding-inline: 8px; margin-inline: -8px; }
-:root #editorial .ed-ddos__src a { display: inline-block; padding-block: 6px; margin-block: -6px; }
+:root #snapshot .ed-ddos__src a { display: inline-block; padding-block: 6px; margin-block: -6px; }
 :root .sig-more,
 :root .ctf-more,
 :root .ctf-item > a,

@@ -174,7 +174,7 @@
     function observeSections(){
       if(!('IntersectionObserver' in window)) return;
       var map=[['#editorial','editorial'],['#projects-section','projects'],['#beat-tour','projects'],
-               ['#signal','signal'],['#case-rail','cases'],['#site-footer','footer']];
+               ['#signal','signal'],['#snapshot','editorial'],['#case-rail','cases'],['#site-footer','footer']];
       var io=new IntersectionObserver(function(es){
         es.forEach(function(e){ if(e.isIntersecting && e.target._lsec) _activeSection=e.target._lsec; });
       }, {rootMargin:'-45% 0px -45% 0px'});                          // a band counts once it's centred
