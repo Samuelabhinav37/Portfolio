@@ -67,9 +67,25 @@ function buildCsp() {
 // (astro preview doesn't run this middleware).
 export const CSP = buildCsp(); // built once per Worker isolate, not per request — CSP_SCRIPT_HASHES is static per deploy
 
+// public/_headers covers static assets only. Cloudflare Pages doesn't apply
+// it to responses a Function generates, so the /api/* routes got none of
+// these. Mirror the baseline set here, filling in only what's missing so the
+// static-asset copies from _headers stay authoritative.
+const BASELINE_HEADERS = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+};
+
 export async function onRequest({ next }) {
   const response = await next();
   const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(BASELINE_HEADERS)) {
+    if (!headers.has(name)) headers.set(name, value);
+  }
   headers.set('Content-Security-Policy', CSP);
   headers.set('Reporting-Endpoints', 'csp="/api/csp-report"');
   return new Response(response.body, {

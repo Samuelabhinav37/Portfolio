@@ -15,6 +15,9 @@ const CACHE_TTL = 86400; // logos don't change once an event is listed
 const FETCH_TIMEOUT = 6000; // ms
 const UA = 'Mozilla/5.0 (compatible; samuelabhinav.com ctf-logo proxy)';
 const NAME_RE = /^[\w][\w.\-]{0,120}\.(png|jpe?g|gif|webp)$/i;
+// Raster types only. image/svg+xml in particular can carry script, and this
+// response is served from our own origin, so "any image/*" isn't safe.
+const ALLOWED_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
 
 function notFound() {
   return new Response('not found', {
@@ -46,8 +49,8 @@ export async function onRequestGet({ request, waitUntil }) {
     clearTimeout(t);
   }
 
-  const type = upstream.headers.get('Content-Type') || '';
-  if (!upstream.ok || !type.startsWith('image/')) return notFound();
+  const type = (upstream.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
+  if (!upstream.ok || !ALLOWED_TYPES.has(type)) return notFound();
   const declared = Number(upstream.headers.get('Content-Length') || 0);
   if (declared > MAX_BYTES) return notFound();
 
