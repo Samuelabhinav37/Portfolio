@@ -1,0 +1,90 @@
+---
+title: Moat
+description: A free, open-source ad blocker for Chrome and Firefox that runs entirely inside the browser. No server, no account, no telemetry.
+category: Browser security
+period: Aug 2026 – present
+status: Version 0.11 works in Chrome and Firefox today, installed from source. Store listings are in preparation.
+role: Sole designer and developer. Extension, filter pipeline, website and release tooling.
+stack: [TypeScript, Manifest V3, declarativeNetRequest, AdGuard filter lists, Vitest, web-ext, GitHub Actions]
+metrics:
+  - { value: '~314k', label: 'Filter entries' }
+  - { value: '~72k', label: 'Compiled network rules' }
+  - { value: '0', label: 'Servers needed to block' }
+  - { value: '2', label: 'Browsers, one codebase' }
+links:
+  - { label: 'Source on GitHub', href: 'https://github.com/Samuelabhinav37/moat' }
+  - { label: 'Website', href: 'https://samuelabhinav37.github.io/moat/' }
+heroImage: /images/projects/moat-hero.webp
+heroImageAlt: "A WIRED article with Moat's popup open beside it, reporting 14 things blocked on the page: 6 ads, 8 trackers and 0 pop-ups."
+order: 2
+pubDate: 2026-10-05
+---
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
+import Shot from '../../components/Shot.astro';
+
+## The problem
+
+An ad blocker sees every page you visit. That makes it one of the most trusted pieces of software in a browser. Many popular ones also run servers, collect usage data or sell "acceptable ads" placements. I wanted a blocker whose privacy story is simple enough to check: nothing about you leaves the browser.
+
+Moat removes ads, trackers, cookie banners and scam pop-ups before a page finishes loading. The only network requests it makes are for signed filter updates, and those carry nothing about the person using it.
+
+<Shot
+  src="/images/projects/moat-recipe-before.webp"
+  alt="An Allrecipes page without Moat: a banner ad across the top and a tall ad down the right side."
+  pair={{ src: '/images/projects/moat-recipe-after.webp', alt: 'The same Allrecipes page with Moat: both ads are gone and the empty space has collapsed.' }}
+  labels={['Without Moat', 'With Moat']}
+  caption="The same page, before and after. Moat blocks the ad requests, then collapses the empty boxes they would have left behind."
+/>
+
+## How it works
+
+Moat is built on Manifest V3's `declarativeNetRequest`. Instead of inspecting each request in JavaScript, it hands the browser a compiled rule set and lets the browser's own engine do the blocking. That keeps pages fast and means Moat never needs to see request contents.
+
+<Diagram
+  alt="Filter lists are compiled at build time into network rules and cosmetic shards. In the browser, the network engine blocks requests and a content script hides leftovers and closes hijacked pop-ups."
+  caption="Most of the work happens at build time. In the browser, the network engine does the blocking and a small content script handles what the network can't reach."
+  nodes={[
+    { id: 'l', label: 'Filter lists', sub: '11 AdGuard + 3 third-party', col: 0, row: 0 },
+    { id: 'b', label: 'Build step', sub: 'compile + sign', col: 1, row: 0 },
+    { id: 'r', label: 'Network rules', sub: 'declarativeNetRequest', col: 2, row: 0 },
+    { id: 'c', label: 'Cosmetic shards', sub: 'per-domain buckets', col: 1, row: 1 },
+    { id: 'p', label: 'Content script', sub: 'hide · collapse · firewall', col: 2, row: 1 },
+  ]}
+  edges={[
+    { from: 'l', to: 'b', step: 1 },
+    { from: 'b', to: 'r', step: 2 },
+    { from: 'b', to: 'c', step: 3 },
+    { from: 'c', to: 'p', step: 4 },
+  ]}
+/>
+
+- **Network blocking.** About 314,000 filter entries from 11 AdGuard lists, plus three independent sources for redundancy, packed into about 72,000 browser rules.
+- **Pop-up firewall.** Hijacked new-tab pop-ups and redirects, like fake prizes and fake virus warnings, are closed the moment they open. A background safety net catches anything that slips past.
+- **Cosmetic filtering.** Hides the ad boxes and cookie banners that network blocking can't reach. It supports procedural rules such as `:has-text` that a plain stylesheet can't express.
+- **Signed daily updates.** Filter fixes and fresh phishing, malware and scam domain lists are checked against a key built into the extension before they are used.
+
+Everything else is opt-in: fingerprinting resistance, leaked-password warnings using HaveIBeenPwned's k-anonymity range API, and uncloaking trackers that hide behind a site's own subdomain.
+
+## Problems worth writing down
+
+Most of these were found by driving the extension against real sites, not by reading about their markup. The sites involved change their markup often enough that static assumptions don't hold.
+
+<DataTable
+  head={['Problem', 'Cause', 'Fix']}
+  rows={[
+    ['Every page load fetched about 5.8 MB of cosmetic rules', 'Rule files were split by size, not by site, so every page loaded every domain\'s rules', 'Bucketed rules by a hash of the domain. A typical page now fetches 1–3 shards, about 700 KB'],
+    ['Chrome refused to load the extension at all', 'The managed-policy schema used a boolean <code>additionalProperties</code>, which Chrome rejects. Firefox\'s linter doesn\'t check it, so CI stayed green', 'Fixed the schema and added a test that fails if a boolean comes back'],
+    ['LinkedIn sponsored posts stayed visible', 'The widely documented feed selectors were stale', 'Live DOM inspection found the current wrapper. Kept the old selectors as fallbacks'],
+    ['Instagram\'s "Sponsored" label matched unreliably', 'The label shares one text node with the timestamp, like <code>Sponsored · 2h</code>', 'Split on the separators these feeds use and matched each part exactly, instead of a loose substring match'],
+  ]}
+  caption="A few of the bugs from the project's design notes. The first two were invisible to unit tests and only showed up in a real browser."
+/>
+
+## Privacy, checked
+
+Blocking needs no server. There is no account, no analytics and no crash reporting. The one online component is a small inbox for problem reports a person chooses to send, and it keeps no logs. Every permission Moat asks for is listed in the README next to the reason it's needed. Several are inert unless an opt-in feature is switched on.
+
+## What's next
+
+Moat builds for Chrome, Firefox and Firefox for Android from one codebase, with 126 unit test files run in CI on every push. The next step is the Chrome Web Store and Firefox Add-ons listings. Until then it installs from source in a few minutes.

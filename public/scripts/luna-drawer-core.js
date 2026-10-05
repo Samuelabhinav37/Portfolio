@@ -19,7 +19,7 @@ window.SITE = window.SITE || {};
 window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
   'use strict';
 
-  const DEFAULT_GUESS_IDS = ['sentinel','prism','bounty','about'];
+  const DEFAULT_GUESS_IDS = ['sentinel','moat','bounty','about'];
   const byId = id => KB.find(t=>t.id===id);
 
   /* ───────── keyword matcher (the offline brain) ───────── */
@@ -303,15 +303,15 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
 
     /* related topics for the follow-up chips */
     const RELATED={
-      sentinel:['prism','skills','labs'], prism:['sentinel','axon','skills'],
-      axon:['prism','skills','about'],   bounty:['labs','blog','about'],
+      sentinel:['moat','skills','labs'], moat:['cluster','sentinel','skills'],
+      cluster:['moat','skills','about'], bounty:['labs','blog','about'],
       labs:['bounty','blog','sentinel'], blog:['bounty','labs','about'],
-      skills:['sentinel','prism','about'],about:['bounty','skills','contact'],
+      skills:['sentinel','moat','about'],about:['bounty','skills','contact'],
       contact:['about','blog','bounty'], greeting:['sentinel','bounty','about']
     };
 
     /* typewriter placeholder — cycles example prompts into the search bar */
-    const TW=['what is sentinel?','how does prism work?','show me the bounty findings','are you hiring?','where should i start?'];
+    const TW=['what is sentinel?','how does moat work?','show me the bounty findings','are you hiring?','where should i start?'];
     let twI=0,twJ=0,twDel=false,twTimer=null,twOn=false;
     function twStep(){
       if(!twOn) return;
@@ -409,6 +409,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
       thread.appendChild(el); dbody.scrollTop=dbody.scrollHeight; return el; }
 
     /* jump target resolution: 'scroll' → anchor, 'url' → new tab, anything
+       'page' → same-tab site path, anything
        else is handed to the page's own extraTargetHandler (project → globe
        tour, focus → contact field, case → case study, ...). */
     function navigate(target){
@@ -416,6 +417,9 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler) {
       if(target.type==='scroll'){ const n=document.querySelector(target.value);
         return n?{label:'Take me there',run:()=>{closeD();n.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}}:null; }
       if(target.type==='url') return {label:'Open '+target.value.replace(/^https?:\/\//,''),run:()=>window.open(target.value,'_blank','noopener')};
+      // Same-site page (e.g. /projects/moat/). Values come only from the KB
+      // array, so a path here is always site-authored, never model text.
+      if(target.type==='page' && /^\/[a-z0-9\-\/]*$/.test(target.value)) return {label:'Read the case study',run:()=>{closeD();location.href=target.value;}};
       if(extraTargetHandler){ const r = extraTargetHandler(target, { close: closeD, reduce }); if(r) return r; }
       return null;
     }

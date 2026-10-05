@@ -3,6 +3,6 @@
 /about.html     /about/      301
 /blog.html      /blog/       301
 /contact.html   /contact/    301
-/work.html      /#projects-section    301
-/work           /#projects-section    301
-/work/          /#projects-section    301
+/work.html      /projects/    301
+/work           /projects/    301
+/work/          /projects/    301

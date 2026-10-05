@@ -1,0 +1,87 @@
+---
+import { getCollection } from 'astro:content';
+import { SITE } from '../../config';
+import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
+import ErrorReporter from '../../components/ErrorReporter.astro';
+import Fonts from '../../components/Fonts.astro';
+import '../../styles/tokens.css';
+import '../../styles/blog.css';
+import '../../styles/project.css';
+import { variant } from '../../image-variant';
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
+const title = `Projects — ${SITE.author}`;
+const description = 'Case studies: a detection-engineering SOC lab, a privacy-first ad blocker, and a metadata-only email security extension.';
+const canonicalUrl = new URL('/projects/', Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <Fonts />
+    <ErrorReporter />
+    <ClarityAnalytics />
+  </head>
+  <body class="project-page">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div id="topbar-scrim" aria-hidden="true"></div>
+    <div id="site-identity">
+      <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
+    </div>
+    <button type="button" id="menu-trigger" aria-label="Open menu" aria-expanded="false" data-text-closed="Menu" data-text-open="Close" data-label-closed="Open menu" data-label-open="Close menu">Menu</button>
+    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
+      <ul id="menu-list">
+        <li><a href="/projects/" class="active"><span>Projects</span></a></li>
+        <li><a href={SITE.links.about}><span>About</span></a></li>
+        <li><a href={SITE.links.blogIndex}><span>Blog</span></a></li>
+        <li><a href={SITE.links.contact}><span>Contact</span></a></li>
+      </ul>
+    </nav>
+
+    <header class="proj-index-head">
+      <div class="post-meta"><span class="post-cat">Projects</span><span>{projects.length} case studies</span></div>
+      <h1 class="post-title">Things I've built</h1>
+      <p class="post-dek">Each one written up from its own repo: what it does, how it works, what I measured, and what's still unfinished.</p>
+    </header>
+
+    <main class="proj-index" id="main-content" tabindex="-1">
+      {projects.map((p, i) => (
+        <a class="proj-card" href={`/projects/${p.id}/`}>
+          <div class="proj-card-img">
+            <img src={variant(p.data.heroImage, 800)} alt="" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+          </div>
+          <div>
+            <span class="proj-card-meta">{String(i + 1).padStart(2, '0')} · {p.data.category} · {p.data.period}</span>
+            <h2 class="proj-card-title">{p.data.title}</h2>
+            <p class="proj-card-desc">{p.data.description}</p>
+            <span class="proj-card-more">Read the case study →</span>
+          </div>
+        </a>
+      ))}
+    </main>
+
+    <footer class="post-footer">
+      <span>&copy; {new Date().getFullYear()} {SITE.author}</span>
+      <div class="f-links">
+        <a href={SITE.links.github} target="_blank" rel="me noopener">GitHub</a>
+        <a href={SITE.links.linkedin} target="_blank" rel="me noopener">LinkedIn</a>
+        <a href={SITE.links.contact}>Contact</a>
+      </div>
+    </footer>
+
+    <script src="../../scripts/blog-client.js"></script>
+  </body>
+</html>

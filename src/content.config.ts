@@ -44,4 +44,37 @@ const blog = defineCollection({
     }),
 });
 
-export const collections = { blog };
+/** Case studies at /projects/<id>/. Facts here should trace back to the
+ *  project's own repo (README, status docs, tests), not to marketing copy. */
+const projects = defineCollection({
+  loader: glob({ pattern: '*.mdx', base: './src/content/projects' }),
+  schema: z.object({
+    title: z.string(),
+    /** One-sentence summary: the hero dek, meta description and card text. */
+    description: z.string(),
+    /** Hero label, e.g. "Detection engineering". */
+    category: z.string(),
+    /** Shown beside the category, e.g. "2026" or "Feb – Aug 2026". */
+    period: z.string(),
+    /** One line on where the project stands today, kept honest. */
+    status: z.string(),
+    role: z.string(),
+    stack: z.array(z.string()).default([]),
+    /** Headline numbers for the strip under the hero. Keep each one sourced. */
+    metrics: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
+    links: z.array(z.object({ label: z.string(), href: z.string().url() })).default([]),
+    mitre: z.array(z.string()).default([]),
+    heroImage: z.string(),
+    heroImageAlt: z.string(),
+    /** Intrinsic size; only needed for formats webpDims can't read (SVG). */
+    heroWidth: z.number().optional(),
+    heroHeight: z.number().optional(),
+    /** Position on /projects/ and in "More projects". Lower comes first. */
+    order: z.number(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog, projects };

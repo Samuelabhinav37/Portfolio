@@ -1,0 +1,40 @@
+---
+/**
+ * Screenshot figure for case studies: one image, or two side by side (a
+ * before/after pair). Numbered "Figure N." by the same CSS counter as
+ * <Diagram>, so captions never carry a hand-typed number.
+ *
+ *   <Shot
+ *     src="/images/projects/moat-recipe-before.webp"
+ *     alt="What the screenshot shows."
+ *     pair={{ src: '/images/projects/moat-recipe-after.webp', alt: '…' }}
+ *     labels={['Without Moat', 'With Moat']}
+ *     caption="What to look at."
+ *   />
+ */
+import { webpDims } from '../image-variant';
+
+interface Img { src: string; alt: string }
+interface Props {
+  src: string;
+  alt: string;
+  caption: string;
+  pair?: Img;
+  /** Small label over each image, e.g. ['Before', 'After']. */
+  labels?: [string, string] | [string];
+}
+const { src, alt, caption, pair, labels = [] } = Astro.props;
+const imgs = [{ src, alt }, ...(pair ? [pair] : [])].map((i) => ({ ...i, dims: webpDims(i.src) }));
+---
+
+<figure class:list={['post-figure', 'is-figure', 'shot', pair && 'shot--pair']}>
+  <div class="shot-row">
+    {imgs.map((i, n) => (
+      <div class="plate shot-plate">
+        {labels[n] && <span class="shot-label">{labels[n]}</span>}
+        <img src={i.src} alt={i.alt} width={i.dims?.width} height={i.dims?.height} loading="lazy" decoding="async" />
+      </div>
+    ))}
+  </div>
+  <figcaption set:html={caption} />
+</figure>

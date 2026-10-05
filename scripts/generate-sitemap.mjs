@@ -65,7 +65,17 @@ async function main() {
     { loc: `${SITE}/blog/`, priority: '0.9' },
     { loc: `${SITE}/about/`, priority: '0.8' },
     { loc: `${SITE}/contact/`, priority: '0.8' },
+    { loc: `${SITE}/projects/`, priority: '0.9' },
   ];
+
+  // Case studies: one page per non-draft src/content/projects/*.mdx.
+  const PROJECTS_DIR = fileURLToPath(new URL('../src/content/projects/', import.meta.url));
+  for (const entry of await readdir(PROJECTS_DIR, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.mdx')) continue;
+    const data = extractFrontmatter(await readFile(path.join(PROJECTS_DIR, entry.name), 'utf8'));
+    if (data.draft) continue;
+    urls.push({ loc: `${SITE}/projects/${entry.name.replace(/\.mdx$/, '')}/`, priority: '0.8' });
+  }
 
   for (const post of englishPosts.sort((a, b) => a.data.pubDate - b.data.pubDate)) {
     urls.push({

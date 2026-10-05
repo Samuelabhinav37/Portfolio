@@ -1,0 +1,232 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import { SITE } from '../config';
+import Mitre from '../components/Mitre.astro';
+import ClarityAnalytics from '../components/ClarityAnalytics.astro';
+import ErrorReporter from '../components/ErrorReporter.astro';
+import Fonts from '../components/Fonts.astro';
+import '../styles/tokens.css';
+import '../styles/blog.css';
+import '../styles/project.css';
+import { srcsetWith, variant, webpDims } from '../image-variant';
+
+/**
+ * Case-study page for /projects/<id>/. Same reading system as a blog post
+ * (split hero, 700px column, "On this page" strip, blog-client.js for the
+ * strip, back-to-top ring, menu and code-copy buttons), with a facts block
+ * and a metrics strip in place of the post's read time and share dialog.
+ */
+interface Props {
+  project: CollectionEntry<'projects'>;
+  headings: MarkdownHeading[];
+}
+const { project, headings } = Astro.props;
+const d = project.data;
+
+const heroDims = webpDims(d.heroImage) ?? (d.heroWidth && d.heroHeight ? { width: d.heroWidth, height: d.heroHeight } : null);
+
+const others = (await getCollection('projects', ({ id, data }) => !data.draft && id !== project.id)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3).map((h) => ({ slug: h.slug, text: h.text, sub: h.depth === 3 }));
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+// Social cards can't use SVG, so an SVG hero shares the site default card.
+const ogImage = /\.svg$/i.test(d.heroImage) ? undefined : new URL(d.heroImage, Astro.site).href;
+const pubIso = d.pubDate.toISOString().slice(0, 10);
+const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
+
+const jsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CreativeWork',
+      name: d.title,
+      headline: d.title,
+      description: d.description,
+      author: { '@type': 'Person', name: SITE.author, url: SITE.links.portfolio },
+      datePublished: pubIso,
+      dateModified: modIso,
+      mainEntityOfPage: canonicalUrl,
+      image: ogImage,
+      keywords: d.stack.join(', '),
+      codeRepository: d.links.find((l) => /github\.com/.test(l.href))?.href,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Projects', item: new URL('/projects/', Astro.site).href },
+        { '@type': 'ListItem', position: 2, name: d.title },
+      ],
+    },
+  ],
+}).replace(/</g, '\\u003c');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <script is:inline>
+    window.SITE=window.SITE||{};
+    (function(){
+      function computeLowPower(){
+        window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
+      }
+      computeLowPower();
+      var _lpT;
+      addEventListener('resize', function(){ clearTimeout(_lpT); _lpT=setTimeout(computeLowPower, 150); }, {passive:true});
+    })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {d.draft && <meta name="robots" content="noindex, nofollow" />}
+    <title>{d.title}: case study — {SITE.author}</title>
+    <meta name="description" content={d.description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={`${d.title}: case study`} />
+    <meta property="og:description" content={d.description} />
+    <meta property="og:site_name" content={SITE.author} />
+    <meta property="og:url" content={canonicalUrl} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={`${d.title}: case study`} />
+    <meta name="twitter:description" content={d.description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <Fonts />
+    <script type="application/ld+json" set:html={jsonLd} />
+    <ErrorReporter />
+    <ClarityAnalytics />
+  </head>
+
+  <body class="project-page">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <button id="back-to-top" aria-label="Back to top">
+      <svg class="btt-ring" viewBox="0 0 44 44" aria-hidden="true">
+        <circle class="btt-ring-track" cx="22" cy="22" r="20" />
+        <circle class="btt-ring-fill" cx="22" cy="22" r="20" />
+      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+
+    <div id="topbar-scrim" aria-hidden="true"></div>
+    <div id="site-identity">
+      <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
+    </div>
+
+    <button
+      type="button"
+      id="menu-trigger"
+      aria-label="Open menu"
+      aria-expanded="false"
+      data-text-closed="Menu"
+      data-text-open="Close"
+      data-label-closed="Open menu"
+      data-label-open="Close menu"
+    >Menu</button>
+    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
+      <ul id="menu-list">
+        <li><a href="/projects/" class="active"><span>Projects</span></a></li>
+        <li><a href={SITE.links.about}><span>About</span></a></li>
+        <li><a href={SITE.links.blogIndex}><span>Blog</span></a></li>
+        <li><a href={SITE.links.contact}><span>Contact</span></a></li>
+      </ul>
+    </nav>
+
+    <header class="post-hero" id="hero">
+      <div class="post-hero-text">
+        <div class="post-meta">
+          <a class="post-cat" href="/projects/">{d.category}</a>
+          <span>{d.period}</span>
+        </div>
+        <h1 class="post-title">{d.title}</h1>
+        <p class="post-dek">{d.description}</p>
+        <p class="proj-status"><span class="proj-status-dot" aria-hidden="true"></span>{d.status}</p>
+        {d.links.length > 0 && (
+          <div class="proj-links">
+            {d.links.map((l) => <a href={l.href} target="_blank" rel="noopener">{l.label}<span aria-hidden="true"> ↗</span></a>)}
+          </div>
+        )}
+        {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
+      </div>
+      <figure class="post-hero-img">
+        <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 640px" alt={d.heroImageAlt} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
+      </figure>
+    </header>
+
+    {d.metrics.length > 0 && (
+      <section class="proj-metrics" aria-label="Key numbers">
+        <dl>
+          {d.metrics.map((m) => (
+            <div><dt>{m.label}</dt><dd>{m.value}</dd></div>
+          ))}
+        </dl>
+      </section>
+    )}
+
+    <div class="container">
+      <div class="post-grid">
+        <main class="article-col" id="main-content" tabindex="-1" data-label-anchor="Link to this section">
+          <dl class="proj-facts">
+            <div><dt>Role</dt><dd>{d.role}</dd></div>
+            <div><dt>Stack</dt><dd>{d.stack.join(' · ')}</dd></div>
+          </dl>
+          {toc.length > 1 && (
+            <details class="toc-inline">
+              <summary>On this page</summary>
+              <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
+            </details>
+          )}
+          <slot />
+        </main>
+      </div>
+
+      {others.length > 0 && (
+        <section class="post-next" aria-labelledby="post-next-h">
+          <h2 class="post-next-h" id="post-next-h">More projects</h2>
+          <div class="post-next-row">
+            {others.map((p) => (
+              <a class="next-card" href={`/projects/${p.id}/`}>
+                <div class="next-img"><img src={variant(p.data.heroImage, 800)} alt="" loading="lazy" decoding="async" /></div>
+                <span class="next-date">{p.data.category}</span>
+                <span class="next-title">{p.data.title}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+
+    {toc.length > 1 && (
+      <nav class="etoc" id="etoc" aria-label="On this page">
+        <ol class="etoc-dashes" aria-hidden="true">
+          {toc.map((h) => <li><span data-toc={h.slug} class:list={[h.sub && 'sub']}></span></li>)}
+        </ol>
+        <div class="etoc-card">
+          <div class="etoc-h">On this page</div>
+          <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
+        </div>
+      </nav>
+    )}
+
+    <footer class="post-footer">
+      <span>&copy; {new Date().getFullYear()} {SITE.author}</span>
+      <div class="f-links">
+        <a href={SITE.links.linkedin} target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
+        <a href={SITE.links.github} target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>
+        <a href={SITE.links.x} target="_blank" rel="me noopener" aria-label="X"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        <a href={SITE.links.hackerone} target="_blank" rel="me noopener">HackerOne</a>
+      </div>
+    </footer>
+
+    <script src="../scripts/blog-client.js"></script>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1000" width="1500" height="1000" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <defs>
+    <pattern id="g" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M50 0H0V50" fill="none" stroke="#c8ceda" stroke-opacity="0.05"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#9aa0ad"/>
+    </marker>
+    <marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#e2a55a"/>
+    </marker>
+  </defs>
+  <rect width="1500" height="1000" fill="#0a0b10"/>
+  <rect width="1500" height="1000" fill="url(#g)"/>
+
+  <text x="80" y="104" fill="#87878d" font-size="20" letter-spacing="4">SENTINEL // ATTACK → ALERT → VERDICT → RESPONSE</text>
+
+  <!-- Row 1: detection path -->
+  <g font-size="22" fill="#ededee">
+    <rect x="80" y="200" width="300" height="150" rx="10" fill="#12131a" stroke="#e2a55a" stroke-opacity="0.8"/>
+    <text x="108" y="250" fill="#e2a55a" font-size="16" letter-spacing="3">01 · ATTACK</text>
+    <text x="108" y="290">Atomic Red Team</text>
+    <text x="108" y="322" fill="#9aa0ad" font-size="18">live-fired, not replayed</text>
+
+    <rect x="600" y="200" width="300" height="150" rx="10" fill="#12131a" stroke="#c8ceda" stroke-opacity="0.35"/>
+    <text x="628" y="250" fill="#87878d" font-size="16" letter-spacing="3">02 · TELEMETRY</text>
+    <text x="628" y="290">Sysmon · auditbeat</text>
+    <text x="628" y="322" fill="#9aa0ad" font-size="18">Wazuh · Suricata · Zeek</text>
+
+    <rect x="1120" y="200" width="300" height="150" rx="10" fill="#12131a" stroke="#c8ceda" stroke-opacity="0.35"/>
+    <text x="1148" y="250" fill="#87878d" font-size="16" letter-spacing="3">03 · DETECT</text>
+    <text x="1148" y="290">Elastic SIEM</text>
+    <text x="1148" y="322" fill="#9aa0ad" font-size="18">18 Sigma rules</text>
+  </g>
+  <path d="M384 275H592" stroke="#e2a55a" stroke-width="2" marker-end="url(#af)"/>
+  <path d="M904 275H1112" stroke="#9aa0ad" stroke-width="2" marker-end="url(#a)"/>
+  <text x="400" y="258" fill="#9aa0ad" font-size="16">host events</text>
+  <text x="920" y="258" fill="#9aa0ad" font-size="16">ingest</text>
+
+  <!-- MTTD bracket -->
+  <path d="M230 392V412H1270V392" fill="none" stroke="#e2a55a" stroke-opacity="0.7" stroke-width="1.5"/>
+  <text x="750" y="446" text-anchor="middle" fill="#e2a55a" font-size="20" letter-spacing="2">MEASURED MTTD  45–151 s</text>
+
+  <!-- Down from Elastic to triage -->
+  <path d="M1270 354V556" stroke="#9aa0ad" stroke-width="2" marker-end="url(#a)"/>
+  <text x="1290" y="470" fill="#9aa0ad" font-size="16">webhook</text>
+  <text x="1290" y="494" fill="#9aa0ad" font-size="16">+ 5 min poll</text>
+
+  <!-- Row 2: triage and response -->
+  <g font-size="22" fill="#ededee">
+    <rect x="1040" y="560" width="380" height="190" rx="10" fill="#12131a" stroke="#c8ceda" stroke-opacity="0.35"/>
+    <text x="1068" y="610" fill="#87878d" font-size="16" letter-spacing="3">04 · TRIAGE (n8n)</text>
+    <text x="1068" y="652">Ollama llama3.2:3b</text>
+    <text x="1068" y="684">Claude Haiku 4.5</text>
+    <text x="1068" y="722" fill="#9aa0ad" font-size="18">same prompt, in parallel</text>
+
+    <rect x="560" y="560" width="380" height="190" rx="10" fill="#12131a" stroke="#c8ceda" stroke-opacity="0.35"/>
+    <text x="588" y="610" fill="#87878d" font-size="16" letter-spacing="3">05 · GATE</text>
+    <text x="588" y="652">Both models agree:</text>
+    <text x="588" y="684">high / critical, low FP</text>
+    <text x="588" y="722" fill="#9aa0ad" font-size="18">disagreement → human queue</text>
+
+    <rect x="80" y="560" width="380" height="190" rx="10" fill="#12131a" stroke="#c8ceda" stroke-opacity="0.35"/>
+    <text x="108" y="610" fill="#87878d" font-size="16" letter-spacing="3">06 · RESPOND</text>
+    <text x="108" y="652">Shuffle SOAR</text>
+    <text x="108" y="684">pidfd-bound kill</text>
+    <text x="108" y="722" fill="#9aa0ad" font-size="18">off by default, one host</text>
+  </g>
+  <path d="M1036 655H948" stroke="#9aa0ad" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M556 655H468" stroke="#9aa0ad" stroke-width="2" marker-end="url(#a)"/>
+  <text x="992" y="636" text-anchor="middle" fill="#9aa0ad" font-size="16">2 verdicts</text>
+  <text x="512" y="636" text-anchor="middle" fill="#9aa0ad" font-size="16">agree</text>
+
+  <!-- Footer strip -->
+  <path d="M80 850H1420" stroke="#c8ceda" stroke-opacity="0.12"/>
+  <g font-size="17" fill="#87878d" letter-spacing="2">
+    <text x="80" y="900">OCI · AZURE · AWS</text>
+    <text x="520" y="900">TERRAFORM + COMPOSE</text>
+    <text x="1000" y="900">TAILSCALE-ONLY INGRESS</text>
+  </g>
+</svg>

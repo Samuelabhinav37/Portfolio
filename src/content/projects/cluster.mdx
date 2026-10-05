@@ -1,0 +1,90 @@
+---
+title: Cluster
+description: A Chrome extension that cleans up Gmail and Outlook and flags impersonation, reading only message metadata. Never the body, and never through a server.
+category: Email security
+period: Aug 2026 – present
+status: Pre-release (0.1). Runs as an unpacked extension under your own Google OAuth client, in Google's test mode.
+role: Sole designer and developer. Extension, detection logic, dashboard and test suite.
+stack: [TypeScript, Chrome MV3, Gmail API, Microsoft Graph, OAuth 2.0, Vite, Vitest]
+metrics:
+  - { value: '0', label: 'Message bodies read by default' }
+  - { value: '6', label: 'Header-only phishing signals' }
+  - { value: '2', label: 'Providers: Gmail, Outlook' }
+  - { value: '79', label: 'Test files' }
+links:
+  - { label: 'Source on GitHub', href: 'https://github.com/Samuelabhinav37/cluster' }
+heroImage: /images/projects/cluster-hero.webp
+heroImageAlt: "Cluster's Phishing screen flagging a sender that calls itself Netflix but sends from netflix-account-update.xyz, with DKIM and DMARC failing and urgent language in the subject."
+order: 3
+pubDate: 2026-10-05
+---
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Shot from '../../components/Shot.astro';
+
+## The problem
+
+Inbox cleanup tools usually want to read everything. Many of them send your mail to their own servers to do it. That trade is backwards for a security tool. The data needed to sort a promotions folder, or to spot a fake bank, is mostly in the headers.
+
+Cluster works from metadata only: sender, subject, date, size, read and starred state, and a handful of headers. Everything runs in the browser under the person's own OAuth sign-in. Nothing is stored server-side.
+
+## How it works
+
+<Diagram
+  alt="The extension signs in with the user's own OAuth token, fetches only metadata from Gmail or Outlook, and runs grouping, cleanup and phishing checks locally in the browser."
+  caption="Every arrow stays inside the browser except the provider API itself. There is no Cluster backend."
+  nodes={[
+    { id: 'u', label: 'Your OAuth sign-in', col: 0, row: 0 },
+    { id: 'api', label: 'Gmail / Graph API', sub: 'metadata only', col: 1, row: 0 },
+    { id: 'x', label: 'Extension', sub: 'in your browser', col: 2, row: 0 },
+    { id: 'c', label: 'Cleanup', sub: 'group · file · unsubscribe', col: 1, row: 1 },
+    { id: 'p', label: 'Phishing checks', sub: 'header signals', col: 2, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'u', to: 'api', step: 1 },
+    { from: 'api', to: 'x', label: 'headers', step: 2 },
+    { from: 'x', to: 'c', step: 3 },
+    { from: 'x', to: 'p', step: 4 },
+  ]}
+/>
+
+<Shot
+  src="/images/projects/cluster-overview.webp"
+  alt="Cluster's Overview screen: 29 messages ready to clean up, an inbox health score of 57 out of 100, and a warning that 4 senders may be impersonating people you know."
+  caption="The Overview screen, running against the extension's built-in fake mailbox. It summarizes what's ready to clean up and pulls anything that needs a human decision to the top."
+/>
+
+Cleanup covers the usual chores. Cluster sorts mail into labels by what it is (one-time codes, receipts, shipping) or who sent it. It can push a real Gmail filter so new mail gets sorted on arrival, even with the browser closed. It also unsubscribes through verified one-click requests, and lets you build rules with a dry run that shows exactly what would change. Every destructive action is behind a confirm. Starred mail is always skipped, and the action log offers Undo wherever the provider supports it.
+
+## Detecting impersonation from headers
+
+The Phishing screen runs header-only checks. They use data already fetched for cleanup, so they need no new OAuth scope and make no network calls of their own.
+
+<DataTable
+  head={['Signal', 'What fires it']}
+  rows={[
+    ['Brand impersonation', 'The display name claims one of about 35 brands, but the domain isn\'t that brand\'s. Highest confidence when a free-mail domain makes the claim'],
+    ['Lookalike domain', 'The domain is within edit distance 2 of a real brand domain, like <code>paypa1.com</code>'],
+    ['Failed authentication', 'DMARC fails, or SPF and DKIM both fail with no DMARC pass'],
+    ['Reply-To mismatch', 'Replies would go to a free-mail account on a different domain. The classic invoice-fraud shape'],
+    ['Punycode domain', 'An <code>xn--</code> label, the wrapper for a homograph domain'],
+    ['Known-bad domain', 'The domain or a parent is on a static list: a hand-kept seed plus a build-time slice of abuse.ch URLhaus. No live lookup'],
+  ]}
+  keyCol
+  caption="Each flagged sender gets a combined risk score. Any two signals on one sender outrank a single one."
+/>
+
+Flagged senders appear in their own section, never mixed into the cleanup view. The response is deliberately manual: "Label as suspicious" files the current messages under a Possible Phishing label and archives them. It never deletes, and it never creates a standing filter. A lookalike domain today isn't proof about whatever that sender sends next.
+
+<DetectionOpportunity>
+  Gmail already returns the <code>Authentication-Results</code> header with metadata requests once you ask for it. That one header turns DMARC, SPF and DKIM verdicts into a free phishing signal for every sender, with no body access at all.
+</DetectionOpportunity>
+
+## The one exception
+
+Deep scan is the only feature that reads a message body. It is per-message, opt-in and Gmail-only. It fetches the HTML to compare a link's visible text with where it actually goes. It is labelled as the exception everywhere it appears, so the metadata-only promise stays true by default.
+
+## What's not finished
+
+Gmail supports everything. Outlook covers most features through Microsoft Graph, but snooze and Deep scan remain Gmail-only. Cluster handles one account per provider for now. The next milestone is a full live test against real mailboxes before any store release.

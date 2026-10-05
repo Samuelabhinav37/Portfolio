@@ -7,22 +7,22 @@
 /* ───────── shared archive (single source of truth for both engines) ───────── */
   const KB = [
     { id:'sentinel', title:'Sentinel',
-      keywords:['sentinel','soc','siem','splunk','spl','wazuh','security onion','soar','shuffle','detection','detections','blue team','log analysis'],
-      reply:"Sentinel's the multi-SIEM SOC lab. Wazuh, Splunk and Security Onion all feed the detections, and Shuffle wires up the SOAR playbooks. It's where the detections actually happen.",
-      detail:"Under the hood: log sources stream into all three SIEMs in parallel, detections are authored per platform, and Shuffle playbooks handle triage and enrichment automatically. Ask about splunk, wazuh, or soar for a closer look.",
+      keywords:['sentinel','soc','siem','elastic','kibana','sigma','wazuh','suricata','zeek','soar','shuffle','n8n','ollama','detection','detections','blue team','mttd','triage','log analysis'],
+      reply:"Sentinel is the detection-engineering SOC lab. Every rule is Sigma in Git, fired live against Elastic, then triaged by two AI models that have to agree before Shuffle acts.",
+      detail:"18 rules, each caught firing on a real command, with measured attack-to-alert times of 45 to 151 seconds. Ollama and Claude triage every alert in parallel, and the cases where they disagree go to a human queue. The full case study is at /projects/sentinel/.",
       target:{type:'project', value:'sentinel'} },
 
-    { id:'prism', title:'PRISM',
-      keywords:['prism','federated','federated learning','machine learning','ml','anomaly','anomaly detection','ot','ics','industrial','flower','fedprox','temporal vae','vae','nodes'],
-      reply:"PRISM does federated anomaly detection for OT and ICS: Flower with FedProx and a Temporal VAE, trained across seven simulated industrial nodes so raw telemetry never leaves a site.",
-      detail:"The clue is in the split: each node trains locally on its own telemetry, FedProx keeps drifting nodes honest, and only model weights travel. The Temporal VAE learns normal rhythm, so anomalies surface as reconstruction error.",
-      target:{type:'project', value:'prism'} },
+    { id:'moat', title:'Moat',
+      keywords:['moat','ad blocker','adblock','ad block','ads','tracker','trackers','popup','pop-up','pop-ups','cookie banner','browser extension','chrome extension','firefox','manifest v3','mv3','declarativenetrequest'],
+      reply:"Moat is Samuel's open-source ad blocker for Chrome and Firefox. It blocks ads, trackers, cookie banners and scam pop-ups entirely inside the browser. No server, no account, no telemetry.",
+      detail:"About 314,000 filter entries compile into roughly 72,000 declarativeNetRequest rules, so the browser's own engine does the blocking. A small content script hides leftover boxes and closes hijacked pop-ups. The full case study is at /projects/moat/.",
+      target:{type:'project', value:'moat'} },
 
-    { id:'axon', title:'Axon',
-      keywords:['axon','auth','authentication','nist','800-63b','risk adaptive','risk-adaptive','mfa','step up','identity','login'],
-      reply:"Axon is risk-adaptive authentication aligned to NIST 800-63B. It scores each attempt and steps up assurance only when the risk earns it.",
-      detail:"Each login gets a live risk score from device, location and behavior signals. Low risk sails through; high risk triggers step-up to a stronger authenticator, per the 800-63B assurance levels.",
-      target:{type:'project', value:'axon'} },
+    { id:'cluster', title:'Cluster',
+      keywords:['cluster','gmail','outlook','inbox','phishing','impersonation','dmarc','spf','dkim','unsubscribe','lookalike','punycode','bec','newsletter','newsletters'],
+      reply:"Cluster is a Chrome extension that cleans up Gmail and Outlook and flags impersonation, using only message metadata. It never reads a message body by default, and there's no server.",
+      detail:"It checks headers for brand impersonation, lookalike and punycode domains, failed DMARC, Reply-To mismatches and known-bad domains, then scores each sender. The full case study is at /projects/cluster/.",
+      target:{type:'project', value:'cluster'} },
 
     { id:'bounty', title:'Bug bounty',
       keywords:['bug bounty','bounty','hackerone','vulnerability','vuln','idor','s3','bucket','subdomain','takeover','subdomain takeover','cname','dangling','pii','disclosure','findings','hacking','recon'],
@@ -74,10 +74,10 @@
   }
 
   /* globe-tour jump: scroll #beat-tour to a project's focus band —
-     order matches the PROJECTS array: sentinel=0, prism=1, axon=2. */
+     order matches the PROJECTS array: sentinel=0, moat=1, cluster=2. */
   window.SITE.jumpToProject = function(id){
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const idx={sentinel:0,prism:1,axon:2}[id];
+    const idx={sentinel:0,moat:1,cluster:2}[id];
     const bt=document.getElementById('beat-tour');
     if(idx==null || !bt){ const a=document.getElementById('sec-'+id); a&&a.scrollIntoView({behavior:'smooth'}); return; }
     const rect=bt.getBoundingClientRect();

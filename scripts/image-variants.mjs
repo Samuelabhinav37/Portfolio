@@ -46,7 +46,8 @@ async function mtime(p) {
 }
 
 let written = 0, kept = 0;
-for (const name of await readdir(IMAGES_PATH)) {
+// Recursive, so images in subfolders (e.g. images/projects/) get variants too.
+for (const name of await readdir(IMAGES_PATH, { recursive: true })) {
   const rule = RULES.find((r) => r.match.test(name));
   if (!rule) continue;
   const src = path.join(IMAGES_PATH, name);

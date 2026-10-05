@@ -1,0 +1,105 @@
+---
+title: Sentinel
+description: A code-driven SOC lab where every detection is a Sigma rule in Git, proven against a real attack, and triaged by two AI models that have to agree before anything acts.
+category: Detection engineering
+period: Feb – Aug 2026
+status: Lab environment. Detections are live-fire validated; the newest triage and response work is built and tested but not yet redeployed.
+role: Sole designer and builder. Infrastructure, detections, pipelines, response gate and docs.
+stack: [Sigma, Elastic, Kibana, Wazuh, Suricata, Zeek, n8n, Ollama, Claude, Shuffle SOAR, Terraform, Docker Compose, Tailscale, Python]
+metrics:
+  - { value: '18', label: 'Sigma rules, all fired live' }
+  - { value: '45–151 s', label: 'Measured attack → alert' }
+  - { value: '67 s', label: 'Alert → AI triage written' }
+  - { value: '3', label: 'Clouds (OCI, Azure, AWS)' }
+links:
+  - { label: 'Source on GitHub', href: 'https://github.com/Samuelabhinav37/Sentinel' }
+mitre: [T1003.001, T1059.001, T1053.003, T1105, T1562.001]
+heroImage: /images/projects/sentinel-hero.svg
+heroImageAlt: "Schematic of Sentinel's pipeline: an Atomic Red Team attack produces host telemetry, Elastic detects it with Sigma rules in 45 to 151 seconds, two AI models triage the alert in parallel, and Shuffle SOAR responds only when both agree."
+heroWidth: 1500
+heroHeight: 1000
+order: 1
+pubDate: 2026-10-05
+---
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
+import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+
+## The problem
+
+Most home SOC labs prove that tools were installed. I wanted one that proves detections work. That means a rule is not done when it parses. It is done when a real attacker technique has fired it, the alert has landed, and I have written down how long that took.
+
+So Sentinel treats detections as code. Each rule is written once as Sigma, tagged to MITRE ATT&CK, and kept in Git. CI checks it on every change. Then it gets deployed to Elastic and fired at for real.
+
+## How it works
+
+<Diagram
+  alt="An attack on a monitored host produces telemetry. Elastic matches it with a Sigma rule. n8n sends the alert to two models. Shuffle acts only if both agree."
+  caption="The path one alert takes. The response step is the only one that can change anything on the host, and it sits behind two independent verdicts."
+  nodes={[
+    { id: 'a', label: 'Attack', sub: 'Atomic Red Team', col: 0, row: 0, tone: 'flaw' },
+    { id: 'h', label: 'Host', sub: 'Sysmon · auditbeat', col: 1, row: 0 },
+    { id: 'e', label: 'Elastic', sub: 'Sigma rules', col: 2, row: 0 },
+    { id: 'n', label: 'n8n triage', sub: 'Ollama + Claude', col: 2, row: 1 },
+    { id: 'g', label: 'Agreement gate', col: 1, row: 1 },
+    { id: 's', label: 'Shuffle SOAR', sub: 'bounded kill', col: 0, row: 1 },
+  ]}
+  edges={[
+    { from: 'a', to: 'h', step: 1 },
+    { from: 'h', to: 'e', step: 2 },
+    { from: 'e', to: 'n', label: 'webhook', step: 3 },
+    { from: 'n', to: 'g', step: 4 },
+    { from: 'g', to: 's', label: 'both agree', step: 5 },
+  ]}
+/>
+
+Elastic is the one SIEM that runs live. Splunk is a second Sigma compile target, used only to prove the rules are portable. Wazuh, Suricata and Zeek add host and network telemetry. Everything sits on three VMs reached over Tailscale. The only open ports are SSH and Tailscale itself.
+
+The same Terraform builds the stack on Oracle Cloud and ports to Azure and AWS. Those two also get a small Linux attack target. It enrolls itself into the live SIEM, so I can fire the same detections from more than one cloud.
+
+## Proving each rule
+
+Every one of the 18 rules has been caught firing on a real command. Linux rules were fired live on the monitored host, using the Atomic Red Team test where one exists. Windows rules used replayed attack telemetry from OTRF's Mordor datasets, plus hand-built events where no sample existed.
+
+That testing found bugs that syntax checks never would:
+
+- The encoded-PowerShell rule had a regex anchoring bug. Synthetic events caught it.
+- One rule was modelled on a service that does not exist on the host's actual architecture.
+- Two rules were silently broken by `update-alternatives`. The binary I invoked resolved to a different path than the one the rule matched.
+
+CI now carries regression tests for the regex bugs. A detection change also needs a negative control before it is accepted.
+
+<DataTable
+  head={['Rule', 'ATT&CK', 'Attack → alert']}
+  rows={[
+    ['Netcat reverse shell', '<code>T1059</code>', '45 s'],
+    ['Sensor container stopped', '<code>T1562.001</code>', '74 s'],
+    ['curl / wget download-and-execute', '<code>T1105</code>', '131 s'],
+    ['Cron persistence', '<code>T1053.003</code>', '139 s'],
+    ['Base64 decode-and-execute', '<code>T1059.004</code>', '149 s'],
+    ['Direct <code>/etc/shadow</code> access', '<code>T1003.008</code>', '151 s'],
+  ]}
+  caption="The six rules with an isolated, timed live-fire run. The other twelve are confirmed true positives too, but were fired in batches or replayed, so their timing isn't precise enough to quote."
+/>
+
+## Two models, one gate
+
+When a rule fires, Kibana calls an n8n webhook. n8n sends the alert to two models at once with the same prompt. One is `llama3.2:3b`, running locally on Ollama. The other is Claude Haiku 4.5. With the single-model version, alert to written verdict took 67 seconds, almost all of it inference.
+
+Automated response only happens on agreement. Both models must rate the alert high or critical, with a low chance of false positive. One model alone can never trigger it. Every alert also records whether the two agreed. The disagreements become a filterable queue for a human.
+
+The responder itself is deliberately narrow. It is off by default and bound to one host. Before it kills anything, it re-fetches the stored alert and checks host, PID, process start time and executable. It signals through a Linux `pidfd`, so a recycled PID can't be hit by mistake. Protected processes are refused, and an alert can't be acted on twice.
+
+<DetectionOpportunity>
+  The useful output of two-model triage isn't the cases where they agree. It's the cases where they don't. Those alerts are where a rule is too broad, or where the models are guessing, and they're exactly what a human should look at first.
+</DetectionOpportunity>
+
+## Beyond the pipeline
+
+- **MCP server.** One interface over alert search, triage lookup, Wazuh agent state, ATT&CK coverage and the response trigger. Each tool is annotated read-only or destructive, so a client can tell which calls are safe to auto-approve. Only the response trigger is destructive.
+- **Detection advisor.** A script that reads the disagreement queue and drafts rule changes into a drafts folder. Nothing it writes is live until it passes the same validation loop as any other rule.
+- **Right-sized lab profile.** Real `docker stats` numbers showed the stack was about three times over-provisioned. Elasticsearch and Shuffle's bundled OpenSearch heaps were most of it. A lab profile now trims them, and it is always an explicit opt-in.
+
+## What's not finished
+
+The recorded deployment was on Oracle Cloud. The newest work (the MCP server, two-model triage and the hardened responder) is integrated and passes its tests locally: 67 Python tests, the n8n workflow regression tests, Terraform validation on all three clouds and Compose config checks. It has not been redeployed and live-fired yet. Cloud and Windows targets support detection and triage, but not remote kills. Velociraptor is configured server-side and stubbed until a client is enrolled.
