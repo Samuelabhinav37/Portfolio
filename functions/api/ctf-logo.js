@@ -8,6 +8,8 @@
 // Only a bare filename under /media/events/ is accepted, so this can't be
 // pointed at any other host or path.
 
+import { cacheKey } from '../_lib/cache-key.js';
+
 const MAX_BYTES = 300 * 1024;
 const CACHE_TTL = 86400; // logos don't change once an event is listed
 const FETCH_TIMEOUT = 6000; // ms
@@ -26,7 +28,8 @@ export async function onRequestGet({ request, waitUntil }) {
   if (!NAME_RE.test(name)) return notFound();
 
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const key = cacheKey(request, ['p']);
+  const cached = await cache.match(key);
   if (cached) return cached;
 
   let upstream;
@@ -58,6 +61,6 @@ export async function onRequestGet({ request, waitUntil }) {
       'X-Content-Type-Options': 'nosniff',
     },
   });
-  waitUntil(cache.put(request, resp.clone()));
+  waitUntil(cache.put(key, resp.clone()));
   return resp;
 }

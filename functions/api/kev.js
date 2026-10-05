@@ -6,6 +6,8 @@
 // handful of fields the client actually renders, and edge-caches the small
 // result for 6 hours (KEV updates roughly daily, so this stays fresh enough).
 
+import { cacheKey } from '../_lib/cache-key.js';
+
 const KEV_URL = 'https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json';
 const CACHE_TTL = 21600; // 6 hours
 const FETCH_TIMEOUT = 8000; // ms — the source manifest is large
@@ -28,7 +30,8 @@ function json(data, status = 200) {
 
 export async function onRequestGet({ request }) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return cached;
 
   const result = await (async () => {
@@ -50,7 +53,13 @@ export async function onRequestGet({ request }) {
     return { items: [], count: 0, dateReleased: null };
   });
 
+  // Only real data is cached. A failed fetch used to be cached too, so one
+  // upstream blip left the panel empty for the full 6 hours.
   const response = json(result);
-  await cache.put(request, response.clone());
+  if (!result.items.length) {
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  }
+  await cache.put(key, response.clone());
   return response;
 }

@@ -7,7 +7,7 @@
 // `wrangler pages deployment tail`. Upgrade to a KV/D1 write later if a
 // queryable history is worth the extra provisioning.
 
-import { checkRateLimit } from '../_lib/rate-limit.js';
+import { checkLocalRateLimit } from '../_lib/rate-limit.js';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -16,14 +16,13 @@ function json(data, status = 200) {
   });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request }) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
-  // Shares the RATE_LIMIT_KV namespace with contact/clienterr but with a
-  // distinct key prefix — separate bucket, so a flurry of failed chat
-  // queries can't also lock someone out of the contact form.
+  // In-memory limiter, not KV: a flurry of failed chat queries must not
+  // spend the KV write budget the contact form's limiter depends on.
   {
-    const { success } = await checkRateLimit(env, 'luna:' + ip, { limit: 20, windowSeconds: 60 });
+    const { success } = checkLocalRateLimit('luna:' + ip, { limit: 20, windowSeconds: 60 });
     if (!success) return json({ ok: false }, 429);
   }
 

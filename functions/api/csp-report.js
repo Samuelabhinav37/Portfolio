@@ -10,10 +10,10 @@
 //   - application/csp-report   (legacy report-uri): { "csp-report": {...} }
 //   - application/reports+json (Reporting API report-to): [{ type, body }]
 //
-// Rate-limited per IP with the same KV limiter as clienterr/contact, under
-// its own key prefix. Always answers 204 so a browser never retries.
+// Rate-limited per IP with the in-memory limiter shared with clienterr and
+// luna-miss (no KV writes), under its own key prefix. Always answers 204 so a browser never retries.
 
-import { checkRateLimit } from '../_lib/rate-limit.js';
+import { checkLocalRateLimit } from '../_lib/rate-limit.js';
 
 const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
 const done = () => new Response(null, { status: 204 });
@@ -32,9 +32,9 @@ function normalize(r) {
   };
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request }) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const { success } = await checkRateLimit(env, 'csp:' + ip, { limit: 30, windowSeconds: 60 });
+  const { success } = checkLocalRateLimit('csp:' + ip, { limit: 30, windowSeconds: 60 });
   if (!success) return done();
 
   let body;

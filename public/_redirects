@@ -1,5 +1,3 @@
-/resume    /resume.pdf    302
-
 # Legacy flat-HTML URLs from before the Astro port; Search Console still
 # knows some of them and reported 404s.
 /about.html     /about/      301

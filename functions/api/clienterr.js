@@ -6,13 +6,13 @@
 // real-time logs or `wrangler pages deployment tail`. Upgrade to a KV/D1
 // write later if a queryable history is worth the provisioning.
 //
-// Mirrors functions/api/luna-miss.js: POST-only, shared KV rate-limit with
+// Mirrors functions/api/luna-miss.js: POST-only, in-memory rate limit with
 // its own key prefix, returns fast, never throws back at the client. The
 // client hook (src/components/ErrorReporter.astro) already caps itself to a
 // few beacons per page load and dedupes, so this endpoint stays cheap even
 // during an error loop.
 
-import { checkRateLimit } from '../_lib/rate-limit.js';
+import { checkLocalRateLimit } from '../_lib/rate-limit.js';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -23,13 +23,13 @@ function json(data, status = 200) {
 
 const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request }) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
-  // Shares the RATE_LIMIT_KV namespace with contact/luna-miss, distinct key
-  // prefix, so an error storm can't also lock someone out of those.
+  // In-memory limiter, not KV: an error storm must not spend the KV write
+  // budget the contact form's limiter depends on (see _lib/rate-limit.js).
   {
-    const { success } = await checkRateLimit(env, 'err:' + ip, { limit: 20, windowSeconds: 60 });
+    const { success } = checkLocalRateLimit('err:' + ip, { limit: 20, windowSeconds: 60 });
     if (!success) return json({ ok: false }, 429);
   }
 
