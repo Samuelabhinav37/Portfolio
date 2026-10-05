@@ -4,6 +4,7 @@
  *   { type: 'Domain', value: 'cdn-assets-delivery[.]net', fanged: 'cdn-assets-delivery.net' },
  * ]} />
  * The copy button prefers `fanged` (the live form) when present.
+ * Rendered as a post data table (same frame, header strip and numbering).
  */
 interface Props {
   id: string;
@@ -13,23 +14,27 @@ interface Props {
   lang?: 'en' | 'es';
 }
 const { id, rows, lang = 'en' } = Astro.props;
-const label = lang === 'es' ? 'Indicadores de compromiso' : 'Indicators of compromise';
-const copyLabel = lang === 'es' ? 'Copiar' : 'Copy';
+const es = lang === 'es';
+const label = es ? 'Indicadores de compromiso' : 'Indicators of compromise';
+const copyLabel = es ? 'Copiar' : 'Copy';
 const copyAria = (type: string, value: string) =>
-  lang === 'es' ? `Copiar indicador ${type}: ${value}` : `Copy ${type} indicator: ${value}`;
+  es ? `Copiar indicador ${type}: ${value}` : `Copy ${type} indicator: ${value}`;
 ---
 
-<div class="ioc-block">
-  <div class="ioc-head"><span>{label}</span><span>{id}</span></div>
-  <div class="ioc-table-wrap">
-  <table class="ioc-table">
-    {rows.map((r) => (
-      <tr>
-        <td class="ioc-type">{r.type}</td>
-        <td class="ioc-val" data-fanged={r.fanged}>{r.value}</td>
-        <td class="ioc-act"><button class="ioc-copy" type="button" aria-label={copyAria(r.type, r.value)}>{copyLabel}</button></td>
-      </tr>
-    ))}
-  </table>
+<figure class="post-figure is-table ioc-block">
+  <div class="dtable">
+    <table class="ioc-table">
+      <thead><tr><th scope="col">{es ? 'Tipo' : 'Type'}</th><th scope="col">{es ? 'Indicador' : 'Indicator'}</th><th scope="col"><span class="sr-only">{copyLabel}</span></th></tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>
+            <td class="k">{r.type}</td>
+            <td class="ioc-val" data-fanged={r.fanged}><code>{r.value}</code></td>
+            <td class="ioc-act"><button class="ioc-copy" type="button" aria-label={copyAria(r.type, r.value)}>{copyLabel}</button></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
-</div>
+  <figcaption>{label} ({id}).</figcaption>
+</figure>

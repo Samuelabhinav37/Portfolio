@@ -1,0 +1,37 @@
+---
+/**
+ * Data table in the post system (Iru-style): mono header strip, zebra rows,
+ * scrolls inside its own frame on narrow screens. Numbered "Table N." by the
+ * CSS counter on .article-col, so captions never carry a hand-typed number.
+ *
+ *   <DataTable
+ *     head={['User', 'Stored hash']}
+ *     rows={[['<code>alice</code>', '<code>5e88…</code>']]}
+ *     caption="Hashes as they sit in the stolen file."
+ *   />
+ *
+ * Cells and caption accept inline HTML (<code>, entities, <strong>).
+ * keyCol dims the first column, for label/value tables.
+ */
+interface Props {
+  head: string[];
+  rows: string[][];
+  caption: string;
+  keyCol?: boolean;
+}
+const { head, rows, caption, keyCol = false } = Astro.props;
+---
+
+<figure class="post-figure is-table">
+  <div class="dtable">
+    <table>
+      <thead><tr>{head.map((h) => <th scope="col" set:html={h} />)}</tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>{r.map((c, i) => <td class={keyCol && i === 0 ? 'k' : undefined} set:html={c} />)}</tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <figcaption set:html={caption} />
+</figure>

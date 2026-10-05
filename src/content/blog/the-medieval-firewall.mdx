@@ -27,18 +27,28 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="I">n the early 1990s, computing didn't just get personal. It got networked. Every desk in an office building got its own workstation, and those workstations got wired together to share printers, file servers, and internal systems nobody had built with a stranger on the other end of the wire in mind.</Dropcap>
 
-```text
-+-----------------------------------------------------------+
-|               CORPORATE OFFICE NETWORK (LAN)              |
-|                                                           |
-|  [ Workstation A ] <====== (Zero Friction) ======> [ DB ] |
-|         ||                                          ||    |
-|  [ Workstation B ] <=========================> [ Server ] |
-+-----------------------------------------------------------+
-```
+<Diagram
+  alt="Inside the corporate office network, workstations A and B, a database and a server all talk to each other freely."
+  caption="The office LAN. Everything inside trusted everything else, with no checks in between."
+  nodes={[
+    { id: 'a', label: 'Workstation A', col: 0, row: 0 },
+    { id: 'db', label: 'Database', col: 2, row: 0 },
+    { id: 'b', label: 'Workstation B', col: 0, row: 1 },
+    { id: 's', label: 'Server', col: 2, row: 1 },
+  ]}
+  edges={[
+    { from: 'a', to: 'db', label: 'zero friction', both: true },
+    { from: 'b', to: 's', label: 'zero friction', both: true },
+    { from: 'a', to: 'b', both: true },
+    { from: 'db', to: 's', both: true },
+  ]}
+  groups={[{ label: 'Corporate office network (LAN)', nodes: ['a', 'db', 'b', 's'] }]}
+/>
 
 Inside the office perimeter, there were almost no internal locks: a cable plugged into a wall jack meant the machine on the other end was trusted, full stop. The moment a company wired that trusted network into the open, unregulated internet, every outside actor gained a direct line to workstations that had never expected a stranger to come knocking.
 
@@ -51,16 +61,26 @@ To survive on the open internet without redesigning thousands of already-trustin
 - **The moat and wall (the perimeter)**: a hard line of physical and logical separation between inside and outside.
 - **The drawbridge (the firewall)**: the single gateway every byte of traffic has to cross, inspected by an automated guard on the way through.
 
-```text
-      UNTRUSTED                                             TRUSTED
-    (Wild Internet)                                      (Corporate LAN)
-                      +-----------------------------+
-                      |         THE DRAWBRIDGE      |
-[ External Traffic ] ===> [ Packet Filtering Firewall ] ===> [ Workstation ]
-                      |   - Match IP Header         |   ===> [ File Server ]
-                      |   - Match Port Number       |   ===> [ Intranet ]
-                      +-----------------------------+
-```
+<Diagram
+  alt="External traffic from the untrusted internet passes through a packet-filtering firewall, which checks the IP header and port number, before reaching a workstation, a file server or the intranet on the trusted LAN."
+  caption="The drawbridge. One packet filter between the untrusted internet and everything on the LAN."
+  nodes={[
+    { id: 'x', label: 'External traffic', col: 0, row: 1 },
+    { id: 'f', label: 'Firewall', sub: 'packet filter: IP and port', col: 1, row: 1 },
+    { id: 'w', label: 'Workstation', col: 2, row: 0 },
+    { id: 'fs', label: 'File server', col: 2, row: 1 },
+    { id: 'i', label: 'Intranet', col: 2, row: 2 },
+  ]}
+  edges={[
+    { from: 'x', to: 'f', step: 1 },
+    { from: 'f', to: 'w' }, { from: 'f', to: 'fs' }, { from: 'f', to: 'i' },
+  ]}
+  groups={[
+    { label: 'Untrusted', nodes: ['x'] },
+    { label: 'Trusted LAN', nodes: ['w', 'fs', 'i'] },
+  ]}
+  rowGap={44}
+/>
 
 <CaseFile
   id="MOAT-88"
@@ -80,19 +100,18 @@ The earliest firewalls weren't intelligent. They were fast, narrow inspection st
 1. **Stateless packet filters (late 1980s)**: the earliest drawbridge guards, rooted in Digital Equipment Corporation's screening-router work and in Bill Cheswick and Steve Bellovin's application-level gateway research at AT&T Bell Labs around 1988. Each guard checked only a packet's envelope, its source and destination IP, and the port number it was requesting. It had no memory. Every packet stood alone, which meant an attacker could craft one that merely looked like a reply and walk straight through the static rule table.
 2. **Stateful inspection (early 1990s)**: Check Point's FireWall-1, released in 1994, added an actual memory, a state table tracking a TCP connection through its full three-way handshake. An outbound request from an employee got logged as an active session. When the reply came back, the firewall checked it against that session and let it through. An unsolicited inbound connection, with no session to match, got dropped at the door instead.
 
-```text
-FIREWALL STATE TABLE:
---------------------------------------------------------------------------------
-INSIDE IP:PORT          OUTSIDE IP:PORT          SESSION STATE    ACTION
---------------------------------------------------------------------------------
-192.168.1.50:49152  <-> 203.0.113.10:80 (HTTP)   ESTABLISHED      ALLOW RETURN
---------------------------------------------------------------------------------
-INBOUND PACKET (UNSOLICITED): 198.51.100.4 -> 192.168.1.50:22 (SSH) -> [ DROP ]
-```
+<DataTable
+  head={['Inside', 'Outside', 'State', 'Action']}
+  rows={[
+    ['<code>192.168.1.50:49152</code>', '<code>203.0.113.10:80</code> (HTTP)', 'Established', 'Allow return traffic'],
+    ['<code>192.168.1.50:22</code>', '<code>198.51.100.4</code> (SSH, unsolicited)', 'No session', '<span class="flaw">Drop</span>'],
+  ]}
+  caption="A stateful firewall's table. Replies to a session the inside started get through; an unsolicited inbound packet is dropped."
+/>
 
 ## Fatal architecture flaw
 
-<span class="highlight">Hard on the outside, soft and chewy on the inside.</span>
+<p class="body-text"><span class="highlight">Hard on the outside, soft and chewy on the inside.</span></p>
 
 - **"All threats come from outside the wall"**: insiders, disgruntled employees, and compromised laptops already sit inside the castle.
 - **"Firewalls block bad ports"**: attackers stopped attacking closed ports and started hiding malicious payloads inside the ports everyone already allowed, 80 and 443.

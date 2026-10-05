@@ -1,0 +1,178 @@
+---
+/**
+ * Flow diagram in the post system (Google GTIG attack-chain style): flat
+ * nodes on a grid, arrows between them, numbered step circles, amber only
+ * for the flaw. Laid out at build time into a plain inline SVG; numbered
+ * "Figure N." by the CSS counter on .article-col.
+ *
+ *   <Diagram
+ *     alt="What the figure shows, as one sentence for screen readers."
+ *     caption="What to look at, in a sentence or two."
+ *     nodes={[
+ *       { id: 'a', label: 'Client', col: 0, row: 0 },
+ *       { id: 'b', label: 'Server', sub: 'port 23', col: 2, row: 0, tone: 'flaw' },
+ *     ]}
+ *     edges={[{ from: 'a', to: 'b', label: 'USER / PASS', step: 1 }]}
+ *   />
+ *
+ * Grid: col/row are zero-based cells; span widens a node across columns.
+ * Edge labels sit above horizontal edges and to the right of vertical ones
+ * (labelPos overrides). "\n" in a label starts a new line.
+ */
+import { SITE } from '../config';
+
+type Tone = 'flaw' | 'muted';
+interface DNode { id: string; label: string; sub?: string; col: number; row: number; span?: number; tone?: Tone }
+interface DEdge {
+  from: string; to: string; label?: string; step?: string | number;
+  tone?: 'flaw'; dashed?: boolean; both?: boolean;
+  labelPos?: 'above' | 'below' | 'left' | 'right';
+}
+interface DGroup { label: string; nodes: string[]; tone?: 'flaw' }
+interface Props {
+  nodes: DNode[];
+  edges?: DEdge[];
+  groups?: DGroup[];
+  caption: string;
+  alt: string;
+  /** Gap between rows, room for vertical edge labels. Default 64. */
+  rowGap?: number;
+  /** Cap on node width in px (viewBox units). Default 210. */
+  maxNodeWidth?: number;
+}
+const { nodes, edges = [], groups = [], caption, alt, rowGap = 64, maxNodeWidth = 210 } = Astro.props;
+
+const W = 660;
+const cols = Math.max(...nodes.map((n) => n.col + (n.span ?? 1)));
+const rows = Math.max(...nodes.map((n) => n.row)) + 1;
+const colW = W / cols;
+// Step circles sit in the gap between nodes, so a figure that numbers its
+// steps gets a wider gap than one that doesn't.
+const gap = edges.some((e) => e.step != null) ? 56 : 28;
+const baseW = Math.min(colW - gap, maxNodeWidth);
+
+function wrap(text: string, max: number): string[] {
+  const out: string[] = [];
+  for (const para of text.split('\n')) {
+    let line = '';
+    for (const word of para.split(' ')) {
+      if (line && (line + ' ' + word).length > max) { out.push(line); line = word; }
+      else line = line ? line + ' ' + word : word;
+    }
+    out.push(line);
+  }
+  return out;
+}
+
+// Node geometry. Every node in a figure gets the same height, so rows line up.
+const T_LH = 19, S_LH = 16;
+const prepared = nodes.map((n) => {
+  const span = n.span ?? 1;
+  const w = span === 1 ? baseW : Math.min(colW * span - gap, maxNodeWidth * span);
+  const tl = wrap(n.label, Math.max(6, Math.floor((w - 20) / 8.6)));
+  const sl = n.sub ? wrap(n.sub, Math.max(8, Math.floor((w - 20) / 6.9))) : [];
+  return { ...n, span, w, tl, sl };
+});
+const nodeH = Math.max(46, ...prepared.map((n) => 22 + n.tl.length * T_LH + (n.sl.length ? 4 + n.sl.length * S_LH : 0)));
+const top = groups.length ? 46 : 30;
+const rowH = nodeH + rowGap;
+const pos = new Map(
+  prepared.map((n) => [n.id, { x: colW * (n.col + n.span / 2), y: top + n.row * rowH + nodeH / 2, w: n.w, h: nodeH }])
+);
+
+// Edges: clip each end to its node's border, then pull back a few px.
+function exit(c: { x: number; y: number; w: number; h: number }, dx: number, dy: number) {
+  const tx = dx === 0 ? Infinity : c.w / 2 / Math.abs(dx);
+  const ty = dy === 0 ? Infinity : c.h / 2 / Math.abs(dy);
+  const t = Math.min(tx, ty);
+  return { x: c.x + dx * t, y: c.y + dy * t };
+}
+const head = (x: number, y: number, ux: number, uy: number) => {
+  const a = Math.PI / 7, L = 8, ang = Math.atan2(uy, ux);
+  return `M${x - L * Math.cos(ang - a)} ${y - L * Math.sin(ang - a)}L${x} ${y}L${x - L * Math.cos(ang + a)} ${y - L * Math.sin(ang + a)}`;
+};
+const drawn = edges.map((e) => {
+  const A = pos.get(e.from)!, B = pos.get(e.to)!;
+  if (!A || !B) throw new Error(`Diagram edge ${e.from} -> ${e.to}: unknown node`);
+  const dx = B.x - A.x, dy = B.y - A.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
+  const p1 = exit(A, dx, dy), p2 = exit(B, -dx, -dy), g = 5;
+  const s = { x: p1.x + ux * g, y: p1.y + uy * g }, t = { x: p2.x - ux * g, y: p2.y - uy * g };
+  const mid = { x: (s.x + t.x) / 2, y: (s.y + t.y) / 2 };
+  const horiz = Math.abs(dx) >= Math.abs(dy);
+  const pos_ = e.labelPos ?? (horiz ? 'above' : 'right');
+  const off = e.step != null ? 19 : 9;
+  const lines = e.label ? e.label.split('\n') : [];
+  let lx = mid.x, ly = mid.y, anchor: 'middle' | 'start' | 'end' = 'middle';
+  if (pos_ === 'above') ly = mid.y - off - (lines.length - 1) * 15;
+  else if (pos_ === 'below') ly = mid.y + off + 12;
+  else if (pos_ === 'right') { lx = mid.x + off; ly = mid.y + 4 - ((lines.length - 1) * 15) / 2; anchor = 'start'; }
+  else { lx = mid.x - off; ly = mid.y + 4 - ((lines.length - 1) * 15) / 2; anchor = 'end'; }
+  return {
+    ...e, s, t, mid, lines, lx, ly, anchor,
+    d: `M${s.x} ${s.y}L${t.x} ${t.y}`,
+    heads: head(t.x, t.y, ux, uy) + (e.both ? head(s.x, s.y, -ux, -uy) : ''),
+  };
+});
+
+const boxes = groups.map((g) => {
+  const ms = g.nodes.map((id) => pos.get(id)!);
+  const x0 = Math.min(...ms.map((m) => m.x - m.w / 2)) - 14, x1 = Math.max(...ms.map((m) => m.x + m.w / 2)) + 14;
+  const y0 = Math.min(...ms.map((m) => m.y - m.h / 2)) - 30, y1 = Math.max(...ms.map((m) => m.y + m.h / 2)) + 14;
+  return { ...g, x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+});
+
+const bottom = Math.max(
+  top + (rows - 1) * rowH + nodeH,
+  ...boxes.map((b) => b.y + b.h),
+  ...drawn.map((e) => e.ly + 6),
+);
+const H = Math.ceil(bottom + 12);
+const site = new URL(SITE.links.portfolio).hostname;
+const r = (n: number) => Math.round(n * 10) / 10;
+---
+
+<figure class="post-figure is-figure">
+  <div class="plate">
+    <div class="plate-in">
+      <svg class="dg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={alt}>
+        {boxes.map((b) => (
+          <g>
+            <rect class:list={['dg-group', b.tone && 'is-flaw']} x={r(b.x)} y={r(b.y)} width={r(b.w)} height={r(b.h)} rx="10" />
+            <text class:list={['dg-glbl', b.tone && 'is-flaw']} x={r(b.x + 12)} y={r(b.y + 19)}>{b.label}</text>
+          </g>
+        ))}
+        {drawn.map((e) => (
+          <g class:list={['dg-edge', e.tone && 'is-flaw', e.dashed && 'is-dashed']}>
+            <path d={e.d} />
+            <path class="dg-head" d={e.heads} />
+          </g>
+        ))}
+        {prepared.map((n) => {
+          const p = pos.get(n.id)!;
+          const blockH = n.tl.length * T_LH + (n.sl.length ? 4 + n.sl.length * S_LH : 0);
+          const y0 = p.y - blockH / 2 + 14;
+          return (
+            <g>
+              <rect class:list={['dg-box', n.tone && `is-${n.tone}`]} x={r(p.x - p.w / 2)} y={r(p.y - p.h / 2)} width={r(p.w)} height={r(p.h)} rx="8" />
+              {n.tl.map((l, i) => <text class:list={['dg-t', n.tone && `is-${n.tone}`]} x={r(p.x)} y={r(y0 + i * T_LH)}>{l}</text>)}
+              {n.sl.map((l, i) => <text class:list={['dg-s', n.tone && `is-${n.tone}`]} x={r(p.x)} y={r(y0 + n.tl.length * T_LH + 2 + i * S_LH)}>{l}</text>)}
+            </g>
+          );
+        })}
+        {drawn.map((e) => (
+          <g>
+            {e.lines.map((l, i) => <text class:list={['dg-lbl', e.tone && 'is-flaw']} x={r(e.lx)} y={r(e.ly + i * 15)} text-anchor={e.anchor}>{l}</text>)}
+            {e.step != null && (
+              <g class:list={['dg-step', e.tone && 'is-flaw']}>
+                <circle cx={r(e.mid.x)} cy={r(e.mid.y)} r="11" />
+                <text x={r(e.mid.x)} y={r(e.mid.y + 4)}>{e.step}</text>
+              </g>
+            )}
+          </g>
+        ))}
+      </svg>
+    </div>
+    <div class="plate-foot"><span>{site}</span><span class="plate-n" aria-hidden="true"></span></div>
+  </div>
+  <figcaption set:html={caption} />
+</figure>

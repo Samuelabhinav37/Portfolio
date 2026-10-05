@@ -7,7 +7,7 @@ import path from 'node:path';
 import { SITE } from '../config';
 import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
-import MoreStoriesRail from '../components/MoreStoriesRail.astro';
+import Mitre from '../components/Mitre.astro';
 import Luna from '../components/Luna.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
@@ -64,17 +64,36 @@ const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
 const altUrl = altHref ? new URL(altHref, Astro.site).href : null;
 
-// Sidebar "More stories" list — recency-sorted, always populated (unlike
-// the old related-posts mechanism, which depended on a per-post `related:`
-// frontmatter field nobody ever filled in and so never actually rendered).
-// Same source/sort as blog/index.astro's own post listing, minus this post
-// and minus translation entries (id.includes('/')), which don't have their
-// own English-side archive presence.
-const morePosts = (
-  await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/') && id !== post.id)
-)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 5);
+// End-of-post cards. A post's first tag names its series ("Analog Dawn");
+// show the series posts that come after this one, then earlier ones, so the
+// cards read as "keep going". A post with no series siblings falls back to
+// the most recent posts on the blog. Translation entries (id with a '/')
+// never appear here, and a translated post skips its own English original.
+const ownId = post.id.replace(/^[a-z]{2}\//, '');
+const others = await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/') && id !== ownId);
+const series = d.tags[0];
+const byDate = (a: CollectionEntry<'blog'>, b: CollectionEntry<'blog'>) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf();
+const siblings = series ? others.filter((p) => p.data.tags[0] === series) : [];
+let nextPosts = [
+  ...siblings.filter((p) => p.data.pubDate >= d.pubDate).sort(byDate),
+  ...siblings.filter((p) => p.data.pubDate < d.pubDate).sort((a, b) => byDate(b, a)),
+].slice(0, 3);
+let nextHeading = series ? i18n.nextIn(series) : i18n.moreFromBlog;
+if (!nextPosts.length) {
+  nextPosts = [...others].sort((a, b) => byDate(b, a)).slice(0, 3);
+  nextHeading = i18n.moreFromBlog;
+}
+const cardDate = (dt: Date) =>
+  dt.toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase();
+
+// Contents list: the post's own H2/H3s plus the FAQ. Rendered twice from
+// this one array: the right-edge strip (wide screens) and the collapsible
+// box at the top of the article (narrow screens).
+const faqHeading = lang === 'es' ? 'Preguntas frecuentes' : 'Frequently asked questions';
+const toc = [
+  ...headings.filter((h) => h.depth === 2 || h.depth === 3).map((h) => ({ slug: h.slug, text: h.text, sub: h.depth === 3 })),
+  ...(d.faqs.length ? [{ slug: 'section-faq', text: faqHeading, sub: true }] : []),
+];
 
 /* ── Derived, never hand-edited ─────────────────────────────────────── */
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
@@ -103,7 +122,7 @@ const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
 // silently renders in whatever timezone the build machine happens to be in
 // (e.g. a west-of-UTC build server shows "MAR 2026" for an April 1 post).
 const dateLabel = d.pubDate
-  .toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+  .toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
   .toUpperCase();
 
 const shareX =
@@ -263,53 +282,55 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </ul>
     </nav>
 
-    <!-- Hero -->
-    <div class="hero" id="hero">
-      <!-- Mobile-only breadcrumb — shown before the image, same spot it
-           always occupied on mobile. Hidden on desktop, where the one
-           inside .hero-content (right above the title) is used instead.
-           Two instances of the same link pair rather than one reordered
-           via CSS: order can't move an element from being nested inside
-           .hero-left's centered content block (needed so it sits snug
-           against the title on desktop) to being a top-level sibling of
-           .hero-right (needed so it can go before the image on mobile) —
-           those are two different DOM positions, not just two different
-           visual positions of the same box. Only one is ever in the
-           accessibility tree at a time (display:none), so nothing reads
-           as duplicated content. -->
-      <div class="hero-breadcrumb hero-breadcrumb--mobile">
-        <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
-      </div>
-      <div class="hero-left">
-        <div class="hero-corner-br"></div>
-        <div class="hero-content">
-          <div class="hero-breadcrumb hero-breadcrumb--desktop">
-            <a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="bc-sep">/</span><a href={SITE.links.blogIndex}>{d.category}</a>
-          </div>
-          <h1 class="hero-title">{d.title}</h1>
-          <p class="hero-subtitle">{d.description}</p>
-          <div class="hero-tags">
-            {d.mitre.map((t) => <span class="hero-tag mitre">{t}</span>)}
-            {d.tags.map((t) => <span class="hero-tag">{t}</span>)}
-          </div>
+    <!-- Hero (WIRED-style split): category label and date, title, dek,
+         read time and series on the left; the post's image at 3:2 on the
+         right. No author byline: this is a single-author site and the
+         wordmark already names it. -->
+    <header class="post-hero" id="hero">
+      <div class="post-hero-text">
+        <div class="post-meta">
+          <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
+          <time datetime={pubIso}>{dateLabel}</time>
         </div>
+        <h1 class="post-title">{d.title}</h1>
+        <p class="post-dek">{d.description}</p>
+        <div class="post-sub">
+          <span>{readTime} {i18n.minRead}{series && <span class="post-sub-sep" aria-hidden="true"> · </span>}{series}</span>
+          <!-- Single share affordance: navigator.share() (the native OS share
+               sheet) where supported, falling back to #shareDialog's own
+               X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
+               keeps blog-client.js's dialog wiring working for the fallback;
+               the capture-phase listener below intercepts first when
+               navigator.share exists. -->
+          <button class="post-share" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
+        </div>
+        {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
       </div>
-      <div class="hero-right">
+      <figure class="post-hero-img">
         {d.heroImage
-          ? <div class="hero-art"><div class="hero-art-frame">
-              <img class="hero-art-img" src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 620px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
-              {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
-            </div></div>
-          : <div class="hero-art"><div class="hero-art-frame hero-art--placeholder" aria-hidden="true">
-              {d.heroCredit && <span class="hero-credit-tag">{d.heroCredit}</span>}
-            </div></div>}
-      </div>
-    </div>
+          ? <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 640px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
+          : <div class="post-hero-ph" aria-hidden="true"></div>}
+        {d.heroCredit && <figcaption class="post-hero-credit">{d.heroCredit}</figcaption>}
+      </figure>
+    </header>
+    <script is:inline>
+      (function(){
+        var btn = document.getElementById('shareBtn');
+        if(!btn) return;
+        btn.addEventListener('click', function(e){
+          if(navigator.share){
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            navigator.share({ title: document.title, url: location.href }).catch(function(){});
+          }
+        }, true);
+      })();
+    </script>
 
     <div class="container">
       <!-- Language notice — Cloudflare-blog-style: a plain, always-visible
-           line right under the hero (not buried in a menu or the footer),
-           only rendered when a translation of this exact post exists. -->
+           line right under the hero, only rendered when a translation of
+           this exact post exists. -->
       {altHref && (
         <a href={altHref} class="lang-notice">
           <svg class="lang-notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
@@ -320,72 +341,60 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </a>
       )}
 
-      <!-- Author bar — name/date/read-time grouped as one identity block next
-           to the avatar (matches how most editorial sites do it: byline info
-           reads as a single unit), share affordance pinned to the row's own
-           right edge instead of sharing space with the name. -->
-      <div class="author-bar">
-        <div class="author-bar-left">
-          <div class="author-photo-wrap">
-            <div class="author-photo"><span>{SITE.initials}</span></div>
-            <div class="author-badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
-          </div>
-          <div>
-            <div class="author-info-row">
-              <span class="author-info-name">{SITE.author}</span>
-            </div>
-            <div class="author-bar-meta">
-              <span class="live-dot" aria-hidden="true"></span><time datetime={pubIso}>{dateLabel}</time>
-              <span class="author-bar-meta-sep" aria-hidden="true">&middot;</span> {readTime} {i18n.minRead}
-            </div>
-          </div>
-        </div>
-        <!-- Single share affordance: navigator.share() (the native OS
-             share sheet) where supported, falling back to #shareDialog's
-             own X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
-             keeps the existing dialog-wiring in blog-client.js working
-             unmodified for the fallback path — see the capture-phase
-             listener below that intercepts and calls navigator.share()
-             first when available, stopping the dialog from also opening. -->
-        <button class="social-icon" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.50)" stroke-width="1.5"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
-      </div>
-      <script is:inline>
-        (function(){
-          var btn = document.getElementById('shareBtn');
-          if(!btn) return;
-          btn.addEventListener('click', function(e){
-            if(navigator.share){
-              e.preventDefault();
-              e.stopImmediatePropagation();
-              navigator.share({ title: document.title, url: location.href }).catch(function(){});
-            }
-          }, true);
-        })();
-      </script>
-
-      <!-- 2-col grid -->
-      <div class="page-grid">
+      <!-- 700px text column between two 170px gutters. The left gutter holds
+           margin notes (.mnote); the right one stays empty so the column
+           sits centred. -->
+      <div class="post-grid">
         <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
+          {toc.length > 1 && (
+            <details class="toc-inline">
+              <summary>{i18n.onThisPage}</summary>
+              <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
+            </details>
+          )}
           <slot />
         </main>
-
-        <!-- Side rail — "More stories" list. Fixed-floating on wide
-             viewports (>=1580px, see .left-sidebar); on narrower viewports
-             it renders in normal document flow right here instead of
-             disappearing, since it's the only "other posts" surface on a
-             post page now (the old bottom 3-card grid was removed — it
-             never actually rendered, see MoreStoriesRail's comment). -->
-        <aside class="left-sidebar">
-          <div class="rail-sticky">
-            <MoreStoriesRail posts={morePosts} heading={i18n.moreStories} lang={lang} />
-          </div>
-        </aside>
-      </div><!-- /.page-grid -->
+      </div>
 
       <Faq faqs={d.faqs as { q: string; a: string }[]} lang={lang} />
+
+      {nextPosts.length > 0 && (
+        <section class="post-next" aria-labelledby="post-next-h">
+          <h2 class="post-next-h" id="post-next-h">{nextHeading}</h2>
+          <div class="post-next-row">
+            {nextPosts.map((p) => (
+              <a class="next-card" href={`/blog/${p.id}/`}>
+                <div class="next-img">
+                  {p.data.heroImage
+                    ? <img src={variant(p.data.heroImage, 800)} alt="" loading="lazy" decoding="async" />
+                    : <div class="story-image-ph" aria-hidden="true"></div>}
+                </div>
+                <span class="next-date">{cardDate(p.data.pubDate)}</span>
+                <span class="next-title">{p.data.title}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
     </div><!-- /.container -->
+
+    <!-- On this page, pinned to the right edge (Notion-style floating
+         contents, built on the parked toc-hover-reveal bar strip): one dash
+         per section, the current one longer and brighter; hover or keyboard
+         focus opens a card of headings. Dashes are decorative; the card's
+         links are the real, always-focusable ones. Hidden under 1100px,
+         where .toc-inline above takes over. Wired in blog-client.js. -->
+    {toc.length > 1 && (
+      <nav class="etoc" id="etoc" aria-label={i18n.onThisPage}>
+        <ol class="etoc-dashes" aria-hidden="true">
+          {toc.map((h) => <li><span data-toc={h.slug} class:list={[h.sub && 'sub']}></span></li>)}
+        </ol>
+        <div class="etoc-card">
+          <div class="etoc-h">{i18n.onThisPage}</div>
+          <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
+        </div>
+      </nav>
+    )}
 
     <footer class="post-footer">
       <span>&copy; {new Date().getFullYear()} {SITE.author}</span>

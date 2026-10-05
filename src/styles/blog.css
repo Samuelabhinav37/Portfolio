@@ -4,20 +4,6 @@ html { background: var(--c-bg); }
 /* smooth anchor scrolling only for people who haven't asked for reduced motion */
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 
-/* Single source of truth for the article-reading voice (headline, body,
-   lists, quotes, headings, captions) — deliberately separate from site
-   chrome (nav/menu/dialogs), which stays on the OS system font. Swapping
-   this one variable (plus the matching @import in BlogPost.astro) is the
-   whole job of trying a different reading typeface. */
-:root {
-  --article-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  /* Secondary prose tier — captions, boxed-callout body text, sidebar
-     copy, FAQ answers: anything that's still read as sentences but isn't
-     the main article body. Previously each of these had its own one-off
-     rem value (1.10, 1.14, 1.22, 1.02...); one shared size here instead. */
-  --prose-sm-size: 1.05rem;
-  --prose-sm-line: 1.6;
-}
 
 body {
   background: var(--c-bg);   /* near-black, not true black — avoids halation (text glow) on dark bg */
@@ -165,666 +151,340 @@ body.ldw-drawer-open #menu-trigger { opacity: 0 !important; pointer-events: none
   #menu-overlay, #menu-list a span { transition: opacity 0.3s ease; transform: none; }
 }
 
-/* ── Hero ── */
-.hero {
+/* ══════════ POST SYSTEM ══════════
+   One type system for every post page:
+     Families  system sans for everything you read; JetBrains Mono only for
+               labels and data. (Cormorant stays in the corner wordmark only.)
+     Weights   400 and 600. No 500, no 700, no italics.
+     Sizes     12 label · 15 small · 18 body · 22 lead · 28 heading · 56 title
+     Widths    a 700px text column for everything in the reading flow
+               (paragraphs, figures, tables, callouts, FAQ); a 1184px wide
+               band for the hero and the end-of-post cards.
+   Labels are always mono, uppercase, letter-spaced. "Small" covers captions,
+   table cells, callouts, margin notes and the contents card. Diagrams draw
+   their text at the same 15 and 12. Amber is reserved for the flaw. */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --t-label: 12px; --t-small: 15px; --t-body: 18px; --t-lead: 22px; --t-h2: 28px; --t-h1: 56px;
+  --ink-strong: rgba(255,255,255,0.96);
+  --ink: rgba(248,248,248,0.88);
+  --ink-dim: rgba(200,206,218,0.66);
+  --ink-faint: rgba(200,206,218,0.48);
+  --rule: rgba(200,206,218,0.14);
+  --rule-strong: rgba(200,206,218,0.28);
+  --flaw: #e2a55a;
+  --w-text: 700px;
+  --w-wide: 1184px;
+}
+/* The one label style, used everywhere a label appears. */
+.post-meta, .post-sub, .post-hero-credit, .toc-inline summary, .etoc-h, .mnote-day, .mnote-tag,
+.copy-btn, .callout-detect-label, .dtable th, .plate-foot, .faq-kicker, .post-next-h, .next-date,
+.lang-notice, .heading-3 {
+  font-family: var(--font-mono); font-size: var(--t-label); font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.4;
+}
+
+/* ── Hero: WIRED-style split ── */
+.post-hero {
   position: relative; z-index: 1;
-  display: grid;
-  grid-template-columns: 43% 57%;
-  min-height: 86vh;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 56px; align-items: center;
+  max-width: calc(var(--w-wide) + 96px); margin: 0 auto; padding: 112px 48px 56px;
 }
-/* Breadcrumb now renders inline inside .hero-content, directly above the
-   title (see BlogPost.astro) — it used to be a separate grid row/element
-   sitting apart from the title with a decorative accent bar trying to
-   visually reconnect the two; simpler to just put the breadcrumb where
-   that gap was instead of inventing a new visual element for it. */
-.hero-left {
-  grid-column: 1; grid-row: 1 / 3;
-  padding: 0 72px 72px;
-  display: flex; flex-direction: column;
-  justify-content: center;
-  position: relative; overflow: hidden;
+.post-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: var(--ink-dim); }
+.post-cat { background: #f2f3f6; color: #0a0b10; padding: 4px 8px; text-decoration: none; }
+.post-cat:hover { color: #0a0b10; background: #fff; }
+.post-title {
+  font-family: var(--font-sans); font-weight: 600; font-size: clamp(36px, 4vw, var(--t-h1));
+  line-height: 1.05; letter-spacing: -0.02em; color: var(--ink-strong);
+  margin: 16px 0 18px; text-wrap: balance;
 }
-/* Noise grain overlay */
-.hero-left::before {
-  content: ''; position: absolute; inset: 0; opacity: 0.5;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-  background-size: 200px 200px; pointer-events: none; z-index: 0;
+.post-dek { font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.5; color: var(--ink-dim); max-width: 480px; margin-bottom: 20px; }
+.post-sub { display: flex; align-items: center; gap: 14px; color: var(--ink-faint); }
+.post-share {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(var(--c-white),0.05); border: 1px solid var(--rule); color: var(--ink-dim); cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 }
-/* Corner brackets on hero-left */
-.hero-left::after {
-  content: ''; position: absolute;
-  top: 20px; left: 20px;
-  width: 22px; height: 22px;
-  border-top: 1px solid rgba(var(--c-white),0.10);
-  border-left: 1px solid rgba(var(--c-white),0.10);
-  pointer-events: none; z-index: 2;
-}
-.hero-corner-br {
-  position: absolute; bottom: 20px; right: 20px;
-  width: 22px; height: 22px;
-  border-bottom: 1px solid rgba(var(--c-white),0.08);
-  border-right: 1px solid rgba(var(--c-white),0.08);
-  pointer-events: none; z-index: 2;
-}
-.hero-content { position: relative; z-index: 1; }
-.hero-right {
-  grid-column: 2; grid-row: 1 / 3;
-  position: relative; overflow: hidden;
-}
-/* Framed-plate treatment (mockup "Option A"), floating: no opaque backing
-   behind the card — .hero-right stays transparent so the nebula/ships show
-   through, same as the rest of the page, and the photo reads as a bordered
-   card floating over it rather than sitting on a black panel. The border/
-   shadow/radius live on the image (or the placeholder div) itself, sized to
-   less than 100% of .hero-art, so there's real transparent air around it —
-   not a bigger opaque box with the photo shrunk inside.
-   Same grain texture as .hero-left::before (no separate vignette) — both
-   panels now share identical brightness/overlay treatment. */
-.hero-right::before {
-  content: ''; position: absolute; inset: 0; opacity: 0.5; z-index: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-}
-
-.hero-art {
-  position: absolute; inset: 72px;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1;
-}
-/* .hero-art-frame is the actual visible card box — sizing, border, radius and
-   shadow all live here (not on the img), so anything positioned relative to
-   it (the credit tag) lines up with the real card edges regardless of how
-   big the card is inside .hero-art. */
-.hero-art-frame, .hero-art--placeholder {
-  position: relative;
-  width: 88%; height: 88%;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(var(--c-white),0.12);
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,0.3),
-    0 8px 24px -8px rgba(0,0,0,0.4),
-    0 30px 60px -20px rgba(0,0,0,0.48),
-    inset 0 1px 0 rgba(var(--c-white),0.06);
-}
-.hero-art-img {
+.post-share:hover { background: rgba(var(--c-white),0.11); color: var(--ink-strong); }
+.post-share svg { width: 14px; height: 14px; }
+.post-mitre { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.post-hero-img { position: relative; margin: 0; aspect-ratio: 3 / 2; border-radius: 6px; overflow: hidden; border: 1px solid var(--rule); background: #0a0b10; }
+.post-hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.post-hero-ph {
   width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  filter: grayscale(0.55) brightness(0.8) contrast(1.05);
-  display: block;
-  opacity: 0;
-  animation: heroArtIn 1.4s cubic-bezier(0.22,1,0.36,1) 0.7s forwards;
+  background: radial-gradient(at 50% 32%, rgba(132,132,146,0.30) 0%, rgba(70,70,80,0.18) 38%, transparent 70%),
+              linear-gradient(165deg, rgba(36,36,42,0.95) 0%, rgba(10,10,12,0.98) 100%);
 }
-@keyframes heroArtIn {
-  from { opacity: 0; transform: scale(0.97) translateY(6px); filter: grayscale(0.55) brightness(0.58) contrast(1.05); }
-  to { opacity: 1; transform: scale(1) translateY(0); filter: grayscale(0.55) brightness(0.8) contrast(1.05); }
-}
-/* Stand-in for posts with no heroImage yet. */
-.hero-art--placeholder {
-  background:
-    radial-gradient(at 50% 32%, rgba(132,132,146,0.30) 0%, rgba(70,70,80,0.18) 38%, transparent 70%),
-    linear-gradient(165deg, rgba(36,36,42,0.95) 0%, rgba(10,10,12,0.98) 100%);
+.post-hero-credit {
+  position: absolute; right: 12px; bottom: 12px; padding: 4px 9px; border-radius: 4px;
+  background: rgba(0,0,0,0.6); color: var(--ink-dim); pointer-events: none;
 }
 
-/* Hero tags */
-.hero-tags {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  margin-top: 24px;
-  animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 1.1s both;
-}
-/* Matte pill chips — Linear/Vercel style.
-   Solid surface (no gradient), soft single-color border, barely-there shadow.
-   Inter sans-serif, sentence case. Hierarchy from font-weight, not surface treatment. */
-.hero-tag {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size: 0.80rem; font-weight: 400;
-  letter-spacing: 0;
-  padding: 9px 18px;
-  border-radius: 100px;
-  border: 1px solid rgba(var(--c-white),0.10);
-  color: rgba(var(--c-white),0.78);
-  background: rgba(16,16,20,0.92);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
-  transition: border-color 0.25s, color 0.25s, transform 0.25s;
-  cursor: default;
-}
-.hero-tag:hover {
-  border-color: rgba(var(--c-white),0.22);
-  color: rgba(var(--c-white),0.95);
-  transform: translateY(-1px);
-}
-/* MITRE technique IDs — same chip construction, slightly heavier weight + tabular figures
-   so alphanumeric codes (T1195.002) read crisply inside a proportional sans */
-.hero-tag.mitre {
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.005em;
-  color: rgba(var(--c-white),0.92);
-  border-color: rgba(var(--c-white),0.14);
-}
-.hero-tag.mitre:hover {
-  border-color: rgba(var(--c-white),0.26);
-}
-
-/* ── Hero typography ── */
-.hero-breadcrumb {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem; letter-spacing: 0.20em;
-  color: rgba(var(--c-white),0.55);  /* interactive: raised from 0.42 for contrast */
-  text-transform: uppercase;
-  margin-bottom: 24px;
-  animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.3s both;
-}
-/* Desktop shows the copy nested inside .hero-content (above); mobile shows
-   the separate top-level instance instead (below, in the --bp-900 block) —
-   see the comment on the mobile markup in BlogPost.astro for why there
-   are two. */
-.hero-breadcrumb--mobile { display: none; }
-.hero-breadcrumb a {
-  color: rgba(var(--c-white),0.55); text-decoration: none;
-  transition: color 0.2s;
-}
-.hero-breadcrumb a:hover { color: rgba(var(--c-white),0.85); }
-.hero-breadcrumb .bc-sep { color: rgba(var(--c-white),0.18); margin: 0 10px; }
-.hero-title {
-  font-family: var(--article-font);
-  font-weight: 600; font-style: normal;
-  font-size: 3.9rem; color: rgba(var(--c-white),0.96);
-  line-height: 1.08; margin-bottom: 24px;
-  letter-spacing: -0.01em;
-  animation: fadeUp 1.2s cubic-bezier(0.22,1,0.36,1) 0.4s both;
-}
-.hero-subtitle {
-  font-family: var(--article-font);
-  font-weight: 400; font-style: normal;
-  font-size: 1.10rem; letter-spacing: 0.005em;
-  color: rgba(245,245,245,0.62);
-  line-height: 1.55; max-width: 480px;
-  animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.8s both;
-}
-
-/* ── Language notice — Cloudflare-blog-style banner, always visible right
-   under the hero (no click-to-reveal). Whole line is one link. ── */
+/* ── Language notice ── */
 .lang-notice {
-  display: flex; align-items: center; gap: 9px;
-  margin-top: 26px; padding: 11px 16px;
-  border: 1px solid rgba(var(--c-white),0.10); border-radius: 3px;
-  background: rgba(var(--c-white),0.02);
-  text-decoration: none; color: rgba(var(--c-white),0.55);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
-  transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  display: flex; align-items: center; gap: 9px; max-width: var(--w-text); margin: 0 auto 8px; padding: 11px 16px;
+  border: 1px solid var(--rule); border-radius: 6px; background: rgba(var(--c-white),0.02);
+  text-decoration: none; color: var(--ink-dim); transition: color 0.25s, border-color 0.25s;
 }
-.lang-notice:hover { color: rgba(var(--c-white),0.92); border-color: rgba(var(--c-white),0.22); background: rgba(var(--c-white),0.045); }
+.lang-notice:hover { color: var(--ink-strong); border-color: var(--rule-strong); }
 .lang-notice__icon { width: 15px; height: 15px; flex: none; opacity: 0.75; }
 
-/* ── Author Bar ── */
-.author-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 22px; padding-top: 32px; padding-bottom: 28px;
-  animation: fadeUp 0.8s ease 1.0s both;
-  border-bottom: 1px solid rgba(var(--c-white),0.04);
+/* ── Grid: 170 | 700 | 170, centred ── */
+.post-grid {
+  display: grid; grid-template-columns: 170px minmax(0, var(--w-text)) 170px; column-gap: 56px; justify-content: center;
+  padding-top: 48px; border-top: 1px solid var(--rule);
 }
-.author-bar-left { display: flex; align-items: center; gap: 18px; }
-/* Quiet utility line under the name — same low-contrast, small-mono
-   treatment as the byline metadata on most editorial sites (date, read
-   time; never competing with the name for attention). Grouped with the
-   name in .author-bar-left instead of pushed to the row's opposite edge,
-   so the whole byline reads as one unit next to the avatar. */
-.author-bar-meta {
-  margin-top: 5px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.52);
-  line-height: 1.5;
-}
-.author-bar-meta-sep { color: rgba(var(--c-white),0.20); margin: 0 1px; }
-.author-photo-wrap { position: relative; flex-shrink: 0; }
-.author-photo {
-  width: 58px; height: 58px; border-radius: 50%;
-  background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.90));
-  border: 1px solid rgba(var(--c-white),0.07);
-  border-top: 1px solid rgba(var(--c-white),0.13);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(var(--c-white),0.05);
-}
-.author-photo span {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.82rem; letter-spacing: 0.08em;
-  color: rgba(var(--c-white),0.40);
-}
-.author-badge {
-  position: absolute; bottom: 1px; right: 1px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: rgba(12,12,12,0.96);
-  border: 1px solid rgba(var(--c-white),0.18);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 8px rgba(48,205,96,0.10);
-}
-.author-badge svg { width: 10px; height: 10px; }
-/* pulsing live dot */
-.live-dot {
-  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(48,205,96,0.90);
-  box-shadow: 0 0 0 2px rgba(48,205,96,0.12), 0 0 8px rgba(48,205,96,0.50);
-  animation: livepulse 7s ease-in-out infinite;
-  vertical-align: middle; margin-right: 6px;
-}
-@keyframes livepulse {
-  0%,100% { box-shadow: 0 0 0 2px rgba(48,205,96,0.12), 0 0 8px rgba(48,205,96,0.50); opacity: 0.90; }
-  50%      { box-shadow: 0 0 0 2px rgba(48,205,96,0.03), 0 0 3px rgba(48,205,96,0.15); opacity: 0.35; }
-}
-.author-info-name {
-  font-family: var(--article-font);
-  font-weight: 400; font-size: 1.12rem;
-  color: rgba(var(--c-white),0.90);
-}
-
-/* ── Page grid — real two-column layout: text column on the left (matches
-   how WIRED/most editorial sites lay this out), "More stories" rail sits
-   in the freed-up space on the right as an actual grid column instead of
-   floating fixed over the margin. Text column is minmax(0,1fr) — not a
-   fixed px width — so it actually expands to fill whatever's left after
-   the rail, instead of staying a fixed narrow measure with dead space
-   past the rail before the container's real right edge (which is what a
-   flat 700px + 320px track list did: the pair just sat as a static block
-   near the left, using less than the full container width). Below
-   --bp-1300 there isn't room for both at a comfortable reading width, so
-   it collapses to one stacked column (see that breakpoint further down). ── */
-.page-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  column-gap: 96px;
-  align-items: start;
-}
-
-/* Share button: research into how major eng blogs (Vercel, Cloudflare,
-   GitHub, Linear) handle sharing found none of them use a persistent
-   floating rail — usage data for that pattern is consistently poor
-   (~0.2-0.5% click-through), and one A/B test found a pinned share toolbar
-   measurably reduced engagement. One static button: navigator.share()
-   where supported, falling back to the existing #shareDialog otherwise
-   (see BlogPost.astro). Lives inline in .author-bar-left (GitHub's old
-   slot) rather than its own row — a lone icon on its own line read as an
-   orphaned afterthought with dead space around it. */
-
-/* ── Right rail — "More stories" list. A real grid column now (see
-   .page-grid above), not a fixed element floating over the margin.
-   Sticky keeps it in view while scrolling through the article, and it
-   naturally stops sticking once .page-grid — which ends right where the
-   article does, before the FAQ — scrolls past, so no manual scroll-
-   threshold JS is needed the way the old fixed-position version required. ── */
-.left-sidebar {
-  position: sticky;
-  top: 100px;
-  align-self: start;
-  min-width: 0; /* same grid-item shrink fix as .article-col above */
-}
-.rail-sticky { /* passive wrapper, kept for the sticky-vs-fixed rename's sake */ }
-.left-sidebar-heading {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 0.20em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.50); margin-bottom: 12px;
-}
-
-/* ── "More stories" rail list — thumbnail + category + title + date,
-   hairline divider between rows. Same family as the old .story-card
-   (bottom-grid layout, removed) but a horizontal row instead of a
-   stacked card. Thumbnail sized up now that the rail is a real 320px
-   grid column instead of a cramped 220px floating strip. ── */
-.rail-story-list { display: flex; flex-direction: column; }
-.rail-story {
-  display: flex; gap: 16px; align-items: flex-start;
-  padding: 18px 0; text-decoration: none; color: inherit;
-  border-bottom: 1px solid rgba(var(--c-white),0.06);
-  transition: opacity 0.2s;
-}
-.rail-story:first-child { padding-top: 0; }
-.rail-story:last-child { border-bottom: none; padding-bottom: 0; }
-.rail-story:hover { opacity: 0.82; }
-.rail-story-thumb {
-  width: 60px; height: 60px; flex: none; border-radius: 5px; overflow: hidden;
-  background: linear-gradient(145deg, rgba(22,22,22,0.94), rgba(14,14,14,0.90));
-  border: 1px solid rgba(var(--c-white),0.06);
-}
-/* Full color, not desaturated-until-hover like the other thumbnail
-   treatments on this page (story cards, also-by) — this list is dense
-   enough (5 rows) that a hover-to-reveal-color trick per row reads as
-   flickery rather than a nice reveal. */
-.rail-story-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.rail-story-cat {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.54rem; letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.55); margin-bottom: 5px;
-}
-.rail-story-title {
-  font-family: var(--article-font); font-weight: 500; font-size: 0.98rem;
-  line-height: 1.32; color: rgba(240,240,240,0.85);
-}
-.rail-story-meta {
-  margin-top: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.56rem; letter-spacing: 0.06em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.52);
-}
-/* Flat quiet circle — utility chrome (share, not content), so it stays
-   out of the way rather than competing with the byline next to it. No
-   gradient/border/shadow stack; just a faint fill that darkens on hover,
-   the same restraint most editorial sites give their share icons. */
-.social-icon {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-  background: rgba(var(--c-white),0.05);
-  border: none;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.social-icon:hover { background: rgba(var(--c-white),0.11); }
-.social-icon svg { width: 14px; height: 14px; }
-
-/* ── Wide-layout-only author bar sizing. The photo/share button were sized
-   for the old narrow (820px) centered article column; against the new
-   wide (fills up to ~1fr) column the row has a lot more horizontal room
-   and the same small elements read as undersized/sparse. Scoped to where
-   the two-column grid is actually active (matches the --bp-1300 collapse
-   point elsewhere in this file) — the narrower/mobile layout already
-   looks right as-is and doesn't need this. ── */
-@media (min-width: 1301px) {
-  /* Pulled up closer to the hero (less padding-top) and given more room
-     to breathe before the article body starts (.article-col's own
-     padding-top, just below) instead of stacking that gap on the author
-     bar itself. */
-  .author-bar { padding-top: 22px; padding-bottom: 34px; }
-  .author-photo { width: 76px; height: 76px; }
-  .author-photo span { font-size: 1.02rem; }
-  .author-badge { width: 25px; height: 25px; }
-  .author-badge svg { width: 12px; height: 12px; }
-  .social-icon { width: 46px; height: 46px; }
-  .social-icon svg { width: 18px; height: 18px; }
-  .article-col { padding-top: 64px; }
-}
-
-/* ── Article ── */
 .article-col {
-  padding: 36px 0 0;
-  /* No max-width cap — fills .page-grid's flexible 1fr column (the full
-     container width minus the 320px rail and gap), matching WIRED's wide
-     text measure instead of a narrow fixed-width one. */
-  /* Grid items default to min-width:auto, which means they refuse to
-     shrink below their content's own intrinsic width — a code block's
-     long unbroken line (white-space:pre) has a very wide min-content
-     size. Without this, that forced the whole column (and everything in
-     it, including normal paragraphs, which then wrap at that wider
-     measure) past the edge of a narrow/mobile viewport instead of
-     respecting .page-grid's minmax(0, ...) track, which only constrains
-     the *track*, not the item placed inside it. */
-  min-width: 0;
+  grid-column: 2; min-width: 0; /* grid items refuse to shrink below a long code line otherwise */
+  font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.65; color: var(--ink);
+  counter-reset: fig tbl;
 }
 
-.dropcap-block { display: flex; margin-bottom: 36px; }
-/* min-width:0 — same flex/grid-item shrink fix as .article-col; the first
-   paragraph is a flex sibling of the fixed-width drop-cap letter, and
-   without this it can refuse to wrap narrower than its own content's
-   intrinsic width on a narrow viewport. */
-.dropcap-block .body-text { margin-bottom: 0; min-width: 0; }
-.author-info-row { display: flex; align-items: baseline; flex-wrap: wrap; }
-.dropcap-letter {
-  width: 80px; height: 80px;
-  background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.90));
-  border: 1px solid rgba(var(--c-white),0.22);
-  border-top: 1px solid rgba(var(--c-white),0.32);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; margin-right: 24px; margin-top: 6px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.50), inset 0 1px 0 rgba(var(--c-white),0.08);
+/* ── Body ── */
+.body-text { position: relative; font-size: var(--t-body); line-height: 1.65; color: var(--ink); margin: 0 0 24px; }
+.article-col strong, .body-text strong { font-weight: 600; color: var(--ink-strong); }
+.article-col em { font-style: normal; color: var(--ink-strong); }
+.body-text a, .lead-list a, .article-col ol a {
+  color: var(--ink-strong); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 3px;
 }
-.dropcap-letter span {
-  font-family: var(--article-font);
-  font-weight: 400; font-size: 3.2rem;
-  color: rgba(var(--c-white),0.50);
+.body-text a:hover { text-decoration-color: var(--ink-dim); }
+.heading-2 {
+  font-family: var(--font-sans); font-weight: 600; font-size: var(--t-h2); line-height: 1.2; letter-spacing: -0.01em;
+  color: var(--ink-strong); margin: 56px 0 18px; scroll-margin-top: 96px; text-wrap: balance;
 }
-
-.body-text {
-  font-family: var(--article-font);
-  /* Was 1.38rem, then 1.18rem — still read large next to the wider text
-     column. Now close to Apple's 17px reference. */
-  font-weight: 400; font-size: 1.05rem;
-  color: rgba(248,248,248,0.92);
-  /* Was 1.85 — noticeably looser than any comparable editorial blog
-     (Apple/beehiiv/plainenglish all land near 1.5). Tightened without
-     going all the way there, keeping some of the airier feel. */
-  line-height: 1.6; margin-bottom: 26px;
-  letter-spacing: 0.005em;
+.heading-3 { color: var(--ink-dim); margin: 36px 0 14px; scroll-margin-top: 96px; }
+.lead-list, .article-col ol { margin: 0 0 24px; padding: 0; display: grid; gap: 8px; }
+.lead-list { list-style: none; }
+.lead-list li { position: relative; padding-left: 26px; font-size: var(--t-body); line-height: 1.65; color: var(--ink); }
+.lead-list li::before { content: ''; position: absolute; left: 2px; top: 0.85em; width: 10px; height: 1px; background: var(--ink-faint); }
+.article-col ol { padding-left: 1.4em; }
+.article-col ol li { font-size: var(--t-body); line-height: 1.65; color: var(--ink); padding-left: 4px; }
+.article-col ol li::marker { color: var(--ink-faint); }
+.highlight {
+  background: rgba(72,215,145,0.13); color: var(--ink-strong); padding: 0.08em 0.3em; border-radius: 3px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
-.body-text strong { font-weight: 600; color: rgba(var(--c-white),0.98); }
-.body-text em { font-style: italic; color: rgba(var(--c-white),0.94); }
-.body-text a {
-  color: rgba(var(--c-white),0.85);
-  text-decoration: underline;
-  text-decoration-color: rgba(var(--c-white),0.25);
-  text-underline-offset: 3px;
+.keyword-pill {
+  display: inline-block; font-size: var(--t-small); padding: 0 8px; border-radius: 100px; white-space: nowrap;
+  background: rgba(var(--c-white),0.05); border: 1px solid var(--rule); color: var(--ink);
 }
-.body-text a:hover { text-decoration-color: rgba(var(--c-white),0.60); }
-a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their ATT&CK pages */
-
-/* ── Bold-lead list (Fortinet pattern): each item opens with a bolded
-      phrase + dash, so the list scans as a summary on its own. ── */
-.lead-list { list-style: none; margin: 0 0 30px; padding: 0; }
-/* Same size/line-height as .body-text on purpose — a list is still prose
-   the reader reads sentence by sentence, just broken into items. It
-   shouldn't read as a visually distinct "list voice". */
-.lead-list li {
-  font-family: var(--article-font);
-  font-size: 1.05rem; line-height: 1.6;
-  color: rgba(248,248,248,0.90);
-  padding: 9px 0 9px 28px; position: relative;
-}
-.lead-list li::before {
-  content: ''; position: absolute; left: 2px; top: 1.06em;
-  width: 10px; height: 1px; background: rgba(var(--c-white),0.42);
-}
-.lead-list li strong { font-weight: 600; color: rgba(var(--c-white),0.97); }
-
-/* ── Inline aside box (GitHub-blog pattern): quiet bordered mid-article
-      pointer — italic serif line + mono arrow-link. ── */
+.pull-quote { margin: 36px 0; padding-left: 20px; border-left: 2px solid rgba(200,206,218,0.7); }
+.pull-quote p, .pull-quote .body-text { font-size: var(--t-lead); line-height: 1.45; color: var(--ink-strong); margin: 0; }
 .aside-cta {
-  margin: 34px 0; padding: 18px 24px;
-  display: flex; align-items: baseline; justify-content: space-between; gap: 18px; flex-wrap: wrap;
-  border: 1px solid rgba(var(--c-white),0.12); border-radius: 4px;
-  background: rgba(18,18,24,0.60);
-  /* Not italic — it's a pointer/CTA line, not a quote. Genuine quotes
-     stay on .pull-quote; italic shouldn't do double duty as "boxed
-     aside" decoration too. */
-  font-family: var(--article-font);
-  font-size: var(--prose-sm-size); line-height: var(--prose-sm-line); color: rgba(var(--c-white),0.72);
+  margin: 32px 0; padding: 16px 20px; display: flex; align-items: baseline; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  border: 1px solid var(--rule); border-radius: 10px; background: rgba(var(--c-white),0.03);
+  font-size: var(--t-small); line-height: 1.55; color: var(--ink);
 }
 .aside-cta a {
-  font-style: normal; font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
-  white-space: nowrap; text-decoration: none;
-  color: rgba(var(--c-white),0.82);
-  border-bottom: 1px solid rgba(var(--c-white),0.30); padding-bottom: 2px;
-  transition: color 0.25s, border-color 0.25s;
+  font-family: var(--font-mono); font-size: var(--t-label); letter-spacing: 0.1em; text-transform: uppercase;
+  white-space: nowrap; text-decoration: none; color: var(--ink-strong); border-bottom: 1px solid var(--rule-strong); padding-bottom: 2px;
 }
-.aside-cta a:hover { color: #fff; border-color: #fff; }
+.mitre-chip, a.mitre-chip {
+  display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: var(--t-label); letter-spacing: 0.04em;
+  padding: 2px 8px; border-radius: 4px; border: 1px solid var(--rule-strong); color: var(--ink);
+  background: rgba(var(--c-white),0.05); text-decoration: none; vertical-align: 0.1em;
+}
+.mitre-chip:hover { background: rgba(var(--c-white),0.1); color: var(--ink-strong); }
 
-/* Marker-pen highlight for key sentences — soft green wash, multi-line safe.
-   Usage: <span class="highlight">key sentence here</span> */
-.highlight {
-  background: rgba(72,215,145,0.13);
-  color: rgba(var(--c-white),0.96);
-  padding: 0.08em 0.30em;
-  border-radius: 3px;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+/* ── Code ── */
+.code-inline, .article-col code:not(pre code) {
+  font-family: var(--font-mono); font-size: var(--t-small); padding: 0.1em 0.4em; border-radius: 4px;
+  background: rgba(200,206,218,0.1); color: #dfe5f2; border: 0;
 }
-
-/* Inline keyword pills — small chip for tagging technical terms in prose.
-   Usage: <span class="keyword-pill">postinstall hook</span>
-   Different from .highlight (sentence emphasis) — pills mark specific terms.
-   Font matches .body-text's system-sans stack (was 'Inter', a font loaded
-   for no other reason on this page — pills rendered in a visibly different
-   typeface than every other word around them). */
-.keyword-pill {
-  display: inline-block;
-  font-family: var(--article-font);
-  font-size: 0.78em;
-  font-weight: 500;
-  letter-spacing: 0;
-  padding: 1px 9px;
-  border-radius: 100px;
-  background: rgba(var(--c-white),0.05);
-  border: 1px solid rgba(var(--c-white),0.10);
-  color: rgba(var(--c-white),0.88);
-  vertical-align: 0.06em;
-  white-space: nowrap;
-  line-height: 1.6;
-}
-
-.heading-2 {
-  font-family: var(--article-font);
-  font-weight: 500; font-size: 1.95rem;
-  color: rgba(var(--c-white),0.92);
-  margin-top: 64px; margin-bottom: 24px; line-height: 1.22;
-  letter-spacing: 0.005em;
-}
-.heading-3 {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.55);
-  margin-top: 40px; margin-bottom: 18px;
-}
-
-/* MITRE chip — matches portfolio badge style */
-.mitre-chip {
-  display: inline-flex; align-items: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 0.06em;
-  padding: 3px 8px; border-radius: 3px;
-  border: 1px solid rgba(var(--c-white),0.20);
-  color: rgba(var(--c-white),0.78);
-  background: rgba(var(--c-white),0.06);
-  margin: 0 2px; vertical-align: middle;
-  cursor: default;
-  transition: background 0.2s, border-color 0.2s;
-}
-.mitre-chip:hover { background: rgba(var(--c-white),0.12); border-color: rgba(var(--c-white),0.35); }
-
-/* Code blocks */
 .code-wrap { position: relative; margin: 32px 0; }
 .code-block {
-  background: linear-gradient(145deg, rgba(18,18,18,0.98), rgba(12,12,12,0.95));
-  border: 1px solid rgba(var(--c-white),0.05);
-  border-top: 1px solid rgba(var(--c-white),0.09);
-  border-radius: 8px; padding: 22px 24px;
-  margin: 0;
-  overflow-x: auto;
-  transition: border-color 0.3s;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(var(--c-white),0.03);
-  position: relative;
+  margin: 0; padding: 20px 22px; overflow-x: auto; border-radius: 10px;
+  background: #0a0b10; border: 1px solid var(--rule);
 }
-/* corner bracket on code block */
-.code-block::before, .code-block::after {
-  content: ''; position: absolute; width: 12px; height: 12px;
-  border-color: rgba(var(--c-white),0.07); border-style: solid;
-  pointer-events: none;
-}
-.code-block::before { top: 9px; left: 9px; border-width: 1px 0 0 1px; }
-.code-block::after  { bottom: 9px; right: 9px; border-width: 0 1px 1px 0; }
-.code-block:hover { border-color: rgba(var(--c-white),0.09); }
-.code-block code {
-  font-family: 'JetBrains Mono', monospace;
-  /* No font-weight here on purpose: only 400/500 are loaded (see the font
-     link in BlogPost.astro) — anything else falls back to the nearest
-     loaded weight rather than fetching a new file, so declaring one that
-     isn't requested doesn't get you what it looks like it would. */
-  font-size: 0.84rem;
-  color: rgba(72,215,145,0.82); line-height: 1.80;
-  white-space: pre;
-}
+.code-block code { font-family: var(--font-mono); font-size: var(--t-small); line-height: 1.6; color: rgba(72,215,145,0.85); white-space: pre; }
+.code-block .line { line-height: 1.6; }
 .copy-btn {
-  position: absolute; top: 10px; right: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.50rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.40);
-  background: rgba(var(--c-white),0.03);
-  border: 1px solid rgba(var(--c-white),0.07);
-  border-radius: 3px; padding: 4px 10px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  position: absolute; top: 10px; right: 10px; padding: 4px 9px; border-radius: 4px; cursor: pointer;
+  background: rgba(var(--c-white),0.04); border: 1px solid var(--rule); color: var(--ink-faint);
+  transition: color 0.2s, border-color 0.2s;
 }
-.copy-btn:hover { color: rgba(72,215,145,0.80); border-color: rgba(72,215,145,0.22); background: rgba(72,215,145,0.04); }
-.copy-btn.copied { color: rgba(72,215,145,0.90); border-color: rgba(72,215,145,0.28); }
+.copy-btn:hover, .copy-btn.copied { color: var(--ink-strong); border-color: var(--rule-strong); }
 
-.code-inline {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.84rem;
-  background: rgba(var(--c-white),0.04);
-  border: 1px solid rgba(var(--c-white),0.07);
-  padding: 2px 7px; border-radius: 3px;
-  color: rgba(238,238,238,0.80);
+/* ── Callouts ── */
+.callout-detect {
+  margin: 32px 0; padding: 18px 20px; border-radius: 10px;
+  border: 1px solid rgba(226,165,90,0.3); background: rgba(226,165,90,0.05);
 }
+.callout-detect-label { color: var(--flaw); margin-bottom: 8px; }
+.callout-detect p { font-size: var(--t-small); line-height: 1.55; color: var(--ink); margin: 0; }
+.callout-detect p + p { margin-top: 12px; }
 
-/* Pull quote */
-.pull-quote {
-  border-left: 1px solid rgba(var(--c-white),0.25);
-  padding: 18px 0 18px 28px; margin: 48px 0;
-  transition: border-color 0.4s;
-  position: relative;
-}
-.pull-quote::before {
-  content: ''; position: absolute;
-  top: 0; left: 0; width: 1px; height: 18px;
-  background: rgba(var(--c-white),0.50);
-}
-.pull-quote:hover { border-color: rgba(var(--c-white),0.42); }
-.pull-quote p {
-  font-family: var(--article-font);
-  /* Was 1.65rem — oversized next to the now-1.05rem body text (that ratio
-     made sense against the old 1.38rem body, not this one). */
-  font-style: italic; font-size: 1.28rem;
-  color: rgba(var(--c-white),0.58); line-height: 1.50;
-  letter-spacing: 0.005em;
-}
+/* ── Margin notes: year/label plus a short line, in the left gutter ── */
+.mnote { position: absolute; top: 0.3em; right: calc(100% + 56px); width: 170px; text-align: right; }
+.mnote-day { display: block; color: var(--ink-dim); }
+.mnote-sub { display: block; margin-top: 4px; font-family: var(--font-sans); font-size: var(--t-small); line-height: 1.45; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
+.mnote-tag { display: inline-block; margin-top: 8px; padding: 1px 6px; border: 1px solid var(--rule-strong); border-radius: 4px; color: var(--ink-faint); }
 
-/* ── FAQ ── */
-.faq-section { padding: 72px 0; border-top: 1px solid rgba(var(--c-white),0.04); }
-.faq-heading {
-  font-family: var(--article-font);
-  /* Upright + medium, matching .heading-2 — italic on this page is reserved
-     for quotes/captions (pull-quote, figcaption, mnote-sub), not section
-     headings. This used to be the one heading styled like a quote instead
-     of a heading. */
-  font-weight: 500; font-size: 2.4rem;
-  color: rgba(var(--c-white),0.85);
-  margin-bottom: 52px; text-align: center; line-height: 1.2;
+/* ── Figures and tables (numbered by the counters on .article-col) ── */
+.post-figure { margin: 36px 0; }
+.post-figure.is-figure { counter-increment: fig; }
+.post-figure.is-table { counter-increment: tbl; }
+.post-figure figcaption { margin-top: 10px; font-size: var(--t-small); line-height: 1.55; color: var(--ink-dim); }
+.post-figure.is-figure figcaption::before { content: 'Figure ' counter(fig) '. '; font-weight: 600; color: var(--ink-strong); }
+.post-figure.is-table figcaption::before { content: 'Table ' counter(tbl) '. '; font-weight: 600; color: var(--ink-strong); }
+:lang(es) .post-figure.is-figure figcaption::before { content: 'Figura ' counter(fig) '. '; }
+:lang(es) .post-figure.is-table figcaption::before { content: 'Tabla ' counter(tbl) '. '; }
+.plate { border: 1px solid var(--rule); border-radius: 10px; background: #0a0b10; overflow: hidden; }
+.plate-in { padding: 22px 22px 14px; overflow-x: auto; }
+.plate-in svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.plate-foot { display: flex; justify-content: space-between; gap: 12px; padding: 9px 16px; border-top: 1px solid var(--rule); color: var(--ink-faint); }
+.plate-n::after { content: 'Fig ' counter(fig); }
+:lang(es) .plate-n::after { content: 'Fig. ' counter(fig); }
+/* Diagram marks (Diagram.astro / Sequence.astro). Text is drawn at the
+   system's 15 (node titles) and 12 (subs, labels, steps). */
+.dg-box { fill: #11131b; stroke: rgba(200,206,218,0.45); stroke-width: 1.3; }
+.dg-box.is-flaw { fill: rgba(226,165,90,0.07); stroke: var(--flaw); }
+.dg-box.is-muted { fill: transparent; stroke-dasharray: 4 4; }
+.dg-t { font: 600 15px var(--font-sans); fill: #eef1f6; text-anchor: middle; }
+.dg-s { font: 400 12px var(--font-sans); fill: rgba(200,206,218,0.72); text-anchor: middle; }
+.dg-t.is-flaw { fill: var(--flaw); }
+.dg-s.is-flaw { fill: rgba(226,165,90,0.85); }
+.dg-t.is-muted { fill: rgba(200,206,218,0.72); }
+.dg-edge path { fill: none; stroke: rgba(200,206,218,0.5); stroke-width: 1.4; }
+.dg-edge.is-flaw path { stroke: var(--flaw); }
+.dg-edge.is-dashed path:not(.dg-head) { stroke-dasharray: 5 5; }
+.dg-lbl { font: 400 12px var(--font-mono); fill: rgba(200,206,218,0.72); letter-spacing: 0.04em; }
+.dg-lbl.is-flaw { fill: var(--flaw); }
+.dg-step circle { fill: #c8ceda; }
+.dg-step.is-flaw circle { fill: var(--flaw); }
+.dg-step text { font: 400 12px var(--font-mono); fill: #0a0b10; text-anchor: middle; }
+.dg-group { fill: rgba(255,255,255,0.015); stroke: rgba(200,206,218,0.24); stroke-dasharray: 4 5; }
+.dg-group.is-flaw { stroke: rgba(226,165,90,0.5); }
+.dg-glbl { font: 400 12px var(--font-mono); fill: rgba(200,206,218,0.5); letter-spacing: 0.1em; text-transform: uppercase; }
+.dg-glbl.is-flaw { fill: var(--flaw); }
+.dg-life { stroke: rgba(200,206,218,0.25); stroke-dasharray: 3 5; }
+.dg-note { fill: rgba(255,255,255,0.03); stroke: rgba(200,206,218,0.2); }
+.dg-note.is-flaw { fill: rgba(226,165,90,0.06); stroke: rgba(226,165,90,0.5); }
+.dg-note-t { fill: rgba(232,236,244,0.86); }
+/* Tables (DataTable, CaseFile, IocTable, and plain markdown tables) */
+.dtable { border: 1px solid var(--rule); border-radius: 10px; overflow-x: auto; background: #0a0b10; }
+.dtable table, .article-col > table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.dtable table { min-width: 460px; }
+.dtable th, .article-col > table th { text-align: left; padding: 11px 16px; background: rgba(200,206,218,0.1); color: var(--ink-strong); vertical-align: bottom; }
+.dtable td, .article-col > table td {
+  padding: 12px 16px; border-top: 1px solid rgba(200,206,218,0.08); vertical-align: top;
+  font-size: var(--t-small); line-height: 1.5; color: var(--ink);
 }
-.faq-list { max-width: 820px; margin: 0 auto; }
-.faq-item { border-bottom: 1px solid rgba(var(--c-white),0.05); }
+.dtable tbody tr:nth-child(even) td, .article-col > table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.022); }
+.dtable td.k { color: var(--ink-dim); white-space: nowrap; width: 1%; }
+.dtable code { word-break: break-all; }
+.dtable code.flaw, .dtable .flaw { color: var(--flaw); }
+.article-col > table { display: block; overflow-x: auto; margin: 36px 0; border: 1px solid var(--rule); border-radius: 10px; }
+.article-col > table th { font-family: var(--font-mono); font-size: var(--t-label); font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; }
+.ioc-val { user-select: all; }
+.ioc-act { width: 1%; text-align: right; }
+.ioc-copy {
+  font-family: var(--font-mono); font-size: var(--t-label); letter-spacing: 0.1em; text-transform: uppercase;
+  background: none; border: 1px solid var(--rule-strong); border-radius: 4px; color: var(--ink-dim); padding: 3px 8px; cursor: pointer;
+}
+.ioc-copy:hover, .ioc-copy.copied { color: var(--ink-strong); border-color: var(--ink-dim); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Heading anchor links ── */
+.hlink {
+  display: inline-block; margin-left: 10px; font-family: var(--font-mono); font-size: var(--t-small); font-weight: 400; vertical-align: 0.2em;
+  color: var(--ink-faint); text-decoration: none; opacity: 0; transform: translateX(-4px); transition: opacity 0.25s, transform 0.25s;
+}
+.heading-2:hover .hlink, .heading-3:hover .hlink, .hlink:focus-visible { opacity: 1; transform: none; }
+.hlink:hover { color: var(--ink-strong); }
+
+/* ── On this page: right-edge strip (wide) and inline box (narrow) ── */
+.etoc {
+  position: fixed; right: 22px; top: 50%; transform: translateY(-50%); z-index: 140;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.etoc.is-shown, .etoc:focus-within { opacity: 1; pointer-events: auto; } /* a tabbed-to link must never sit inside an invisible strip */
+.etoc-dashes { list-style: none; margin: 0; padding: 12px 6px 12px 28px; display: grid; gap: 12px; justify-items: end; } /* left padding bridges to the card */
+.etoc-dashes span { display: block; width: 22px; height: 2px; border-radius: 2px; background: rgba(var(--c-white),0.24); transition: width 0.25s, background 0.25s; }
+.etoc-dashes span.sub { width: 14px; }
+.etoc-dashes span.is-active { width: 32px; background: rgba(var(--c-white),0.9); }
+.etoc-card {
+  position: absolute; right: calc(100% - 20px); top: 50%; width: 280px; padding: 10px;
+  border: 1px solid var(--rule-strong); border-radius: 10px; background: rgba(12,13,19,0.97); box-shadow: 0 18px 50px rgba(0,0,0,0.6);
+  opacity: 0; pointer-events: none; transform: translate(8px, -50%); transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.etoc.is-open .etoc-card, .etoc:focus-within .etoc-card { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
+.etoc-h { color: var(--ink-faint); margin: 4px 10px 8px; }
+.etoc-card ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.etoc-card a { display: block; padding: 7px 10px; border-radius: 6px; font-size: var(--t-small); line-height: 1.35; color: var(--ink-dim); text-decoration: none; }
+.etoc-card a:hover { background: rgba(var(--c-white),0.05); color: var(--ink-strong); }
+.etoc-card a.is-active { color: var(--ink-strong); background: rgba(200,206,218,0.08); box-shadow: inset 2px 0 0 #c8ceda; }
+.toc-inline { display: none; margin: 0 0 32px; border: 1px solid var(--rule); border-radius: 10px; background: rgba(12,12,16,0.6); }
+.toc-inline summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; padding: 13px 18px; color: var(--ink-dim); }
+.toc-inline summary::-webkit-details-marker { display: none; }
+.toc-inline summary::after { content: '+'; transition: transform 0.3s; }
+.toc-inline[open] summary::after { transform: rotate(45deg); }
+.toc-inline ol { list-style: none; margin: 0; padding: 2px 18px 14px; display: grid; gap: 2px; }
+.toc-inline a { display: block; padding: 5px 0 5px 14px; border-left: 1px solid var(--rule); font-size: var(--t-small); color: var(--ink-dim); text-decoration: none; }
+.toc-inline a.is-active { color: var(--ink-strong); border-left-color: #c8ceda; }
+
+/* ── FAQ: centred on the text column ── */
+.faq-section { max-width: var(--w-text); margin: 80px auto 0; scroll-margin-top: 96px; }
+.faq-head { display: grid; justify-items: center; gap: 10px; text-align: center; margin-bottom: 22px; }
+.faq-kicker { color: var(--ink-faint); }
+.faq-heading { font-family: var(--font-sans); font-weight: 600; font-size: var(--t-h2); line-height: 1.2; color: var(--ink-strong); }
+.faq-list { border-top: 1px solid var(--rule); }
+.faq-item { border-bottom: 1px solid var(--rule); }
 .faq-q {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 22px 0; cursor: pointer; gap: 16px;
-  font-family: var(--article-font);
-  font-weight: 400; font-size: 1.12rem;
-  color: rgba(240,240,240,0.72); line-height: 1.4;
-  transition: color 0.2s;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; cursor: pointer;
+  font-family: var(--font-sans); font-weight: 400; font-size: var(--t-body); line-height: 1.45; color: var(--ink); transition: color 0.2s;
 }
-.faq-q:hover { color: rgba(var(--c-white),0.90); }
-.faq-icon {
-  font-size: 1.1rem; font-weight: 300;
-  color: rgba(var(--c-white),0.45); flex-shrink: 0;
-  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), color 0.2s;
-  line-height: 1;
-  font-family: 'JetBrains Mono', monospace;
-}
-.faq-item.open .faq-icon { transform: rotate(45deg); color: rgba(var(--c-white),0.80); }
+.faq-q:hover { color: var(--ink-strong); }
+.faq-icon { flex-shrink: 0; font-family: var(--font-mono); font-size: var(--t-small); line-height: 1; color: var(--ink-faint); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); }
+.faq-item.open .faq-icon { transform: rotate(45deg); color: var(--ink-strong); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1); }
-.faq-a-inner {
-  padding-bottom: 22px;
-  font-family: var(--article-font);
-  font-size: var(--prose-sm-size); color: rgba(240,240,240,0.48);
-  line-height: var(--prose-sm-line); letter-spacing: 0.01em;
-}
 .faq-item.open .faq-a { max-height: 900px; }
+.faq-a-inner { padding-bottom: 20px; font-size: var(--t-body); line-height: 1.65; color: var(--ink-dim); }
+button.faq-q { width: 100%; text-align: left; background: none; border: none; }
+button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outline-offset: 4px; }
+
+/* ── End of post: next in series ── */
+.post-next { max-width: var(--w-wide); margin: 80px auto 0; padding-top: 28px; border-top: 1px solid var(--rule); }
+.post-next-h { color: var(--ink-faint); margin-bottom: 16px; }
+.post-next-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.next-card { display: grid; gap: 10px; align-content: start; text-decoration: none; color: inherit; min-width: 0; }
+.next-img { aspect-ratio: 3 / 2; border-radius: 6px; overflow: hidden; border: 1px solid var(--rule); background: #0a0b10; }
+.next-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+.next-card:hover .next-img img { transform: scale(1.02); }
+.next-date { color: var(--ink-faint); }
+.next-title { font-family: var(--font-sans); font-weight: 600; font-size: var(--t-body); line-height: 1.35; color: var(--ink-strong); }
+.story-image-ph {
+  width: 100%; height: 100%; min-height: 120px;
+  background: radial-gradient(circle at 30% 30%, rgba(var(--c-white),0.06), transparent 60%), linear-gradient(145deg, rgba(20,20,28,1), rgba(10,10,16,1));
+}
+
+/* ── Narrow screens ── */
+@media (--bp-1100) {
+  .post-grid { grid-template-columns: minmax(0, var(--w-text)); padding-top: 36px; }
+  .article-col { grid-column: 1; }
+  .etoc { display: none; }
+  .toc-inline { display: block; }
+  /* margin notes fold inline above their paragraph */
+  .mnote { position: static; display: block; width: auto; text-align: left; margin: 0 0 8px; padding-left: 12px; border-left: 1px solid var(--rule-strong); }
+  .mnote-day, .mnote-sub { display: inline; }
+  .mnote-sub { margin-left: 10px; }
+  .mnote-tag { margin: 0 0 0 10px; }
+}
+@media (--bp-900) {
+  .post-hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 88px 24px 36px; }
+  .post-hero-img { order: -1; }
+  #site-identity { top: 12px; left: 20px; }
+  .nav-name { font-size: 1.3rem; }
+  #menu-trigger { top: 14px; right: 20px; }
+  .container { padding: 0 24px; }
+  .post-next-row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (--bp-600) {
+  #back-to-top { bottom: 20px; left: 16px; }
+  .luna-slot { right: 18px; bottom: 22px; }
+  .dtable td.k { white-space: normal; }
+}
 
 /* ── Back to Top — left corner, so the right corner (Luna's) stays clear.
    Doubles as the reading-progress indicator (replaces the old thin bar
@@ -901,298 +561,6 @@ a.mitre-chip { text-decoration: none; }  /* technique chips deep-link to their A
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* ── Hero artwork credit — a small pill sitting on the framed card's own
-   bottom-right corner. Nested inside .hero-art-frame so it's positioned
-   relative to the actual visible card, not guessed via a fixed offset from
-   the outer panel (which broke once the card's own size changed). ── */
-.hero-credit-tag {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  z-index: 3;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.56rem;
-  letter-spacing: 0.20em;
-  text-transform: uppercase;
-  color: rgba(var(--c-white),0.55);
-  background: rgba(0,0,0,0.55);
-  border: 1px solid rgba(var(--c-white),0.1);
-  border-radius: 100px;
-  padding: 5px 10px;
-  pointer-events: none;
-  animation: fadeIn 1.6s ease 1.4s both;
-}
-
-/* ── Below 1580px there isn't room for a fixed rail beside the article, but
-   the "More stories" list still needs to show up somewhere — it's the only
-   "other posts" surface on a post page. Drop out of fixed positioning and
-   the scroll-triggered fade (both a wide-viewport-only mechanic) and let it
-   sit in normal document flow instead, right after the article. ── */
-/* Below this width there isn't room for a 700px text column + 320px rail
-   side by side at a comfortable measure — collapse to one stacked column.
-   Sidebar drops sticky (nothing to track once it's not beside a much
-   taller sibling) and the article regains a centered, padded, capped-width
-   treatment since its width no longer comes from the grid column. */
-@media (--bp-1300) {
-  .page-grid { grid-template-columns: minmax(0, 1fr); }
-  .left-sidebar { position: static; top: auto; margin-top: 48px; }
-  .article-col {
-    padding: 36px 48px 0;
-    max-width: 720px;
-    margin: 0 auto;
-  }
-}
-
-/* ── Mobile ── */
-@media (--bp-900) {
-  .hero { grid-template-columns: 1fr; grid-template-rows: none; min-height: auto; }
-  /* Breadcrumb, then image, then title — .hero is already a grid at every
-     width, so this is just a visual reorder (DOM/reading/tab order is
-     unchanged: breadcrumb, title block, image). The desktop rule pins each
-     item to an explicit row/column for the 2-column layout; reset to auto
-     here so the single-column collapse below can place them by order
-     instead. */
-  /* padding-top on the breadcrumb (not .hero) clears the fixed header —
-     it's the first thing on the page at this width (same fix needed on
-     the blog index page's threat-wire reorder, same reason: it wasn't
-     first before). */
-  .hero-breadcrumb--desktop { display: none; }
-  .hero-breadcrumb--mobile {
-    display: block; grid-column: auto; grid-row: auto; order: -2;
-    padding: 84px 32px 0;
-  }
-  .hero-right { grid-column: auto; grid-row: auto; order: -1; }
-  .hero-left { grid-column: auto; grid-row: auto; order: 0; padding: 48px 32px; min-height: 65vw; }
-  .hero-right { min-height: 56vw; }
-  .hero-art { inset: 28px; }
-  .hero-art-frame, .hero-art--placeholder { border-radius: 10px; }
-  .hero-title { font-size: 3.0rem; }
-  /* "More stories" rail dropped entirely on true mobile — it still shows
-     inline between here and --bp-1300 (tablet/narrow-desktop widths,
-     where the rules just below still apply), just not on phones. */
-  .left-sidebar { display: none; }
-  #site-identity { top: 12px; left: 20px; }
-  .nav-name { font-size: 1.3rem; }
-  #menu-trigger { top: 14px; right: 20px; }
-  .container { padding: 0 24px; }
-  .page-grid { grid-template-columns: minmax(0, 1fr); }
-  /* margin:0 explicitly clears the margin:0 auto set by the --bp-1300
-     rule above (still in effect down here too, since both match at this
-     width, and this rule never mentioned margin so it never overrode it).
-     That leftover auto margin was the actual bug behind the mobile text-
-     overflow report: a grid item with auto margins and no explicit width
-     sizes itself to its max-content width instead of stretching to fill
-     its track — and a code block's long line makes max-content huge,
-     which is what was forcing the whole column (and every paragraph
-     inside it) wider than the screen. */
-  .article-col { padding: 28px 0 0; max-width: none; margin: 0; }
-  .faq-heading { font-size: 1.9rem; }
-}
-@media (--bp-600) {
-  .hero-title { font-size: 2.4rem; }
-  .hero-breadcrumb--mobile { padding: 84px 24px 0; }
-  .hero-left { padding: 36px 24px; }
-  .body-text { font-size: 0.98rem; }
-  #back-to-top { bottom: 20px; left: 16px; }
-  .luna-slot { right: 18px; bottom: 22px; }
-}
-
-/* ── Markdown tables — plain hairline-bordered table, no header fill, no
-      zebra striping. Nothing used a real <table> before this (the two
-      "tables" in existing posts are ASCII art inside code fences), so
-      this is new coverage, not a restyle. display:block + overflow-x:auto
-      keeps a wide table scrollable on narrow viewports without breaking
-      column alignment (unlike overflow on the table's parent). ── */
-.article-col table {
-  display: block; overflow-x: auto;
-  width: 100%; margin: 32px 0;
-  border-collapse: collapse;
-  font-family: var(--article-font);
-  font-size: var(--prose-sm-size); line-height: var(--prose-sm-line);
-}
-.article-col th, .article-col td {
-  border: 1px solid rgba(var(--c-white),0.10);
-  padding: 10px 16px;
-  text-align: left;
-}
-.article-col th {
-  font-weight: 600;
-  color: rgba(var(--c-white),0.92);
-}
-.article-col td { color: rgba(240,240,240,0.72); }
-
-/* ── Heading anchor links (hover a heading, get a shareable # link) ── */
-.hlink {
-  display: inline-block; margin-left: 12px;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.72em;
-  color: rgba(var(--c-white),0.30); text-decoration: none;
-  opacity: 0; transform: translateX(-4px);
-  transition: opacity 0.25s, transform 0.25s, color 0.25s;
-}
-.heading-2:hover .hlink, .heading-3:hover .hlink { opacity: 1; transform: translateX(0); }
-.hlink:hover { color: rgba(var(--c-white),0.80); }
-
-/* ── FAQ questions are now real <button>s (keyboard + screen-reader operable) ── */
-button.faq-q {
-  width: 100%; text-align: left;
-  background: none; border: none;
-}
-button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outline-offset: 4px; }
-
-/* ── Share rail items work as links/buttons now ── */
-a.social-icon, button.social-icon { text-decoration: none; padding: 0; font-family: inherit; }
-.social-icon.copied { background: rgba(123,227,168,0.18); }
-
-/* ── Detection Opportunity callout — the defender's-notebook signature block ── */
-/* Soft flat fill, no gradient/accent-border — same quiet "boxed aside"
-   chassis shared by .case-file/.ioc-block below, so the
-   several boxed callouts on this page read as one family instead of each
-   having its own border/gradient/corner-bracket combination. */
-.callout-detect {
-  margin: 38px 0; padding: 26px 30px 24px;
-  background: rgba(var(--c-white),0.045);
-  border: 1px solid rgba(var(--c-white),0.08);
-  border-radius: 10px;
-}
-.callout-detect-label {
-  display: flex; align-items: center; gap: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.62); margin-bottom: 14px;
-}
-.callout-detect-label::before {
-  content: ''; width: 7px; height: 7px; border-radius: 50%;
-  background: rgba(var(--c-white),0.85);
-}
-.callout-detect p {
-  font-family: var(--article-font); font-size: var(--prose-sm-size); line-height: var(--prose-sm-line);
-  color: rgba(244,244,246,0.88); margin: 0;
-}
-.callout-detect p + p { margin-top: 14px; }
-
-/* ── IOC block — mono table with per-row copy (analysts paste these into SIEMs) ── */
-.ioc-block {
-  margin: 38px 0;
-  border: 1px solid rgba(var(--c-white),0.08); border-radius: 10px;
-  background: rgba(var(--c-white),0.045); overflow: hidden;
-}
-.ioc-head {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 18px; border-bottom: 1px solid rgba(var(--c-white),0.08);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.55);
-}
-.ioc-table-wrap { overflow-x: auto; }
-.ioc-table { width: 100%; border-collapse: collapse; }
-.ioc-table td {
-  padding: 11px 18px; border-bottom: 1px solid rgba(var(--c-white),0.05);
-  font-family: 'JetBrains Mono', monospace; font-size: 0.80rem;
-  vertical-align: middle;
-}
-.ioc-table tr:last-child td { border-bottom: none; }
-.ioc-type { color: rgba(var(--c-white),0.38); width: 130px; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.68rem; }
-.ioc-val { color: rgba(235,238,244,0.88); word-break: break-all; user-select: all; }
-.ioc-copy {
-  background: none; border: 1px solid rgba(var(--c-white),0.14); border-radius: 3px;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.10em;
-  color: rgba(var(--c-white),0.50); padding: 4px 9px; cursor: pointer;
-  transition: color 0.25s, border-color 0.25s;
-}
-.ioc-copy:hover { color: rgba(var(--c-white),0.9); border-color: rgba(var(--c-white),0.40); }
-.ioc-copy.copied { color: rgba(var(--c-white),0.95); border-color: rgba(var(--c-white),0.55); }
-td.ioc-act { width: 70px; text-align: right; }
-
-/* ── Case file — at-a-glance incident summary. Same chassis as the IOC block
-      (mono header strip, hairline rows) so the two read as one family. ── */
-.case-file {
-  margin: 0 0 44px;
-  border: 1px solid rgba(var(--c-white),0.08); border-radius: 10px;
-  background: rgba(var(--c-white),0.045); overflow: hidden;
-}
-.case-file-head {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 18px; border-bottom: 1px solid rgba(var(--c-white),0.08);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.66rem; letter-spacing: 0.20em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.55);
-}
-.case-file-grid { margin: 0; }
-.case-file-row {
-  display: flex; gap: 18px;
-  padding: 11px 18px; border-bottom: 1px solid rgba(var(--c-white),0.05);
-}
-.case-file-row:last-child { border-bottom: none; }
-.case-file-row dt {
-  flex: 0 0 108px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.55); padding-top: 4px;
-}
-.case-file-row dd {
-  margin: 0;
-  font-family: var(--article-font); font-size: var(--prose-sm-size); line-height: var(--prose-sm-line);
-  color: rgba(244,244,246,0.88);
-}
-@media (--bp-600) {
-  .case-file-row { flex-direction: column; gap: 3px; }
-  .case-file-row dt { flex: none; padding-top: 0; }
-}
-
-/* ── Figure with caption ── */
-.figure-block { margin: 38px 0; }
-.figure-block img { width: 100%; display: block; border: 1px solid rgba(var(--c-white),0.08); border-radius: 4px; }
-.figure-block figcaption {
-  margin-top: 12px;
-  font-family: var(--article-font); font-style: italic;
-  font-size: 0.98rem; color: rgba(var(--c-white),0.45); line-height: 1.5;
-}
-
-/* ── Margin notes — Tufte-style sidenotes in the left margin. A <span
-      class="mnote"> at the start of any paragraph is positioned out beside it.
-      The label line takes anything: DAY N for the incident clock, KEY STAT,
-      TERM, THE LOOT — whatever deserves the margin. Sub-line and MITRE tag
-      are optional. Collapses inline below 1300px. ── */
-.article-col .body-text { position: relative; }
-.mnote {
-  position: absolute; top: 0.45em; right: calc(100% + 46px);
-  width: 160px; text-align: right; line-height: 1.4;
-}
-.mnote::after { /* tick connecting the note to its paragraph */
-  content: ''; position: absolute; top: 0.55em; right: -30px;
-  width: 18px; height: 1px; background: rgba(var(--c-white),0.20);
-}
-.mnote-day {
-  display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
-  color: rgba(var(--c-white),0.66);
-}
-.mnote-sub {
-  display: block; margin-top: 5px;
-  font-family: var(--article-font); font-style: italic;
-  font-size: 0.98rem; color: rgba(var(--c-white),0.52);
-}
-.mnote-tag {
-  display: inline-block; margin-top: 9px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.60rem; letter-spacing: 0.08em;
-  padding: 2px 7px; border: 1px solid rgba(var(--c-white),0.16); border-radius: 3px;
-  color: rgba(var(--c-white),0.48);
-}
-@media (--bp-1300) {
-  /* narrow screens: the note folds inline above its paragraph as a label */
-  .mnote {
-    position: static; display: block; width: auto; text-align: left;
-    margin: 0 0 10px; padding-left: 12px;
-    border-left: 1px solid rgba(var(--c-white),0.20);
-  }
-  .mnote::after { display: none; }
-  .mnote-day, .mnote-sub { display: inline; }
-  .mnote-sub { margin: 0 0 0 10px; }
-  .mnote-tag { margin: 0 0 0 10px; vertical-align: 1px; }
 }
 
 /* ── Code token colors — the ONE place green is allowed, per the palette
@@ -1302,8 +670,6 @@ td.ioc-act { width: 70px; text-align: right; }
 
 /* ── Reduced motion: calm everything that pulses, breathes or glides ── */
 @media (prefers-reduced-motion: reduce) {
-  .live-dot { animation: none; }
-  .hero-art-img { animation: none; opacity: 1; }
   .hlink { transition: none; transform: none; }
   .flt-dialog, .flt-dialog__panel { transition: none; }
 }
@@ -1611,6 +977,6 @@ a.social-icon { text-decoration: none; color: inherit; }
    padding offset by an equal negative margin; the layout doesn't move. ── */
 .post-footer .f-links a { padding-block: 6px; margin-block: -6px; }
 .post-footer .f-links a[aria-label] { padding-inline: 6px; margin-inline: -6px; }
-.hero-breadcrumb a { display: inline-block; padding-block: 6px; margin-block: -6px; }
+.post-cat { display: inline-block; }
 .copy-btn { min-height: 24px; }
 .nav-name { padding-block: 2px; margin-block: -2px; }

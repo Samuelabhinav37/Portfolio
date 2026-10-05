@@ -27,16 +27,27 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
 
 <Dropcap letter="I">magine standing watch as a Roman general on the edge of the empire. A mud-covered messenger hands you a piece of parchment that reads: "Surrender the fortress immediately." You have no server to check, no certificate to inspect. Just a folded piece of paper and a man who claims he rode three days to reach you.</Dropcap>
 
 Is the payload authentic? Was it intercepted and modified en route? Is the sender the Emperor, or an adversary pretending to be him? Humanity wrestled with authentication and integrity long before laptops existed. Getting it wrong didn't mean a data breach. It meant losing an empire.
 
-```text
-[ Sender: Emperor ] ---> [ Untrusted Network: Road ] ---> [ Receiver: General ]
-                                  |
-                           ( Threat Actor )
-```
+<Diagram
+  alt="The emperor sends a message to the general along the road, an untrusted network, where a threat actor can intercept it."
+  caption="Any message that travels the road can be read, stopped or swapped on the way."
+  nodes={[
+    { id: 's', label: 'Emperor', sub: 'sender', col: 0, row: 0 },
+    { id: 'r', label: 'The road', sub: 'untrusted network', col: 1, row: 0 },
+    { id: 'g', label: 'General', sub: 'receiver', col: 2, row: 0 },
+    { id: 't', label: 'Threat actor', col: 1, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 's', to: 'r' }, { from: 'r', to: 'g' },
+    { from: 't', to: 'r', dashed: true, tone: 'flaw' },
+  ]}
+  rowGap={44}
+/>
 
 <CaseFile
   id="SPQR-14"
@@ -53,10 +64,17 @@ Is the payload authentic? Was it intercepted and modified en route? Is the sende
 
 <Mnote sub="the world's first physical private key" />To solve authentication without electricity, kings turned to the signet ring: a custom, reverse-carved piece of hardware worn on one finger, unique to a single person. Paired with hot wax, the ring formed a complete signing ceremony:
 
-```text
-[ Private Key ]          [ Payload ]           [ Encrypted Seal ]
-( Signet Ring )    +   ( Melted Red Wax )   --->   ( 3D Unique Impression )
-```
+<Diagram
+  alt="The private key, the signet ring, pressed into the payload, melted red wax, produces the seal: a unique three-dimensional impression."
+  caption="The ring is the private key, the wax is the payload, and the impression is the signature."
+  nodes={[
+    { id: 'k', label: 'Private key', sub: 'the signet ring', col: 0, row: 0 },
+    { id: 'p', label: 'Payload', sub: 'melted red wax', col: 0, row: 2 },
+    { id: 's', label: 'Seal', sub: 'unique 3D impression', col: 2, row: 1 },
+  ]}
+  edges={[{ from: 'k', to: 's' }, { from: 'p', to: 's' }]}
+  rowGap={20}
+/>
 
 1. **Draft**: write the message on parchment and fold it.
 2. **Apply**: pour hot, liquid wax over the seam of the document.
@@ -76,7 +94,7 @@ Deploy a security control and someone starts hunting for a bypass. Ancient attac
 - **Ring theft**: steal the ring itself, usually while its owner sleeps, and sign unauthorized orders with it. Call it credential theft, or session hijacking with a few extra centuries of travel time.
 - **Clay forgery**: press a stolen ring into soft clay to cast a mold, then strike a duplicate from it. This is key cloning: the private key material itself gets duplicated, not merely borrowed.
 
-<span class="highlight">The architectural flaw was never the wax. Single-factor dependency was.</span> Whoever held the ring inherited full signing rights: no second check, no revocation, no way to tell a legitimate impression from a stolen one until the damage was done.
+<p class="body-text"><span class="highlight">The architectural flaw was never the wax. Single-factor dependency was.</span> Whoever held the ring inherited full signing rights: no second check, no revocation, no way to tell a legitimate impression from a stolen one until the damage was done.</p>
 
 <DetectionOpportunity>The lesson generalizes past parchment: any single-factor credential, whether a ring, a private key, a session token, or a password, becomes a root-equivalent target the moment possessing it is the whole check. Pair possession with something verified independently, and theft alone no longer suffices.</DetectionOpportunity>
 

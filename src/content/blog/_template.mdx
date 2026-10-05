@@ -52,9 +52,12 @@ import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
 import IocTable from '../../components/IocTable.astro';
 import AsideCta from '../../components/AsideCta.astro';
 import Mitre from '../../components/Mitre.astro';
+import Diagram from '../../components/Diagram.astro';
+import Sequence from '../../components/Sequence.astro';
+import DataTable from '../../components/DataTable.astro';
 
-{/* Opening paragraph with a drop capital — use once, at the very start. */}
-<Dropcap letter="T">he opening paragraph of the post goes here. It gets a large drop-cap on the first letter automatically.</Dropcap>
+{/* Opening paragraph. (Dropcap no longer draws a drop capital; it renders a normal first paragraph. Plain text works just as well.) */}
+<Dropcap letter="T">he opening paragraph of the post goes here.</Dropcap>
 
 {/* Margin note — place inline at the start of a paragraph's first line. */}
 <Mnote day="Day 0" sub="short summary of this beat" tag="T1195.002" />Regular paragraph text continues right after the note, in the same line.
@@ -74,6 +77,34 @@ import Mitre from '../../components/Mitre.astro';
 ## A section heading
 
 Regular body paragraphs go here as plain Markdown.
+
+{/* Diagrams: never ASCII art in a ```text block. Use <Diagram> for flows
+    (nodes on a grid, arrows, numbered steps, tone: 'flaw' for the weak
+    point) and <Sequence> for an exchange between two parties. Both are
+    numbered "Figure N." automatically; the caption says what to look at,
+    alt says what the figure shows. */}
+<Diagram
+  alt="The client sends credentials to the server; a sniffer on the path reads them."
+  caption="One sentence on what the reader should notice."
+  nodes={[
+    { id: 'c', label: 'Client', col: 0, row: 0 },
+    { id: 's', label: 'Server', col: 2, row: 0 },
+    { id: 'x', label: 'Sniffer', sub: 'reads the packet', col: 1, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'c', to: 's', label: 'USER / PASS', tone: 'flaw' },
+    { from: 'c', to: 'x', dashed: true, tone: 'flaw' },
+  ]}
+/>
+
+{/* Tables: every table uses <DataTable> (numbered "Table N." automatically).
+    Cells accept inline HTML; wrap identifiers in <code>, add class="flaw"
+    for the bad value. keyCol dims a label column. */}
+<DataTable
+  head={['User', 'Stored value']}
+  rows={[['<code>alice</code>', '<code class="flaw">Summer2026!</code>']]}
+  caption="What the reader should take from the table."
+/>
 
 <DetectionOpportunity>
   The one callout worth highlighting — what a defender should actually go build after reading this.

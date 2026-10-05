@@ -31,6 +31,7 @@ import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
 import IocTable from '../../components/IocTable.astro';
 import Mitre from '../../components/Mitre.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="I">n March 2026, a routine dependency update in a widely-used Node.js package introduced a backdoor that went undetected for nearly seven weeks. The attack exploited the trust model inherent in open source package management, targeting a maintainer's compromised credentials to push malicious code through what appeared to be a legitimate version bump.</Dropcap>
 
@@ -94,14 +95,17 @@ The MITRE ATT&CK mapping spans <Mitre id="T1195.002" /> (supply chain compromise
   ]}
 />
 
-```text
-IOC-001: 45.33.xx.0/24  (Linode, Frankfurt)
-IOC-002: 167.71.xx.0/24 (DigitalOcean, AMS3)
-IOC-003: 104.248.xx.0/24 (DigitalOcean, SFO2)
-
-YARA rule: supply_chain_postinstall_hook
-SHA256: 9f86d081884c7d659a2feaa0...
-```
+<DataTable
+  head={['Reference', 'Indicator', 'Detail']}
+  rows={[
+    ['IOC-001', '<code>45.33.xx.0/24</code>', 'Linode, Frankfurt'],
+    ['IOC-002', '<code>167.71.xx.0/24</code>', 'DigitalOcean, AMS3'],
+    ['IOC-003', '<code>104.248.xx.0/24</code>', 'DigitalOcean, SFO2'],
+    ['YARA rule', '<code>supply_chain_postinstall_hook</code>', 'Flags the malicious postinstall hook'],
+    ['SHA-256', '<code>9f86d081884c7d659a2feaa0…</code>', 'Payload hash (truncated)'],
+  ]}
+  caption="Infrastructure ranges and detection artifacts from the incident."
+/>
 
 ## Lessons for defenders
 

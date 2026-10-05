@@ -27,12 +27,21 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="B">y the mid-1970s, engineers had encrypted the wire and still faced a harder problem sitting quietly on the other end of it. Encrypt every login all you want, the password still has to land somewhere on the server, and servers crash, dump diagnostic files, get misconfigured, and occasionally trust the wrong insider. Store a password anywhere, in any form a server can read back, and someone will eventually steal the place you stored it.</Dropcap>
 
-```text
-[ Hacker Breaches DB ] ---> Reads: "alice : Summer2026!" ---> Instant Full Compromise
-```
+<Diagram
+  alt="An attacker breaches the database, reads the plaintext row alice : Summer2026!, and has instant full compromise."
+  caption="With plaintext storage, one breach is the whole story."
+  nodes={[
+    { id: 'b', label: 'Attacker breaches the DB', col: 0, row: 0 },
+    { id: 'r', label: 'Reads a row', sub: '"alice : Summer2026!"', col: 1, row: 0, tone: 'flaw' },
+    { id: 'c', label: 'Instant full compromise', col: 2, row: 0, tone: 'flaw' },
+  ]}
+  edges={[{ from: 'b', to: 'r', step: 1 }, { from: 'r', to: 'c', step: 2, tone: 'flaw' }]}
+/>
 
 Engineers needed a way to confirm Alice typed the right password without the server ever knowing what that password was. In 1976, Robert Morris Sr. and Ken Thompson built exactly that trick into Unix and called it <span class="code-inline">crypt(3)</span>: the first cryptographic hash function built specifically to store passwords.
 
@@ -54,16 +63,24 @@ Hashing only makes sense next to what it replaced:
 - **Encryption (two-way)**: sealing an apple in a locked lunchbox. Whoever holds the key opens it and gets the exact same apple back.
 - **Hashing (one-way)**: dropping that same apple into an industrial blender. What comes out is purée, and no amount of computing power runs a blender backward into a whole apple again.
 
-```text
-                   TWO-WAY ENCRYPTION
-[ Data: "Apple" ]  <===================>  [ Ciphertext: "7x9$zQ2" ]
-                       (With Key)
-
-                    ONE-WAY HASH FUNCTION
-[ Data: "Apple" ]  -------------------->  [ Hash Digest: "3a8f9c1..." ]
-                      (Blender Only)
-                      (Cannot Reverse)
-```
+<Diagram
+  alt="Two-way encryption turns Apple into ciphertext and back again with the key. A one-way hash turns Apple into a digest that cannot be reversed."
+  caption="Encryption is a locked box with a key. A hash is a blender: there is no way back to the input."
+  nodes={[
+    { id: 'd1', label: 'Data', sub: '"Apple"', col: 0, row: 0 },
+    { id: 'c1', label: 'Ciphertext', sub: '"7x9$zQ2"', col: 2, row: 0 },
+    { id: 'd2', label: 'Data', sub: '"Apple"', col: 0, row: 1 },
+    { id: 'h2', label: 'Hash digest', sub: '"3a8f9c1…"', col: 2, row: 1 },
+  ]}
+  edges={[
+    { from: 'd1', to: 'c1', label: 'with the key', both: true },
+    { from: 'd2', to: 'h2', label: 'one way, cannot reverse' },
+  ]}
+  groups={[
+    { label: 'Two-way encryption', nodes: ['d1', 'c1'] },
+    { label: 'One-way hash function', nodes: ['d2', 'h2'] },
+  ]}
+/>
 
 ## Four rules every hash function has to follow
 
@@ -74,29 +91,46 @@ Not every math operation earns the name "cryptographic hash." A real one holds t
 3. **Fixed output length**: a single letter and the entire text of *War and Peace* both come out the same fixed size, exactly 256 bits for SHA-256, regardless of how much you fed in.
 4. **The avalanche effect**: changing one character anywhere in the input scrambles the entire output.
 
-```text
-Input:  "password"  --->  5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
-Input:  "Password"  --->  e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a
-```
+<DataTable
+  head={['Input', 'SHA-256']}
+  rows={[
+    ['<code>password</code>', '<code>5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8</code>'],
+    ['<code>Password</code>', '<code>e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a</code>'],
+  ]}
+  caption="Change one letter and the whole digest changes."
+/>
 
-<span class="highlight">Hashing didn't hide the secret. It got rid of the need to keep one at all.</span>
+<p class="body-text"><span class="highlight">Hashing didn't hide the secret. It got rid of the need to keep one at all.</span></p>
 
 ## Login handshake
 
 A working hash function turns password storage into a matching exercise instead of a filing cabinet:
 
-```text
-1. USER REGISTRATION:
-   User Input ("Secret") ---> [ Hash Function ] ---> Stored in DB ("8d969eef6...")
-   (Original password is immediately discarded)
-
-2. USER LOGIN:
-   User Enters ("Secret") ---> [ Same Hash Function ] ---> Generates ("8d969eef6...")
-                                                                   |
-                                                      [ Compare DB vs New Hash ]
-                                                                   |
-                                                          Match? ---> Access Granted
-```
+<Diagram
+  alt="At registration the user's password goes through the hash function and only the hash is stored; the password is discarded. At login the entered password goes through the same hash function, and the new hash is compared with the stored one. A match grants access."
+  caption="The server never keeps the password. It keeps the hash and compares hashes at every login."
+  nodes={[
+    { id: 'ri', label: 'User input', sub: '"Secret", then discarded', col: 0, row: 0 },
+    { id: 'rh', label: 'Hash function', col: 1, row: 0 },
+    { id: 'rs', label: 'Stored in DB', sub: '"8d969eef6…"', col: 2, row: 0 },
+    { id: 'li', label: 'User enters', sub: '"Secret"', col: 0, row: 1 },
+    { id: 'lh', label: 'Same hash function', col: 1, row: 1 },
+    { id: 'ln', label: 'New hash', sub: '"8d969eef6…"', col: 2, row: 1 },
+    { id: 'cmp', label: 'Compare', sub: 'stored vs new', col: 3, row: 1 },
+    { id: 'ok', label: 'Access granted', sub: 'if they match', col: 3, row: 2 },
+  ]}
+  edges={[
+    { from: 'ri', to: 'rh' }, { from: 'rh', to: 'rs' },
+    { from: 'li', to: 'lh' }, { from: 'lh', to: 'ln' },
+    { from: 'ln', to: 'cmp' }, { from: 'rs', to: 'cmp', dashed: true },
+    { from: 'cmp', to: 'ok' },
+  ]}
+  groups={[
+    { label: 'Registration', nodes: ['ri', 'rh', 'rs'] },
+    { label: 'Login', nodes: ['li', 'lh', 'ln', 'cmp', 'ok'] },
+  ]}
+  rowGap={56}
+/>
 
 Breach a database built this way and an attacker doesn't walk out with a list of readable credentials. They walk out with a list of digests, and a digest by itself unlocks nothing.
 

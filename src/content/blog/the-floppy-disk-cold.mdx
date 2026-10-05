@@ -27,12 +27,24 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="B">efore the world was wired together, sharing a file meant walking it across a room. To hand someone a spreadsheet, a new game, or a document in 1986, you saved it onto a physical floppy disk, put on your shoes, and carried it there yourself.</Dropcap>
 
-```text
-[ PC A ] ---> Save to Floppy Disk ---> [ Walk across room ] ---> Insert into [ PC B ]
-```
+<Diagram
+  alt="A file is saved from PC A to a floppy disk, carried across the room, and inserted into PC B."
+  caption="Sneaker-net: no cable anywhere, just a disk and a short walk."
+  nodes={[
+    { id: 'a', label: 'PC A', col: 0, row: 0 },
+    { id: 'f', label: 'Floppy disk', col: 1, row: 0 },
+    { id: 'w', label: 'Walk across the room', col: 2, row: 0 },
+    { id: 'b', label: 'PC B', col: 3, row: 0 },
+  ]}
+  edges={[
+    { from: 'a', to: 'f', step: 1 }, { from: 'f', to: 'w', step: 2 }, { from: 'w', to: 'b', step: 3 },
+  ]}
+/>
 
 People called it sneaker-net, and because these machines had no network cable running anywhere, their owners assumed they were untouchable. Air-gapped meant safe, or so the thinking went. Malicious code didn't need a wire. It just needed a host willing to carry it.
 
@@ -42,11 +54,15 @@ Computer scientist Fred Cohen formally coined the term "computer virus" in 1983,
 
 <Mnote sub="the same Adleman from two posts ago" />Cohen's own doctoral advisor suggested the name. Leonard Adleman, the A in RSA, was the one who first called this new category of self-replicating code a virus.
 
-```text
-                   BIOLOGICAL VS. DIGITAL VIRUSES
-Biological Virus:   RNA / DNA Payload   ---> Hijacks Host Cell ---> Spreads via Sneezes
-Computer Virus:     Machine Bytecode    ---> Hijacks System RAM ---> Spreads via Floppy
-```
+<DataTable
+  keyCol
+  head={['Virus', 'Payload', 'Hijacks', 'Spreads via']}
+  rows={[
+    ['Biological', 'RNA or DNA', 'The host cell', 'Sneezes'],
+    ['Computer', 'Machine bytecode', 'System RAM', 'Floppy disks'],
+  ]}
+  caption="Biological and digital viruses follow the same pattern: a payload, a hijacked host, and a ride to the next one."
+/>
 
 A pure virus can't spread on its own across an idle network the way a worm can, a different category with its own story. It needs an unsuspecting user to physically carry the media and run the infected file themselves.
 
@@ -56,17 +72,30 @@ A pure virus can't spread on its own across an idle network the way a worm can, 
 
 In 1986, two brothers in Lahore, Pakistan, Basit and Amjad Farooq Alvi, wrote Brain, widely recognized as the first virus for MS-DOS PCs specifically. Brain didn't hide inside an ordinary document or program. It went straight for the most privileged real estate on the disk: sector zero, the boot sector, code a machine trusts and runs before an operating system ever gets a say.
 
-```text
-STANDARD BOOT SEQUENCE:
-[ Turn on PC ] ---> [ Read Floppy Sector 0 (Bootloader) ] ---> [ Launch DOS OS ]
-
-BRAIN VIRUS HIJACK:
-[ Turn on PC ] ---> [ Read Sector 0: Brain Malware ] ---> [ Load Brain into RAM ]
-                                                                 |
-                                              [ Relocate Real Bootloader to Sector 7 ]
-                                                                 |
-                                              [ Hide in RAM & Monitor All Disk Drives ]
-```
+<Diagram
+  alt="A standard boot reads the bootloader from sector 0 and launches DOS. With Brain, sector 0 holds the virus instead: it loads into RAM, moves the real bootloader to sector 7, then hides in memory and watches every disk drive."
+  caption="The same first step, two outcomes. Brain sat where the bootloader should be, so it ran before the operating system did."
+  nodes={[
+    { id: 'p1', label: 'Turn on PC', col: 0, row: 0 },
+    { id: 'r1', label: 'Read sector 0', sub: 'bootloader', col: 1, row: 0 },
+    { id: 'd1', label: 'Launch DOS', col: 2, row: 0 },
+    { id: 'p2', label: 'Turn on PC', col: 0, row: 1 },
+    { id: 'r2', label: 'Read sector 0', sub: 'Brain', col: 1, row: 1, tone: 'flaw' },
+    { id: 'l2', label: 'Load Brain into RAM', col: 2, row: 1, tone: 'flaw' },
+    { id: 'm2', label: 'Move bootloader', sub: 'to sector 7', col: 2, row: 2, tone: 'flaw' },
+    { id: 'h2', label: 'Hide in RAM', sub: 'watch every disk drive', col: 2, row: 3, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'p1', to: 'r1' }, { from: 'r1', to: 'd1' },
+    { from: 'p2', to: 'r2' }, { from: 'r2', to: 'l2', tone: 'flaw' },
+    { from: 'l2', to: 'm2', tone: 'flaw' }, { from: 'm2', to: 'h2', tone: 'flaw' },
+  ]}
+  groups={[
+    { label: 'Standard boot', nodes: ['p1', 'r1', 'd1'] },
+    { label: 'Brain hijack', nodes: ['p2', 'r2', 'l2', 'm2', 'h2'], tone: 'flaw' },
+  ]}
+  rowGap={50}
+/>
 
 <CaseFile
   id="BRAIN-86"
@@ -85,7 +114,7 @@ BRAIN VIRUS HIJACK:
 4. **The spread**: insert any clean floppy to save your work, and Brain silently copies its bytecode into that disk's boot sector too.
 5. **Stealth**: point a diagnostic tool at sector zero, and Brain redirects the view to the clean boot code it relocated to sector seven, hiding its own presence.
 
-<span class="highlight">Perimeter defenses mean nothing once the threat rides in on media you trusted enough to insert yourself.</span>
+<p class="body-text"><span class="highlight">Perimeter defenses mean nothing once the threat rides in on media you trusted enough to insert yourself.</span></p>
 
 ## First antivirus countermeasures
 

@@ -27,13 +27,28 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="T">wo users typing the identical password walk away with the identical hash. That single, simple fact was enough to make an attacker's job trivial: crack one digest, and every account anywhere in the stolen database that reused the same password falls with it.</Dropcap>
 
-```text
-[ Alice: "Password123" ] ---> [ SHA-256 ] ---> "ef92b778bafe771e..."
-[ Bob:   "Password123" ] ---> [ SHA-256 ] ---> "ef92b778bafe771e..."
-```
+<Diagram
+  alt="Alice and Bob both choose Password123. Each runs through SHA-256 and both produce the same stored hash, ef92b778bafe."
+  caption="Two users, one password, one hash. Without a salt, cracking Alice's digest cracks Bob's in the same step."
+  nodes={[
+    { id: 'a', label: 'Alice', sub: '"Password123"', col: 0, row: 0 },
+    { id: 'ha', label: 'SHA-256', col: 1, row: 0 },
+    { id: 'oa', label: 'ef92b778bafe…', sub: 'stored hash', col: 2, row: 0, tone: 'flaw' },
+    { id: 'b', label: 'Bob', sub: '"Password123"', col: 0, row: 1 },
+    { id: 'hb', label: 'SHA-256', col: 1, row: 1 },
+    { id: 'ob', label: 'ef92b778bafe…', sub: 'stored hash', col: 2, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'a', to: 'ha' }, { from: 'ha', to: 'oa' },
+    { from: 'b', to: 'hb' }, { from: 'hb', to: 'ob' },
+  ]}
+  rowGap={36}
+/>
 
 To stop a single lookup table from cracking an entire database at once, every stored hash needs to come out unique, even when two people pick the literal same password.
 
@@ -54,28 +69,31 @@ The fix already existed in 1976. Robert Morris Sr. and Ken Thompson's original <
 
 A salt gets combined with the plaintext password before either one ever reaches the hash function:
 
-```text
-[ Plaintext: "Password123" ]  +  [ Random Salt: "k8#9xQ" ]
-                              |
-                              v
-             [ Combined: "Password123k8#9xQ" ]
-                              |
-                              v
-                      [ Hash Algorithm ]
-                              |
-                              v
-             [ Stored Hash: "4a1f8c09e3..." ]
-```
+<Diagram
+  alt="The plaintext password and a random salt are combined into Password123k8#9xQ, which goes through the hash algorithm to produce the stored hash 4a1f8c09e3."
+  caption="The salt joins the password before hashing, so the stored value depends on both."
+  nodes={[
+    { id: 'p', label: 'Plaintext', sub: '"Password123"', col: 0, row: 0 },
+    { id: 's', label: 'Random salt', sub: '"k8#9xQ"', col: 2, row: 0 },
+    { id: 'c', label: 'Combined', sub: '"Password123k8#9xQ"', col: 1, row: 1 },
+    { id: 'h', label: 'Hash algorithm', col: 1, row: 2 },
+    { id: 'o', label: 'Stored hash', sub: '"4a1f8c09e3…"', col: 1, row: 3 },
+  ]}
+  edges={[
+    { from: 'p', to: 'c', step: 1 }, { from: 's', to: 'c', step: 1 },
+    { from: 'c', to: 'h', step: 2 }, { from: 'h', to: 'o', step: 3 },
+  ]}
+  rowGap={48}
+/>
 
-```text
-DATABASE RECORD:
----------------------------------------------------------------------------------
-USER    SALT         STORED HASH (Salt + Password)
----------------------------------------------------------------------------------
-alice   k8#9xQ  ---> 4a1f8c09e3bb8a72c1d9... (Result of "Password123k8#9xQ")
-bob     m3$7vL  ---> d88e9102ca17482f09a1... (Result of "Password123m3$7vL")
----------------------------------------------------------------------------------
-```
+<DataTable
+  head={['User', 'Salt', 'Stored hash (salt + password)']}
+  rows={[
+    ['<code>alice</code>', '<code>k8#9xQ</code>', '<code>4a1f8c09e3bb8a72c1d9…</code> from <code>Password123k8#9xQ</code>'],
+    ['<code>bob</code>', '<code>m3$7vL</code>', '<code>d88e9102ca17482f09a1…</code> from <code>Password123m3$7vL</code>'],
+  ]}
+  caption="The same password stored for two users. Different salts give completely different hashes, and the salt itself sits in plain view."
+/>
 
 - **The salt is public**: it sits right next to the hash in the database in plain text, and it doesn't need to hide. Its whole job is making every row different, not staying secret.
 - **Tables stop working**: a table built for <span class="code-inline">Password123</span> alone is useless the moment every user's password gets combined with a different random string first. Cracking Alice now needs a table built specifically for her salt, and Bob's needs an entirely separate one.
@@ -85,11 +103,16 @@ bob     m3$7vL  ---> d88e9102ca17482f09a1... (Result of "Password123m3$7vL")
 
 Salting neutralized rainbow tables, and attackers pivoted straight to raw hardware.
 
-```text
-Algorithm: SHA-256 (Designed for network speed)
-GPU Cluster Capability: 100,000,000,000 guesses / sec
-Result: An 8-character salted password falls in minutes.
-```
+<DataTable
+  keyCol
+  head={['Factor', 'Value']}
+  rows={[
+    ['Algorithm', 'SHA-256, designed for network speed'],
+    ['GPU cluster', '100,000,000,000 guesses per second'],
+    ['Result', 'An 8-character salted password falls in minutes'],
+  ]}
+  caption="Why a salt alone isn't enough when the hash is fast."
+/>
 
 Salted or not, MD5 and SHA-256 were built for a different job: verifying a large file or a network packet in nanoseconds. That's precisely the wrong property for a password check, where speed benefits the attacker guessing, not the user logging in.
 
@@ -102,7 +125,7 @@ Password-specific hash functions add two tunable dials that general-purpose hash
 
 Niels Provos and David Mazières built bcrypt around this idea in 1999. Argon2 won the Password Hashing Competition in 2015 by pushing the memory-hardness dial further still.
 
-<span class="highlight">Salt stopped attackers from cracking everyone at once. Slow hashing stopped them from cracking anyone quickly.</span>
+<p class="body-text"><span class="highlight">Salt stopped attackers from cracking everyone at once. Slow hashing stopped them from cracking anyone quickly.</span></p>
 
 <DetectionOpportunity>A fast algorithm and a slow one can protect the exact same password and produce wildly different outcomes under an offline attack. Salting alone won't save a system that still reaches for MD5 or plain SHA-256 for password storage. The algorithm itself has to be slow on purpose.</DetectionOpportunity>
 
