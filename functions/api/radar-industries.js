@@ -12,6 +12,8 @@
 // Without one it returns { items: [], reason: 'no-token' } (200, not an
 // error) and the tile says the feed isn't connected rather than faking data.
 
+import { cacheKey } from '../_lib/cache-key.js';
+
 const RADAR_URL =
   'https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/INDUSTRY' +
   '?dateRange=7d&limitPerGroup=6&format=json';
@@ -57,7 +59,8 @@ async function fromRadar(token) {
 
 export async function onRequestGet({ request, env }) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return cached;
 
   // Either secret name works: RADAR_API_TOKEN is what the earlier radar
@@ -77,6 +80,6 @@ export async function onRequestGet({ request, env }) {
     return empty;
   }
   const response = json({ ...result, generatedAt: Date.now() });
-  await cache.put(request, response.clone());
+  await cache.put(key, response.clone());
   return response;
 }

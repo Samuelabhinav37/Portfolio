@@ -5,6 +5,8 @@
 // down/rate-limit independently of each other. Cached at the edge since
 // refetching the same feeds per visitor would be wasteful.
 
+import { cacheKey } from '../_lib/cache-key.js';
+
 const NEWS_FEEDS = [
   { n: 'The Hacker News', u: 'https://feeds.feedburner.com/TheHackersNews', site: 'https://thehackernews.com' },
   { n: 'BleepingComputer', u: 'https://www.bleepingcomputer.com/feed/', site: 'https://www.bleepingcomputer.com' },
@@ -108,7 +110,8 @@ async function fromCtf() {
 
 export async function onRequestGet({ request }) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return cached;
 
   // Separate long-TTL cache entry used purely as a last-known-good snapshot,
@@ -117,7 +120,7 @@ export async function onRequestGet({ request }) {
   // ctfs:[]} with a 200, and that empty result would itself get cached for
   // the full 15-minute TTL — actively serving "nothing here" for up to 15
   // minutes instead of the last real content.
-  const snapshotKey = new Request(request.url + (request.url.includes('?') ? '&' : '?') + '__snapshot=1');
+  const snapshotKey = new Request(key.url + (key.url.includes('?') ? '&' : '?') + '__snapshot=1');
 
   const [news, ctfs] = await Promise.all([
     fromNews().catch((err) => {
@@ -140,7 +143,7 @@ export async function onRequestGet({ request }) {
   }
 
   const response = json(payload);
-  await cache.put(request, response.clone());
+  await cache.put(key, response.clone());
   if (useful) {
     await cache.put(
       snapshotKey,

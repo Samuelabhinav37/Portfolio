@@ -37,3 +37,29 @@ export async function checkRateLimit(env, key, { limit = 5, windowSeconds = 60 }
 
   return { success: true };
 }
+
+// In-memory variant for the logging endpoints (clienterr, csp-report,
+// luna-miss). The KV limiter above costs one KV write per request, and KV's
+// free tier allows 1,000 writes a day across the whole namespace: an error
+// or CSP-report storm could spend that budget, after which every KV write
+// fails and the contact form's limiter fails open too. These endpoints only
+// write a log line, so a per-isolate counter is enough. It's approximate
+// (each Worker isolate counts separately and resets when evicted) but caps
+// what one client can push through one isolate, at no KV cost.
+const localHits = new Map();
+const LOCAL_MAX_KEYS = 5000;
+
+export function checkLocalRateLimit(key, { limit = 20, windowSeconds = 60 } = {}) {
+  const now = Date.now();
+  let entry = localHits.get(key);
+  if (!entry || now >= entry.reset) {
+    if (localHits.size >= LOCAL_MAX_KEYS) {
+      for (const [k, e] of localHits) if (now >= e.reset) localHits.delete(k);
+      if (localHits.size >= LOCAL_MAX_KEYS) localHits.clear();
+    }
+    entry = { count: 0, reset: now + windowSeconds * 1000 };
+    localHits.set(key, entry);
+  }
+  entry.count += 1;
+  return { success: entry.count <= limit };
+}

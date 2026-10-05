@@ -8,6 +8,8 @@
 // Response is cached at the edge for 30 minutes via the Cache API, since refetching
 // the MISP manifest per visitor would be wasteful.
 
+import { cacheKey } from '../_lib/cache-key.js';
+
 const MISP_MANIFEST = 'https://www.circl.lu/doc/misp/feed-osint/manifest.json';
 const OTX_ACTIVITY = 'https://otx.alienvault.com/api/v1/pulses/activity?limit=6';
 const CACHE_TTL = 1800; // 30 minutes
@@ -64,7 +66,8 @@ async function fromOtx(apiKey) {
 
 export async function onRequestGet({ request, env }) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return cached;
 
   // Separate long-TTL cache entry used purely as a last-known-good snapshot,
@@ -73,7 +76,7 @@ export async function onRequestGet({ request, env }) {
   // items array with a 200, and that empty result would itself get cached
   // for the full 30-minute TTL — actively serving "nothing here" for up to
   // 30 minutes instead of the last real content.
-  const snapshotKey = new Request(request.url + (request.url.includes('?') ? '&' : '?') + '__snapshot=1');
+  const snapshotKey = new Request(key.url + (key.url.includes('?') ? '&' : '?') + '__snapshot=1');
 
   const [misp, otx] = await Promise.all([
     fromMisp().catch((err) => {
@@ -97,7 +100,7 @@ export async function onRequestGet({ request, env }) {
   }
 
   const response = json(payload);
-  await cache.put(request, response.clone());
+  await cache.put(key, response.clone());
   if (useful) {
     await cache.put(
       snapshotKey,
