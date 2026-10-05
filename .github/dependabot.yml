@@ -5,6 +5,12 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    ignore:
+      # TypeScript 7's native compiler doesn't expose the programmatic API
+      # that `astro check` loads, so the check step hard-fails on it
+      # (withastro/roadmap#1321). Lift this once Astro supports TS 7.
+      - dependency-name: "typescript"
+        versions: [">=7"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

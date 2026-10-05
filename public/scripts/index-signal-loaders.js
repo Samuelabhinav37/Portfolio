@@ -27,7 +27,7 @@
   }
 
   function row(title,meta,link,img){
-    var a=document.createElement('a'); a.className='news-row'; a.href=link||'#'; a.target='_blank'; a.rel='noopener';
+    var a=document.createElement('a'); a.className='news-row'; a.href=/^https?:\/\//i.test(link||'')?link:'#'; a.target='_blank'; a.rel='noopener';
     var b=document.createElement('span'); b.className='news-badge'; if(img&&setBgImage(b,img)){ b.classList.add('has-img'); }
     var body=document.createElement('span'); body.className='news-body';
     var t=document.createElement('span'); t.className='news-title'; t.textContent=title;
@@ -82,7 +82,7 @@
     ctfHost.innerHTML='';
     items.forEach(function(e){ var d=new Date(e.start);
       var it=document.createElement('div'); it.className='ctf-item';
-      var a=document.createElement('a'); a.href=e.href||'#'; a.target='_blank'; a.rel='noopener'; a.style.textDecoration='none';
+      var a=document.createElement('a'); a.href=/^https?:\/\//i.test(e.href||'')?e.href:'#'; a.target='_blank'; a.rel='noopener'; a.style.textDecoration='none';
       var nm=document.createElement('span'); nm.className='ctf-name'; nm.textContent=e.title;
       var mt=document.createElement('span'); mt.className='ctf-meta'; mt.textContent=e.format+' · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
       a.appendChild(nm); it.appendChild(ctfLogo(e)); it.appendChild(a); it.appendChild(mt); ctfHost.appendChild(it);

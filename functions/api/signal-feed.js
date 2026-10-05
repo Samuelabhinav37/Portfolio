@@ -47,6 +47,11 @@ function decodeEntities(s) {
     .replace(/&#0?39;/g, "'")
     .replace(/&amp;/g, '&');
 }
+// Feed content is third-party. Only plain http(s) URLs make it into the
+// payload, so a feed can't hand the client a javascript: or data: link.
+function httpUrl(u) {
+  return /^https?:\/\/[^\s"'<>]+$/i.test(u) ? u : '';
+}
 function tag(block, name) {
   const m = block.match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i'));
   return m ? decodeEntities(stripCdata(m[1]).trim()) : '';
@@ -61,7 +66,7 @@ async function fetchFeed(f) {
   for (const block of blocks.slice(0, 5)) {
     const title = tag(block, 'title');
     if (!title) continue;
-    const link = tag(block, 'link');
+    const link = httpUrl(tag(block, 'link'));
     const pubDate = tag(block, 'pubDate') || tag(block, 'date');
     const desc = tag(block, 'description') || tag(block, 'content:encoded');
     let img = '';
@@ -71,7 +76,7 @@ async function fetchFeed(f) {
       const em = block.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
       if (em && /\.(jpg|jpeg|png|webp)/i.test(em[1])) img = em[1];
     }
-    items.push({ title, link, date: pubDate ? Date.parse(pubDate) || 0 : 0, source: f.n, img });
+    items.push({ title, link, date: pubDate ? Date.parse(pubDate) || 0 : 0, source: f.n, img: httpUrl(img) });
   }
   return items;
 }
@@ -99,7 +104,7 @@ async function fromCtf() {
     .slice(0, 5)
     .map((e) => ({
       title: e.title,
-      href: e.ctftime_url || e.url || '',
+      href: httpUrl(e.ctftime_url || '') || httpUrl(e.url || ''),
       format: e.format || 'CTF',
       start: e.start,
       // Just the filename under ctftime.org/media/events/; the client loads
