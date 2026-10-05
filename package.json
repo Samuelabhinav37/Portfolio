@@ -26,7 +26,7 @@
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.4.1",
     "acorn": "^8.18.0",
-    "postcss-custom-media": "^12.0.1",
+    "postcss-custom-media": "^12.0.3",
     "sharp": "^0.35.4",
     "terser": "^5.51.2"
   },
