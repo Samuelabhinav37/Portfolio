@@ -27,14 +27,22 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="I">n 1961, stealing a password meant sitting down at a terminal inside an MIT lab. By the late 1960s, that constraint disappeared. Computers began talking to each other across entire states over ARPANET, the network that grew into the modern internet, and a researcher in California could log into a machine in Massachusetts through brand new protocols like Telnet and FTP.</Dropcap>
 
 Remote access was a genuine engineering breakthrough. It also carried an invisible design flaw: these protocols were built for connectivity, not confidentiality.
 
-```text
-[ Terminal: Stanford ] ===== ( ARPANET Phone Lines ) =====> [ Mainframe: MIT ]
-```
+<Diagram
+  alt="A terminal at Stanford connects to a mainframe at MIT over ARPANET phone lines."
+  caption="Remote login over ARPANET: a terminal in one state driving a mainframe in another."
+  nodes={[
+    { id: 't', label: 'Terminal', sub: 'Stanford', col: 0, row: 0 },
+    { id: 'm', label: 'Mainframe', sub: 'MIT', col: 2, row: 0 },
+  ]}
+  edges={[{ from: 't', to: 'm', label: 'ARPANET phone lines' }]}
+/>
 
 <CaseFile
   id="ARPANET-69"
@@ -54,11 +62,20 @@ Network communication behaves a lot like sending mail:
 - **Encrypted traffic (modern web)**: sealing a letter inside a locked steel case before mailing it. Only the recipient holding the key can open it.
 - **Cleartext traffic (early internet)**: writing your secrets on the back of an open postcard. Every mail carrier and sorting clerk along the route reads it without opening anything.
 
-```text
-[ Client ] --- "USER alice \r\n PASS Summer2026!" ---> [ Server ]
-                              |
-                    [ Sniffer: Packet Read ]
-```
+<Diagram
+  alt="A client sends USER alice and PASS Summer2026! to the server in plain text. A packet sniffer on the path reads the same packet."
+  caption="Telnet and FTP sent the login exactly as typed. Anyone reading the packet reads the password."
+  nodes={[
+    { id: 'c', label: 'Client', col: 0, row: 0 },
+    { id: 's', label: 'Server', col: 2, row: 0 },
+    { id: 'n', label: 'Packet sniffer', sub: 'reads the same packet', col: 1, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'c', to: 's', label: 'USER alice  PASS Summer2026!', tone: 'flaw' },
+    { from: 'c', to: 'n', dashed: true, tone: 'flaw' },
+  ]}
+  rowGap={48}
+/>
 
 Telnet converted every keystroke into ASCII and sent it across the wire the instant you typed it. Press P and the network carried the byte for P. Press a and it carried the byte for a. Nothing stood between your fingers and anyone watching the cable.
 
@@ -66,22 +83,34 @@ Telnet converted every keystroke into ASCII and sent it across the wire the inst
 
 Early Ethernet broadcast every frame to every machine on a shared wire or hub. A network card normally discarded whatever wasn't addressed to it, but flipping that card into promiscuous mode made it keep everything instead.
 
-```text
-[ Client ] -----------------------------------------------------> [ Server ]
-                             | (Shared Wire)
-                   [ Promiscuous Mode NIC ]
-                             v
-                  +-----------------------+
-                  |  PACKET CAPTURE LOG   |
-                  |  0x0020: 50 41 53 53  | -> "PASS"
-                  |  0x0024: 20 53 65 63  | -> " Sec"
-                  |  0x0028: 72 65 74 31  | -> "ret1"
-                  +-----------------------+
-```
+<Diagram
+  alt="Client and server talk over a shared wire. A network card in promiscuous mode on the same wire keeps every frame and writes it to a capture log."
+  caption="On a shared wire, one network card in promiscuous mode keeps every frame, not just its own."
+  nodes={[
+    { id: 'c', label: 'Client', col: 0, row: 0 },
+    { id: 's', label: 'Server', col: 2, row: 0 },
+    { id: 'n', label: 'Promiscuous-mode NIC', sub: 'keeps every frame', col: 1, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'c', to: 's', label: 'shared wire' },
+    { from: 'c', to: 'n', dashed: true, tone: 'flaw' },
+  ]}
+  rowGap={48}
+/>
+
+<DataTable
+  head={['Offset', 'Bytes', 'ASCII']}
+  rows={[
+    ['<code>0x0020</code>', '<code>50 41 53 53</code>', '<code class="flaw">PASS</code>'],
+    ['<code>0x0024</code>', '<code>20 53 65 63</code>', '<code class="flaw"> Sec</code>'],
+    ['<code>0x0028</code>', '<code>72 65 74 31</code>', '<code class="flaw">ret1</code>'],
+  ]}
+  caption="Three lines of the capture log. The password arrives as readable bytes."
+/>
 
 Tools like tcpdump and, later, Wireshark turned that trick into a shopping list. An attacker never touched the destination server. They just listened to the wire between client and server and watched passwords scroll past.
 
-<span class="highlight">Attackers stopped breaking down doors. They started reading mail over your shoulder.</span>
+<p class="body-text"><span class="highlight">Attackers stopped breaking down doors. They started reading mail over your shoulder.</span></p>
 
 <DetectionOpportunity>Any protocol that puts a credential on the wire in a form a packet capture can read straight back out treats the network itself as an ally to the attacker. Encrypt the transport, and a captured packet stops being a password.</DetectionOpportunity>
 

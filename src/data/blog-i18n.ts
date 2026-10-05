@@ -23,7 +23,12 @@ interface BlogStrings {
   navBlog: string;
   navContact: string;
   minRead: string;
-  moreStories: string;
+  /** Heading for the contents list (edge strip and the narrow-screen box). */
+  onThisPage: string;
+  /** End-of-post cards: "Next in <series>" when the post belongs to one. */
+  nextIn: (series: string) => string;
+  /** End-of-post cards heading when no other post shares the series. */
+  moreFromBlog: string;
   linkToSection: string;
   shareOnX: string;
   shareOnLinkedIn: string;
@@ -61,7 +66,9 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
     navBlog: 'Blog',
     navContact: 'Contact',
     minRead: 'MIN READ',
-    moreStories: 'More stories',
+    onThisPage: 'On this page',
+    nextIn: (series) => `Next in ${series}`,
+    moreFromBlog: 'More from the blog',
     linkToSection: 'Link to this section',
     shareOnX: 'Share on X',
     shareOnLinkedIn: 'Share on LinkedIn',
@@ -85,7 +92,9 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
     navBlog: 'Blog',
     navContact: 'Contacto',
     minRead: 'MIN DE LECTURA',
-    moreStories: 'Más historias',
+    onThisPage: 'En esta página',
+    nextIn: (series) => `Más de ${series}`,
+    moreFromBlog: 'Más del blog',
     linkToSection: 'Enlace a esta sección',
     shareOnX: 'Compartir en X',
     shareOnLinkedIn: 'Compartir en LinkedIn',

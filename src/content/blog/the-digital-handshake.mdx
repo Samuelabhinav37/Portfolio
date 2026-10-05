@@ -27,12 +27,20 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import Sequence from '../../components/Sequence.astro';
 
 <Dropcap letter="I">magine buying a book from a server three thousand miles away. Every byte has to survive a trip across networks you don't own, control, or trust, and somewhere at the far end a stranger's machine needs to read your credit card number without a packet sniffer reading it too.</Dropcap>
 
-```text
-[ Client ] --- Encrypted with Key (K) ---> [ Server ]
-```
+<Diagram
+  alt="A client sends data to a server encrypted with a shared key K."
+  caption="Encryption needs a key both ends already share. Getting that key to the server is the problem."
+  nodes={[
+    { id: 'c', label: 'Client', col: 0, row: 0 },
+    { id: 's', label: 'Server', col: 2, row: 0 },
+  ]}
+  edges={[{ from: 'c', to: 's', label: 'encrypted with key K' }]}
+/>
 
 Encrypting that trip takes a shared key, and shared keys create a paradox. Send it over the open internet and any sniffer along the route intercepts it, decrypts everything, and the whole scheme is over before it starts. Don't send it, and the server can't read anything you encrypt with it. Two machines that have never met need to agree on a secret while every adversary on the path listens to every word.
 
@@ -58,20 +66,19 @@ The math behind Diffie-Hellman behaves a lot like mixing paint:
 - **The mix**: the client mixes yellow with red and sends orange across the network. The server mixes yellow with blue and sends green.
 - **The shared secret**: the client adds its private red to the green it received and gets brown. The server adds its private blue to the orange it received and lands on the identical brown.
 
-```text
-[ Client Secret: Red ]                               [ Server Secret: Blue ]
-         |                                                     |
-  Mix with Public Yellow                                Mix with Public Yellow
-         |                                                     |
-         v                                                     v
-   Sends: ORANGE =====================================> Receives: ORANGE
-   Receives: GREEN <===================================== Sends: GREEN
-         |                                                     |
-  + Add Private Red                                     + Add Private Blue
-         |                                                     |
-         v                                                     v
-[ FINAL SHARED KEY: BROWN ]                           [ FINAL SHARED KEY: BROWN ]
-```
+<Sequence
+  alt="Client and server each keep a secret colour, red and blue, and share public yellow. The client sends orange, the server sends green. Each adds its own secret to what it received, and both arrive at brown."
+  caption="The paint-mixing version of Diffie-Hellman. Only yellow, orange and green ever cross the wire, yet both sides end with the same brown."
+  left={{ label: 'Client', sub: 'secret: red' }}
+  right={{ label: 'Server', sub: 'secret: blue' }}
+  items={[
+    { left: 'Red + public yellow = orange', right: 'Blue + public yellow = green' },
+    { msg: 'sends orange', dir: 'r', step: 1 },
+    { msg: 'sends green', dir: 'l', step: 2 },
+    { left: 'Green + own red = brown', right: 'Orange + own blue = brown' },
+    { span: 'Shared key: brown. Neither secret colour was ever sent.' },
+  ]}
+/>
 
 An eavesdropper on the wire only ever sees yellow, orange, and green. Pulling red back out of orange means reversing modular exponentiation over a large prime, and the discrete logarithm problem gives no practical shortcut for that. Both machines land on the same brown without either one ever sending it.
 
@@ -79,9 +86,19 @@ An eavesdropper on the wire only ever sees yellow, orange, and green. Pulling re
 
 Key exchange solves confidentiality. It solves nothing about identity, and that gap has a name: the man-in-the-middle attack.
 
-```text
-[ Client ] <--- (Tunnel 1) ---> [ Attacker / MitM ] <--- (Tunnel 2) ---> [ Real Bank ]
-```
+<Diagram
+  alt="The client runs one encrypted tunnel to an attacker posing as the bank, and the attacker runs a second tunnel to the real bank."
+  caption="A man in the middle runs two key exchanges, one with each side. Both tunnels are encrypted and both are his."
+  nodes={[
+    { id: 'c', label: 'Client', col: 0, row: 0 },
+    { id: 'm', label: 'Attacker', sub: 'man in the middle', col: 2, row: 0, tone: 'flaw' },
+    { id: 'b', label: 'Real bank', col: 4, row: 0 },
+  ]}
+  edges={[
+    { from: 'c', to: 'm', label: 'tunnel 1', both: true, tone: 'flaw' },
+    { from: 'm', to: 'b', label: 'tunnel 2', both: true, tone: 'flaw' },
+  ]}
+/>
 
 An attacker who intercepts the connection early enough runs a key exchange with the client while pretending to be the bank, and a separate key exchange with the real bank while pretending to be the client. Both tunnels look perfectly encrypted. Neither one connects the two people who actually meant to talk.
 
@@ -89,24 +106,24 @@ An attacker who intercepts the connection early enough runs a key exchange with 
 - **The signature**: a trusted Certificate Authority, Let's Encrypt or DigiCert among them, has already signed that certificate after verifying the server controls the domain.
 - **The trust anchor**: the browser ships with the CAs' own public keys built in, so it verifies that signature instantly, no separate lookup required.
 
-<span class="highlight">Diffie-Hellman solved who can listen. Certificates solved who you're actually talking to.</span>
+<p class="body-text"><span class="highlight">Diffie-Hellman solved who can listen. Certificates solved who you're actually talking to.</span></p>
 
 ## The handshake itself
 
-```text
-CLIENT                                                               SERVER
-  |                                                                    |
-  | -------- 1. ClientHello (TLS Version, Supported Ciphers) --------> |
-  |                                                                    |
-  | <------- 2. ServerHello (Chosen Cipher, Digital Certificate) ----- |
-  |                                                                    |
-  |  [ Client verifies CA signature on Certificate ]                   |
-  |  [ Both generate ephemeral keys via Key Exchange ]                 |
-  |                                                                    |
-  | <====== 3. Session Keys Generated -> Encrypted Tunnel Active =====> |
-  |                                                                    |
-  | -------- 4. HTTP GET /login (Fully Encrypted Application Data) --> |
-```
+<Sequence
+  alt="TLS handshake. The client sends ClientHello with its TLS version and ciphers. The server replies with ServerHello, its chosen cipher and its certificate. The client verifies the certificate's CA signature, both sides generate ephemeral keys, the encrypted tunnel opens, and the client sends GET /login inside it."
+  caption="The TLS handshake in four moves. Everything after step 3 travels inside the encrypted tunnel."
+  left={{ label: 'Client' }}
+  right={{ label: 'Server' }}
+  items={[
+    { msg: 'ClientHello: TLS version, supported ciphers', dir: 'r', step: 1 },
+    { msg: 'ServerHello: chosen cipher, certificate', dir: 'l', step: 2 },
+    { left: 'Verifies the CA signature on the certificate' },
+    { span: 'Both sides generate ephemeral keys through key exchange' },
+    { msg: 'Session keys ready: encrypted tunnel active', dir: 'both', step: 3 },
+    { msg: 'HTTP GET /login, fully encrypted', dir: 'r', step: 4 },
+  ]}
+/>
 
 1. **Hello exchange**: client and server agree on a TLS version and a cipher suite.
 2. **Authentication**: the server presents its signed certificate, and the client checks it against its trusted CA store.

@@ -27,14 +27,26 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="I">magine receiving a top-secret letter through a mail carrier known for stealing mail. Traditional encryption hands you a strongbox with a single key, and whoever locks it and whoever unlocks it both need an identical copy of that exact key before anything can move.</Dropcap>
 
-```text
-[ Friend: Box Locked with Key A ] ---> ( Mail Courier ) ---> [ You: Unlocked with Key A ]
-                                              |
-                                   [ Key Must Be Shared First! ]
-```
+<Diagram
+  alt="A friend locks a box with key A and sends it by mail courier; you unlock it with the same key A. Key A has to be shared first."
+  caption="Symmetric encryption works only after both sides already hold the same key."
+  nodes={[
+    { id: 'f', label: 'Friend locks the box', sub: 'with key A', col: 0, row: 0 },
+    { id: 'c', label: 'Mail courier', col: 1, row: 0 },
+    { id: 'y', label: 'You unlock it', sub: 'with key A', col: 2, row: 0 },
+    { id: 'k', label: 'Key A must be shared first', col: 1, row: 1, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'f', to: 'c' }, { from: 'c', to: 'y' },
+    { from: 'k', to: 'c', dashed: true, tone: 'flaw' },
+  ]}
+  rowGap={44}
+/>
 
 Mail the key and a courier copies it in transit. Don't mail it and your friend can never lock the box in the first place. For most of human history, this key distribution problem meant secure communication needed a physical meeting or a courier you already trusted, before a single secret ever moved.
 
@@ -57,13 +69,21 @@ In 1976 and 1977, that assumption finally broke. Whitfield Diffie and Martin Hel
 
 Asymmetric cryptography behaves like a public street mailbox:
 
-```text
-                    PUBLIC KEY                       PRIVATE KEY
-                 (Shared with World)             (Never Leaves Machine)
-                         |                                 |
-                         v                                 v
-[ Plaintext ] ---> [ Open Lock Slot ] ===> [ Ciphertext ] ===> [ Key Opens Door ] ---> [ Plaintext ]
-```
+<Diagram
+  alt="Plaintext is locked with the public key, which is shared with the world, into ciphertext. Only the private key, which never leaves its machine, turns the ciphertext back into plaintext."
+  caption="Anyone can lock with the public key. Only the holder of the private key can unlock."
+  nodes={[
+    { id: 'p1', label: 'Plaintext', col: 0, row: 0 },
+    { id: 'pub', label: 'Public key locks', sub: 'shared with the world', col: 1, row: 0 },
+    { id: 'ct', label: 'Ciphertext', col: 2, row: 0 },
+    { id: 'prv', label: 'Private key unlocks', sub: 'never leaves the machine', col: 2, row: 1 },
+    { id: 'p2', label: 'Plaintext', col: 1, row: 1 },
+  ]}
+  edges={[
+    { from: 'p1', to: 'pub', step: 1 }, { from: 'pub', to: 'ct', step: 2 },
+    { from: 'ct', to: 'prv', step: 3 }, { from: 'prv', to: 'p2', step: 4 },
+  ]}
+/>
 
 Anyone walking past can drop a letter through the slot. Only the carrier holding the physical key to the back door can ever retrieve it. Once a letter drops through the slot, even the person who dropped it can't reach back in and pull it out. Locking and unlocking are two genuinely separate operations now, not the same action run twice.
 
@@ -77,21 +97,21 @@ That split covers two genuinely different jobs:
 1. **Confidentiality**: Alice looks up your public key, encrypts a note with it, and only your private key opens it back up. Not even Alice can reverse what she just encrypted.
 2. **Digital signatures**: you encrypt a document's hash with your private key. Anyone holding your public key can decrypt that hash and check it against the document, proving you wrote it and that nobody altered it afterward.
 
-<span class="highlight">The same math that keeps a secret in also proves who put it there.</span>
+<p class="body-text"><span class="highlight">The same math that keeps a secret in also proves who put it there.</span></p>
 
 ## Math behind the curtain: one-way traps
 
 Two keys stay mathematically linked without either one giving the other away because asymmetric cryptography leans on trapdoor one-way functions: problems easy to compute in one direction and effectively impossible to reverse without a specific piece of secret information.
 
-```text
-EASY TO COMPUTE (Forward):
-Prime A (89) x Prime B (97) = 8,633   <--- Takes 1 millisecond
-
-IMPOSSIBLE TO REVERSE (Backward):
-Find the prime factors of 8,633       <--- In small numbers it's fast;
-                                           in 2048-bit numbers (617 digits),
-                                           it takes supercomputers billions of years.
-```
+<DataTable
+  keyCol
+  head={['Direction', 'Problem', 'Cost']}
+  rows={[
+    ['Forward', 'Prime 89 × prime 97 = 8,633', 'About a millisecond'],
+    ['Backward', 'Find the prime factors of 8,633', 'Fast at this size. For 2048-bit numbers (617 digits), billions of years on supercomputers'],
+  ]}
+  caption="Multiplying two primes is easy. Undoing it is what keeps the private key private."
+/>
 
 RSA leans on how hard factoring a huge number back into its original primes is. Elliptic Curve Cryptography reaches the same guarantee through a different one-way trap, the algebra of points along a curve, and gets there with far smaller keys.
 

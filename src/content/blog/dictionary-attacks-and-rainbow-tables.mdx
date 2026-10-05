@@ -27,20 +27,22 @@ import Dropcap from '../../components/Dropcap.astro';
 import Mnote from '../../components/Mnote.astro';
 import CaseFile from '../../components/CaseFile.astro';
 import DetectionOpportunity from '../../components/DetectionOpportunity.astro';
+import Diagram from '../../components/Diagram.astro';
+import DataTable from '../../components/DataTable.astro';
 
 <Dropcap letter="I">n theory, hashing closed the loop. Feed a password into a one-way function and there's no operation that runs backward from the digest to the original word, not with any amount of computing power, not ever. Attackers who breached a database of hashes were supposed to hit a mathematical wall.</Dropcap>
 
 They didn't stay stuck for long. The wall was mathematically real. Nobody needed to climb it.
 
-```text
-STOLEN DATABASE FILE:
-------------------------------------------------------------------
-USER         STORED HASH (SHA-256)
-------------------------------------------------------------------
-alice   ---> 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
-bob     ---> 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
-carol   ---> ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f
-```
+<DataTable
+  head={['User', 'Stored hash (SHA-256)']}
+  rows={[
+    ['<code>alice</code>', '<code>5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8</code>'],
+    ['<code>bob</code>', '<code>8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92</code>'],
+    ['<code>carol</code>', '<code>ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f</code>'],
+  ]}
+  caption="A stolen database file. Every password is hashed, and none of them can be run backward."
+/>
 
 The fatal weakness was never the math. It was human behavior paired with determinism. People pick predictable words, and a hash function produces the exact same digest every single time. An attacker doesn't need to break the algorithm. They just need to guess the input.
 
@@ -63,29 +65,33 @@ Offline password cracking evolved through three distinct approaches, each faster
 2. **Dictionary attack**: run an actual wordlist of real human passwords, like rockyou.txt, through the hash function and compare each result against the stolen hashes. People reuse <span class="code-inline">P@ssword1</span> far more often than they type a random twelve-character string.
 3. **Rainbow tables**: hash millions of common passwords once, sort the results, and save the whole set to disk as a lookup table. Cryptographer Philippe Oechslin formalized the technique in 2003, building on a time-memory tradeoff Martin Hellman had described back in 1980. The computation happens exactly once, and every attack after that is just a search.
 
-```text
-PRE-COMPUTED LOOKUP TABLE:
-------------------------------------------------------------------
-PRE-COMPUTED HASH                                    CLEARTEXT VALUE
-------------------------------------------------------------------
-5e884898da28047151d0e56f8dc62927...  ===========>   "password"
-8d969eef6ecad3c29a3a629280e686cf...  ===========>   "123456"
-ef92b778bafe771e89245b89ecbc08a4...  ===========>   "secret"
-```
+<DataTable
+  head={['Precomputed hash', 'Cleartext']}
+  rows={[
+    ['<code>5e884898da28047151d0e56f8dc62927…</code>', '<code class="flaw">password</code>'],
+    ['<code>8d969eef6ecad3c29a3a629280e686cf…</code>', '<code class="flaw">123456</code>'],
+    ['<code>ef92b778bafe771e89245b89ecbc08a4…</code>', '<code class="flaw">secret</code>'],
+  ]}
+  caption="A precomputed lookup table: common passwords hashed once and saved, so each digest maps straight back to its word."
+/>
 
 ## Exploit in action: a reverse lookup
 
 With an unsalted hash and a precomputed table already built, cracking it stops being cryptography and turns into a lookup:
 
-```text
-1. Hacker grabs Alice's stolen hash:
-   "5e884898da28047151d0e56f8dc62927..."
-
-2. Hacker searches the pre-computed table for that exact string.
-
-3. Table returns the match in 0.002 seconds:
-   -> Cleartext: "password"
-```
+<Diagram
+  alt="Step one, the attacker takes Alice's stolen hash 5e884898. Step two, they search the precomputed table for that exact string. The table returns the cleartext password in 0.002 seconds."
+  caption="Cracking an unsalted hash with a table is a search, not a computation. The match comes back in 0.002 seconds."
+  nodes={[
+    { id: 'h', label: 'Stolen hash', sub: '"5e884898…"', col: 0, row: 0 },
+    { id: 't', label: 'Lookup table', sub: 'exact-match search', col: 1, row: 0 },
+    { id: 'p', label: 'Cleartext', sub: '"password"', col: 2, row: 0, tone: 'flaw' },
+  ]}
+  edges={[
+    { from: 'h', to: 't', step: 1 },
+    { from: 't', to: 'p', step: 2 },
+  ]}
+/>
 
 Hash once and crack forever. An attacker who builds a table pays the computational cost a single time, then reuses it against every stolen database that crosses their path afterward, one victim or ten million, for almost the same price.
 
@@ -95,7 +101,7 @@ Hash once and crack forever. An attacker who builds a table pays the computation
 - **Cross-system matching**: a hash stolen from Company A drops straight into the exact same table used to crack Company B. Nothing about the hash ties it to where it came from.
 - **Zero cost to scale**: once the table exists, attacking ten million stolen accounts costs almost exactly what attacking one does.
 
-<span class="highlight">The math never broke. The assumption that identical inputs deserved identical outputs did.</span>
+<p class="body-text"><span class="highlight">The math never broke. The assumption that identical inputs deserved identical outputs did.</span></p>
 
 <DetectionOpportunity>A password hash with no per-user randomness mixed in is really just a well-organized phonebook entry. The fix isn't a stronger hash function on its own. It's making sure identical passwords never produce identical output in the first place.</DetectionOpportunity>
 

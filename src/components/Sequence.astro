@@ -1,0 +1,116 @@
+---
+/**
+ * Two-party sequence diagram in the post system: two lifelines, messages
+ * between them, notes on either side. Same plate, palette and "Figure N."
+ * numbering as <Diagram>.
+ *
+ *   <Sequence
+ *     alt="..." caption="..."
+ *     left={{ label: 'Client' }} right={{ label: 'Server' }}
+ *     items={[
+ *       { msg: 'ClientHello', dir: 'r', step: 1 },
+ *       { left: 'Verifies the certificate' },
+ *       { span: 'Encrypted tunnel active' },
+ *     ]}
+ *   />
+ *
+ * Message: { msg, dir: 'r' | 'l' | 'both', step?, tone?: 'flaw', dashed? }
+ * Note:    { left?, right?, span?, tone?: 'flaw' }  (left/right sit on that
+ *          party's lifeline; span runs across both)
+ */
+import { SITE } from '../config';
+
+interface Party { label: string; sub?: string }
+interface Msg { msg: string; dir: 'r' | 'l' | 'both'; step?: string | number; tone?: 'flaw'; dashed?: boolean }
+interface Note { left?: string; right?: string; span?: string; tone?: 'flaw' }
+type Item = Msg | Note;
+const isMsg = (it: Item): it is Msg => 'msg' in it;
+interface Props { left: Party; right: Party; items: Item[]; caption: string; alt: string }
+const { left, right, items, caption, alt } = Astro.props;
+
+const W = 660, LX = 120, RX = 540, BW = 190;
+function wrap(text: string, max: number): string[] {
+  const out: string[] = [];
+  let line = '';
+  for (const word of text.split(' ')) {
+    if (line && (line + ' ' + word).length > max) { out.push(line); line = word; }
+    else line = line ? line + ' ' + word : word;
+  }
+  out.push(line);
+  return out;
+}
+const headH = left.sub || right.sub ? 62 : 46;
+let y = 8 + headH + 18;
+const head = (x: number, yy: number, dir: 1 | -1) =>
+  `M${x - 8 * dir} ${yy - 5}L${x} ${yy}L${x - 8 * dir} ${yy + 5}`;
+
+const laid = items.map((it) => {
+  if (isMsg(it)) {
+    const yy = y + 28;
+    y += 50;
+    const x1 = LX + 6, x2 = RX - 6;
+    const d = `M${x1} ${yy}L${x2} ${yy}`;
+    const heads = (it.dir !== 'l' ? head(x2, yy, 1) : '') + (it.dir !== 'r' ? head(x1, yy, -1) : '');
+    return { kind: 'msg' as const, ...it, yy, d, heads };
+  }
+  const notes: { x: number; w: number; lines: string[] }[] = [];
+  if (it.span) notes.push({ x: LX, w: RX - LX, lines: wrap(it.span, 52) });
+  if (it.left) notes.push({ x: LX - BW / 2, w: BW, lines: wrap(it.left, 26) });
+  if (it.right) notes.push({ x: RX - BW / 2, w: BW, lines: wrap(it.right, 26) });
+  const lines = Math.max(...notes.map((n) => n.lines.length));
+  const h = 18 + lines * 16;
+  const yy = y + 8;
+  y += h + 16;
+  return { kind: 'note' as const, tone: it.tone, notes, yy, h };
+});
+const H = y + 10;
+const site = new URL(SITE.links.portfolio).hostname;
+const parties = [{ ...left, x: LX }, { ...right, x: RX }];
+---
+
+<figure class="post-figure is-figure">
+  <div class="plate">
+    <div class="plate-in">
+      <svg class="dg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={alt}>
+        {parties.map((p) => (
+          <g>
+            <line class="dg-life" x1={p.x} y1={8 + headH} x2={p.x} y2={H - 6} />
+            <rect class="dg-box" x={p.x - BW / 2} y="8" width={BW} height={headH} rx="8" />
+            <text class="dg-t" x={p.x} y={p.sub ? 33 : 37}>{p.label}</text>
+            {p.sub && <text class="dg-s" x={p.x} y="51">{p.sub}</text>}
+          </g>
+        ))}
+        {laid.map((it) =>
+          it.kind === 'msg' ? (
+            <g>
+              <g class:list={['dg-edge', it.tone && 'is-flaw', it.dashed && 'is-dashed']}>
+                <path d={it.d} />
+                <path class="dg-head" d={it.heads} />
+              </g>
+              <text class:list={['dg-lbl', it.tone && 'is-flaw']} x={W / 2} y={it.yy - (it.step != null ? 18 : 9)} text-anchor="middle">{it.msg}</text>
+              {it.step != null && (
+                <g class:list={['dg-step', it.tone && 'is-flaw']}>
+                  <circle cx={LX + 34} cy={it.yy} r="11" />
+                  <text x={LX + 34} y={it.yy + 4}>{it.step}</text>
+                </g>
+              )}
+            </g>
+          ) : (
+            <g>
+              {it.notes.map((n) => (
+                <g>
+                  <rect class:list={['dg-note', it.tone && 'is-flaw']} x={n.x} y={it.yy} width={n.w} height={it.h} rx="6" />
+                  {n.lines.map((l, i) => (
+                    <text class:list={['dg-s', 'dg-note-t', it.tone && 'is-flaw']} x={n.x + n.w / 2} y={it.yy + 21 + i * 16}>{l}</text>
+                  ))}
+                </g>
+              ))}
+            </g>
+          )
+        )}
+      </svg>
+    </div>
+    <div class="plate-foot"><span>{site}</span><span class="plate-n" aria-hidden="true"></span></div>
+  </div>
+  <figcaption set:html={caption} />
+</figure>

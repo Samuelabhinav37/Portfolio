@@ -2,14 +2,8 @@
    at build time from the post's headings; this file only adds the dynamic
    pieces: scroll UI, scrollspy, anchors, copy actions, FAQ, collapsed menu. */
 
-/* ── Scroll-driven UI: reading progress, back-to-top.
-   Single rAF-throttled handler. The "More stories" rail used to need its own
-   scroll-threshold show/hide logic here (fixed-positioned, faded in past the
-   author bar, hidden again before the FAQ) — now that it's a real sticky grid
-   column (see .left-sidebar in blog.css), the browser handles all of that
-   declaratively: it stays in view while scrolling through the article and
-   stops sticking on its own once .page-grid (which ends where the article
-   does) scrolls past. ── */
+/* ── Scroll-driven UI: reading progress ring on the back-to-top button.
+   Single rAF-throttled handler. ── */
 (() => {
   const backTop = document.getElementById('back-to-top');
   const ring = document.querySelector('.btt-ring-fill');
@@ -40,6 +34,74 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   onScroll();
+})();
+
+/* ── On this page: the right-edge contents strip (.etoc) and the narrow-
+   screen box (.toc-inline), both rendered from the same list in
+   BlogPost.astro. Scrollspy reads heading positions on scroll (one cheap
+   rect read per heading) rather than an IntersectionObserver rootMargin,
+   which browsers ignore inside cross-origin frames. The card opens on
+   hover after a short dwell and closes 200ms after the pointer leaves, so
+   crossing from the dashes to the card never drops it; keyboard focus
+   opens it too (CSS :focus-within) and Escape closes it (WCAG 1.4.13). ── */
+(() => {
+  const strip = document.getElementById('etoc');
+  const links = [...document.querySelectorAll('.etoc-card a[data-toc], .toc-inline a[data-toc]')];
+  if (!links.length) return;
+  const ids = [...new Set(links.map((a) => a.dataset.toc))];
+  const targets = ids.map((id) => document.getElementById(id)).filter(Boolean);
+  const dashes = strip ? [...strip.querySelectorAll('.etoc-dashes span')] : [];
+  const article = document.querySelector('.article-col');
+  const end = document.querySelector('.post-next') || document.querySelector('.post-footer');
+  let current = null;
+  let openT, closeT;
+  function close() { clearTimeout(openT); clearTimeout(closeT); if (strip) strip.classList.remove('is-open'); }
+
+  function setCurrent(id) {
+    if (id === current) return;
+    current = id;
+    links.forEach((a) => {
+      const on = a.dataset.toc === id;
+      a.classList.toggle('is-active', on);
+      if (on) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    });
+    dashes.forEach((d) => d.classList.toggle('is-active', d.dataset.toc === id));
+  }
+
+  let ticking = false;
+  function update() {
+    ticking = false;
+    const line = 120;
+    let id = targets.length ? targets[0].id : null;
+    for (const t of targets) if (t.getBoundingClientRect().top <= line) id = t.id;
+    setCurrent(id);
+    if (strip && article) {
+      const show = article.getBoundingClientRect().top < innerHeight * 0.5 &&
+        (!end || end.getBoundingClientRect().top > innerHeight * 0.4);
+      strip.classList.toggle('is-shown', show);
+      if (!show) close();
+    }
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
+
+  if (strip) {
+    strip.addEventListener('mouseenter', () => { clearTimeout(closeT); openT = setTimeout(() => strip.classList.add('is-open'), 60); });
+    strip.addEventListener('mouseleave', () => { clearTimeout(openT); closeT = setTimeout(() => strip.classList.remove('is-open'), 200); });
+    strip.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { close(); if (document.activeElement) document.activeElement.blur(); }
+    });
+  }
+  // Clicking a link closes the card and the narrow-screen box; the jump
+  // itself is a normal #anchor (html scroll-behavior + scroll-margin-top).
+  links.forEach((a) => a.addEventListener('click', () => {
+    setTimeout(close, 150);
+    const box = a.closest('details');
+    if (box) box.open = false;
+  }));
 })();
 
 /* ── Heading anchor links — hover a heading, get a shareable # link.

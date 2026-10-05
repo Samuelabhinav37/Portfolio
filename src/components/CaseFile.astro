@@ -1,8 +1,11 @@
 ---
 /**
- * At-a-glance incident summary. One per post, right after the lede.
+ * At-a-glance incident summary, rendered as a post data table.
  *   <CaseFile id="eof-2026-04" rows={[{ term: 'Vector', desc: '...' }, ...]} />
  * desc accepts inline HTML (entities, arrows, chips).
+ *
+ * An id ending in "/ translation" is the closing then-and-now case file: it
+ * renders as a Then / Now table and drops the leading arrow each desc carries.
  */
 interface Props {
   id: string;
@@ -12,14 +15,28 @@ interface Props {
   lang?: 'en' | 'es';
 }
 const { id, rows, lang = 'en' } = Astro.props;
-const label = lang === 'es' ? 'Ficha del caso' : 'Case file';
+const es = lang === 'es';
+const label = es ? 'Ficha del caso' : 'Case file';
+
+const isTranslation = /\/\s*translation$/i.test(id);
+const baseId = id.replace(/\s*\/\s*translation$/i, '');
+const head = isTranslation ? (es ? ['Antes', 'Ahora'] : ['Then', 'Now']) : [es ? 'Campo' : 'Field', baseId];
+const caption = isTranslation
+  ? `${label} ${baseId}: ${es ? 'antes y ahora' : 'then and now'}.`
+  : `${label} ${baseId}: ${es ? 'el incidente de un vistazo' : 'the incident at a glance'}.`;
+const strip = (s: string) => (isTranslation ? s.replace(/^\s*(&rarr;|→)\s*/, '') : s);
 ---
 
-<div class="case-file">
-  <div class="case-file-head"><span>{label}</span><span>{id}</span></div>
-  <dl class="case-file-grid">
-    {rows.map((r) => (
-      <div class="case-file-row"><dt>{r.term}</dt><dd set:html={r.desc} /></div>
-    ))}
-  </dl>
-</div>
+<figure class="post-figure is-table">
+  <div class="dtable">
+    <table>
+      <thead><tr>{head.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr><td class="k" set:html={r.term} /><td set:html={strip(r.desc)} /></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <figcaption>{caption}</figcaption>
+</figure>

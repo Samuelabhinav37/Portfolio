@@ -31,6 +31,7 @@ import CaseFile from '../../../components/CaseFile.astro';
 import DetectionOpportunity from '../../../components/DetectionOpportunity.astro';
 import IocTable from '../../../components/IocTable.astro';
 import Mitre from '../../../components/Mitre.astro';
+import DataTable from '../../../components/DataTable.astro';
 
 <Dropcap letter="E">n marzo de 2026, una actualización rutinaria de dependencias en un paquete de Node.js ampliamente utilizado introdujo una puerta trasera que pasó inadvertida durante casi siete semanas. El ataque explotó el modelo de confianza inherente a la gestión de paquetes de código abierto, apuntando a las credenciales comprometidas de un mantenedor para colar código malicioso a través de lo que parecía un incremento de versión legítimo.</Dropcap>
 
@@ -96,14 +97,17 @@ El mapeo a MITRE ATT&CK abarca desde <Mitre id="T1195.002" /> (compromiso de la 
   lang="es"
 />
 
-```text
-IOC-001: 45.33.xx.0/24  (Linode, Frankfurt)
-IOC-002: 167.71.xx.0/24 (DigitalOcean, AMS3)
-IOC-003: 104.248.xx.0/24 (DigitalOcean, SFO2)
-
-YARA rule: supply_chain_postinstall_hook
-SHA256: 9f86d081884c7d659a2feaa0...
-```
+<DataTable
+  head={['Referencia', 'Indicador', 'Detalle']}
+  rows={[
+    ['IOC-001', '<code>45.33.xx.0/24</code>', 'Linode, Fráncfort'],
+    ['IOC-002', '<code>167.71.xx.0/24</code>', 'DigitalOcean, AMS3'],
+    ['IOC-003', '<code>104.248.xx.0/24</code>', 'DigitalOcean, SFO2'],
+    ['Regla YARA', '<code>supply_chain_postinstall_hook</code>', 'Detecta el hook postinstall malicioso'],
+    ['SHA-256', '<code>9f86d081884c7d659a2feaa0…</code>', 'Hash del payload (truncado)'],
+  ]}
+  caption="Rangos de infraestructura y artefactos de detección del incidente."
+/>
 
 ## Lecciones para defensores
 
