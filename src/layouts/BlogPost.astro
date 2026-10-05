@@ -2,8 +2,6 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
-import { readFileSync, existsSync } from 'node:fs';
-import path from 'node:path';
 import { SITE } from '../config';
 import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
@@ -14,7 +12,7 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
-import { srcsetWith, variant } from '../image-variant';
+import { srcsetWith, variant, webpDims } from '../image-variant';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -35,30 +33,6 @@ interface Props {
 const { post, headings, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
 
-// Reads intrinsic pixel size straight from the WEBP header so the hero
-// <img> can carry real width/height (CLS reservation) without hardcoding
-// one post's dimensions onto every post — heroImage varies per post.
-const PUBLIC_DIR = path.join(process.cwd(), 'public');
-function webpDims(publicPath: string): { width: number; height: number } | null {
-  const fsPath = path.join(PUBLIC_DIR, publicPath.replace(/^\//, ''));
-  if (!existsSync(fsPath)) return null;
-  const buf = readFileSync(fsPath);
-  const fourcc = buf.toString('ascii', 12, 16);
-  if (fourcc === 'VP8 ') {
-    return { width: buf.readUInt16LE(26) & 0x3fff, height: buf.readUInt16LE(28) & 0x3fff };
-  }
-  if (fourcc === 'VP8X') {
-    return {
-      width: 1 + (buf[24] | (buf[25] << 8) | (buf[26] << 16)),
-      height: 1 + (buf[27] | (buf[28] << 8) | (buf[29] << 16)),
-    };
-  }
-  if (fourcc === 'VP8L') {
-    const b = buf.readUInt32LE(21);
-    return { width: (b & 0x3fff) + 1, height: ((b >> 14) & 0x3fff) + 1 };
-  }
-  return null;
-}
 const heroDims = d.heroImage ? webpDims(d.heroImage) : null;
 const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
@@ -276,6 +250,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     >{lang === 'es' ? 'Menú' : 'Menu'}</button>
     <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
       <ul id="menu-list">
+        <li><a href="/projects/"><span>{lang === 'es' ? 'Proyectos' : 'Projects'}</span></a></li>
         <li><a href={SITE.links.about}><span>{i18n.navAbout}</span></a></li>
         <li><a href={SITE.links.blogIndex} class="active"><span>{i18n.navBlog}</span></a></li>
         <li><a href={SITE.links.contact}><span>{i18n.navContact}</span></a></li>

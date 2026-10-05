@@ -8,7 +8,7 @@
   var sec=document.getElementById('projects-section');
   var accs=[].slice.call(document.querySelectorAll('#projects-section .acc'));
   var pvLabel=document.getElementById('pv-label');
-  var NAMES=['sentinel','prism','axon'];
+  var NAMES=['sentinel','moat','cluster'];
   if(!accs.length) return;
   function open(idx){
     window.SITE.__globeFocus=idx;

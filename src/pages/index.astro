@@ -488,7 +488,7 @@ body.intro-done #hero-tagline { opacity:1; }
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); -webkit-mask-composite:source-in;
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); mask-composite:intersect; }
 /* depth: push the two flanking frames back so the hero reads first (opacity only,
-   so PRISM's invert filter is preserved) */
+   so a project's invert filter is preserved) */
 .ptile--limg .pblue:not(.pblue--empty) img{ opacity:.58; }
 .ptile--img  .pblue:not(.pblue--empty) img{ opacity:.78; }
 
@@ -1402,6 +1402,10 @@ footer#site-footer{
 .acc-results li{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.6); position:relative; padding-left:16px; }
 .acc-results li::before{ content:'•'; position:absolute; left:0; top:0; color:rgba(226,232,244,0.45); font-size:14px; }
+.acc-link{ display:inline-block; margin-top:4px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:rgba(226,232,244,0.85); text-decoration:none; padding:6px 0; border-bottom:1px solid rgba(226,232,244,0.25); transition:color .2s, border-color .2s; }
+.acc-link::after{ content:' →'; }
+.acc-link:hover{ color:#fff; border-color:rgba(226,232,244,0.7); }
 
 /* ── the big translucent globe terminal ── */
 .pterm{ position:relative; width:100%; height:min(84vh,900px);
@@ -1489,71 +1493,74 @@ footer#site-footer{
               <span class="acc-mark" aria-hidden="true"></span>
             </button>
             <div class="acc-body"><div class="acc-inner">
-              <p class="acc-desc">A multi-SIEM detection architecture that converts raw telemetry into triaged, actionable alerts. Wazuh, Splunk, and Security Onion operate in parallel across the pipeline, Shuffle orchestrates the SOAR playbooks, and a local LLM performs first-pass triage, extending MITRE ATT&amp;CK coverage from nine techniques to fifteen.</p>
+              <p class="acc-desc">A code-driven SOC lab. Every detection is a Sigma rule in Git, validated in CI and then fired against Elastic with a real attacker technique. Two AI models triage each alert in parallel, and Shuffle SOAR acts only when both agree.</p>
               <div class="acc-extra">
                 <div class="acc-section">
                   <span class="acc-section-lbl">Tools used</span>
                   <div class="acc-chips">
-                    <span class="acc-chip">Wazuh</span><span class="acc-chip">Splunk</span><span class="acc-chip">Security Onion</span><span class="acc-chip">Shuffle</span><span class="acc-chip">Local LLM</span>
+                    <span class="acc-chip">Sigma</span><span class="acc-chip">Elastic</span><span class="acc-chip">Wazuh</span><span class="acc-chip">n8n</span><span class="acc-chip">Ollama + Claude</span><span class="acc-chip">Shuffle</span>
                   </div>
                 </div>
                 <div class="acc-section">
                   <span class="acc-section-lbl">Results</span>
                   <ul class="acc-results">
-                    <li>Extended MITRE ATT&amp;CK technique coverage from 9 to 15</li>
-                    <li>Local LLM handles first-pass triage before a human reviews it</li>
+                    <li>18 rules, each caught firing on a real command</li>
+                    <li>Measured attack-to-alert times of 45 to 151 seconds</li>
                   </ul>
                 </div>
+                <a class="acc-link" href="/projects/sentinel/">Read the case study</a>
               </div>
             </div></div>
           </article>
-          <article class="acc" data-idx="1" id="sec-prism">
+          <article class="acc" data-idx="1" id="sec-moat">
             <button class="acc-head" aria-expanded="false">
               <span class="acc-num">02</span>
-              <span class="acc-title">PRISM</span>
+              <span class="acc-title">MOAT</span>
               <span class="acc-mark" aria-hidden="true"></span>
             </button>
             <div class="acc-body"><div class="acc-inner">
-              <p class="acc-desc">A federated anomaly-detection framework evaluated across seven simulated OT and ICS sites. Built on Flower with FedProx and a temporal variational autoencoder trained to model each site's baseline behavior, the system exchanges only masked model weights so that raw telemetry never leaves the plant, and reconstruction error is used to surface anomalies at a false-positive rate below eight percent.</p>
+              <p class="acc-desc">A free, open-source ad blocker for Chrome and Firefox that runs entirely inside the browser. It blocks ads, trackers, cookie banners and scam pop-ups using the browser's own blocking engine. No server, no account, no telemetry.</p>
               <div class="acc-extra">
                 <div class="acc-section">
                   <span class="acc-section-lbl">Tools used</span>
                   <div class="acc-chips">
-                    <span class="acc-chip">Flower</span><span class="acc-chip">FedProx</span><span class="acc-chip">Temporal VAE</span>
+                    <span class="acc-chip">TypeScript</span><span class="acc-chip">Manifest V3</span><span class="acc-chip">declarativeNetRequest</span><span class="acc-chip">AdGuard lists</span>
                   </div>
                 </div>
                 <div class="acc-section">
                   <span class="acc-section-lbl">Results</span>
                   <ul class="acc-results">
-                    <li>Evaluated across 7 simulated OT/ICS sites</li>
-                    <li>False-positive rate held below 8%</li>
+                    <li>About 314,000 filter entries compiled into 72,000 browser rules</li>
+                    <li>Cosmetic rules per page cut from 5.8 MB to about 700 KB</li>
                   </ul>
                 </div>
+                <a class="acc-link" href="/projects/moat/">Read the case study</a>
               </div>
             </div></div>
           </article>
-          <article class="acc" data-idx="2" id="sec-axon">
+          <article class="acc" data-idx="2" id="sec-cluster">
             <button class="acc-head" aria-expanded="false">
               <span class="acc-num">03</span>
-              <span class="acc-title">AXON</span>
+              <span class="acc-title">CLUSTER</span>
               <span class="acc-mark" aria-hidden="true"></span>
             </button>
             <div class="acc-body"><div class="acc-inner">
-              <p class="acc-desc">A risk-adaptive authentication scheme designed to remain unobtrusive under normal conditions. Each authentication attempt is assigned a continuous risk score derived from device, location, and behavioral signals; low-risk attempts proceed without friction, while high-risk attempts trigger step-up authentication in accordance with the NIST 800-63B assurance model.</p>
+              <p class="acc-desc">A Chrome extension that cleans up Gmail and Outlook and flags impersonation, reading only message metadata. Lookalike domains, failed DMARC and Reply-To tricks are caught from headers alone, with no server and no message bodies.</p>
               <div class="acc-extra">
                 <div class="acc-section">
                   <span class="acc-section-lbl">Tools used</span>
                   <div class="acc-chips">
-                    <span class="acc-chip">NIST 800-63B</span><span class="acc-chip">Device signals</span><span class="acc-chip">Location signals</span><span class="acc-chip">Behavioral signals</span>
+                    <span class="acc-chip">TypeScript</span><span class="acc-chip">Gmail API</span><span class="acc-chip">Microsoft Graph</span><span class="acc-chip">OAuth 2.0</span>
                   </div>
                 </div>
                 <div class="acc-section">
                   <span class="acc-section-lbl">Results</span>
                   <ul class="acc-results">
-                    <li>Low-risk attempts authenticate with zero added friction</li>
-                    <li>High-risk attempts trigger step-up authentication</li>
+                    <li>Six header-only phishing signals, scored per sender</li>
+                    <li>Every destructive action confirmed, with Undo where the provider allows</li>
                   </ul>
                 </div>
+                <a class="acc-link" href="/projects/cluster/">Read the case study</a>
               </div>
             </div></div>
           </article>
@@ -1576,7 +1583,7 @@ footer#site-footer{
               <div class="gt-sweep"></div>
             </div>
             <div class="pv-shot"><img id="pv-img" alt="" /></div>
-            <a id="pv-view" class="pv-view" href="/blog/#sentinel">view project</a>
+            <a id="pv-view" class="pv-view" href="/projects/sentinel/">view project</a>
             <div class="pv-foot">
               <div class="pv-pills-wrap"><div class="pv-pills-track" id="pv-pills"></div></div>
             </div>
@@ -1775,7 +1782,7 @@ footer#site-footer{
   "integrity": { "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js": "sha384-8/hf5tabFfIo0BPku31TKUvGIKpWGYaMwNtlSNqNyZzXgZCMd4lnOGWbJElML9dv" } }
 </script>
 <script is:inline type="module" src="/scripts/index-globe-engine.js"></script>
-<!-- Post-tour scroll room: lets Axon finish its hold on-screen, then provides the scroll
+<!-- Post-tour scroll room: lets Cluster finish its hold on-screen, then provides the scroll
      distance for the footer to rise into view while the fixed space scene stays live behind it.
      Transparent + pointer-events:none so the background shows through and nothing is blocked. -->
 <!-- Footer beat: this tall spacer provides the scroll distance that drives the PINNED

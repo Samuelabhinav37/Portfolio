@@ -136,7 +136,7 @@
       ]},
       projects: { topic:'sentinel', pool:[
         "these three are the real work. want the story behind one?",
-        "sentinel, prism, axon. pick one and i'll break it down.",
+        "sentinel, moat, cluster. pick one and i'll break it down.",
         "the globe isn't just for show. want me to tour it?",
         "curious how any of these actually got built?"
       ]},

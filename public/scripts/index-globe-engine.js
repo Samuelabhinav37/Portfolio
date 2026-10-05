@@ -65,7 +65,7 @@
   var seed=7, rand=function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
 
   var NNODES=120, NDOTS=340, SPHERE_R=1.5;
-  var LABELS=['SENTINEL','PRISM','AXON','CVE-2025-24813','T1486','T1190'];
+  var LABELS=['SENTINEL','MOAT','CLUSTER','CVE-2025-24813','T1486','T1190'];
   /* The last three are telemetry markers, not navigation (About/Blog/Contact live in
      the corner menu): CVE-2025-24813 = Tomcat partial-PUT RCE reconstructed in the
      SignetDynamics IR lab; T1486 = Data Encrypted for Impact (EduNexus SSE-C chain);
@@ -80,10 +80,9 @@
      the BLOG/ABOUT/CONTACT nodes so labels don't pile up. A small eased pitch in
      the tour (TOUR_PITCH_SIGN below) nulls the residual offset. */
   var LABEL_NODE=[55,53,54,61,83,104];
-  /* Routing. Projects now point at per-project anchors on /blog — CONFIRM these
-     match your real Blog-page routing (anchor ids / slugs). The rest mirror the
-     nav slugs (same caveat as the living-chrome nav). */
-  var LABEL_HREF=['/blog/#sentinel','/blog/#prism','/blog/#axon',null,null,null];
+  /* Routing. Each project node opens its case study under /projects/; the
+     telemetry markers don't navigate. */
+  var LABEL_HREF=['/projects/sentinel/','/projects/moat/','/projects/cluster/',null,null,null];
   var SEED_NODE=0;
 
   var canvas=document.getElementById('globe-gl');
@@ -399,34 +398,32 @@
        The blueprint duotone / screen-blend is applied by CSS (.pblue img). */
     var SENTINEL_IMG  = '/images/sentinel-hero.webp';
     var SENTINEL_IMGL = ['/images/sentinel-frame-1.webp','/images/sentinel-frame-2.webp'];
-    /* PRISM figures (SELA): hero = three-tier network architecture;
-       frames = secure-aggregation FL flow + system component interaction.
-       Source figures are white-background diagrams (see note in chat re: treatment). */
-    var PRISM_IMG  = '/images/prism-hero.webp';
-    var PRISM_IMGL = ['/images/prism-frame-1.webp','/images/prism-frame-2.webp'];
-    /* AXON figures (all dark-bg terminals): hero = risk-eval + FIDO2 step-up;
-       frames = session risk-signal JSON + continuous risk-scoring graph. */
-    var AXON_IMG  = '/images/axon-hero.webp';
-    var AXON_IMGL = ['/images/axon-frame-1.webp','/images/axon-frame-2.webp'];
+    /* MOAT: real screenshots from the extension's own site (before/after on
+       Allrecipes) and the popup over a WIRED article. */
+    var MOAT_IMG  = '/images/projects/moat-hero.webp';
+    var MOAT_IMGL = ['/images/projects/moat-recipe-before.webp','/images/projects/moat-recipe-after.webp'];
+    /* CLUSTER: the real dashboard running against its built-in fake mailbox. */
+    var CLUSTER_IMG  = '/images/projects/cluster-hero.webp';
+    var CLUSTER_IMGL = ['/images/projects/cluster-overview.webp','/images/projects/cluster-hero.webp'];
     var PROJECTS = [
       { node:LABEL_NODE[0], kicker:'Project 01 / Detection', title:'SENTINEL',
-        cap:'log to alert to autotriage', href:LABEL_HREF[0], img:SENTINEL_IMG, imgL:SENTINEL_IMGL, capL:['wazuh alert feed // T1190','detection pipeline flow'],
-        metric:['9 → 15','ATT&CK techniques'],
-        spec:[['Stack','Splunk · Wazuh · Security Onion'],
-              ['Pipeline','Shuffle SOAR · n8n · Ollama'],
-              ['Coverage','MITRE ATT&CK 9 → 15']] },
-      { node:LABEL_NODE[1], kicker:'Project 02 / Federated ML', title:'PRISM',
-        cap:'passive detection across 7 federated sites', href:LABEL_HREF[1], img:PRISM_IMG, imgL:PRISM_IMGL, invert:true, capL:['secure aggregation // masked ΔΘ','three-tier OT/ICS topology'],
-        metric:['< 8%','false-positive rate'],
-        spec:[['Stack','Flower FedProx · Temporal VAE'],
-              ['Data','SWaT · 7 OT/ICS nodes'],
-              ['Result','sub-8% false-positive rate']] },
-      { node:LABEL_NODE[2], kicker:'Project 03 / Identity', title:'AXON',
-        cap:'auth that tightens only when risk rises', href:LABEL_HREF[2], img:AXON_IMG, imgL:AXON_IMGL, capL:['session risk signals // live','risk score vs NIST 800-63B'],
-        metric:['800-63B','NIST standard'],
-        spec:[['Standard','NIST 800-63B'],
-              ['Model','continuous risk signals'],
-              ['Action','adaptive step-up auth']] },
+        cap:'attack to alert to agreed verdict', href:LABEL_HREF[0], img:SENTINEL_IMG, imgL:SENTINEL_IMGL, capL:['alert payload // T1190','triage run // two models'],
+        metric:['18','rules fired live'],
+        spec:[['Stack','Elastic · Wazuh · Suricata / Zeek'],
+              ['Pipeline','n8n · Ollama + Claude · Shuffle'],
+              ['Measured','attack → alert 45–151 s']] },
+      { node:LABEL_NODE[1], kicker:'Project 02 / Browser', title:'MOAT',
+        cap:'ad blocking that keeps to itself', href:LABEL_HREF[1], img:MOAT_IMG, imgL:MOAT_IMGL, capL:['allrecipes // without moat','allrecipes // with moat'],
+        metric:['~314k','filter entries'],
+        spec:[['Engine','Manifest V3 · declarativeNetRequest'],
+              ['Browsers','Chrome · Firefox · Firefox Android'],
+              ['Servers','none needed to block']] },
+      { node:LABEL_NODE[2], kicker:'Project 03 / Email', title:'CLUSTER',
+        cap:'phishing signals from headers alone', href:LABEL_HREF[2], img:CLUSTER_IMG, imgL:CLUSTER_IMGL, capL:['overview // fake mailbox','phishing // dmarc fail'],
+        metric:['6','header-only signals'],
+        spec:[['Providers','Gmail API · Microsoft Graph'],
+              ['Reads','metadata only, never bodies'],
+              ['Signals','lookalike · DMARC · Reply-To']] },
     ];
     var NP = PROJECTS.length;
     var BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -499,8 +496,8 @@
       'IOC','TTP','C2','EDR','PCAP','NETFLOW','IDOR','CNAME-TKO','ZERO-TRUST'];
     var PROJECT_SIGNALS=[
       /* SENTINEL — detection/IR chain  */ ['CVE-2025-24813','T1190','EID-4624','D3-NTA','SIGMA','IOC'],
-      /* PRISM — OT/ICS anomaly stack   */ ['T0866','ANOMALY','FEDPROX','T-VAE','OT/ICS','ATT&CK-ICS'],
-      /* AXON — adaptive auth           */ ['NIST-800-63B','T1078','AAL2','RISK-SCORE','MFA','D3-UBA']
+      /* MOAT — browser blocking        */ ['MV3','DNR','ADGUARD','COSMETIC','POPUP-FW','GPC'],
+      /* CLUSTER — email impersonation  */ ['T1566','DMARC','DKIM','PUNYCODE','REPLY-TO','BEC']
     ];   // vocabularies kept fully disjoint so no word ever appears in two clusters
     // spread ambient terms over the sphere, skipping project nodes, their neighbor
     // sets, and the main telemetry markers so tiers never collide on one node
@@ -756,14 +753,14 @@
       return cur + d*k;
     }
     // trapezoid focus: 0 outside the band, ramps to 1 across a plateau centred on the project
-    // Projects occupy the first TOUR_SPAN of the band; the tail (TOUR_SPAN..1) is Axon's
-    // hold-out + exit runway and the footer's entrance, so Axon reads as long as the others
+    // Projects occupy the first TOUR_SPAN of the band; the tail (TOUR_SPAN..1) is Cluster's
+    // hold-out + exit runway and the footer's entrance, so Cluster reads as long as the others
     // instead of getting cut off at the band end.
     var TOUR_SPAN = 0.80;
     function bandFocus(tp, idx){
       var tps = Math.min(1, tp / TOUR_SPAN);     // stretch projects into [0..TOUR_SPAN]
       var c=(idx+0.5)/NP, half=0.5/NP;           // band centre + half-width
-      // Axon (last project) holds its focus through the tail instead of fading after centre.
+      // Cluster (last project) holds its focus through the tail instead of fading after centre.
       if(idx===NP-1 && tps>c){ return 1.0; }
       var x=Math.abs(tps-c)/half;                // 0 at centre, 1 at band edge
       return clamp01((1.0 - x) / TOUR_HOLD);     // hold near centre, fade toward edges
@@ -790,15 +787,15 @@
       { c:dirs[PROJECTS[0].node].clone().normalize(), scale:0.66,
         pts:[[-1.05,0.10],[-0.62,0.55],[-0.30,-0.42],[0.05,0.50],[0.30,-0.55],[0.65,0.35],[0.55,-0.05],[1.05,-0.20]],
         edges:[[0,1],[0,2],[1,2],[1,3],[2,4],[3,6],[4,6],[6,5],[6,7],[4,7]],
-        labels:['Wazuh','','Security Onion','Splunk','','Shuffle','','Ollama'], anchors:[3,7] },
+        labels:['Wazuh','','Elastic','Kibana','','Shuffle','','Ollama'], anchors:[3,7] },
       { c:dirs[PROJECTS[1].node].clone().normalize(), scale:0.60,
         pts:[[-0.65,0.48],[0,0.62],[0.68,0.30],[0.15,-0.60],[-0.60,-0.35]],
         edges:[[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[4,1]],
-        labels:['Temporal VAE','','SWaT','','Flower FedProx'], anchors:[4] },
+        labels:['Chrome','','Firefox','','Manifest V3'], anchors:[4] },
       { c:dirs[PROJECTS[2].node].clone().normalize(), scale:0.62,
         pts:[[-0.95,-0.15],[-0.45,0.48],[0.05,0.58],[0.50,0.05],[0.95,0.15],[0.10,-0.55]],
         edges:[[0,1],[1,2],[2,3],[3,4],[0,5],[4,5],[1,5],[3,0]],
-        labels:['risk signals','','NIST 800-63B','','step-up','session'], anchors:[2] }
+        labels:['Gmail API','','Graph API','','OAuth','SPF'], anchors:[2] }
     ];
     var cNodesMat=new THREE.PointsMaterial({size:0.15,map:dotTexture(),sizeAttenuation:true,color:0xe6ecff,transparent:true,opacity:0,depthTest:false,depthWrite:false});
     var cNodes=new THREE.Points(new THREE.BufferGeometry(),cNodesMat); cNodes.renderOrder=6; cNodes.frustumCulled=false; worldGroup.add(cNodes);
@@ -882,7 +879,7 @@
     // Auto-placed by striding evenly around the sphere and skipping claimed nodes,
     // rather than hand-picked indices, so it degrades gracefully if NNODES or the
     // project neighbor counts ever change. Kept disjoint from the CFIG tool names
-    // (Wazuh, Splunk, Flower FedProx, etc.) so no term ever appears twice on the globe.
+    // (Wazuh, Elastic, Manifest V3, etc.) so no term ever appears twice on the globe.
     var AMBIENT_SKILLS=[
       'SIEM','EDR','XDR','SOAR','IAM','PAM','ZERO-TRUST','MFA',
       'IOC','TTP','THREAT-INTEL','THREAT-HUNTING','OSINT','FORENSICS','DFIR','HONEYPOT',
@@ -1199,7 +1196,7 @@
       var focusArr=[], focusMax=0, activeIdx=0;
       for(var fz=0; fz<NP; fz++){
         var ff = tourActive ? bandFocus(tourP,fz) : 0;
-        // After the tour ends AND the footer beat is engaging, keep Axon (last project)
+        // After the tour ends AND the footer beat is engaging, keep Cluster (last project)
         // mounted so its tiles animate OUT via the calm-driven reverse stagger. Gated on
         // _calm>0 so this only fires at the END (footer approaching), never at the start
         // where tourActive is also false but _calm is 0.

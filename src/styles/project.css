@@ -1,0 +1,70 @@
+/* Case-study additions on top of blog.css: status line, external links,
+   the metrics strip under the hero, the role/stack facts block, the
+   /projects/ index list, and <Shot> screenshot figures. */
+
+.proj-links a, .proj-metrics dt, .proj-facts dt, .shot-label, .proj-card-meta {
+  font-family: var(--font-mono); font-size: var(--t-label); font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.4;
+}
+
+.proj-status { font-family: var(--font-sans); font-size: var(--t-small); line-height: 1.5; display: flex; align-items: flex-start; gap: 10px; color: var(--ink-dim); max-width: 480px; margin: 0 0 22px; }
+.proj-status-dot { flex: none; width: 7px; height: 7px; margin-top: 8px; border-radius: 50%; background: var(--ink-dim); box-shadow: 0 0 0 3px rgba(var(--c-white),0.06); }
+
+.proj-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.proj-links a {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 6px 12px; border-radius: 4px;
+  border: 1px solid var(--rule-strong); color: var(--ink-strong); text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+.proj-links a:hover { background: rgba(var(--c-white),0.06); border-color: rgba(var(--c-white),0.45); }
+
+/* Metrics strip: full-width rule-bounded row between hero and body. */
+.proj-metrics { position: relative; z-index: 1; max-width: calc(var(--w-wide) + 96px); margin: 0 auto; padding: 0 48px 48px; }
+.proj-metrics dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin: 0; border-top: 1px solid var(--rule); }
+.proj-metrics dl > div { padding: 20px 20px 0 0; }
+.proj-metrics dl > div + div { padding-left: 20px; border-left: 1px solid var(--rule); }
+.proj-metrics dt { color: var(--ink-faint); order: 2; }
+.proj-metrics dd {
+  margin: 0 0 6px; font-family: var(--font-sans); font-weight: 600; font-size: clamp(28px, 3vw, 40px);
+  letter-spacing: -0.02em; line-height: 1.1; color: var(--ink-strong); font-variant-numeric: tabular-nums;
+}
+.proj-metrics dl > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+
+.proj-facts { display: grid; gap: 14px; margin: 0 0 36px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 6px; background: rgba(var(--c-white),0.02); }
+.proj-facts > div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 16px; align-items: baseline; }
+.proj-facts dt { color: var(--ink-faint); }
+.proj-facts dd { margin: 0; font-size: var(--t-small); line-height: 1.55; color: var(--ink); }
+
+/* <Shot>: screenshots sit on the same .plate surface as diagrams. */
+.shot-row { display: grid; gap: 14px; }
+.shot--pair .shot-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.shot-plate { position: relative; }
+.shot-plate img { display: block; width: 100%; height: auto; }
+.shot-label { position: absolute; left: 10px; top: 10px; padding: 3px 8px; border-radius: 3px; background: rgba(10,11,16,0.82); color: var(--ink-strong); }
+
+/* /projects/ index */
+.proj-index { max-width: var(--w-wide); margin: 0 auto; padding: 0 0 40px; }
+.proj-index-head { max-width: calc(var(--w-wide) + 96px); margin: 0 auto; padding: 132px 48px 40px; }
+.proj-index-head h1 { margin-top: 14px; }
+.proj-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 48px; align-items: center;
+  padding: 40px 0; border-top: 1px solid var(--rule); text-decoration: none; color: inherit;
+}
+.proj-card-img { aspect-ratio: 3 / 2; border-radius: 6px; overflow: hidden; border: 1px solid var(--rule); background: #0a0b10; }
+.proj-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+.proj-card:hover .proj-card-img img { transform: scale(1.02); }
+.proj-card-meta { color: var(--ink-faint); }
+.proj-card-title { font-family: var(--font-sans); font-weight: 600; font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.02em; line-height: 1.1; color: var(--ink-strong); margin: 12px 0 14px; }
+.proj-card-desc { font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.5; color: var(--ink-dim); margin: 0 0 18px; }
+.proj-card-more { font-family: var(--font-mono); font-size: var(--t-label); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-strong); }
+.proj-card:hover .proj-card-more { text-decoration: underline; text-underline-offset: 4px; }
+
+@media (max-width: 900px) {
+  .proj-metrics { padding: 0 24px 36px; }
+  .proj-metrics dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .proj-metrics dl > div, .proj-metrics dl > div + div { padding: 16px 12px 14px 0; border-left: 0; border-bottom: 1px solid var(--rule); }
+  .proj-index-head { padding: 96px 24px 28px; }
+  .proj-index { padding: 0 24px 32px; }
+  .proj-card { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 28px 0; }
+  .shot--pair .shot-row { grid-template-columns: minmax(0, 1fr); }
+}
