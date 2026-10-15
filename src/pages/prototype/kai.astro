@@ -1,0 +1,117 @@
+---
+/**
+ * PROTOTYPE — Kai playground (front-facing redesign).
+ *
+ * Same dev-only / unlinked / noindex pattern as ./redesign.astro: ships in
+ * full only in `astro dev`; `astro build` emits nothing real.
+ *
+ * Shows the new layered Kai (public/images/kai/, public/scripts/kai-life.js,
+ * src/styles/kai.css) at true sizes: a big stage Kai with its brain on
+ * (pointer, hover, scroll, idle, sleep, poke), the chat-button size, and
+ * light/dark backgrounds, plus buttons for every mood and action and a fake
+ * chat to see thinking, talking and reactions. When the design is settled,
+ * Kai replaces the canvas companion (kai-frame.js) on the real pages.
+ */
+import '../../styles/kai.css';
+const isDev = import.meta.env.DEV;
+---
+
+<!doctype html>
+<html lang="en">
+{isDev ? (
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Kai playground</title>
+  <style>
+    :root { color-scheme: dark; --bg: #050507; --panel: #0e0f14; --line: #1d1f27; --text: #e8e9ee; --muted: #8b8e99; --accent: #7aa2ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, system-ui, -apple-system, sans-serif; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 80px; }
+    h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -.01em; }
+    .sub { color: var(--muted); margin: 0 0 28px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .stage { position: relative; min-height: 520px; border: 1px solid var(--line); border-radius: 20px; display: grid; place-items: center;
+      background: radial-gradient(60% 50% at 50% 40%, #12141c 0%, var(--bg) 70%); overflow: hidden; }
+    .stage .kai { --kai-w: clamp(180px, 34vw, 300px); cursor: pointer; }
+    .stage .hint { position: absolute; left: 16px; bottom: 12px; right: 16px; color: var(--muted); font-size: 13px; }
+    .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--panel); padding: 18px; }
+    .panel h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 16px 0 8px; }
+    .panel h2:first-child { margin-top: 0; }
+    .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+    .btns button { font: inherit; font-size: 13px; color: var(--text); background: #171922; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+    .btns button:hover { border-color: #343847; }
+    .btns button.on { background: var(--accent); border-color: var(--accent); color: #05060a; }
+    .chat { display: flex; gap: 8px; margin-top: 4px; }
+    .chat input { flex: 1; min-width: 0; font: inherit; color: var(--text); background: #0a0b10; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+    .chat button { font: inherit; background: var(--accent); color: #05060a; border: 0; border-radius: 12px; padding: 0 14px; cursor: pointer; font-weight: 600; }
+    .reply { min-height: 48px; margin-top: 10px; color: var(--text); font-size: 14px; }
+    .sizes { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 560px) { .sizes { grid-template-columns: 1fr; } }
+    .swatch { border: 1px solid var(--line); border-radius: 20px; padding: 24px; display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; min-height: 200px; }
+    .swatch.light { background: #f4f4f6; border-color: #e3e3e8; }
+    .swatch .lab { width: 100%; font-size: 13px; color: var(--muted); }
+    .swatch.light .lab { color: #6b6e78; }
+    .s56 { --kai-w: 56px; } .s96 { --kai-w: 96px; } .s160 { --kai-w: 160px; }
+    .chip { display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; border-radius: 999px; background: #12141b; border: 1px solid var(--line); }
+    .chip .kai { --kai-w: 38px; }
+    .targets { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .targets a { color: var(--accent); font-size: 13px; text-decoration: none; border: 1px dashed #2b3040; border-radius: 8px; padding: 4px 8px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Kai</h1>
+    <p class="sub">Front-facing, layered from your render. Move the pointer, hover the links, scroll, poke Kai, or leave it alone for a minute.</p>
+
+    <div class="grid">
+      <div class="stage" id="stage">
+        <div id="kai-main" data-size="640"></div>
+        <div class="hint">Brain on: follows the pointer, looks at links you hover, leans when you scroll, fidgets when it's quiet, dozes off after 60s. Click it five times fast.</div>
+      </div>
+
+      <div class="panel">
+        <h2>Moods</h2>
+        <div class="btns" id="moods"></div>
+        <h2>Actions</h2>
+        <div class="btns" id="actions"></div>
+        <h2>Ask Kai (fake answers)</h2>
+        <form class="chat" id="chat">
+          <input id="q" placeholder="Try: hi, moat, sentinel, pizza" autocomplete="off" />
+          <button type="submit">Ask</button>
+        </form>
+        <div class="reply" id="reply"></div>
+        <h2>Things to look at</h2>
+        <div class="targets">
+          <a href="#" data-kai-look>Projects</a><a href="#" data-kai-look>Writing</a><a href="#" data-kai-look>About</a><a href="#" data-kai-look>Contact</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sizes">
+      <div class="swatch">
+        <div class="lab">Dark: 56, 96 and 160 px, and the chat chip</div>
+        <div class="kai-small s56" data-size="160"></div>
+        <div class="kai-small s96" data-size="320"></div>
+        <div class="kai-small s160" data-size="320"></div>
+        <span class="chip"><span class="kai-small" data-size="160" data-lite></span>Ask Kai</span>
+      </div>
+      <div class="swatch light">
+        <div class="lab">Light background</div>
+        <div class="kai-small s56 on-light" data-size="160"></div>
+        <div class="kai-small s96 on-light" data-size="320"></div>
+        <div class="kai-small s160 on-light" data-size="320"></div>
+      </div>
+    </div>
+  </main>
+  <script is:inline src="/scripts/kai-life.js"></script>
+  <script is:inline src="/scripts/kai-playground.js"></script>
+</body>
+) : (
+<body>
+  <p>Not available in production.</p>
+</body>
+)}
+</html>
