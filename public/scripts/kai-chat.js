@@ -43,6 +43,7 @@
 
   window.KaiChat = function (opts) {
     opts = opts || {};
+    if (opts.mode === 'tap') return tapChat(opts);
     var kb = opts.kb || [];
     var root = document.createElement('div');
     root.className = 'kc';
@@ -147,4 +148,136 @@
 
     return { root: root, kai: kai, open: open, close: close, ask: ask };
   };
+  /* ---------------------------------------------------------------------
+     Tap mode, for the extensions: Kai in the corner at full size with an
+     "Ask Kai" bubble above it, and a panel of predefined questions. No text
+     box, so nothing goes unanswered. Kai stays in the corner and does the
+     talking (one Kai on screen), in calm mode so an idle Settings page draws
+     no frames.
+       questions: [{ id, ask, answer, action?: { label, run }, follow?: [ids] }]
+       order():   ids to list first (for the screen you're on)
+       notice():  null, or { text, action } said before anything else
+       theme:     'dark' | 'light' */
+  function tapChat(opts) {
+    var Q = opts.questions || [];
+    var byId = {}; Q.forEach(function (q) { byId[q.id] = q; });
+    var asked = {};
+    var root = document.createElement('div');
+    root.className = 'kc kc-tapmode' + (opts.theme === 'light' ? ' light' : '');
+    root.innerHTML =
+      '<section class="kc-panel kc-dock" id="kc-dock" role="dialog" aria-label="Ask Kai">' +
+        '<header class="kc-head"><div class="kc-id"><div class="kc-name">Kai</div><div class="kc-status"></div></div>' +
+          '<button class="kc-close" type="button" aria-label="Close">' + CLOSE_ICON + '</button></header>' +
+        '<div class="kc-body"><div class="kc-log" aria-live="polite"></div></div>' +
+      '</section>' +
+      '<div class="kc-launch">' +
+        '<button class="kc-tag" type="button" tabindex="-1" aria-hidden="true">Ask Kai</button>' +
+        '<button class="kc-kaibtn" type="button" aria-label="Ask Kai" aria-expanded="false" aria-controls="kc-dock"><span class="kc-corner"></span></button>' +
+      '</div>';
+    (opts.mount || document.body).appendChild(root);
+    var status = root.querySelector('.kc-status'), STATUS = opts.status || 'Here to help';
+    status.textContent = STATUS;
+    var body = root.querySelector('.kc-body'), log = root.querySelector('.kc-log');
+    var btn = root.querySelector('.kc-kaibtn'), tag = root.querySelector('.kc-tag');
+    var kai = window.Kai(root.querySelector('.kc-corner'), { imgWidth: 320, calm: true });
+    if (opts.theme === 'light') kai.root.classList.add('on-light');
+    var busy = false;
+
+    // Kai notices the pointer when it comes near, and perks up on hover
+    var pending = false, near = false;
+    addEventListener('pointermove', function (e) {
+      if (pending) return; pending = true;
+      requestAnimationFrame(function () {
+        pending = false;
+        var r = kai.root.getBoundingClientRect(), d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+        if (d < 420) { near = true; kai.lookAt({ x: e.clientX, y: e.clientY }); }
+        else if (near) { near = false; kai.lookAt(null); }
+      });
+    }, { passive: true });
+    btn.addEventListener('pointerenter', function () { if (!root.classList.contains('open')) { kai.setMood('happy', 1100); kai.do('hop'); } });
+    btn.addEventListener('click', function () { if (root.classList.contains('open')) close(); else open(); });
+    tag.addEventListener('click', open);
+    root.querySelector('.kc-close').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('open')) close(); });
+
+    function bubble(cls, text) {
+      var m = document.createElement('div'); m.className = 'kc-msg ' + cls;
+      if (text != null) m.textContent = text;
+      log.appendChild(m); body.scrollTop = body.scrollHeight;
+      return m;
+    }
+    function say(text, action, then) {
+      kai.react('found', text.length);
+      var m = bubble('kai-says'), span = document.createElement('span'); m.appendChild(span);
+      var i = 0, step = REDUCED ? text.length : 2;
+      (function type() {
+        i = Math.min(text.length, i + step); span.textContent = text.slice(0, i); body.scrollTop = body.scrollHeight;
+        if (i < text.length) return setTimeout(type, 16);
+        if (action) {
+          var b = document.createElement('button'); b.type = 'button'; b.className = 'kc-go'; b.textContent = action.label + ' →';
+          b.onclick = function () { action.run(); if (action.close !== false) close(); };
+          m.appendChild(b);
+        }
+        body.scrollTop = body.scrollHeight;
+        if (then) then();
+      })();
+    }
+    function choices(ids, more) {
+      var wrap = document.createElement('div'); wrap.className = 'kc-choices';
+      ids.forEach(function (id) {
+        var q = byId[id]; if (!q) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'kc-chip kc-q'; b.textContent = q.ask;
+        b.onclick = function () { choose(q, wrap); };
+        wrap.appendChild(b);
+      });
+      if (more) {
+        var m = document.createElement('button'); m.type = 'button'; m.className = 'kc-chip kc-q kc-more'; m.textContent = 'Something else';
+        m.onclick = function () { wrap.remove(); choices(Q.map(function (q) { return q.id; }).filter(function (id) { return ids.indexOf(id) === -1; }), false); };
+        wrap.appendChild(m);
+      }
+      log.appendChild(wrap); body.scrollTop = body.scrollHeight;
+    }
+    function firstIds() {
+      var first = (opts.order && opts.order()) || [];
+      var rest = Q.map(function (q) { return q.id; }).filter(function (id) { return first.indexOf(id) === -1; });
+      return first.concat(rest).slice(0, 4);
+    }
+    function choose(q, wrap) {
+      if (busy) return;
+      busy = true; asked[q.id] = true;
+      wrap.remove();
+      bubble('me', q.ask);
+      var typing = bubble('kai-says typing'); typing.innerHTML = '<i></i><i></i><i></i>';
+      root.classList.add('thinking'); kai.think(true); status.textContent = 'Thinking';
+      setTimeout(function () {
+        root.classList.remove('thinking'); typing.remove(); status.textContent = STATUS;
+        say(q.answer, q.action, function () {
+          busy = false;
+          var next = (q.follow || []).filter(function (id) { return !asked[id]; });
+          Q.forEach(function (o) { if (next.length < 3 && !asked[o.id] && next.indexOf(o.id) === -1) next.push(o.id); });
+          if (next.length) choices(next.slice(0, 3), true);
+        });
+      }, REDUCED ? 150 : 520 + Math.random() * 300);
+    }
+
+    function open() {
+      root.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      kai.do('wave');
+      if (!log.childElementCount) {
+        var n = opts.notice && opts.notice();
+        busy = true;
+        setTimeout(function () {
+          say(n ? n.text : (opts.hello || 'Hi, I’m Kai. What can I help with?'), n ? n.action : null, function () { busy = false; choices(firstIds(), true); });
+        }, REDUCED ? 0 : 260);
+      }
+      setTimeout(function () { var c = root.querySelector('.kc-q'); if (c) c.focus({ preventScroll: true }); }, 900);
+    }
+    function close() {
+      root.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      kai.lookAt(null);
+    }
+    return { root: root, kai: kai, open: open, close: close };
+  }
 })();

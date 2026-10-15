@@ -120,6 +120,10 @@
     this.root = root;
     this.id = 'kai' + (++uid);
     this.lite = !!opts.lite;
+    // calm: no float, breathing or sway, and no frames at all while Kai is
+    // still. For busy app screens (Moat's Settings measured 7ms -> 28ms p95
+    // frames with a looping float). Kai still blinks, glances and acts.
+    this.calm = !!opts.calm;
     var src = opts.src || '/images/kai/';
     var size = opts.imgWidth || 320;
     root.classList.add('kai');
@@ -157,6 +161,15 @@
       // no brain (a small Kai on a button): still blink now and then
       (function loop() {
         setTimeout(function () { if (self.visible && !document.hidden) self.blink(Math.random() < .2); loop(); }, rand(2500, 6500));
+      })();
+    }
+    if (this.calm && !REDUCED) {
+      // calm Kai glances around now and then instead of every frame
+      (function glance() {
+        setTimeout(function () {
+          if (self.visible && !document.hidden && !self.gazeTarget) { self.sacc = { x: rand(-16, 16), y: rand(-9, 9) }; self.start(); }
+          glance();
+        }, rand(2600, 6200));
       })();
     }
   }
@@ -207,6 +220,7 @@
     var tick = function (t) {
       if (!self.visible || document.hidden) { self.running = false; return; }
       self.render(t);
+      if (self.calm && self.settled(t)) { self.running = false; return; }
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -217,8 +231,10 @@
 
   Kai.prototype.setMood = function (m, ms) {
     if (!MOODS[m]) return;
-    if (ms) { this.mood = m; this.moodUntil = performance.now() + ms; }
+    var self = this;
+    if (ms) { this.mood = m; this.moodUntil = performance.now() + ms; setTimeout(function () { self.start(); }, ms + 30); }
     else { this.base = m; this.mood = m; this.moodUntil = 0; }
+    this.start();
     if (REDUCED) this.render(performance.now(), true);
   };
   Kai.prototype.do = function (name) {
@@ -234,8 +250,15 @@
     if (REDUCED) return;
     this.blinkT = performance.now();
     this.blinkDouble = !!double;
+    this.start();
   };
-  Kai.prototype.lookAt = function (target) { this.gazeTarget = target; };
+  Kai.prototype.lookAt = function (target) { this.gazeTarget = target; this.start(); };
+  /* Nothing left to move: no action, blink, talk or thinking, and the eyes,
+     face, lean and antenna have arrived. Only calm Kais stop on this. */
+  Kai.prototype.settled = function (now) {
+    return !this.action && !this.queue.length && this.blinkT < 0 && now > this.talkUntil && !this.thinking &&
+      !(this.moodUntil && now > this.moodUntil) && this._motion < .5;
+  };
   Kai.prototype.talk = function (ms) { this.talkUntil = performance.now() + (ms || 1200); this.start(); };
   Kai.prototype.think = function (on) {
     this.thinking = !!on;
@@ -291,7 +314,8 @@
 
     // ease the face toward the mood (fast enough to read, slow enough to feel soft)
     var k = snap ? 1 : .16, c = this.cur;
-    ['open', 'top', 'slant', 'bottom', 'scale', 'gy', 'asym'].forEach(function (key) { c[key] = lerp(c[key], mood[key] || 0, k); });
+    var moodGap = 0;
+    ['open', 'top', 'slant', 'bottom', 'scale', 'gy', 'asym'].forEach(function (key) { moodGap += Math.abs((mood[key] || 0) - c[key]); c[key] = lerp(c[key], mood[key] || 0, k); });
     c.gx = lerp(c.gx || 0, mood.gx || 0, k);
 
     // gaze: an element, a point, or straight ahead with small saccades
@@ -303,8 +327,8 @@
       var dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy) || 1, reach = Math.min(1, d / 420);
       gt.x = dx / d * 78 * reach; gt.y = dy / d * 52 * reach;
     } else {
-      if (!this.sacc || now > this.saccAt) { this.sacc = { x: rand(-14, 14), y: rand(-8, 8) }; this.saccAt = now + rand(700, 2400); }
-      gt = this.sacc;
+      if (!this.calm && (!this.sacc || now > this.saccAt)) { this.sacc = { x: rand(-14, 14), y: rand(-8, 8) }; this.saccAt = now + rand(700, 2400); }
+      gt = this.sacc || { x: 0, y: 0 };
     }
     var gk = snap ? 1 : .12;
     this.gaze.x = lerp(this.gaze.x, gt.x, gk); this.gaze.y = lerp(this.gaze.y, gt.y, gk);
@@ -316,11 +340,11 @@
       var bt = now - this.blinkT, bl = 150;
       if (bt < bl) blink = Math.max(blink, Math.sin(bt / bl * PI));
       else if (this.blinkDouble && bt > bl + 90 && bt < bl * 2 + 90) blink = Math.max(blink, Math.sin((bt - bl - 90) / bl * PI));
-      else if (bt > bl * 2 + 100) this.blinkT = -1;
+      else if (bt > (this.blinkDouble ? bl * 2 + 100 : bl)) this.blinkT = -1;
     }
 
     // idle body life
-    var still = REDUCED || snap;
+    var still = REDUCED || snap || this.calm;
     var float = still ? 0 : Math.sin(t * PI * 2 / 4.2) * .014;
     var breathe = still ? 0 : Math.sin(t * PI * 2 / 3.1) * .011;
     this.lean = lerp(this.lean, this.leanTarget, .08);
@@ -336,13 +360,14 @@
     // antenna: a damped spring driven by the head's turning, plus actions
     var rotV = rot - this.lastRot, rotA = rotV - this.lastRotV;
     this.lastRot = rot; this.lastRotV = rotV;
-    if (!still) {
-      var target = (o.ant || 0) + Math.sin(t * PI * 2 / 5.1) * 1.5;
+    if (!REDUCED && !snap) {
+      var target = (o.ant || 0) + (this.calm ? 0 : Math.sin(t * PI * 2 / 5.1) * 1.5);
       this.antV += (target - this.antA) * .09 - this.antV * .12 - rotA * 2.2 - (o.dy ? (o.dy - (this._lastDy || 0)) * 160 : 0);
       this._lastDy = o.dy || 0;
       this.antA = clamp(this.antA + this.antV, -38, 38);
     }
     this.ant.style.transform = 'rotate(' + this.antA.toFixed(2) + 'deg)';
+    this._motion = Math.abs(gt.x - this.gaze.x) + Math.abs(gt.y - this.gaze.y) + moodGap * 20 + Math.abs(this.lean - this.leanTarget) * 4 + Math.abs(this.antA) + Math.abs(this.antV) * 10 + this.squash * 40;
 
     // glare slides opposite the lean, like light on curved glass
     this.glare.setAttribute('x', (-200 - rot * 14 - gx * .5).toFixed(1));

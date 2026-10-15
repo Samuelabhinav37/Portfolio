@@ -9,6 +9,7 @@
   --kai-glow: rgba(228, 236, 255, .9);
   --kai-mouth: #565a62;
   position: relative;
+  display: block;
   width: var(--kai-w, 160px);
   aspect-ratio: 100 / 146;
   container-type: inline-size;

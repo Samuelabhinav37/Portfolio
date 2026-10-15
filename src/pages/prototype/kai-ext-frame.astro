@@ -1,0 +1,39 @@
+---
+/**
+ * PROTOTYPE — one extension screen with Kai's tap-mode chat, for the mockup
+ * in ./kai-ext.astro (?app=moat|cluster&theme=dark|light&open=1).
+ * Backgrounds are local screenshots in public/prototype-ext/ (git-ignored
+ * via .git/info/exclude; never committed or deployed). Dev only, like the
+ * other prototype pages.
+ */
+import '../../styles/kai.css';
+import '../../styles/kai-chat.css';
+const isDev = import.meta.env.DEV;
+---
+
+<!doctype html>
+<html lang="en">
+{isDev ? (
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Kai in the extensions</title>
+  <style>
+    html { min-height: 100%; background: #0b0b0e top left / 1440px 900px no-repeat; }
+    body { margin: 0; min-height: 100vh; font-family: Inter, system-ui, -apple-system, sans-serif; }
+    .demo-toast { position: fixed; left: 50%; top: 20px; transform: translate(-50%, -12px); opacity: 0; padding: 10px 16px; border-radius: 12px; background: #3f6fd1; color: #fff; font-size: 14px; font-weight: 600; transition: opacity .25s ease, transform .25s ease; pointer-events: none; z-index: 99; }
+    .demo-toast.on { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+  <script is:inline src="/scripts/kai-life.js"></script>
+  <script is:inline src="/scripts/kai-chat.js"></script>
+  <script is:inline src="/scripts/kai-ext-demo.js"></script>
+</body>
+) : (
+<body>
+  <p>Not available in production.</p>
+</body>
+)}
+</html>

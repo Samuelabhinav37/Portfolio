@@ -174,3 +174,72 @@
   .kc.thinking .kc-panel::before { animation: none; }
   .kc-msg, .kc-msg.typing i { animation: none; }
 }
+
+/* ---- tap mode (extensions): Kai in the corner, questions only ---- */
+.kc-tapmode { right: 24px; bottom: 20px; }
+.kc-launch { position: relative; display: flex; flex-direction: column; align-items: center; }
+.kc-kaibtn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 18px; }
+.kc-kaibtn:focus-visible { outline: 2px solid var(--kc-blue-hi); outline-offset: 4px; }
+.kc-corner.kai { --kai-w: 72px; }
+/* "Ask Kai" above Kai's head: a small speech bubble pointing down at it */
+.kc-tag {
+  position: relative; margin-bottom: 2px;
+  padding: 6px 12px; border-radius: 12px;
+  font: inherit; font-size: 13px; font-weight: 600; letter-spacing: -.005em; white-space: nowrap;
+  color: var(--kc-text); cursor: pointer;
+  background: linear-gradient(180deg, rgba(34, 36, 45, .96), rgba(20, 21, 27, .96));
+  border: 1px solid var(--kc-line);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
+  transition: opacity .25s ease, transform .3s cubic-bezier(.2, .8, .2, 1), border-color .2s ease;
+  animation: kc-tag-in .5s cubic-bezier(.2, .9, .3, 1.2) .6s both;
+}
+.kc-tag::after {
+  content: ""; position: absolute; left: 50%; bottom: -5px; width: 9px; height: 9px; margin-left: -5px;
+  background: rgba(20, 21, 27, .96); border-right: 1px solid var(--kc-line); border-bottom: 1px solid var(--kc-line);
+  transform: rotate(45deg);
+}
+.kc-launch:hover .kc-tag { border-color: rgba(91, 134, 230, .5); transform: translateY(-2px); }
+.kc-tapmode.open .kc-tag { opacity: 0; transform: translateY(6px) scale(.9); pointer-events: none; animation: none; }
+@keyframes kc-tag-in { from { opacity: 0; transform: translateY(6px) scale(.9); } }
+
+/* the panel sits above Kai, Kai stays below it and does the talking */
+.kc-dock {
+  bottom: 124px; right: -4px;
+  width: min(360px, calc(100vw - 32px));
+  height: auto; max-height: min(540px, calc(100dvh - 170px));
+  transform-origin: calc(100% - 40px) 100%;
+}
+.kc-tapmode .kc-head { min-height: 0; padding: 14px 12px 12px 18px; border-bottom-color: var(--kc-line); }
+.kc-tapmode .kc-id { opacity: 1; transform: none; }
+.kc-tapmode .kc-body { padding-top: 6px; }
+.kc-choices { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 2px 0 2px; animation: kc-in .32s cubic-bezier(.2, .8, .2, 1) both; }
+.kc-q { text-align: left; border-radius: 14px; padding: 8px 13px; line-height: 1.35; }
+.kc-more { color: var(--kc-muted); background: none; border-style: dashed; }
+.kc-tapmode .kc-go { display: flex; width: max-content; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 600; }
+
+/* ---- light theme ---- */
+.kc.light {
+  --kc-text: #1d1d1f;
+  --kc-muted: #6e6e73;
+  --kc-line: rgba(0, 0, 0, .09);
+  --kc-glass: rgba(255, 255, 255, .96);
+  --kc-bubble: rgba(0, 0, 0, .045);
+}
+.kc.light .kc-panel { box-shadow: 0 24px 60px rgba(20, 24, 40, .18), 0 0 0 1px rgba(0, 0, 0, .06); }
+.kc.light .kc-tag { background: #fff; box-shadow: 0 6px 18px rgba(20, 24, 40, .14); }
+.kc.light .kc-tag::after { background: #fff; }
+.kc.light .kc-chip { background: rgba(0, 0, 0, .04); }
+.kc.light .kc-chip:hover { background: rgba(63, 111, 209, .1); }
+.kc.light .kc-more { background: none; }
+.kc.light .kc-close { background: rgba(0, 0, 0, .04); }
+.kc.light .kc-go { color: #2f57ad; background: rgba(63, 111, 209, .1); border-color: rgba(63, 111, 209, .3); }
+.kc.light .kc-msg.typing i { background: #9a9ca3; }
+
+@media (max-width: 600px) {
+  .kc-tapmode { right: 12px; bottom: 12px; }
+  .kc-corner.kai { --kai-w: 56px; }
+  .kc-dock { bottom: 100px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kc-tag, .kc-choices { animation: none; transition: none; }
+}
