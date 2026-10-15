@@ -3,6 +3,7 @@
   'use strict';
   var main = window.Kai(document.getElementById('kai-main'), { auto: true, imgWidth: 640 });
   window.kai = main;
+  window.chat = window.KaiChat({ kb: (window.SITE && window.SITE.LUNA_KB_BASE) || [] });
   document.querySelectorAll('.kai-small').forEach(function (n) {
     window.Kai(n, { imgWidth: Number(n.dataset.size) || 320, lite: n.hasAttribute('data-lite') });
   });

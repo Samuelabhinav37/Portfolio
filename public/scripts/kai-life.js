@@ -153,6 +153,12 @@
     this.render(performance.now());
     if (!REDUCED) this.start();
     if (opts.auto) this.brain = new Brain(this, opts);
+    else if (opts.blinks !== false && !REDUCED) {
+      // no brain (a small Kai on a button): still blink now and then
+      (function loop() {
+        setTimeout(function () { if (self.visible && !document.hidden) self.blink(Math.random() < .2); loop(); }, rand(2500, 6500));
+      })();
+    }
   }
 
   Kai.prototype.buildFace = function (head) {

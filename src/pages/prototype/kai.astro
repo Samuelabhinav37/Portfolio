@@ -13,6 +13,7 @@
  * Kai replaces the canvas companion (kai-frame.js) on the real pages.
  */
 import '../../styles/kai.css';
+import '../../styles/kai-chat.css';
 const isDev = import.meta.env.DEV;
 ---
 
@@ -64,7 +65,7 @@ const isDev = import.meta.env.DEV;
 <body>
   <main>
     <h1>Kai</h1>
-    <p class="sub">Front-facing, layered from your render. Move the pointer, hover the links, scroll, poke Kai, or leave it alone for a minute.</p>
+    <p class="sub">Front-facing, layered from your render. Move the pointer, hover the links, scroll, poke Kai, or leave it alone for a minute. The real chat is the Ask Kai pill, bottom right.</p>
 
     <div class="grid">
       <div class="stage" id="stage">
@@ -106,7 +107,10 @@ const isDev = import.meta.env.DEV;
       </div>
     </div>
   </main>
+  <script is:inline src="/scripts/kai-site-global.js"></script>
+  <script is:inline src="/scripts/luna-kb-base.js"></script>
   <script is:inline src="/scripts/kai-life.js"></script>
+  <script is:inline src="/scripts/kai-chat.js"></script>
   <script is:inline src="/scripts/kai-playground.js"></script>
 </body>
 ) : (
