@@ -91,3 +91,5 @@ User-agent: Webzio-Extended
 Disallow: /
 
 Sitemap: https://samuelabhinav.com/sitemap.xml
+# Moat's site is served separately at /moat/ and has its own sitemap.
+Sitemap: https://samuelabhinav.com/moat/sitemap.xml
