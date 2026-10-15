@@ -144,6 +144,10 @@
   transition: background .2s ease;
 }
 .kc-go:hover { background: rgba(63, 111, 209, .3); }
+button.kc-go { display: flex; width: max-content; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 600; }
+/* follow-ups under an answer */
+.kc-follow { display: flex; flex-wrap: wrap; gap: 6px; animation: kc-in .32s cubic-bezier(.2, .8, .2, 1) both; }
+.kc-follow .kc-chip { font-size: 13px; padding: 6px 12px; text-align: left; }
 
 /* input */
 .kc-foot { padding: 10px 12px 12px; border-top: 1px solid var(--kc-line); }

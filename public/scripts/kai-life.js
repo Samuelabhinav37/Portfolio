@@ -20,7 +20,7 @@
 (function () {
   'use strict';
   var NS = 'http://www.w3.org/2000/svg';
-  var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var PI = Math.PI;
   var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
@@ -128,12 +128,14 @@
     var size = opts.imgWidth || 320;
     root.classList.add('kai');
     if (this.lite) root.classList.add('lite');
-    root.innerHTML =
-      '<div class="kai-shadow"></div>' +
-      '<div class="kai-rig">' +
-        '<img class="kai-ant" alt="" draggable="false" src="' + src + 'kai-antenna.w' + size + '.webp">' +
-        '<div class="kai-head"><img class="kai-body" alt="" draggable="false" src="' + src + 'kai-body.w' + size + '.webp"></div>' +
-      '</div>';
+    // built with DOM calls (no innerHTML), so it passes extension linters
+    var div = function (cls) { var n = document.createElement('div'); n.className = cls; return n; };
+    var img = function (cls, file) { var n = document.createElement('img'); n.className = cls; n.alt = ''; n.draggable = false; n.src = src + file + '.w' + size + '.webp'; return n; };
+    var rig = div('kai-rig'), head = div('kai-head');
+    head.appendChild(img('kai-body', 'kai-body'));
+    rig.appendChild(img('kai-ant', 'kai-antenna'));
+    rig.appendChild(head);
+    root.replaceChildren(div('kai-shadow'), rig);
     if (!root.hasAttribute('aria-label')) { root.setAttribute('role', 'img'); root.setAttribute('aria-label', 'Kai, a small robot'); }
     this.rig = root.querySelector('.kai-rig');
     this.ant = root.querySelector('.kai-ant');
@@ -285,6 +287,7 @@
     n.textContent = text;
     this.root.appendChild(n);
     var dx = rand(14, 26) * (Math.random() < .5 ? -1 : 1);
+    if (!n.animate) { n.remove(); return; }
     var a = n.animate([
       { transform: 'translate(-50%, 0) scale(.6)', opacity: 0 },
       { transform: 'translate(calc(-50% + ' + dx * .4 + 'cqw), -6cqw) scale(1)', opacity: 1, offset: .25 },

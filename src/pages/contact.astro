@@ -2,9 +2,8 @@
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
-import LunaDrawerShell from '../components/LunaDrawerShell.astro';
+import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
 ---
@@ -358,65 +357,8 @@ window.SITE=window.SITE||{};
     .form-title{ font-size:clamp(1.2rem, 5.8vw, 2rem); }
   }
 
-
-
-
-
-#luna-portal {
-  position:fixed;
-  right:18px; top:min(calc(66vh + 80px), calc(100vh - 140px));   /* concentric with Luna's box */
-  top:min(calc(66svh + 80px), calc(100svh - 140px));
-  width:120px; height:120px;
-  border-radius:50%;
-  z-index:998;
-  pointer-events:none; opacity:0;
-  background:radial-gradient(circle,
-    rgba(160,195,255,0.22) 0%,
-    rgba(130,170,245,0.10) 38%,
-    rgba(120,160,240,0.03) 58%,
-    transparent 72%);
-  box-shadow:0 0 18px 2px rgba(120,170,255,0.10);
-}
-#luna-portal.opening {
-  animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-@keyframes lunaPortal {
-  0%   { opacity:0;    transform:scale(1.12); }
-  38%  { opacity:0.55; transform:scale(1.00); }
-  100% { opacity:0;    transform:scale(0.97); }
-}
-
 </style>
 <style is:global>
-  /* Already inside an is:global block, so a plain selector reaches #luna-wrap
-     (which comes from PortfolioLunaShell, not this page's template). The
-     :global() wrapper here was redundant and made lightningcss's minify pass
-     warn on every build. */
-  #luna-wrap { top: min(calc(66vh + 80px), calc(100vh - 140px)); top: min(calc(66svh + 80px), calc(100svh - 140px)); }
-</style>
-<style is:global>
-  /* ── Luna's speech: a small quip card that docks directly over #luna-wrap
-     (same right:18px anchor, positioned by "bottom" so it always clears her
-     regardless of viewport). ── */
-  #luna-quip{
-    position:fixed; right:18px; top:auto; bottom:calc(34vh - 70px);
-    z-index:999; max-width:min(180px,60vw); text-align:right; pointer-events:none;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:12.5px; line-height:1.45; letter-spacing:0.01em;
-    color:rgba(226,232,240,0.92);
-    background:rgba(10,11,16,0.82); border:1px solid rgba(205,214,226,0.14);
-    border-radius:12px; padding:9px 13px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-    opacity:0; transform:translateY(6px) scale(0.98);
-    transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
-  }
-  #luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
-  #luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
-  #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
-  /* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
-  #luna-quip.lq-clickable:not(.show){ pointer-events:none; }
-  #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.55); }
-  @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
 </style>
 <ErrorReporter />
 <ClarityAnalytics />
@@ -424,10 +366,6 @@ window.SITE=window.SITE||{};
 <body>
 
 <a class="skip" href="#nm">Skip to the form</a>
-
-<PortfolioLunaShell />
-<div id="luna-portal"></div>
-<div id="luna-quip" aria-hidden="true"></div>
 
 <NebulaBackground />
 
@@ -688,8 +626,6 @@ window.SITE.NEBULA_SAFE_ZONES = [
   });
 })();
 </script>
-<script is:inline src="/scripts/luna-companion-core.js"></script>
-<script is:inline src="/scripts/contact-luna-companion.js"></script>
 
 <script is:inline>
 /* Luna arrival on the Contact page — no intro timeline here, so fire the
@@ -703,13 +639,10 @@ window.SITE.NEBULA_SAFE_ZONES = [
 </script>
 <script src="../scripts/contact-recon-engine.js"></script>
 
-<LunaDrawerShell />
-
-<script is:inline src="/scripts/luna-drawer-core.js"></script>
+<KaiSite />
 <script is:inline src="/scripts/luna-kb-base.js"></script>
 <script is:inline src="/scripts/contact-luna-kb.js"></script>
 
-<script src="../scripts/luna-greeting.js"></script>
 
 </body>
 </html>

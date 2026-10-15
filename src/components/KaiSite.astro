@@ -1,0 +1,32 @@
+---
+/**
+ * Kai's chat on a page: the "Ask Kai" pill and the panel it grows into
+ * (public/scripts/kai-chat.js, drawn by kai-site-chat.js). Place it before
+ * the page's knowledge-base script, which calls
+ * window.SITE.initLunaDrawer(KB, ...) to start the chat.
+ *
+ * #luna-wrap is only the mount point; the home intro
+ * (index-intro-sequence.js) fades it in by id, so `hasIntro` starts it
+ * hidden there, the same as the old companion.
+ */
+import '../styles/kai.css';
+import '../styles/kai-chat.css';
+
+interface Props {
+  hasIntro?: boolean;
+}
+const { hasIntro = false } = Astro.props;
+---
+
+<div id="luna-wrap" class:list={['kai-site', { 'kai-site--intro': hasIntro }]}></div>
+<script is:inline src="/scripts/kai-life.js"></script>
+<script is:inline src="/scripts/kai-chat.js"></script>
+<script is:inline src="/scripts/kai-site-chat.js"></script>
+
+<style is:global>
+  /* the chat sits where the old drawer did: above page content, below the
+     site menu overlay (z-index 10000+) */
+  .kai-site .kc { z-index: 1200; }
+  .kai-site--intro { opacity: 0; }
+  @media print { .kai-site { display: none; } }
+</style>
