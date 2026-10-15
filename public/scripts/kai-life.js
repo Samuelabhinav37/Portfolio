@@ -45,8 +45,8 @@
     neutral:  { open: 1,    top: 0,   slant: 0,   bottom: 0,   scale: 1,    gy: 0,   mouth: 'flat' },
     happy:    { open: 1,    top: 0,   slant: 0,   bottom: .56, scale: 1.03, gy: -8,  mouth: 'smile' },
     joyful:   { open: 1,    top: .18, slant: 0,   bottom: .72, scale: 1.05, gy: -10, mouth: 'smile' },
-    curious:  { open: 1.06, top: 0,   slant: 0,   bottom: 0,   scale: 1.1,  gy: -6,  mouth: 'flat', asym: 1 },
-    thinking: { open: 1,    top: .08, slant: 0,   bottom: .1,  scale: .98,  gy: -40, gx: 36, mouth: 'dots', asym: -1 },
+    curious:  { open: 1.06, top: 0,   slant: 0,   bottom: 0,   scale: 1.1,  gy: -6,  mouth: 'flat', asym: .035 },
+    thinking: { open: 1,    top: .08, slant: 0,   bottom: .1,  scale: .98,  gy: -40, gx: 36, mouth: 'dots', asym: -.025 },
     focused:  { open: 1,    top: .22, slant: 1.5, bottom: .12, scale: 1,    gy: 4,   mouth: 'flat' },
     surprised:{ open: 1.16, top: 0,   slant: 0,   bottom: 0,   scale: 1.18, gy: -6,  mouth: 'o' },
     scared:   { open: 1.1,  top: 0,   slant: -10, bottom: .1,  scale: .82,  gy: 0,   mouth: 'wobble' },
@@ -95,9 +95,11 @@
                 return { gx: 70 * g, rot: -2.5 * g };
               } },
     shy:      { dur: 1800, fn: function (p) { var h = hold(p, .2, .8); return { rot: -5 * h, dy: .01 * h, mood: 'shy' }; } },
-    glitch:   { dur: 560, fn: function (p) {
-                var on = Math.sin(p * 90) > .2 ? 1 : 0;
-                return { gx: on * rand(-30, 30), faceAlpha: on ? rand(.25, .9) : 1, rot: on * rand(-1.5, 1.5) };
+    // a brief screen flicker: two dips in brightness and one small sideways
+    // slip of the face, deterministic so it never strobes
+    glitch:   { dur: 520, fn: function (p) {
+                var dip = Math.max(bump(p, .1, .24), bump(p, .5, .62) * .7);
+                return { faceAlpha: 1 - dip * .6, gx: 10 * bump(p, .12, .22) - 8 * bump(p, .52, .6) };
               } },
     dizzy:    { dur: 2200, emote: '?', fn: function (p) {
                 var w = Math.sin(p * PI * 6) * (1 - p);
@@ -136,7 +138,7 @@
 
     // state
     this.mood = 'neutral'; this.moodUntil = 0; this.base = 'neutral';
-    this.cur = Object.assign({ gx: 0 }, MOODS.neutral);      // eased eye/mouth params
+    this.cur = Object.assign({ gx: 0, asym: 0 }, MOODS.neutral);      // eased eye/mouth params
     this.gaze = { x: 0, y: 0 }; this.gazeTarget = null;       // svg-unit offsets
     this.action = null; this.queue = [];
     this.antA = 0; this.antV = 0; this.lastRot = 0; this.lastRotV = 0;
@@ -283,7 +285,7 @@
 
     // ease the face toward the mood (fast enough to read, slow enough to feel soft)
     var k = snap ? 1 : .16, c = this.cur;
-    ['open', 'top', 'slant', 'bottom', 'scale', 'gy'].forEach(function (key) { c[key] = lerp(c[key], mood[key] || 0, k); });
+    ['open', 'top', 'slant', 'bottom', 'scale', 'gy', 'asym'].forEach(function (key) { c[key] = lerp(c[key], mood[key] || 0, k); });
     c.gx = lerp(c.gx || 0, mood.gx || 0, k);
 
     // gaze: an element, a point, or straight ahead with small saccades
@@ -292,13 +294,13 @@
       var r = this.root.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .55, px, py;
       if (this.gazeTarget.getBoundingClientRect) { var b = this.gazeTarget.getBoundingClientRect(); px = b.left + b.width / 2; py = b.top + b.height / 2; }
       else { px = this.gazeTarget.x; py = this.gazeTarget.y; }
-      var dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy) || 1, reach = Math.min(1, d / 320);
+      var dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy) || 1, reach = Math.min(1, d / 420);
       gt.x = dx / d * 78 * reach; gt.y = dy / d * 52 * reach;
     } else {
       if (!this.sacc || now > this.saccAt) { this.sacc = { x: rand(-14, 14), y: rand(-8, 8) }; this.saccAt = now + rand(700, 2400); }
       gt = this.sacc;
     }
-    var gk = snap ? 1 : .2;
+    var gk = snap ? 1 : .12;
     this.gaze.x = lerp(this.gaze.x, gt.x, gk); this.gaze.y = lerp(this.gaze.y, gt.y, gk);
     var gx = clamp(this.gaze.x + c.gx + (o.gx || 0), -95, 95), gy = clamp(this.gaze.y + c.gy + (o.gy || 0), -70, 70);
 
@@ -346,9 +348,10 @@
     for (var i = 0; i < 2; i++) {
       var e = this.eyes[i], side = e.side;
       // curious: the right eye opens wider; thinking: the left one, a little
-      var asym = mood.asym > 0 ? (side > 0 ? 1.1 : .93) : mood.asym < 0 ? (side > 0 ? .95 : 1.04) : 1;
-      var persp = 1 + side * gx * .0016;                       // the eye you look toward grows a touch
-      var w = EYE.w * c.scale * asym * persp, h = EYE.h * c.scale * asym * c.open;
+      // eyes stay the same size whatever Kai looks at; only curious (right
+      // eye) and thinking (left eye) open one eye a few percent wider, eased
+      var asym = 1 + side * c.asym;
+      var w = EYE.w * c.scale * asym, h = EYE.h * c.scale * asym * c.open;
       var close = blink;     // a wink closes into a ^ (bottom lid), not a flat line
       var ex = EYE.cx[i] + gx, ey = EYE.cy + gy;
       var x0 = ex - w / 2, y0 = ey - h / 2;
@@ -407,7 +410,8 @@
     var wake = function () {
       var was = kai.base;
       self.lastInput = performance.now();
-      if (was === 'asleep' || was === 'sleepy') {
+      if (self.dozing && (was === 'asleep' || was === 'sleepy')) {
+        self.dozing = false;
         kai.setMood('neutral');
         if (was === 'asleep') { kai.do('startle'); kai.do('stretch'); }
         else kai.blink(true);
@@ -417,9 +421,9 @@
       var now = performance.now();
       pointer = { x: e.clientX, y: e.clientY };
       // shake detection near Kai: many direction flips in a short time
-      var r = root.getBoundingClientRect(), near = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) < Math.max(220, r.width * 1.6);
-      var dir = Math.sign(e.movementX || 0);
-      if (near && dir && lastDir && dir !== lastDir) { reversals.push(now); reversals = reversals.filter(function (x) { return now - x < 700; }); if (reversals.length >= 5) { reversals = []; kai.setMood('scared', 1600); kai.do('startle'); } }
+      var r = root.getBoundingClientRect(), near = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) < Math.max(160, r.width * .9);
+      var dir = Math.abs(e.movementX || 0) > 6 ? Math.sign(e.movementX) : 0;
+      if (near && dir && lastDir && dir !== lastDir) { reversals.push(now); reversals = reversals.filter(function (x) { return now - x < 600; }); if (reversals.length >= 6) { reversals = []; kai.setMood('scared', 1600); kai.do('startle'); } }
       if (dir) lastDir = dir;
       lastMove = now;
       if (!self.focusEl) kai.lookAt(pointer);
@@ -445,7 +449,6 @@
       var t = e.target.closest && e.target.closest('a, button, [data-kai-look]');
       if (!t || root.contains(t)) return;
       self.focusEl = t; kai.lookAt(t);
-      if (Math.random() < .25 && !kai.action) kai.setMood('curious', 900);
     });
     document.addEventListener('pointerout', function (e) {
       if (self.focusEl && (!e.relatedTarget || !self.focusEl.contains(e.relatedTarget))) { self.focusEl = null; if (pointer) kai.lookAt(pointer); }
@@ -484,8 +487,8 @@
       if (document.hidden || !kai.visible || REDUCED) return;
       var now = performance.now(), idle = now - self.lastInput, sleepAt = night() ? self.sleepAfter * .5 : self.sleepAfter;
       if (now > nextBlink && kai.base !== 'asleep') { kai.blink(Math.random() < .22); nextBlink = now + rand(2000, 6000); }
-      if (kai.base !== 'asleep' && idle > sleepAt * 1.35) { kai.setMood('asleep'); }
-      else if (kai.base === 'neutral' && idle > sleepAt) { kai.setMood('sleepy'); kai.do('yawn'); }
+      if (self.dozing && kai.base === 'sleepy' && idle > sleepAt * 1.35) { kai.setMood('asleep'); }
+      else if (kai.base === 'neutral' && idle > sleepAt) { self.dozing = true; kai.setMood('sleepy'); kai.do('yawn'); }
       if (kai.base === 'asleep' && Math.random() < .12) kai.emote('z', true);
       // the pointer has been still a while: look back at the visitor
       if (pointer && now - lastMove > 3500 && !self.focusEl && kai.gazeTarget) { kai.lookAt(null); if (Math.random() < .5) kai.blink(); }
