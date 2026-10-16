@@ -4,9 +4,8 @@ import { getCollection } from 'astro:content';
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
-import LunaDrawerShell from '../components/LunaDrawerShell.astro';
+import KaiSite from '../components/KaiSite.astro';
 import { SITE } from '../config';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
@@ -215,31 +214,6 @@ body.globe-active #globe-gl{ opacity:1; }
   #cr-detail{ display:none; }
 }
 
-/* ── Luna's speech: a small quip card above her head — used to sit to her
-   left, but that ate horizontal space and clashed with nearby content, so
-   it now docks directly over #luna-wrap instead (same right:18px anchor,
-   positioned by "bottom" so it always clears her regardless of viewport). ── */
-#luna-quip{
-  position:fixed; right:18px; top:auto; bottom:calc(34vh - 70px);
-  z-index:999; max-width:min(180px,60vw); text-align:right; pointer-events:none;
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size:12.5px; line-height:1.45; letter-spacing:0.01em;
-  color:rgba(226,232,240,0.92);
-  background:rgba(10,11,16,0.82); border:1px solid rgba(205,214,226,0.14);
-  border-radius:12px; padding:9px 13px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-  opacity:0; transform:translateY(6px) scale(0.98);
-  transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
-}
-#luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
-#luna-quip .lq-cursor{ color:rgba(202,210,226,0.6); }
-#luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
-#luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
-/* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
-#luna-quip.lq-clickable:not(.show){ pointer-events:none; }
-#luna-quip .lq-hint{ display:block; margin-top:5px; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(202,210,226,0.5); }
-@media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
-
 /* ── Intro ── */
 /* (intro-vignette removed — wordmark sits over the live boot, no dark veil) */
 
@@ -288,39 +262,6 @@ body.globe-active #globe-gl{ opacity:1; }
    ticking digits don't shift width each update */
 .ptile--spec .v, .ptile--metric .mv,
 #cr-detail .cd-v, #cr-detail .cd-mv { font-variant-numeric: tabular-nums; }
-
-
-/* ── Luna portal arrival ── */
-#luna-portal {
-  position:fixed;
-  right:18px; top:calc(66vh + 80px);  /* concentric with Luna's new box */
-  width:120px; height:120px;
-  border-radius:50%;
-  z-index:998;
-  pointer-events:none; opacity:0;
-  background:radial-gradient(circle,
-    rgba(160,195,255,0.22) 0%,
-    rgba(130,170,245,0.10) 38%,
-    rgba(120,160,240,0.03) 58%,
-    transparent 72%);                  /* soft bloom, no hard ring — she coalesces from light */
-  box-shadow:0 0 18px 2px rgba(120,170,255,0.10);
-}
-#luna-portal.opening {
-  animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-@keyframes lunaPortal {
-  0%   { opacity:0;    transform:scale(1.12); }   /* a faint wide gather */
-  38%  { opacity:0.55; transform:scale(1.00); }   /* light draws onto her — she arrives */
-  100% { opacity:0;    transform:scale(0.97); }   /* quietly fades */
-}
-/* Below 900px #luna-wrap docks to the bottom-right corner instead of its
-   vh-based spot (see PortfolioLunaShell.astro's .luna-hidden rule) — keep
-   the arrival bloom and speech bubble anchored to that same corner so they
-   still read as "at her" instead of floating at the old mid-page position. */
-@media (--bp-900){
-  #luna-portal{ top:auto; bottom:16px; right:14px; }
-  #luna-quip{ bottom:146px; }
-}
 
 /* ── chrome dampening — soft dark pools that keep the UI legible over the
       brightened canvas; sits above the canvas, below the chrome; fades in
@@ -846,24 +787,6 @@ footer#site-footer{
 </div>
 
 
-<PortfolioLunaShell hasIntro={true} />
-<div id="luna-portal"></div>
-<div id="luna-quip" aria-hidden="true"></div>
-<script is:inline>
-/* #luna-wrap is fixed at top:calc(66vh+80px) — on mobile/tablet, whatever
-   editorial content scrolls into that fixed screen band ends up covered by
-   her 120x120px circle for as long as it's on screen, same problem already
-   found and fixed on about.astro (below 980px there, 900px here). Rather
-   than hide her, .luna-hidden (in PortfolioLunaShell.astro) docks her to
-   the bottom-right corner instead, where nothing scrolls under her. */
-(function(){
-  var lw = document.getElementById('luna-wrap');
-  if(!lw) return;
-  function sync(){ lw.classList.toggle('luna-hidden', matchMedia('(max-width:900px)').matches); }
-  sync();
-  addEventListener('resize', sync, {passive:true});
-})();
-</script>
 
 
 
@@ -1769,7 +1692,6 @@ footer#site-footer{
 
 <script is:inline defer src="/scripts/index-intro-sequence.js"></script>
 
-<script is:inline defer src="/scripts/index-luna-companion.js"></script>
 
 <script is:inline defer src="/scripts/index-logo-glitch.js"></script>
 <script is:inline defer src="/scripts/index-hero-tagline.js"></script>
@@ -1866,18 +1788,11 @@ footer#site-footer{
     </div>
   </div>
 </footer>
-<LunaDrawerShell
-  voidColor="var(--c-bg)"
-  bodyFont="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-  monoFont="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-/>
-
-<script is:inline defer src="/scripts/luna-drawer-core.js"></script>
+<KaiSite hasIntro={true} />
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
 <script is:inline defer src="/scripts/index-ascii-footer.js"></script>
 <script is:inline defer src="/scripts/index-projects-accordion.js"></script>
 <script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
-<script src="../scripts/luna-greeting.js"></script>
 </body>
 </html>

@@ -1,0 +1,55 @@
+---
+/**
+ * PROTOTYPE — Kai's chat inside Moat and Cluster, shown over real
+ * screenshots of each extension at true size (1440 x 900 frames, scaled
+ * down only to fit, never below half size). Each frame is
+ * ./kai-ext-frame.astro, so Kai's fixed corner position behaves as it will
+ * in the extension. Dev only.
+ */
+const isDev = import.meta.env.DEV;
+const frames = [
+  { app: 'moat', theme: 'dark', label: 'Moat Settings, dark' },
+  { app: 'moat', theme: 'light', label: 'Moat Settings, light' },
+  { app: 'cluster', theme: 'dark', label: 'Cluster dashboard' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+{isDev ? (
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Kai in the extensions</title>
+  <style>
+    body { margin: 0; background: #050507; color: #e8e9ee; font: 15px/1.5 Inter, system-ui, -apple-system, sans-serif; }
+    main { padding: 28px 16px 60px; max-width: 1480px; margin: 0 auto; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .sub { color: #8b8e99; margin: 0 0 24px; }
+    figure { margin: 0 0 36px; }
+    figcaption { display: flex; justify-content: space-between; gap: 12px; color: #8b8e99; font-size: 14px; margin-bottom: 8px; }
+    figcaption a { color: #7aa2ff; text-decoration: none; }
+    .frame { width: 100%; aspect-ratio: 1440 / 900; overflow: hidden; border-radius: 14px; border: 1px solid #1d1f27; position: relative; }
+    .frame iframe { width: 1440px; height: 900px; border: 0; transform-origin: 0 0; position: absolute; left: 0; top: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Kai in Moat and Cluster</h1>
+    <p class="sub">Real screens at true size. Kai sits in the corner at the same size as today, with Ask Kai above it. Click Kai to open the questions.</p>
+    {frames.map((f) => (
+      <figure>
+        <figcaption><span>{f.label}</span><a href={`/prototype/kai-ext-frame?app=${f.app}&theme=${f.theme}`} target="_blank">Open at true size</a></figcaption>
+        <div class="frame"><iframe title={f.label} src={`/prototype/kai-ext-frame?app=${f.app}&theme=${f.theme}`}></iframe></div>
+      </figure>
+    ))}
+  </main>
+  <script is:inline src="/scripts/kai-ext-mockup.js"></script>
+</body>
+) : (
+<body>
+  <p>Not available in production.</p>
+</body>
+)}
+</html>

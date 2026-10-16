@@ -1,0 +1,37 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import KaiSite from './KaiSite.astro';
+
+/**
+ * Kai's chat on a blog post. The knowledge base is built in the browser from
+ * this post (public/scripts/blog-post-luna-kb.js): its description, FAQs and
+ * section headings, so Kai can answer about the post and jump to a section.
+ * The only seam between Astro data and that script is
+ * window.SITE.__LUNA_POST, set by the small define:vars script below.
+ */
+interface Props {
+  post: CollectionEntry<'blog'>;
+  headings: MarkdownHeading[];
+}
+const { post, headings } = Astro.props;
+const d = post.data;
+
+const lunaPost = {
+  title: d.title,
+  description: d.description,
+  category: d.category,
+  tags: d.tags,
+  mitre: d.mitre,
+  faqs: d.faqs,
+  headings: headings
+    .filter((h) => h.depth === 2)
+    .map((h) => ({ slug: h.slug, text: h.text })),
+};
+---
+
+<KaiSite />
+<script define:vars={{ lunaPost }}>
+  window.SITE.__LUNA_POST = lunaPost;
+</script>
+<script is:inline src="/scripts/blog-post-luna-kb.js"></script>
