@@ -216,7 +216,7 @@
   };
 
   Kai.prototype.start = function () {
-    if (this.running || REDUCED) return;
+    if (this.running || REDUCED || typeof requestAnimationFrame !== 'function') return;
     this.running = true;
     var self = this;
     var tick = function (t) {
