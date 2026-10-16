@@ -106,8 +106,22 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     ].filter(function (c) { return byId(c.topic); }),
     hello: options.hello,
     placeholder: options.placeholder,
+    launcher: 'corner',
+    storageKey: 'kai-watch-site',
     onOpen: function () { window.SITE.__lunaEverOpened = true; }
   });
+  // pages visited this visit, so hopping through pages fast counts as
+  // "looking for something" (kai-watch.js)
+  if (chat.watch) {
+    var PAGES = 'kai-pages', seen = [];
+    try { seen = JSON.parse(sessionStorage.getItem(PAGES)) || []; } catch (e) {}
+    var t = Date.now();
+    seen = seen.filter(function (v) { return v && t - v.t < 60000; });
+    seen.forEach(function (v) { chat.watch.section(v.p, v.t); });
+    chat.watch.section(location.pathname);
+    seen.push({ p: location.pathname, t: t });
+    try { sessionStorage.setItem(PAGES, JSON.stringify(seen.slice(-8))); } catch (e) {}
+  }
   // The site menu closes the chat when it opens (SiteMenu.astro, blog-client.js).
   window.SITE.LunaChat = { open: chat.open, close: function () { chat.close(true); }, isOpen: chat.isOpen };
   return chat;

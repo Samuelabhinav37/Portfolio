@@ -10,8 +10,11 @@
      KaiChat({
        respond(text, { topic }) -> Promise<{ text, kind, action?, choices? }>,
        chips: [{ label, topic }],      // starter questions
-       hello: { title, text }, status, placeholder, mount, hidden
-     })
+       hello: { title, text }, status, placeholder, mount, hidden,
+       launcher: 'pill' | 'corner'     // corner: Kai at full size in the
+     })                                // corner with the "Ask Kai" bubble
+   In corner mode (and tap mode) the bubble follows kai-watch.js: it greets
+   once per visit, folds away, and returns only when you look stuck.
    kind is 'found' | 'miss' | 'hello' | 'joke' (how Kai reacts); action is
    { label, run } or { label, href }; choices are follow-ups { label, topic }
    or { label, text }. Without respond, a small keyword match over opts.kb
@@ -42,36 +45,136 @@
     };
   }
 
+  // Kai in the corner with the bubble above its head. The bubble floats on
+  // its own, pinned over Kai's right edge, so long text grows it up and to
+  // the left and Kai never moves.
+  function LAUNCH_HTML(panelId) {
+    return '<div class="kc-launch">' +
+      '<button class="kc-tag" type="button" tabindex="-1" aria-hidden="true"><span class="kc-tag-text">Ask Kai</span></button>' +
+      '<button class="kc-kaibtn" type="button" aria-label="Ask Kai" aria-expanded="false" aria-controls="' + panelId + '"><span class="kc-corner"></span></button>' +
+    '</div>';
+  }
+  /* The bubble's moods: kai-watch.js decides when it shows; pointer near Kai
+     shows "Need help?" (not counted as a nudge). */
+  function launcher(root, kai, opts, isOpen, open) {
+    var tag = root.querySelector('.kc-tag'), text = tag.firstChild, btn = root.querySelector('.kc-kaibtn');
+    var swapT = 0, sizeT = 0, hint = false;
+    function say(t) {
+      var on = root.classList.contains('tag-on');
+      clearTimeout(swapT); clearTimeout(sizeT);
+      if (!on || REDUCED) { text.textContent = t; tag.style.width = ''; root.classList.add('tag-on'); return; }
+      if (text.textContent === t) return;
+      // fade the words out, ease the bubble to its new width, fade them in
+      tag.classList.add('swap');
+      swapT = setTimeout(function () {
+        var w0 = tag.offsetWidth;
+        tag.style.width = ''; text.textContent = t;
+        var w1 = tag.offsetWidth;
+        tag.style.width = w0 + 'px';
+        void tag.offsetWidth;
+        tag.style.width = w1 + 'px';
+        tag.classList.remove('swap');
+        sizeT = setTimeout(function () { tag.style.width = ''; }, 320);
+      }, 130);
+    }
+    function fold() { clearTimeout(swapT); root.classList.remove('tag-on'); tag.classList.remove('swap'); }
+    var REACT = {
+      welcome: function () { kai.setMood('happy', 2200); kai.do('wave'); },
+      stuck: function () { kai.setMood('curious', 2400); kai.do('tilt'); },
+      looking: function () { kai.do('lookAround'); setTimeout(function () { kai.lookAt(null); kai.setMood('happy', 1600); }, 900); },
+      unsure: function () { kai.setMood('curious', 2400); kai.do('tilt'); }
+    };
+    var watch = window.KaiWatch ? window.KaiWatch({
+      win: window, kaiEl: root, isOpen: isOpen,
+      show: function (kind, t) { hint = false; say(t); if (REACT[kind]) REACT[kind](); },
+      hide: function () { if (!hint) fold(); },
+      text: opts.nudgeText, sectionName: opts.sectionName, storageKey: opts.storageKey
+    }) : null;
+
+    // the pointer comes near: Kai looks at it and offers help
+    // (checked once a frame, with the latest position)
+    var pending = false, near = false, looking = false, px = 0, py = 0;
+    addEventListener('pointermove', function (e) {
+      px = e.clientX; py = e.clientY;
+      if (pending) return; pending = true;
+      requestAnimationFrame(function () {
+        pending = false;
+        var r = btn.getBoundingClientRect(), d = Math.hypot(px - (r.left + r.width / 2), py - (r.top + r.height / 2));
+        if (d < 420) { looking = true; kai.lookAt({ x: px, y: py }); }
+        else if (looking) { looking = false; kai.lookAt(null); }
+        if (isOpen()) return;
+        if (!near && d < 170) {
+          near = true;
+          if (!watch || !watch.isShowing()) { hint = true; say(opts.hint || 'Need help?'); kai.setMood('happy', 1500); }
+        } else if (near && d > 260) {
+          near = false;
+          if (hint) { hint = false; fold(); }
+        }
+      });
+    }, { passive: true });
+    btn.addEventListener('pointerenter', function () { if (!isOpen()) { kai.setMood('happy', 1100); kai.do('hop'); } });
+    tag.addEventListener('click', open);
+
+    // greet once per visit, as soon as Kai is actually on screen (the home
+    // page fades the corner in after its intro)
+    var mount = root.parentElement, tries = 0;
+    (function greet() {
+      if (!watch) return say(opts.welcome || 'Ask Kai');
+      var o = 1;
+      for (var n = mount; n && n.nodeType === 1; n = n.parentElement) o *= +getComputedStyle(n).opacity;
+      if (o > .6 || tries++ > 40) return setTimeout(function () { watch.welcome(opts.welcome); }, REDUCED ? 0 : 600);
+      setTimeout(greet, 250);
+    })();
+    return {
+      watch: watch,
+      opened: function () { hint = false; if (watch) watch.opened(); fold(); }
+    };
+  }
+
   window.KaiChat = function (opts) {
     opts = opts || {};
     if (opts.mode === 'tap') return tapChat(opts);
     var respond = opts.respond || simpleRespond(opts.kb || []);
     var hello = opts.hello || { title: 'Hi, I’m Kai.', text: 'I know Samuel’s projects, writing and work. Ask me anything about them.' };
+    var corner = opts.launcher === 'corner';
     var root = document.createElement('div');
-    root.className = 'kc';
-    root.innerHTML =
-      '<button class="kc-pill" type="button" aria-expanded="false" aria-controls="kc-panel"><span class="kc-mini"></span>Ask Kai</button>' +
-      '<section class="kc-panel" id="kc-panel" role="dialog" aria-label="Chat with Kai">' +
-        '<div class="kc-pad" aria-hidden="true"></div>' +
-        '<div class="kc-stage"><div class="kc-kai"></div></div>' +
-        '<header class="kc-head"><div class="kc-slot"></div><div class="kc-id"><div class="kc-name">Kai</div><div class="kc-status"></div></div>' +
-          '<button class="kc-close" type="button" aria-label="Close chat">' + CLOSE_ICON + '</button></header>' +
-        '<div class="kc-body"><div class="kc-hello"><h3></h3><p></p><div class="kc-chips"></div></div><div class="kc-log" aria-live="polite"></div></div>' +
-        '<div class="kc-foot"><form class="kc-form"><input class="kc-input" type="text" aria-label="Message Kai" autocomplete="off" maxlength="200">' +
-          '<button class="kc-send" type="submit" aria-label="Send" disabled>' + SEND_ICON + '</button></form></div>' +
-      '</section>';
+    root.className = corner ? 'kc kc-cornermode' : 'kc';
+    var helloHtml = '<div class="kc-hello"><h3></h3><p></p><div class="kc-chips"></div></div>';
+    var foot = '<div class="kc-foot"><form class="kc-form"><input class="kc-input" type="text" aria-label="Message Kai" autocomplete="off" maxlength="200">' +
+      '<button class="kc-send" type="submit" aria-label="Send" disabled>' + SEND_ICON + '</button></form></div>';
+    var closeBtn = '<button class="kc-close" type="button" aria-label="Close chat">' + CLOSE_ICON + '</button>';
+    root.innerHTML = corner
+      ? '<section class="kc-panel kc-dock" id="kc-panel" role="dialog" aria-label="Chat with Kai">' +
+          '<header class="kc-head"><div class="kc-id"><div class="kc-name">Kai</div><div class="kc-status"></div></div>' + closeBtn + '</header>' +
+          '<div class="kc-body">' + helloHtml + '<div class="kc-log" aria-live="polite"></div></div>' + foot +
+        '</section>' + LAUNCH_HTML('kc-panel')
+      : '<button class="kc-pill" type="button" aria-expanded="false" aria-controls="kc-panel"><span class="kc-mini"></span>Ask Kai</button>' +
+        '<section class="kc-panel" id="kc-panel" role="dialog" aria-label="Chat with Kai">' +
+          '<div class="kc-pad" aria-hidden="true"></div>' +
+          '<div class="kc-stage"><div class="kc-kai"></div></div>' +
+          '<header class="kc-head"><div class="kc-slot"></div><div class="kc-id"><div class="kc-name">Kai</div><div class="kc-status"></div></div>' + closeBtn + '</header>' +
+          '<div class="kc-body">' + helloHtml + '<div class="kc-log" aria-live="polite"></div></div>' + foot +
+        '</section>';
     root.querySelector('.kc-hello h3').textContent = hello.title;
     root.querySelector('.kc-hello p').textContent = hello.text;
     (opts.mount || document.body).appendChild(root);
 
-    var pill = root.querySelector('.kc-pill');
+    var pill = root.querySelector(corner ? '.kc-kaibtn' : '.kc-pill');
     var input = root.querySelector('.kc-input'), send = root.querySelector('.kc-send');
     input.placeholder = opts.placeholder || 'Ask about Samuel’s work';
     var body = root.querySelector('.kc-body'), log = root.querySelector('.kc-log');
     var status = root.querySelector('.kc-status'), STATUS = opts.status || 'Here to show you around';
     status.textContent = STATUS;
-    var mini = window.Kai(root.querySelector('.kc-mini'), { src: opts.kaiSrc, imgWidth: 160, lite: true });
-    var kai = window.Kai(root.querySelector('.kc-kai'), { src: opts.kaiSrc, imgWidth: 320, auto: true });
+    var kai, launch = null;
+    if (corner) {
+      // one Kai on screen: the corner Kai does the talking
+      kai = window.Kai(root.querySelector('.kc-corner'), { src: opts.kaiSrc, imgWidth: 320, auto: true });
+    } else {
+      var mini = window.Kai(root.querySelector('.kc-mini'), { src: opts.kaiSrc, imgWidth: 160, lite: true });
+      kai = window.Kai(root.querySelector('.kc-kai'), { src: opts.kaiSrc, imgWidth: 320, auto: true });
+      // the pill's Kai perks up when you come near
+      pill.addEventListener('pointerenter', function () { mini.setMood('happy', 1200); mini.do('hop'); });
+    }
     var busy = false;
 
     var chipsEl = root.querySelector('.kc-chips');
@@ -79,17 +182,17 @@
       chipsEl.appendChild(chip(c));
     });
 
-    // the pill's Kai perks up when you come near
-    pill.addEventListener('pointerenter', function () { mini.setMood('happy', 1200); mini.do('hop'); });
-    pill.addEventListener('click', open);
+    pill.addEventListener('click', function () { if (corner && isOpen()) close(); else open(); });
     root.querySelector('.kc-close').addEventListener('click', function () { close(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) close(); });
+    if (corner) launch = launcher(root, kai, opts, isOpen, open);
 
     function isOpen() { return root.classList.contains('open'); }
     function open() {
       if (isOpen()) return;
       root.classList.add('open');
       pill.setAttribute('aria-expanded', 'true');
+      if (launch) launch.opened();
       kai.lookAt(null);
       setTimeout(function () { kai.do('wave'); kai.setMood('happy', 1600); }, REDUCED ? 0 : 260);
       setTimeout(function () { input.focus({ preventScroll: true }); }, REDUCED ? 0 : 380);
@@ -171,7 +274,7 @@
       });
     }
 
-    return { root: root, kai: kai, open: open, close: close, ask: ask, isOpen: isOpen };
+    return { root: root, kai: kai, open: open, close: close, ask: ask, isOpen: isOpen, watch: launch && launch.watch };
   };
 
   /* ---------------------------------------------------------------------
@@ -196,33 +299,18 @@
           '<button class="kc-close" type="button" aria-label="Close">' + CLOSE_ICON + '</button></header>' +
         '<div class="kc-body"><div class="kc-log" aria-live="polite"></div></div>' +
       '</section>' +
-      '<div class="kc-launch">' +
-        '<button class="kc-tag" type="button" tabindex="-1" aria-hidden="true">Ask Kai</button>' +
-        '<button class="kc-kaibtn" type="button" aria-label="Ask Kai" aria-expanded="false" aria-controls="kc-dock"><span class="kc-corner"></span></button>' +
-      '</div>';
+      LAUNCH_HTML('kc-dock');
     (opts.mount || document.body).appendChild(root);
     var status = root.querySelector('.kc-status'), STATUS = opts.status || 'Here to help';
     status.textContent = STATUS;
     var body = root.querySelector('.kc-body'), log = root.querySelector('.kc-log');
-    var btn = root.querySelector('.kc-kaibtn'), tag = root.querySelector('.kc-tag');
+    var btn = root.querySelector('.kc-kaibtn');
     var kai = window.Kai(root.querySelector('.kc-corner'), { src: opts.kaiSrc, imgWidth: 320, calm: true });
     if (opts.theme === 'light') kai.root.classList.add('on-light');
     var busy = false;
 
-    // Kai notices the pointer when it comes near, and perks up on hover
-    var pending = false, near = false;
-    addEventListener('pointermove', function (e) {
-      if (pending) return; pending = true;
-      requestAnimationFrame(function () {
-        pending = false;
-        var r = kai.root.getBoundingClientRect(), d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
-        if (d < 420) { near = true; kai.lookAt({ x: e.clientX, y: e.clientY }); }
-        else if (near) { near = false; kai.lookAt(null); }
-      });
-    }, { passive: true });
-    btn.addEventListener('pointerenter', function () { if (!root.classList.contains('open')) { kai.setMood('happy', 1100); kai.do('hop'); } });
     btn.addEventListener('click', function () { if (root.classList.contains('open')) close(); else open(); });
-    tag.addEventListener('click', open);
+    var launch = launcher(root, kai, opts, function () { return root.classList.contains('open'); }, open);
     root.querySelector('.kc-close').addEventListener('click', close);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root.classList.contains('open')) close(); });
 
@@ -289,6 +377,7 @@
     function open() {
       root.classList.add('open');
       btn.setAttribute('aria-expanded', 'true');
+      launch.opened();
       kai.do('wave');
       if (!log.childElementCount) {
         var n = opts.notice && opts.notice();
@@ -304,6 +393,6 @@
       btn.setAttribute('aria-expanded', 'false');
       kai.lookAt(null);
     }
-    return { root: root, kai: kai, open: open, close: close };
+    return { root: root, kai: kai, open: open, close: close, watch: launch.watch };
   }
 })();

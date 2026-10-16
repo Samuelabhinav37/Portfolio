@@ -179,32 +179,39 @@ button.kc-go { display: flex; width: max-content; cursor: pointer; font: inherit
   .kc-msg, .kc-msg.typing i { animation: none; }
 }
 
-/* ---- tap mode (extensions): Kai in the corner, questions only ---- */
-.kc-tapmode { right: 24px; bottom: 20px; }
-.kc-launch { position: relative; display: flex; flex-direction: column; align-items: center; }
-.kc-kaibtn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 18px; }
+/* ---- Kai in the corner (portfolio corner mode, extensions' tap mode) ---- */
+.kc-tapmode, .kc-cornermode { right: 24px; bottom: 20px; }
+.kc-launch { --kc-kai: 72px; position: relative; width: var(--kc-kai); }
+.kc-kaibtn { display: block; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 18px; }
 .kc-kaibtn:focus-visible { outline: 2px solid var(--kc-blue-hi); outline-offset: 4px; }
-.kc-corner.kai { --kai-w: 72px; }
-/* "Ask Kai" above Kai's head: a small speech bubble pointing down at it */
+.kc-corner.kai { --kai-w: var(--kc-kai); }
+/* The bubble above Kai's head. It is out of the layout, pinned to Kai's
+   right edge with its tail over Kai's head: longer text grows it up and to
+   the left and Kai stays put. It shows only while .tag-on is set
+   (kai-watch.js decides when). */
 .kc-tag {
-  position: relative; margin-bottom: 2px;
+  position: absolute; right: 0; bottom: calc(100% + 8px);
+  box-sizing: border-box; width: max-content; min-width: 100%; max-width: min(240px, calc(100vw - 48px));
   padding: 6px 12px; border-radius: 12px;
-  font: inherit; font-size: 13px; font-weight: 600; letter-spacing: -.005em; white-space: nowrap;
+  font: inherit; font-size: 13px; font-weight: 600; line-height: 1.35; letter-spacing: -.005em; text-align: center; white-space: normal;
   color: var(--kc-text); cursor: pointer;
   background: linear-gradient(180deg, rgba(34, 36, 45, .96), rgba(20, 21, 27, .96));
   border: 1px solid var(--kc-line);
   box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
-  transition: opacity .25s ease, transform .3s cubic-bezier(.2, .8, .2, 1), border-color .2s ease;
-  animation: kc-tag-in .5s cubic-bezier(.2, .9, .3, 1.2) .6s both;
+  transform-origin: calc(100% - var(--kc-kai) / 2) calc(100% + 6px);
+  opacity: 0; transform: translateY(6px) scale(.85); pointer-events: none;
+  transition: opacity .22s ease, transform .32s cubic-bezier(.2, .9, .3, 1.2), border-color .2s ease, width .3s cubic-bezier(.2, .8, .2, 1);
 }
 .kc-tag::after {
-  content: ""; position: absolute; left: 50%; bottom: -5px; width: 9px; height: 9px; margin-left: -5px;
+  content: ""; position: absolute; right: calc(var(--kc-kai) / 2 - 5px); bottom: -5px; width: 9px; height: 9px;
   background: rgba(20, 21, 27, .96); border-right: 1px solid var(--kc-line); border-bottom: 1px solid var(--kc-line);
   transform: rotate(45deg);
 }
-.kc-launch:hover .kc-tag { border-color: rgba(91, 134, 230, .5); transform: translateY(-2px); }
-.kc-tapmode.open .kc-tag { opacity: 0; transform: translateY(6px) scale(.9); pointer-events: none; animation: none; }
-@keyframes kc-tag-in { from { opacity: 0; transform: translateY(6px) scale(.9); } }
+.kc-tag-text { display: block; transition: opacity .13s ease; }
+.kc-tag.swap .kc-tag-text { opacity: 0; }
+.kc.tag-on .kc-tag { opacity: 1; transform: none; pointer-events: auto; }
+.kc.tag-on .kc-launch:hover .kc-tag { border-color: rgba(91, 134, 230, .5); transform: translateY(-2px); }
+.kc.open .kc-tag { opacity: 0; transform: translateY(6px) scale(.85); pointer-events: none; }
 
 /* the panel sits above Kai, Kai stays below it and does the talking */
 .kc-dock {
@@ -213,9 +220,16 @@ button.kc-go { display: flex; width: max-content; cursor: pointer; font: inherit
   height: auto; max-height: min(540px, calc(100dvh - 170px));
   transform-origin: calc(100% - 40px) 100%;
 }
-.kc-tapmode .kc-head { min-height: 0; padding: 14px 12px 12px 18px; border-bottom-color: var(--kc-line); }
-.kc-tapmode .kc-id { opacity: 1; transform: none; }
+.kc-tapmode .kc-head, .kc-cornermode .kc-head { min-height: 0; padding: 14px 12px 12px 18px; border-bottom-color: var(--kc-line); }
+.kc-tapmode .kc-id, .kc-cornermode .kc-id { opacity: 1; transform: none; }
 .kc-tapmode .kc-body { padding-top: 6px; }
+/* corner mode keeps the typed chat: hello and chips, then the conversation */
+.kc-cornermode .kc-dock { width: min(380px, calc(100vw - 32px)); min-height: min(440px, calc(100dvh - 170px)); }
+.kc-cornermode .kc-body { flex: 1 1 auto; }
+.kc-cornermode .kc-hello { padding: 14px 4px 6px; text-align: left; }
+.kc-cornermode .kc-hello h3 { font-size: 19px; }
+.kc-cornermode .kc-hello p { margin: 0 0 14px; max-width: none; }
+.kc-cornermode .kc-chips { justify-content: flex-start; }
 .kc-choices { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 2px 0 2px; animation: kc-in .32s cubic-bezier(.2, .8, .2, 1) both; }
 .kc-q { text-align: left; border-radius: 14px; padding: 8px 13px; line-height: 1.35; }
 .kc-more { color: var(--kc-muted); background: none; border-style: dashed; }
@@ -240,10 +254,10 @@ button.kc-go { display: flex; width: max-content; cursor: pointer; font: inherit
 .kc.light .kc-msg.typing i { background: #9a9ca3; }
 
 @media (max-width: 600px) {
-  .kc-tapmode { right: 12px; bottom: 12px; }
-  .kc-corner.kai { --kai-w: 56px; }
+  .kc-tapmode, .kc-cornermode { right: 12px; bottom: 12px; }
+  .kc-launch { --kc-kai: 56px; }
   .kc-dock { bottom: 100px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kc-tag, .kc-choices { animation: none; transition: none; }
+  .kc-tag, .kc-tag-text, .kc-choices { animation: none; transition: none; }
 }
