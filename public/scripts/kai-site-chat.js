@@ -62,7 +62,8 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     if (!target) return null;
     if (target.type === 'scroll') {
       var n = document.querySelector(target.value);
-      return n ? { label: 'Take me there', run: function () { n.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); } } : null;
+      // Kai points at the spot once the page has scrolled there
+      return n ? { label: 'Take me there', run: function () { n.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); setTimeout(function () { chat.kai.pointAt(n); }, reduce ? 0 : 650); } } : null;
     }
     if (target.type === 'url') return { label: 'Open ' + target.value.replace(/^https?:\/\//, '').replace(/\/$/, ''), href: target.value };
     // Same-site page; values come only from the knowledge base, never from typed text.
@@ -91,7 +92,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     reportMiss(text);
     var pool = list.filter(function (r) { return r.s > 0; }).slice(0, 3).map(function (r) { return r.t; });
     if (!pool.length) pool = GUESS_IDS.map(byId).filter(Boolean);
-    return { text: 'I don’t have a note on that yet. Did you mean one of these?', kind: 'miss',
+    return { text: 'That one isn’t in my memory yet. Did you mean one of these?', kind: 'miss',
       choices: pool.map(function (t) { return { label: t.title, topic: t.id }; }) };
   }
 
@@ -122,6 +123,36 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     seen.push({ p: location.pathname, t: t });
     try { sessionStorage.setItem(PAGES, JSON.stringify(seen.slice(-8))); } catch (e) {}
   }
+  /* Moments: Kai reacts right after something the visitor did
+     (docs/kai-character.md). Pages call window.SITE.kaiMoment(name). */
+  var kai = chat.kai, lastMoment = 0;
+  var MOMENTS = {
+    sent: function () { kai.do('celebrate'); chat.say('Sent. Samuel reads every one.'); },
+    arcadeWin: function () { kai.do('celebrate'); chat.say('Nice. You beat it.'); },
+    arcadeLose: function () { kai.do('startle'); setTimeout(function () { kai.setMood('sad', 1600); }, 700); chat.say('Oof. One more go?'); }
+  };
+  window.SITE.kaiMoment = function (name) {
+    var m = MOMENTS[name], t = Date.now();
+    if (!m || t - lastMoment < 3000) return;
+    lastMoment = t;
+    m();
+  };
+  // The About page's arcade runs in a sandboxed frame and posts only
+  // { kai: 'arcade', result: 'win' | 'lose' }; trust nothing else.
+  addEventListener('message', function (e) {
+    var game = document.getElementById('game-iframe');
+    if (!game || e.source !== game.contentWindow || !e.data || e.data.kai !== 'arcade') return;
+    if (e.data.result === 'win') window.SITE.kaiMoment('arcadeWin');
+    else if (e.data.result === 'lose') window.SITE.kaiMoment('arcadeLose');
+  });
+  // a project you hover: Kai looks (the brain does that) and perks up
+  var curiousAt = 0;
+  document.addEventListener('pointerover', function (e) {
+    var card = e.target.closest && e.target.closest('a[href^="/projects/"]');
+    if (!card || chat.root.contains(card) || Date.now() - curiousAt < 2500) return;
+    curiousAt = Date.now();
+    kai.setMood('curious', 1400);
+  });
   // The site menu closes the chat when it opens (SiteMenu.astro, blog-client.js).
   window.SITE.LunaChat = { open: chat.open, close: function () { chat.close(true); }, isOpen: chat.isOpen };
   return chat;

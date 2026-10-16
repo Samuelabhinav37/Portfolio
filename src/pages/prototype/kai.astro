@@ -38,6 +38,13 @@ const isDev = import.meta.env.DEV;
       background: radial-gradient(60% 50% at 50% 40%, #12141c 0%, var(--bg) 70%); overflow: hidden; }
     .stage .kai { --kai-w: clamp(180px, 34vw, 300px); cursor: pointer; }
     .stage .hint { position: absolute; left: 16px; bottom: 12px; right: 16px; color: var(--muted); font-size: 13px; }
+    /* what Kai says in a scene: a bubble above its head */
+    .say { position: absolute; left: 50%; top: 28px; transform: translateX(-50%) translateY(6px) scale(.9); opacity: 0; max-width: 300px; width: max-content;
+      padding: 8px 14px; border-radius: 14px; background: #1c1f29; border: 1px solid var(--line); font-size: 15px; font-weight: 600; text-align: center;
+      transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .3, 1.2); pointer-events: none; }
+    .say.on { opacity: 1; transform: translateX(-50%); }
+    .scene-note { color: var(--muted); font-size: 12.5px; margin: 6px 0 0; min-height: 1.4em; }
+    .ring { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; transition: outline-color .4s; }
     .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--panel); padding: 18px; }
     .panel h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 16px 0 8px; }
     .panel h2:first-child { margin-top: 0; }
@@ -69,6 +76,7 @@ const isDev = import.meta.env.DEV;
 
     <div class="grid">
       <div class="stage" id="stage">
+        <div class="say" id="say"></div>
         <div id="kai-main" data-size="640"></div>
         <div class="hint">Brain on: follows the pointer, looks at links you hover, leans when you scroll, fidgets when it's quiet, dozes off after 60s. Click it five times fast.</div>
       </div>
@@ -78,6 +86,9 @@ const isDev = import.meta.env.DEV;
         <div class="btns" id="moods"></div>
         <h2>Actions</h2>
         <div class="btns" id="actions"></div>
+        <h2>Scenes (each product moment, in Kai's voice)</h2>
+        <div class="btns" id="scenes"></div>
+        <p class="scene-note" id="scene-note"></p>
         <h2>Ask Kai (fake answers)</h2>
         <form class="chat" id="chat">
           <input id="q" placeholder="Try: hi, moat, sentinel, pizza" autocomplete="off" />

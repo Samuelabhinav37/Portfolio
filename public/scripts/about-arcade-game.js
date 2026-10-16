@@ -1078,10 +1078,19 @@ function checkCollisions(){
 }
 function endGame(win,title,sub){
   G.status=win?'win':'lose';
+  tellKai(win);
   document.getElementById('gm-title').textContent=title.toUpperCase();
   document.getElementById('gm-title').style.color=win?'#00ff88':'#ff2244';
   document.getElementById('gm-sub').textContent=sub;
   document.getElementById('game-msg').style.display='block';
+}
+// Kai, outside this sandboxed frame, cheers or gasps: post only the result,
+// and only to the page that embeds the game.
+function tellKai(win){
+  try{
+    var to=(location.ancestorOrigins&&location.ancestorOrigins[0])||(document.referrer?new URL(document.referrer).origin:'');
+    if(to&&to!=='null')parent.postMessage({kai:'arcade',result:win?'win':'lose'},to);
+  }catch(e){}
 }
 function updateHUD(){
   for(let i=0;i<3;i++){

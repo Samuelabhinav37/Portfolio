@@ -39,7 +39,7 @@
           if (s > top) { top = s; best = e; }
         });
       }
-      if (!best) return Promise.resolve({ text: 'I don’t know that one yet. Samuel can answer it himself on the contact page.', kind: 'miss', action: { label: 'Go to contact', href: '/contact' } });
+      if (!best) return Promise.resolve({ text: 'That one isn’t in my memory yet. Samuel can answer it himself on the contact page.', kind: 'miss', action: { label: 'Go to contact', href: '/contact' } });
       var href = link(best.target);
       return Promise.resolve({ text: best.reply, kind: best.id === 'greeting' ? 'hello' : 'found', action: href ? { label: 'Take me there', href: href } : null });
     };
@@ -80,6 +80,7 @@
     function fold() { clearTimeout(swapT); root.classList.remove('tag-on'); tag.classList.remove('swap'); }
     var REACT = {
       welcome: function () { kai.setMood('happy', 2200); kai.do('wave'); },
+      back: function () { kai.do('peek'); },
       stuck: function () { kai.setMood('curious', 2400); kai.do('tilt'); },
       looking: function () { kai.do('lookAround'); setTimeout(function () { kai.lookAt(null); kai.setMood('happy', 1600); }, 900); },
       unsure: function () { kai.setMood('curious', 2400); kai.do('tilt'); }
@@ -105,7 +106,7 @@
         if (isOpen()) return;
         if (!near && d < 170) {
           near = true;
-          if (!watch || !watch.isShowing()) { hint = true; say(opts.hint || 'Need help?'); kai.setMood('happy', 1500); }
+          if (!watch || !watch.isShowing()) { hint = true; say(opts.hint || 'Need a hand?'); kai.setMood('happy', 1500); }
         } else if (near && d > 260) {
           near = false;
           if (hint) { hint = false; fold(); }
@@ -127,7 +128,9 @@
     })();
     return {
       watch: watch,
-      opened: function () { hint = false; if (watch) watch.opened(); fold(); }
+      opened: function () { hint = false; if (watch) watch.opened(); fold(); },
+      // a short line after something the person did (kai-watch.js say)
+      say: function (t, ms) { hint = false; return watch ? watch.say(t, ms) : false; }
     };
   }
 
@@ -135,7 +138,7 @@
     opts = opts || {};
     if (opts.mode === 'tap') return tapChat(opts);
     var respond = opts.respond || simpleRespond(opts.kb || []);
-    var hello = opts.hello || { title: 'Hi, I’m Kai.', text: 'I know Samuel’s projects, writing and work. Ask me anything about them.' };
+    var hello = opts.hello || { title: 'Hi, I’m Kai.', text: 'I’m small, but I know Samuel’s work inside out. Ask me anything.' };
     var corner = opts.launcher === 'corner';
     var root = document.createElement('div');
     root.className = corner ? 'kc kc-cornermode' : 'kc';
@@ -249,7 +252,7 @@
       status.textContent = 'Thinking';
       var started = performance.now(), pause = REDUCED ? 150 : 650 + Math.random() * 450;
       Promise.resolve(respond(q, { topic: topic })).catch(function () { return null; }).then(function (r) {
-        r = r || { text: 'Something went wrong on my side. Try asking again.', kind: 'miss' };
+        r = r || { text: 'My wires crossed for a second. Try asking again.', kind: 'miss' };
         setTimeout(function () {
           root.classList.remove('thinking'); status.textContent = STATUS; typing.remove();
           var text = r.text || '';
@@ -274,7 +277,8 @@
       });
     }
 
-    return { root: root, kai: kai, open: open, close: close, ask: ask, isOpen: isOpen, watch: launch && launch.watch };
+    return { root: root, kai: kai, open: open, close: close, ask: ask, isOpen: isOpen, watch: launch && launch.watch,
+      say: function (t, ms) { return launch ? launch.say(t, ms) : false; } };
   };
 
   /* ---------------------------------------------------------------------
@@ -393,6 +397,6 @@
       btn.setAttribute('aria-expanded', 'false');
       kai.lookAt(null);
     }
-    return { root: root, kai: kai, open: open, close: close, watch: launch.watch };
+    return { root: root, kai: kai, open: open, close: close, watch: launch.watch, say: launch.say };
   }
 })();
