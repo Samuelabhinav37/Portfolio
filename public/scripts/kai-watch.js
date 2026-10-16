@@ -14,8 +14,9 @@
    type or while the chat is open, and quiet for the visit once two nudges
    go ignored. After you've opened the chat Kai waits twice as long.
 
-   Shared by the portfolio, Moat and Cluster. Edit it here, then copy it to
-   moat/src/ui/kai/kaiWatch.js and cluster src/dashboard/kai/kaiWatch.js.
+   Shared by the portfolio, Moat and Cluster as identical copies. Edit the
+   portfolio's public/scripts/kai-watch.js, then copy it to Moat's
+   src/ui/kai/kaiWatch.js and Cluster's src/dashboard/kai/kaiWatch.js.
 
    Usage:
      var w = KaiWatch({
