@@ -40,10 +40,11 @@ const postCards = posts.map((p) => ({
 // real post. Matches what the client-side rotator in the script below would
 // pick as its first frame, so there's no server/client mismatch on load.
 const heroItem = FAKE_PROJECTS[0] ?? postCards[0] ?? null;
-// FakeProject has no `href` field (it opens the case-study slide-over
-// instead) — narrow explicitly rather than accessing heroItem.href, which
-// TS rejects on the FakeProject branch of the union.
-const heroHref = heroItem && 'href' in heroItem ? heroItem.href : null;
+// FakeProject has no `href` or `srcset` (it opens the case-study slide-over
+// instead), so take them from the post only when the post is the hero. An
+// `'href' in heroItem` check narrows to unknown under TypeScript 6.
+const heroPost = FAKE_PROJECTS[0] ? null : postCards[0] ?? null;
+const heroHref = heroPost?.href ?? null;
 // Anthropic-style static hero: one big featured item plus a short text list
 // of the next few recent posts beside it — skip postCards[0] only when it's
 // actually the one occupying the featured slot (FAKE_PROJECTS is currently
@@ -587,7 +588,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     href={heroHref || '#'}
     data-key={heroHref ? undefined : heroItem?.seed}
   >
-    <div class="hero2-imgwrap"><img alt="" loading="eager" fetchpriority="high" src={heroItem?.img || undefined} srcset={(heroItem && 'srcset' in heroItem && heroItem.srcset) || undefined} sizes="(max-width: 760px) 92vw, 560px"></div>
+    <div class="hero2-imgwrap"><img alt="" loading="eager" fetchpriority="high" src={heroItem?.img || undefined} srcset={heroPost?.srcset || undefined} sizes="(max-width: 760px) 92vw, 560px"></div>
     <span class="meta">{heroItem?.kick ?? ''}</span>
     <h1>{heroItem?.name ?? 'More stories soon'}</h1>
     {heroItem?.lead && <p>{heroItem.lead}</p>}

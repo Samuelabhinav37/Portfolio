@@ -611,7 +611,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   &lt;div class=&quot;ps&quot; id=&quot;p4&quot;&gt;&lt;div class=&quot;d&quot;&gt;&lt;/div&gt;&lt;span&gt;PLAY&lt;/span&gt;&lt;/div&gt;
   &lt;div id=&quot;prog-div&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;back&quot; onclick=&quot;goBack()&quot;&gt;◄ BACK&lt;/div&gt;
+&lt;div id=&quot;back&quot; data-act=&quot;back&quot;&gt;◄ BACK&lt;/div&gt;
 &lt;div id=&quot;ticker-w&quot;&gt;&lt;div id=&quot;ticker&quot;&gt;★ INFILTRATE // DEFEND ★ COLLECT 3 KEYS ★ DODGE THE WARDENS ★ USE HIDING SPOTS ★ ONE EXIT ★ NO SECOND CHANCES ★ POWER-UPS CHANGE EVERYTHING ★ INFILTRATE // DEFEND ★ GOOD LUCK OPERATOR ★&lt;/div&gt;&lt;/div&gt;
 
 &lt;!-- ═════ S1 BOOT ═════ --&gt;
@@ -631,7 +631,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   &lt;div class=&quot;mode-prompt blink&quot;&gt;SELECT YOUR ROLE&lt;/div&gt;
   &lt;div style=&quot;font-family:inherit;font-size:5px;color:rgba(var(--c-white),.22);letter-spacing:.12em;margin-bottom:10px;&quot;&gt;[A] HACKER &amp;nbsp;·&amp;nbsp; [D] SENTINEL&lt;/div&gt;
   &lt;div class=&quot;mode-row&quot;&gt;
-    &lt;div class=&quot;mcard&quot; data-m=&quot;a&quot; onclick=&quot;selectMode('attacker')&quot;&gt;
+    &lt;div class=&quot;mcard&quot; data-m=&quot;a&quot; data-mode=&quot;attacker&quot;&gt;
       &lt;div class=&quot;mcard-sp&quot;&gt;&lt;canvas id=&quot;sp-h&quot; width=&quot;80&quot; height=&quot;80&quot;&gt;&lt;/canvas&gt;&lt;/div&gt;
       &lt;div class=&quot;mcard-hd&quot;&gt;&lt;div class=&quot;mc-role&quot;&gt;ATTACKER MODE&lt;/div&gt;&lt;div class=&quot;mc-name&quot; style=&quot;color:var(--cyan)&quot;&gt;HACKER&lt;/div&gt;&lt;/div&gt;
       &lt;div class=&quot;mcard-bd&quot;&gt;
@@ -644,7 +644,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
       &lt;div class=&quot;mcard-btn&quot;&gt;► SELECT HACKER&lt;/div&gt;
     &lt;/div&gt;
     &lt;div class=&quot;vs&quot;&gt;&lt;div class=&quot;vs-l&quot;&gt;&lt;/div&gt;&lt;div class=&quot;vs-t&quot;&gt;VS&lt;/div&gt;&lt;div class=&quot;vs-l&quot;&gt;&lt;/div&gt;&lt;/div&gt;
-    &lt;div class=&quot;mcard&quot; data-m=&quot;d&quot; onclick=&quot;selectMode('defender')&quot;&gt;
+    &lt;div class=&quot;mcard&quot; data-m=&quot;d&quot; data-mode=&quot;defender&quot;&gt;
       &lt;div class=&quot;mcard-sp&quot;&gt;&lt;canvas id=&quot;sp-s&quot; width=&quot;80&quot; height=&quot;80&quot;&gt;&lt;/canvas&gt;&lt;/div&gt;
       &lt;div class=&quot;mcard-hd&quot;&gt;&lt;div class=&quot;mc-role&quot;&gt;DEFENDER MODE&lt;/div&gt;&lt;div class=&quot;mc-name&quot; style=&quot;color:var(--green)&quot;&gt;SENTINEL&lt;/div&gt;&lt;/div&gt;
       &lt;div class=&quot;mcard-bd&quot;&gt;
@@ -670,8 +670,8 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
     &lt;div id=&quot;rules-list&quot;&gt;&lt;/div&gt;
     &lt;div class=&quot;pu-row&quot; id=&quot;pu-row&quot;&gt;&lt;/div&gt;
     &lt;div class=&quot;nav-row&quot;&gt;
-      &lt;button class=&quot;nav-btn&quot; onclick=&quot;goTo(1)&quot;&gt;◄ ROLES&lt;/button&gt;
-      &lt;button class=&quot;nav-btn pri&quot; onclick=&quot;goTo(3)&quot;&gt;CHOOSE MAP ►&lt;/button&gt;
+      &lt;button class=&quot;nav-btn&quot; data-go=&quot;1&quot;&gt;◄ ROLES&lt;/button&gt;
+      &lt;button class=&quot;nav-btn pri&quot; data-go=&quot;3&quot;&gt;CHOOSE MAP ►&lt;/button&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -684,10 +684,10 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
     &lt;div class=&quot;mini-prev&quot;&gt;&lt;canvas id=&quot;mini-canvas&quot; width=&quot;680&quot; height=&quot;72&quot;&gt;&lt;/canvas&gt;&lt;div class=&quot;mini-lbl&quot;&gt;LIVE PREVIEW&lt;/div&gt;&lt;/div&gt;
     &lt;div class=&quot;th-grid&quot; id=&quot;th-grid&quot;&gt;&lt;/div&gt;
     &lt;div class=&quot;launch-row&quot;&gt;
-      &lt;button class=&quot;launch-btn&quot; id=&quot;launch-btn&quot; onclick=&quot;launchGame()&quot; disabled&gt;START MISSION&lt;/button&gt;
+      &lt;button class=&quot;launch-btn&quot; id=&quot;launch-btn&quot; data-act=&quot;launch&quot; disabled&gt;START MISSION&lt;/button&gt;
       &lt;div class=&quot;lsum&quot; id=&quot;lsum&quot;&gt;SELECT A MAP TO CONTINUE&lt;/div&gt;
     &lt;/div&gt;
-    &lt;div class=&quot;nav-row&quot;&gt;&lt;button class=&quot;nav-btn&quot; onclick=&quot;goTo(2)&quot;&gt;◄ RULES&lt;/button&gt;&lt;/div&gt;
+    &lt;div class=&quot;nav-row&quot;&gt;&lt;button class=&quot;nav-btn&quot; data-go=&quot;2&quot;&gt;◄ RULES&lt;/button&gt;&lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 
@@ -708,8 +708,8 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
         &lt;div class=&quot;gm-title&quot; id=&quot;gm-title&quot;&gt;MISSION COMPLETE&lt;/div&gt;
         &lt;div class=&quot;gm-sub&quot; id=&quot;gm-sub&quot;&gt;&lt;/div&gt;
         &lt;div class=&quot;gm-btns&quot;&gt;
-          &lt;button class=&quot;nav-btn&quot; onclick=&quot;goTo(0)&quot;&gt;MAIN MENU&lt;/button&gt;
-          &lt;button class=&quot;nav-btn pri&quot; onclick=&quot;restartGame()&quot;&gt;PLAY AGAIN ►&lt;/button&gt;
+          &lt;button class=&quot;nav-btn&quot; data-go=&quot;0&quot;&gt;MAIN MENU&lt;/button&gt;
+          &lt;button class=&quot;nav-btn pri&quot; data-act=&quot;restart&quot;&gt;PLAY AGAIN ►&lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
