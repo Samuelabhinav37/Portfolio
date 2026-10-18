@@ -1248,3 +1248,15 @@ document.addEventListener('touchend',e=>{
   if(Math.abs(dx)>Math.abs(dy))tryMove(dx>0?1:-1,0);else tryMove(0,dy>0?1:-1);
 },{passive:true});
 
+
+// Menu buttons. Wired here instead of onclick= attributes because the srcdoc
+// inherits the page's hash-based CSP, which blocks inline event handlers too.
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-go],[data-mode],[data-act]');
+  if(!el||el.disabled)return;
+  if(el.dataset.go!=null)goTo(+el.dataset.go);
+  else if(el.dataset.mode)selectMode(el.dataset.mode);
+  else if(el.dataset.act==='back')goBack();
+  else if(el.dataset.act==='launch')launchGame();
+  else if(el.dataset.act==='restart')restartGame();
+});
