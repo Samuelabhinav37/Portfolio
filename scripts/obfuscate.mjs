@@ -48,7 +48,7 @@ const DIST_PATH = fileURLToPath(DIST);
 
 // Attrs segment matches quoted attribute values as atomic units so a '>'
 // inside e.g. data-x=">" can't be mistaken for the tag's real closing '>'.
-const SCRIPT_TAG_RE = /<script((?:\s+(?:"[^"]*"|'[^']*'|[^"'>])*)?)>([\s\S]*?)<\/script>/gi;
+const SCRIPT_TAG_RE = /<script((?:\s+(?:"[^"]*"|'[^']*'|[^"'>])*)?)>([\s\S]*?)<\/script\s*>/gi;
 // about.astro embeds a whole mini-game as an HTML-entity-escaped srcdoc="..."
 // attribute (its own <script> tags appear as literal text once escaped, but
 // the raw string can still confuse a naive regex scan). Mask those spans out
