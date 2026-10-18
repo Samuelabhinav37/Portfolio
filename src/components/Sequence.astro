@@ -26,7 +26,7 @@ interface Note { left?: string; right?: string; span?: string; tone?: 'flaw' }
 type Item = Msg | Note;
 const isMsg = (it: Item): it is Msg => 'msg' in it;
 interface Props { left: Party; right: Party; items: Item[]; caption: string; alt: string }
-const { left, right, items, caption, alt } = Astro.props;
+const { left, right, items, caption, alt } = Astro.props as Props;
 
 const W = 660, LX = 120, RX = 540, BW = 190;
 function wrap(text: string, max: number): string[] {
