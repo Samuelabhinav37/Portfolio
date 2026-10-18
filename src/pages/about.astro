@@ -2,9 +2,8 @@
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import PortfolioLunaShell from '../components/PortfolioLunaShell.astro';
 import NebulaBackground from '../components/NebulaBackground.astro';
-import LunaDrawerShell from '../components/LunaDrawerShell.astro';
+import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
 ---
@@ -71,35 +70,6 @@ html, body {
    rather than a flat dark wash, so ships stay visible through it. */
 #bg-dim{ z-index:2; background:rgba(8,8,10,0.15);
   backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
-
-/* ===== ported homepage living-chrome nav ===== */
-
-#luna-portal {
-  position:fixed;
-  right:18px; top:calc(66vh + 80px);   /* concentric with Luna's box */
-  width:120px; height:120px;
-  border-radius:50%;
-  z-index:998;
-  pointer-events:none; opacity:0;
-  background:radial-gradient(circle,
-    rgba(160,195,255,0.22) 0%,
-    rgba(130,170,245,0.10) 38%,
-    rgba(120,160,240,0.03) 58%,
-    transparent 72%);
-  box-shadow:0 0 18px 2px rgba(120,170,255,0.10);
-}
-#luna-portal.opening {
-  animation:lunaPortal 1.3s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-@keyframes lunaPortal {
-  0%   { opacity:0;    transform:scale(1.12); }
-  38%  { opacity:0.55; transform:scale(1.00); }
-  100% { opacity:0;    transform:scale(0.97); }
-}
-/* Below 980px #luna-wrap docks to the bottom-right corner instead of its
-   vh-based spot (see PortfolioLunaShell.astro's .about-hidden rule) — keep
-   the arrival bloom anchored to that same corner. */
-@media (--bp-980){ #luna-portal{ top:auto; bottom:16px; right:14px; } }
 
 
 #about-main {
@@ -326,53 +296,11 @@ html, body {
 
 </style>
 <style is:global>
-  /* ── Luna's speech: a small quip card that docks directly over #luna-wrap
-     (same right:18px anchor, positioned by "bottom" so it always clears her
-     regardless of viewport). ── */
-  #luna-quip{
-    position:fixed; right:18px; top:auto; bottom:calc(34vh - 70px);
-    z-index:999; max-width:min(180px,60vw); text-align:right; pointer-events:none;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:12.5px; line-height:1.45; letter-spacing:0.01em;
-    color:rgba(226,232,240,0.92);
-    background:rgba(10,11,16,0.82); border:1px solid rgba(205,214,226,0.14);
-    border-radius:12px; padding:9px 13px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-    opacity:0; transform:translateY(6px) scale(0.98);
-    transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1);
-  }
-  #luna-quip.show{ opacity:1; transform:translateY(0) scale(1); }
-  #luna-quip.lq-clickable{ pointer-events:auto; cursor:pointer; transition:opacity .5s cubic-bezier(0.22,1,0.36,1), transform .5s cubic-bezier(0.22,1,0.36,1), border-color .2s ease, background .2s ease; }
-  #luna-quip.lq-clickable:hover{ border-color:rgba(205,214,226,0.30); background:rgba(14,16,22,0.92); }
-  /* The timed fade only drops .show, leaving lq-clickable behind, so the invisible bubble kept eating taps meant for the Ask Kai pill underneath. */
-  #luna-quip.lq-clickable:not(.show){ pointer-events:none; }
-  #luna-quip .lq-hint{ display:block; margin-top:6px; font-size:11px; font-style:italic; font-weight:400; color:rgba(202,210,226,0.72); }
-  @media (prefers-reduced-motion:reduce){ #luna-quip{ transition:opacity .3s ease; transform:none; } }
-  @media (--bp-980){ #luna-quip{ bottom:146px; } }
 </style>
 <ErrorReporter />
 <ClarityAnalytics />
 </head>
 <body>
-
-<PortfolioLunaShell />
-<div id="luna-portal"></div>
-<div id="luna-quip" aria-hidden="true"></div>
-<script is:inline>
-/* #luna-wrap is fixed at top:calc(66vh+80px), which was fine when the bento
-   was scale-shrunk to fit one screen. Now that it's real fluid content, on
-   the stacked layout (<=980px) the page grows past 66vh and she ends up
-   sitting on top of the headline card. .about-hidden (in
-   PortfolioLunaShell.astro) docks her to the bottom-right corner instead,
-   where nothing scrolls under her. */
-(function(){
-  var lw = document.getElementById('luna-wrap');
-  if(!lw) return;
-  function sync(){ lw.classList.toggle('about-hidden', matchMedia('(max-width:980px)').matches); }
-  sync();
-  addEventListener('resize', sync, {passive:true});
-})();
-</script>
 
 <NebulaBackground />
 
@@ -948,8 +876,6 @@ window.SITE.NEBULA_SAFE_ZONES = [
 
 
 
-<script is:inline src="/scripts/luna-companion-core.js"></script>
-<script is:inline src="/scripts/about-luna-companion.js"></script>
 
 
 <script is:inline>
@@ -963,13 +889,10 @@ window.SITE.NEBULA_SAFE_ZONES = [
 })();
 </script>
 
-<LunaDrawerShell />
-
-<script is:inline src="/scripts/luna-drawer-core.js"></script>
+<KaiSite />
 <script is:inline src="/scripts/luna-kb-base.js"></script>
 <script is:inline src="/scripts/about-luna-kb.js"></script>
 
-<script src="../scripts/luna-greeting.js"></script>
 
 </body>
 </html>

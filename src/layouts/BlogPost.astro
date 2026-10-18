@@ -6,7 +6,7 @@ import { SITE } from '../config';
 import { BLOG_STRINGS, type BlogLocale } from '../data/blog-i18n';
 import Faq from '../components/Faq.astro';
 import Mitre from '../components/Mitre.astro';
-import Luna from '../components/Luna.astro';
+import KaiPost from '../components/KaiPost.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
@@ -447,7 +447,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </div>
     </div>
 
-    <Luna post={post} headings={headings} />
+    <KaiPost post={post} headings={headings} />
 
     <script src="../scripts/blog-client.js"></script>
   </body>
