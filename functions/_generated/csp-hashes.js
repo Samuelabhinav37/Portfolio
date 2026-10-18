@@ -35,10 +35,10 @@ export const CSP_SCRIPT_HASHES = [
   "'sha256-l/uMZBoHq1ExqYjvi3gismy+QnAXJRr2FCNi6qTKLs8='",
   "'sha256-lk8hq1LX9gvRwkwXm7RYJ3VbYUR4EY+wcIttceqwh9A='",
   "'sha256-m6CP8Rmz04ggp+ef+o2MX5nJLgkBiaLzYEQDz+C7l74='",
+  "'sha256-nMvdfv5gUwCmL0xXuSE9e+kvvs5UhMKG1fe+eIzcQh0='",
   "'sha256-oPC2Or4tiD6diDocVTq9e4YJXoPuTYsd2x240QdF5vw='",
   "'sha256-ry0KCHQFS9zZbJquk35mcbwbG/akUlHkLuDzmHgkZuU='",
   "'sha256-vijbNhZyO/hR5GWxS6ObnOruMZAuk5z2BeMCAYs5WX0='",
   "'sha256-vlsDxaZD68x1r+5Bx3eEL2Hxt5YVdVbZumS4LpVbF9E='",
-  "'sha256-yAqfeDD5lQ6H70PIgEEu89r+HZ1sJA3qxaci7ix4f7g='",
   "'sha256-ycx/Ocg/AtRsxH1qvDkZfSoO5yFUYMx5zIO44k48UKw='"
 ];

@@ -94,19 +94,19 @@ window.SITE=window.SITE||{};
   --bg:var(--c-bg);--ink:#ededee;--ink-soft:#c9c9cc;--muted:#94949a;--faint:#87878d;
   --line:rgba(var(--c-white),.26);--line-soft:rgba(var(--c-white),.1);
   --e:cubic-bezier(.22,1,.36,1);
-  /* Native OS font stack — same trick Apple's own site uses instead of
-     embedding the licensed SF Pro font: -apple-system pulls the real San
-     Francisco font on Mac/iPhone/iPad directly from the OS (zero download,
-     genuinely free/legal), falling back to each other OS's own native UI
-     font. Now the site-wide default for everything on the blog, not just
-     titles/descriptions — Hanken Grotesk dropped entirely. */
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  /* Apple-style pair, self-hosted (public/fonts): Inter stands in for
+     SF Pro (whose licence rules out the web) and Newsreader for New York.
+     Inter carries titles and UI; Newsreader the excerpts; JetBrains Mono
+     only the small uppercase labels. */
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --serif:'Newsreader',Georgia,'Times New Roman',serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
   --apple-sans:var(--sans);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;font-optical-sizing:auto;
   min-height:100vh;min-height:100svh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-.meta{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
+.meta{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase}
 a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
   outline:1px solid #fff;outline-offset:4px}
 
@@ -151,11 +151,11 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
    nothing below the photo just sits there unchanged. */
 .hero2-feat .meta{display:block;color:var(--faint);transition:color .3s}
 .hero2-feat:hover .meta{color:var(--ink-soft)}
-.hero2-feat h1{margin-top:10px;font-family:var(--apple-sans);font-weight:300;font-size:clamp(26px,2.6vw,36px);line-height:1.12;
-  letter-spacing:-1px;color:#fff;position:relative;display:inline-block}
+.hero2-feat h1{margin-top:10px;font-family:var(--apple-sans);font-weight:600;font-size:clamp(26px,2.6vw,36px);line-height:1.1;
+  letter-spacing:-.03em;color:#fff;position:relative;display:inline-block}
 .hero2-feat h1::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
 .hero2-feat:hover h1::after{width:100%}
-.hero2-feat p{margin-top:14px;font-family:var(--apple-sans);color:var(--faint);font-size:15px;line-height:1.6;transition:color .3s;
+.hero2-feat p{margin-top:14px;font-family:var(--serif);color:var(--faint);font-size:17px;line-height:1.5;transition:color .3s;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .hero2-feat:hover p{color:var(--muted)}
 
@@ -168,7 +168,7 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
 .hero2-side .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
 .hero2-item .meta{color:var(--faint);transition:color .3s}
 .hero2-item:hover .meta{color:var(--ink-soft)}
-.hero2-item h2{margin-top:8px;font-family:var(--apple-sans);font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
+.hero2-item h2{margin-top:8px;font-family:var(--apple-sans);font-weight:500;font-size:17px;line-height:1.3;letter-spacing:-.012em;color:var(--ink);transition:color .3s}
 .hero2-item:hover h2{color:#fff}
 
 /* ── THREAT WIRE — live ticker (NVD → CIRCL → static pills fallback).
@@ -284,12 +284,12 @@ section.block{position:relative;z-index:1;padding:40px 38px 96px}
   .grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px;transition:color .3s}
   .grid .card .cmeta span+span::before{content:"·";margin:0 8px}
   .grid .card:hover .cmeta{color:var(--ink-soft)}
-  .grid .card h2{font-family:var(--apple-sans);font-weight:600;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
+  .grid .card h2{font-family:var(--apple-sans);font-weight:600;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.02em;color:var(--ink);
     position:relative;display:inline-block;transition:color .3s}
   .grid .card h2::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
   .grid .card:hover h2{color:#fff}
   .grid .card:hover h2::after{width:100%}
-  .grid .card .clead{margin-top:8px;font-family:var(--apple-sans);color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
+  .grid .card .clead{margin-top:8px;font-family:var(--serif);color:var(--faint);font-size:16px;line-height:1.5;transition:color .3s;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .grid .card:hover .clead{color:var(--muted)}
 
