@@ -712,10 +712,16 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
 &lt;script src=&quot;/scripts/about-arcade-game.js&quot;&gt;&lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-" style="flex:1;width:100%;border:none;background:#000;display:block;" sandbox="allow-scripts"></iframe>
+" style="flex:1;width:100%;border:none;background:#000;display:block;" sandbox="allow-scripts allow-same-origin"></iframe>
 </div>
 <script is:inline>
-/* The game's whole HTML/JS lives in data-srcdoc rather than srcdoc so the
+/* sandbox includes allow-same-origin on purpose. Without it the frame has an
+   opaque ("null") origin, so its requests for /scripts/about-arcade-game.js
+   and /fonts/fonts.css count as cross-origin, and the site-wide
+   Cross-Origin-Resource-Policy: same-origin (public/_headers) blocks them:
+   in production the game showed its menu and never ran. The frame only ever
+   holds this page's own srcdoc, so same-origin grants nothing to anyone else.
+   The game's whole HTML/JS lives in data-srcdoc rather than srcdoc so the
    iframe never gets a document (and never starts its boot sequence / canvas
    loops) at all on phone/tablet — .game-panel is display:none there (see
    the max-width:900px rule above), but an iframe still parses+runs srcdoc
