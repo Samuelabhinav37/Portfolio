@@ -102,20 +102,8 @@ window.SITE=window.SITE||{};
      composites over the rendered pixels fine — dims/desaturates it to sit closer
      to the page's muted palette instead of popping as a bright foreign box. */
   /* min-height reserves the widget's 65px so the form doesn't jump when it
-     renders (see contact-form-handler.js). */
-  .ts-wrap{ position:relative; margin:2px 0 22px; min-height:65px; }
-  #turnstile-widget{ min-height:65px; filter:grayscale(.4) brightness(.88) contrast(.94); }
-  /* the placeholder / failure note sits in the widget's slot until it renders */
-  .ts-note{ position:absolute; inset:0; display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px;
-    padding:0 14px; border:1px dashed rgba(var(--c-white),0.16);
-    font-family:'JetBrains Mono', monospace; font-size:0.55rem; letter-spacing:0.14em; text-transform:uppercase;
-    color:rgba(200,210,230,0.6); pointer-events:none; }
-  .ts-note[data-state="ready"]{ display:none; }
-  .ts-note[data-state="failed"]{ border-color:rgba(232,140,140,0.45); color:rgba(232,160,160,0.9); pointer-events:auto; }
-  .ts-note a{ color:inherit; }
-  .ts-note:not([data-state="failed"]) .ts-alt{ display:none; }
-  .ts-note button{ font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:pointer;
-    color:#0a0a0d; background:rgba(var(--c-white),0.9); border:0; border-radius:2px; padding:6px 10px; }
+     loads on first interaction (see contact-form-handler.js). */
+  #turnstile-widget{ margin:2px 0 22px; min-height:65px; filter:grayscale(.4) brightness(.88) contrast(.94); }
 
   .cta-row{ display:flex; align-items:center; flex-wrap:wrap; gap:14px 24px; }
   .cta{ padding:12px 20px; cursor:pointer;
@@ -257,22 +245,15 @@ window.SITE=window.SITE||{};
       <input type="text" name="hp_topic" tabindex="-1" autocomplete="off" aria-hidden="true"
              style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
       <!-- Cloudflare Turnstile — verified server-side in functions/api/contact.js
-           against TURNSTILE_SECRET_KEY, rendered explicitly by contact-form-handler.js
-           from the data-* below. size "flexible" spans the full field width
+           against TURNSTILE_SECRET_KEY. size="flexible" spans the full field width
            instead of Cloudflare's fixed ~300px box; the CSS filter on #turnstile-widget
            above mutes its default chrome to sit closer to the page's palette (can't
            reach into the iframe itself, but a filter composites over it fine).
            data-action binds the resulting token to this specific form — the server
            checks result.action matches, so a token can't be solved somewhere else on
            the domain and replayed here (or vice versa, if another action is ever added). -->
-      <div class="ts-wrap">
-        <div id="turnstile-widget" data-sitekey="0x4AAAAAAEPWqejRev3MMXij" data-action="contact"></div>
-        <div class="ts-note" id="ts-note" data-state="loading" role="status">
-          <span class="ts-msg">Loading verification…</span>
-          <button type="button" id="ts-retry" hidden>Try again</button>
-          <span class="ts-alt">or email <a href="mailto:samuelabhinav37@gmail.com">samuelabhinav37@gmail.com</a></span>
-        </div>
-      </div>
+      <div id="turnstile-widget" class="cf-turnstile" data-sitekey="0x4AAAAAAEPWqejRev3MMXij"
+           data-action="contact" data-theme="dark" data-size="flexible"></div>
       <div class="cta-row">
         <button class="cta" id="send" type="submit">Send Message</button>
         <span class="cta-note">No spam. A real reply, usually within a day.</span>
@@ -293,8 +274,8 @@ window.SITE=window.SITE||{};
 
 </div>
 
-<!-- Cloudflare Turnstile's api.js is injected by contact-form-handler.js as
-     soon as the page is idle (explicit render), not loaded here. Still deliberately no
+<!-- Cloudflare Turnstile's api.js is injected by contact-form-handler.js on
+     first interaction with the form, not loaded here. Still deliberately no
      SRI: Cloudflare serves it from a rotating URL and recommends against
      pinning it (https://developers.cloudflare.com/turnstile/). -->
 <script is:inline src="/scripts/contact-form-handler.js"></script>

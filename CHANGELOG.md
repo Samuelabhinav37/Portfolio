@@ -24,7 +24,6 @@ Notable changes to the portfolio and blog will be recorded here.
 
 ### Fixed
 
-- The contact form's Cloudflare Turnstile check loads as soon as the page is idle instead of on first interaction, holds its place with a "Loading verification…" note, retries and refreshes on its own, and if it fails or never loads shows a Try again button and the email address.
 - A dark 1px line under the site header: its fade gradient repeated under its transparent bottom border.
 
 Release history before this changelog is available through the Git history and merged pull requests.
