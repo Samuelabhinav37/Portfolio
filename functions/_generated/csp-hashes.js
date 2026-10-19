@@ -3,6 +3,7 @@
 // missing file if someone runs `wrangler pages dev` without building first;
 // every real build overwrites this before Functions get bundled.
 export const CSP_SCRIPT_HASHES = [
+  "'sha256-+XThWANjCrvQvKANNHmD8PpT40UuuapQxoeB7Oa+VAY='",
   "'sha256-/2Wj8YBjUi5zHczD/oU0VIi27NDO9swlrG+leP0+j9o='",
   "'sha256-29Ok40SK19L8nZDICzhnBwmxf9YwRQxCaH4ZUIMlrhY='",
   "'sha256-3EB5VzzD4L63hemwala5984tTBat5KJGhWahEjEkHB8='",
@@ -12,7 +13,6 @@ export const CSP_SCRIPT_HASHES = [
   "'sha256-AsqcaULoENxctEMneY/usQppVAhppWoRTp2bkEr4/pg='",
   "'sha256-BWu+nHtqnn5ak+HHcDUONuIv820jp/PYaCYb5ZAM7iY='",
   "'sha256-D5+lYTDFTz5QMDCN5K3Io+kjLcNzhuX+0p35CI9uOv4='",
-  "'sha256-G4wGPbhp4jTYv6KWtSC/8on68ZlQE4Z2M9n4uTM43qQ='",
   "'sha256-I4vAUWsNmID91peMYrBiz6qLp5FvLuX6tuHwJke4HJA='",
   "'sha256-KS00TZBsUVb0Vpw0Lq/+aLTBbLFLRPX/YdFry933xkw='",
   "'sha256-MEpL0huGJMDlvIdzAcxpo2b+3wbhJK5Ph1V0PVw7Cyw='",
@@ -32,7 +32,6 @@ export const CSP_SCRIPT_HASHES = [
   "'sha256-l/uMZBoHq1ExqYjvi3gismy+QnAXJRr2FCNi6qTKLs8='",
   "'sha256-lk8hq1LX9gvRwkwXm7RYJ3VbYUR4EY+wcIttceqwh9A='",
   "'sha256-m6CP8Rmz04ggp+ef+o2MX5nJLgkBiaLzYEQDz+C7l74='",
-  "'sha256-mOAdXE61+lOvRGTGC2A3+fBtPMecFN8D1osgmRAD2fM='",
   "'sha256-ry0KCHQFS9zZbJquk35mcbwbG/akUlHkLuDzmHgkZuU='",
   "'sha256-vijbNhZyO/hR5GWxS6ObnOruMZAuk5z2BeMCAYs5WX0='",
   "'sha256-vlsDxaZD68x1r+5Bx3eEL2Hxt5YVdVbZumS4LpVbF9E='",

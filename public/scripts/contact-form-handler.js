@@ -91,6 +91,8 @@
     btn.textContent = ok ? '\u2713 Message sent' : 'Send Message';
     say(msg, ok ? 'ok' : 'bad');
     if(ok && window.SITE && window.SITE.kaiMoment) window.SITE.kaiMoment('sent');
+    /* the background sky launches a courier on send (contact-sky.js) */
+    window.dispatchEvent(new CustomEvent(ok ? 'contact:sent' : 'contact:failed'));
     if(window.turnstile && window.turnstile.reset) window.turnstile.reset();  /* tokens are single-use */
     if(ok) setTimeout(function(){
       btn.classList.remove('sent');
