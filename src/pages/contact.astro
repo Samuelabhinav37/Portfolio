@@ -172,9 +172,20 @@ window.SITE=window.SITE||{};
   .skip:focus{ top:16px; }
 
   @media (--bp-900){
-    .field-wrap{ padding:84px 16px 28px; }
+    /* the bottom padding is a clear band for Kai (fixed bottom-right, ~150px
+       tall with its "Ask Kai" tag), so at the end of the scroll it sits
+       below the footer instead of over the send button */
+    .field-wrap{ padding:84px 16px 168px; gap:28px; }
     .form-panel{ padding:32px 24px 28px; }
     .field-row{ grid-template-columns:1fr; }
+    .cta-row{ flex-direction:column; align-items:center; gap:12px; text-align:center; }
+    .cta{ padding:10px 22px; font-size:0.85rem; }
+    .cta::after{ margin-left:8px; }
+    .cta-note{ font-size:0.72rem; }
+    .form-status{ text-align:center; }
+    /* links on top, copyright under them, both centred with room to breathe */
+    .pg-footer{ flex-direction:column-reverse; justify-content:center; gap:16px; text-align:center; }
+    .pg-footer .f-links{ flex-wrap:wrap; justify-content:center; gap:14px 22px; }
   }
 
 </style>
