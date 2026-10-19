@@ -11,6 +11,7 @@ const q = $('fn-q'), topic = $('fn-topic'), feat = $('fn-feat'), wide = $('fn-wi
 const count = $('fn-count'), pg = $('fn-pg'), latest = $('fn-latest');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let page = 1;
+let animate = false; // the first render matches the HTML, so only later ones animate in
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -25,8 +26,8 @@ function shot(c, fit, sizes) {
 }
 const meta = (c) => `<div class="fn-meta"><span>${esc(c.dateLabel)}</span><span>${c.mins} min read</span></div>`;
 
-function card(c, isWide) {
-  return `<a class="fn-card" href="${esc(c.href)}">` +
+function card(c, isWide, i) {
+  return `<a class="fn-card${animate ? ' fn-in' : ''}" style="--i:${i}" href="${esc(c.href)}">` +
     shot(c, isWide, isWide ? '(max-width: 820px) 92vw, 780px' : '(max-width: 820px) 92vw, 380px') +
     `<div class="body">${meta(c)}<h3>${esc(c.title)}<span class="arr" aria-hidden="true">›</span></h3>` +
     (isWide ? `<p>${esc(c.desc)}</p>` : '') + '</div></a>';
@@ -50,7 +51,7 @@ function render() {
   wide.innerHTML = list.length ? '' :
     `<div class="fn-empty">No posts match “${esc(query || tp)}”. Try another word, or clear the topic.</div>`;
   narrow.innerHTML = '';
-  visible.forEach((c, i) => (i % 2 === 0 ? wide : narrow).insertAdjacentHTML('beforeend', card(c, i % 2 === 0)));
+  visible.forEach((c, i) => (i % 2 === 0 ? wide : narrow).insertAdjacentHTML('beforeend', card(c, i % 2 === 0, i)));
 
   count.textContent = filtering
     ? `${list.length} ${list.length === 1 ? 'result' : 'results'}`
@@ -68,7 +69,9 @@ function render() {
     b.addEventListener('click', () => {
       page = target;
       render();
-      latest.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      const lenis = window.SITE && window.SITE.lenis;
+      if (lenis) lenis.scrollTo(latest, { offset: -90 });
+      else latest.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     });
     pg.appendChild(b);
   };
@@ -81,4 +84,5 @@ if (q && topic && wide && narrow) {
   q.addEventListener('input', () => { page = 1; render(); });
   topic.addEventListener('change', () => { page = 1; render(); });
   render();
+  animate = true;
 }

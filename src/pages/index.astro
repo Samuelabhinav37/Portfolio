@@ -1,4 +1,6 @@
 ---
+import Motion from '../components/Motion.astro';
+import Glitches from '../components/Glitches.astro';
 import fs from 'node:fs';
 import { getCollection } from 'astro:content';
 import SiteMenu from '../components/SiteMenu.astro';
@@ -80,6 +82,7 @@ window.SITE=window.SITE||{};
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline defer src="/scripts/title-manager.js"></script>
 <Fonts />
+<Motion />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -232,7 +235,6 @@ body.intro-done #hero-tagline { opacity:1; }
 
 </style>
 
-<script is:inline defer src="/scripts/gsap.min.js"></script>
 <style is:global>
 
 /* ===== v9 CRT VIDEO FOOTER (scoped, self-contained) ===== */
@@ -486,63 +488,14 @@ footer#site-footer{
 
 
 
-<SkyBackground />
+<SkyBackground avoid="#term-window, #hero-tagline, .ed-kev__head, .ed-ticker, .ed-statement, .ed-proof, .ed-card, .ps-head, .prow, .sig-card, .ctf-strip, .ed-bento, .ed-ddos, .f-card" />
 
 
 
 
 <div id="chrome-damp"></div>
 
-<!-- ════ Subliminal marks — brief screen-glitch artifacts that surface at
-     random points across the page on a slow, deliberate rhythm. Each hit is
-     a small rectangle (chromatic-fringed tear, desynced interlace bars,
-     RGB-split sliver, or a real noise-texture patch) and an irregular
-     hard-cut opacity/position stutter (3-6 abrupt jumps, no easing) built
-     from setTimeout, never CSS @keyframes/transitions/rAF — browsers can
-     suspend those mid-flight in a throttled/backgrounded tab, leaving marks
-     visually "stuck"; a setTimeout chain always finishes. Static uses an SVG
-     feTurbulence noise texture instead of a striped gradient so it reads as
-     grain, not pattern. ~1-in-4 hits doubles up as a quick second strike a
-     beat later, and ~1-in-5 also flashes a full-page overlay for a single
-     frame, selling "the whole screen hiccuped" rather than "a shape
-     appeared." Purely atmospheric: no meaning, no interaction, aria-hidden.
-     Sits above chrome-damp (600) but below Luna/menu (998+). ════ -->
-<style is:global>
-  #subliminal-layer{ position:fixed; inset:0; z-index:650; pointer-events:none; overflow:hidden; }
-  #subliminal-flash{ position:fixed; inset:0; z-index:649; pointer-events:none; opacity:0; background:#e6ebf6; mix-blend-mode:difference; transition:none; }
-  .subliminal-mark{ position:absolute; opacity:0; transition:none; will-change:opacity,transform; }
-
-  /* small rectangular tear with a chromatic fringe */
-  .sm-tear{ background:rgba(228,234,244,.55); }
-  .sm-tear::before,.sm-tear::after{ content:''; position:absolute; inset:0; mix-blend-mode:screen; }
-  .sm-tear::before{ background:rgba(255,45,55,.5); transform:translateX(-2px); }
-  .sm-tear::after{ background:rgba(55,150,255,.5); transform:translateX(2px); }
-
-  /* three tight interlace bars in a small box, desynced by a couple px each */
-  .sm-bars span{ position:absolute; left:-3px; right:-3px; height:2px; }
-  .sm-bars .b1{ top:0; background:rgba(255,45,55,.55); transform:translateX(-2px); }
-  .sm-bars .b2{ top:5px; background:rgba(228,234,244,.6); }
-  .sm-bars .b3{ top:10px; background:rgba(55,150,255,.55); transform:translateX(2px); }
-
-  /* localized RGB-split sliver, not a filled block */
-  .sm-rgb{ mix-blend-mode:screen; }
-  .sm-rgb span{ position:absolute; inset:0; }
-  .sm-rgb .r{ background:rgba(255,40,50,.6); transform:translateX(-2px); }
-  .sm-rgb .c{ background:rgba(90,255,190,.35); }
-  .sm-rgb .b{ background:rgba(60,140,255,.6); transform:translateX(2px); }
-
-  /* macroblock-style noise patch — real turbulence grain, jagged clip-path edges */
-  .sm-static{
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size:cover; filter:contrast(1.6) brightness(1.3); mix-blend-mode:overlay;
-  }
-
-  @media (--bp-480){ #subliminal-layer,#subliminal-flash{ display:none; } }
-  @media (prefers-reduced-motion: reduce){ #subliminal-layer,#subliminal-flash{ display:none; } }
-</style>
-<div id="subliminal-layer" aria-hidden="true"></div>
-<div id="subliminal-flash" aria-hidden="true"></div>
-<script is:inline defer src="/scripts/index-subliminal-layer.js"></script>
+<Glitches />
 
 <!-- ════ Terminal window — floating CRT feed; Beat 1 expands it to fullscreen ════
      Sits in a fixed, centered stage at z-index 500: above the sky
@@ -628,21 +581,19 @@ footer#site-footer{
     #editorial .ed-kev__foot span{ font-size:9.5px; }
   }
 
-  /* ── Beliefs — Overview spread (ma / fukinsei) ── */
+  /* ── Beliefs: the scroll-lit statement ── */
   #editorial .ed-beliefs{ padding:clamp(90px,16vh,190px) clamp(24px,5vw,80px) clamp(70px,12vh,150px);
     max-width:1500px; margin:0 auto; }
-  #editorial .ed-beliefs__text{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(30px,6vw,90px);
-    align-items:start; margin-bottom:clamp(70px,13vh,160px); }
-  /* The bento/DDoS block that followed moved to #snapshot; don't leave its gap. */
-  #editorial .ed-beliefs__text:last-child{ margin-bottom:0; }
-  #editorial .ed-beliefs__head .ed-lbl{ display:block; margin-bottom:18px; }
-  #editorial .ed-beliefs__head h2{ font-weight:300; font-size:clamp(1.6rem,2.2vw,2rem);
-    letter-spacing:-.3px; color:#ededee; }
-  #editorial .ed-beliefs__copy{ max-width:52ch; padding-top:6px; }
-  #editorial .ed-beliefs__copy p{ font-weight:300; font-size:clamp(1.05rem,1.35vw,1.28rem);
-    line-height:1.62; color:#c9c9cc; }
-  #editorial .ed-beliefs__copy p em{ font-style:normal; color:#fff; }
-  #editorial .ed-beliefs__copy p + p{ margin-top:22px; font-size:clamp(.95rem,1.1vw,1.05rem); color:#94949a; }
+  #editorial .ed-beliefs .ed-lbl{ display:block; margin-bottom:clamp(22px,4vh,40px); }
+  #editorial .ed-statement{ --lit-off:#383b47; --lit-on:#f3f5fb;
+    font:600 clamp(1.7rem,3.6vw,3rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    letter-spacing:-.03em; max-width:24ch; color:#e9ecf5; text-wrap:pretty; }
+  #editorial .ed-proof{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(18px,3vw,40px);
+    margin:clamp(60px,10vh,110px) 0 0; padding-top:28px; border-top:1px solid rgba(var(--c-white),.1); }
+  #editorial .ed-proof dt{ font:600 clamp(1.5rem,2.4vw,2.1rem)/1 'Inter Tight',-apple-system,BlinkMacSystemFont,sans-serif;
+    letter-spacing:-.03em; color:#f3f5fb; margin-bottom:10px; font-variant-numeric:tabular-nums; }
+  #editorial .ed-proof dd{ margin:0; font-weight:300; font-size:13px; line-height:1.5; color:#94949a; max-width:24ch; }
+  @media (--bp-820){ #editorial .ed-proof{ grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:28px; } }
   #snapshot .ed-beliefs__imgs{ display:grid; grid-template-columns:repeat(12,1fr); align-items:start;
     row-gap:clamp(40px,9vh,120px); }
   #snapshot .ed-frame{ position:relative; overflow:hidden; background:#101012; }
@@ -787,7 +738,13 @@ footer#site-footer{
     letter-spacing:1.5px; text-transform:uppercase; color:#94949a; text-decoration:none; transition:color .3s; }
   #editorial .ed-log__head a:hover{ color:#ededee; }
   #editorial .ed-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-  #editorial .ed-card{ display:block; text-decoration:none; color:inherit; cursor:pointer; }
+  #editorial .ed-card{ display:block; text-decoration:none; color:inherit; cursor:pointer;
+    background:#0d1222; border:1px solid rgba(190,205,240,.11); border-radius:14px; overflow:hidden; padding-bottom:22px;
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 22px 50px -26px rgba(0,0,0,.85), 0 6px 16px -8px rgba(0,0,0,.5);
+    transition:transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+  #editorial .ed-card:hover{ transform:translateY(-4px); border-color:rgba(143,179,255,.26);
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 34px 70px -28px rgba(0,0,0,.9), 0 10px 22px -10px rgba(0,0,0,.55); }
+  #editorial .ed-card .ed-cmeta, #editorial .ed-card h3, #editorial .ed-card p{ margin-left:20px; margin-right:20px; }
   #editorial .ed-card .ed-ph{ position:relative; aspect-ratio:16/10; overflow:hidden; background:#101012; }
   #editorial .ed-card .ed-ph img{ width:100%; height:100%; object-fit:cover; display:block;
     filter:grayscale(1) brightness(.78); transform:scale(1.03);
@@ -798,7 +755,7 @@ footer#site-footer{
   #editorial .ed-card .ed-num{ position:absolute; top:13px; left:15px; z-index:2; color:#fff; opacity:.55;
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:2px; transition:opacity .4s; }
   #editorial .ed-card:hover .ed-num{ opacity:1; }
-  #editorial .ed-card .ed-cmeta{ display:flex; justify-content:space-between; color:#87878d; margin:15px 0 8px;
+  #editorial .ed-card .ed-cmeta{ display:flex; justify-content:space-between; color:#87878d; margin:15px 20px 8px;
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; }
   #editorial .ed-card h3{ font-weight:400; font-size:clamp(18px,1.5vw,21px); line-height:1.18;
     letter-spacing:-.2px; color:#ededee; position:relative; display:inline-block; }
@@ -821,7 +778,6 @@ footer#site-footer{
     #snapshot .ed-frame--b{ grid-column:1 / 13; }
   }
   @media (--bp-820){
-    #editorial .ed-beliefs__text{ grid-template-columns:1fr; gap:20px; }
     /* "Recent writing" cards: the 4:5 portrait photo + full desktop type
        scale is the same "too big/bulky" pattern already fixed on the blog
        index's card grid — same fix here. */
@@ -829,7 +785,7 @@ footer#site-footer{
     #editorial .ed-grid{ grid-template-columns:1fr; gap:18px; }
     #editorial .ed-card .ed-ph{ aspect-ratio:3/2; }
     #editorial .ed-card .ed-num{ font-size:9px; top:10px; left:11px; }
-    #editorial .ed-card .ed-cmeta{ font-size:9px; margin:9px 0 5px; }
+    #editorial .ed-card .ed-cmeta{ font-size:9px; margin:12px 16px 5px; }
     #editorial .ed-card h3{ font-size:15px; }
     #editorial .ed-card p{ font-size:11px; margin-top:5px; }
   }
@@ -844,7 +800,7 @@ footer#site-footer{
   <section class="ed-kev" aria-label="Live threat feed from the CISA KEV catalog">
     <div class="ed-kev__head">
       <div>
-        <h2>Exploited in the <em>wild.</em></h2>
+        <h2 data-reveal="lines">Exploited in the <em>wild.</em></h2>
         <p class="ed-explain">Software flaws attackers are exploiting right now, live from CISA.</p>
       </div>
       <div class="ed-kev__status" id="ed-status"><span class="ed-dot"></span><span id="ed-status-text">connecting…</span></div>
@@ -853,18 +809,16 @@ footer#site-footer{
     <div class="ed-kev__foot"><span id="ed-foot">Source: CISA KEV</span></div>
   </section>
 
-  <!-- Beliefs -->
-  <section class="ed-beliefs" aria-label="Beliefs">
-    <div class="ed-beliefs__text">
-      <div class="ed-beliefs__head">
-        <span class="ed-lbl">Beliefs</span>
-        <h2>What I optimize for.</h2>
-      </div>
-      <div class="ed-beliefs__copy">
-        <p>Security only works when the architecture actually survives contact with a <em>live adversary</em>. Building resilient systems means tracking behavioral tradecraft instead of just chasing indicators, treating trust as something that must be earned continuously. A network will only hold up under pressure if the environment remains <em>completely legible</em>.</p>
-        <p>Ultimately, this profession is just figuring out how things break and engineering them to be much harder to crack. I have always loved that part.</p>
-      </div>
-    </div>
+  <!-- Beliefs: one statement that lights up word by word as you scroll -->
+  <section class="ed-beliefs" aria-labelledby="ed-beliefs-lbl">
+    <span class="ed-lbl" id="ed-beliefs-lbl">What I optimize for</span>
+    <p class="ed-statement" data-scroll-lit>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
+    <dl class="ed-proof" data-reveal-group>
+      <div><dt>18</dt><dd>Sigma rules, each caught firing on a real command</dd></div>
+      <div><dt>45&ndash;151s</dt><dd>measured attack-to-alert in Sentinel</dd></div>
+      <div><dt>~72k</dt><dd>compiled block rules shipping in Moat</dd></div>
+      <div><dt>0</dt><dd>email bodies read by Cluster</dd></div>
+    </dl>
   </section>
 
   <!-- Research log -->
@@ -872,11 +826,11 @@ footer#site-footer{
     <div class="ed-log__head">
       <div>
         <span class="ed-lbl">Research log</span>
-        <h2>Recent writing.</h2>
+        <h2 data-reveal="lines">Recent writing.</h2>
       </div>
       <a href="/blog/">Read the blog →</a>
     </div>
-    <div class="ed-grid">
+    <div class="ed-grid" data-reveal-group>
       {recentPosts.map((p, i) => (
         <a class="ed-card" href={p.href}>
           <div class="ed-ph"><span class="ed-num">{String(i + 1).padStart(2, '0')}</span><img loading="lazy" decoding="async" src={p.img} srcset={p.srcset} sizes="(max-width: 760px) 92vw, 30vw" alt={p.title}></div>
@@ -899,156 +853,178 @@ footer#site-footer{
   background:transparent; display:flex; align-items:center;
   padding:clamp(50px,7vh,100px) 0; }
 #projects-section .ps-inner{ width:100%; max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#projects-section .ps-head{ margin:0 0 clamp(20px,3.5vh,38px); }
+#projects-section .ps-head{ margin:0 0 clamp(28px,5vh,56px); display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+#projects-section .ps-lbl{ display:block; margin-bottom:14px; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
+  letter-spacing:2px; text-transform:uppercase; color:#87878d; }
 #projects-section .ps-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
   font-size:clamp(1.6rem,2.4vw,2.2rem); letter-spacing:-0.3px; color:#eef3ff; margin:0; }
+#projects-section .ps-hint{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:#6f7280; }
 
-.psplit{ max-width:860px; }
-.psplit-left{ display:flex; flex-direction:column; }
+/* Project rows: big names on hairlines. Hovering (or tapping) a row opens
+   it: the name takes the accent, a Role / Timeline / Focus / Status line
+   and the details unfold, the screenshot grows in on the right, and the
+   other rows step back. "Jump to project" goes straight to the repo. */
+.prows{ --accent:#a9c3ff; border-top:1px solid rgba(226,232,244,.12);
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+.prow{ border-bottom:1px solid rgba(226,232,244,.12); }
+.prow-top{ display:flex; align-items:center; gap:clamp(12px,2vw,28px); }
+.prow-h{ flex:1; min-width:0; margin:0; font:inherit; }
+.prow-head{ width:100%; display:flex; align-items:baseline; gap:clamp(14px,2.4vw,34px); padding:clamp(18px,3vh,30px) 0;
+  background:none; border:0; color:inherit; text-align:left; cursor:pointer; }
+.prow-num{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; color:rgba(226,232,244,.5);
+  width:24px; flex:none; transition:color var(--dur-base) var(--ease-out); }
+.prow-name{ font:600 clamp(2.1rem,5.4vw,4.6rem)/.95 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  letter-spacing:-.035em; color:#eef1f8; text-transform:uppercase;
+  transition:color var(--dur-base) var(--ease-out), transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-out); }
+.prow-kind{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(226,232,244,.5); white-space:nowrap; transition:opacity var(--dur-base) var(--ease-out); }
+.prow-jump{ flex:none; display:inline-flex; align-items:center; gap:8px; padding:11px 16px; border-radius:999px;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; text-decoration:none;
+  color:#e9ecf5; background:#121726; border:1px solid rgba(226,232,244,.14);
+  transition:background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.prow-jump .ar{ display:inline-block; transition:transform var(--dur-base) var(--ease-out); }
+.prow-jump:hover{ background:var(--accent); color:#0a1230; border-color:var(--accent); }
+.prow-jump:hover .ar{ transform:translate(2px,-2px); }
 
-.accord{ display:flex; flex-direction:column; border-top:1px solid rgba(226,232,244,0.1); }
-.acc{ border-bottom:1px solid rgba(226,232,244,0.1); }
-.acc-head{ width:100%; background:none; border:0; cursor:pointer; text-align:left; color:inherit;
-  display:flex; align-items:center; gap:16px; padding:clamp(15px,2vh,22px) 4px; transition:opacity .4s ease; }
-/* Collapsed rows are dimmed via explicit colours rather than a wrapper
-   opacity — a group opacity here compounds with the already-low alpha on
-   .acc-num, dropping it under a 1.5:1 contrast ratio. */
-.acc:not(.is-open) .acc-title{ color:rgba(226,232,244,0.62); }
-.acc:not(.is-open) .acc-num{ color:rgba(226,232,244,0.55); }
-.acc:not(.is-open) .acc-mark{ opacity:0.4; }
-.acc:not(.is-open) .acc-head:hover .acc-title{ color:rgba(226,232,244,0.92); }
-.acc:not(.is-open) .acc-head:hover .acc-num{ color:rgba(226,232,244,0.8); }
-.acc:not(.is-open) .acc-head:hover .acc-mark{ opacity:0.75; }
-.acc-num{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; color:rgba(226,232,244,0.62); width:22px; flex:none; transition:color .4s ease; }
-.acc-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; flex:1;
-  font-size:clamp(1.2rem,2vw,1.7rem); line-height:1.1; letter-spacing:-0.015em; color:#eef3ff;
-  text-shadow:0 0 30px rgba(210,220,240,0.12); transition:color .4s ease; }
-.acc-mark{ width:11px; height:11px; position:relative; flex:none; opacity:0.55; }
-.acc-mark::before,.acc-mark::after{ content:''; position:absolute; background:rgba(226,232,244,0.8); transition:transform .4s ease, opacity .4s ease; }
-.acc-mark::before{ left:0; top:5px; width:11px; height:1px; }
-.acc-mark::after{ left:5px; top:0; width:1px; height:11px; }
-.acc.is-open .acc-mark::after{ transform:scaleY(0); opacity:0; }
-.acc-body{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .5s cubic-bezier(.16,1,.3,1); }
-.acc.is-open .acc-body{ grid-template-rows:1fr; }
-.acc-inner{ overflow:hidden; }
-.acc-desc{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:14px;
-  line-height:1.55; color:rgba(226,232,244,0.6); margin:0; padding:2px 4px 22px 42px; max-width:46ch; }
+.prows.has-open .prow:not(.is-open) .prow-name{ color:rgba(226,232,244,.32); }
+.prows.has-open .prow:not(.is-open) .prow-kind{ opacity:.5; }
+.prow:not(.is-open) .prow-head:hover .prow-name{ color:rgba(238,241,248,.85); }
+.prow.is-open .prow-name{ color:var(--accent); transform:translateX(clamp(6px,1vw,14px)); }
+.prow.is-open .prow-num{ color:var(--accent); }
 
-/* The concrete tools/results list, shown at every width. */
-.acc-extra{ padding:0 4px 20px 42px; max-width:46ch; }
-.acc-section{ margin-bottom:20px; }
-.acc-section:last-child{ margin-bottom:0; }
-.acc-section-lbl{ display:block; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
-  letter-spacing:.16em; text-transform:uppercase; color:rgba(226,232,244,0.85); margin-bottom:10px; }
-/* Chips, not a flowing dot-separated sentence — the earlier version read
-   as a continuation of the about page's full tool marquee instead of a
-   short list scoped to just this one project. */
-.acc-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.prow-body{ display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--dur-slow) var(--ease-out); }
+.prow.is-open .prow-body{ grid-template-rows:1fr; }
+.prow-inner{ overflow:hidden; min-height:0; }
+.prow-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:clamp(24px,4vw,64px);
+  padding:0 0 clamp(26px,4vh,40px) calc(24px + clamp(14px,2.4vw,34px)); }
+/* contents arrive just after the row has started to open, and leave
+   quickly (no delay) when it closes */
+.prow-text, .prow-shot{ opacity:0; transform:translateY(14px);
+  transition:opacity var(--dur-fast) var(--ease-in), transform var(--dur-fast) var(--ease-in); }
+.prow.is-open .prow-text, .prow.is-open .prow-shot{ opacity:1; transform:none;
+  transition:opacity 520ms var(--ease-out) 140ms, transform 720ms var(--ease-out) 140ms; }
+.prow.is-open .prow-shot{ transition-delay:220ms; }
+.prow-meta{ display:grid; grid-template-columns:repeat(4,minmax(0,auto)); gap:10px 26px; margin:0 0 22px; justify-content:start; }
+.prow-meta dt{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(226,232,244,.45); margin-bottom:5px; }
+.prow-meta dd{ margin:0; font-size:13px; color:#dfe4f0; }
+.prow-desc{ font-weight:300; font-size:15px; line-height:1.6; color:rgba(226,232,244,.72); margin:0 0 20px; max-width:52ch; }
+.prow .acc-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
 .acc-chip{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.02em;
-  color:rgba(226,232,244,0.6); background:rgba(226,232,244,0.06); border:1px solid rgba(226,232,244,0.12);
+  color:rgba(226,232,244,0.7); background:#111523; border:1px solid rgba(226,232,244,0.12);
   border-radius:4px; padding:4px 9px; }
 .acc-results{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
-.acc-results li{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.6); position:relative; padding-left:16px; }
-.acc-results li::before{ content:'•'; position:absolute; left:0; top:0; color:rgba(226,232,244,0.45); font-size:14px; }
-.acc-link{ display:inline-block; margin-top:4px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+.acc-results li{ font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.65); position:relative; padding-left:16px; }
+.acc-results li::before{ content:''; position:absolute; left:0; top:.6em; width:6px; height:1px; background:var(--accent); }
+.acc-link{ display:inline-block; margin-top:18px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
   color:rgba(226,232,244,0.85); text-decoration:none; padding:6px 0; border-bottom:1px solid rgba(226,232,244,0.25); transition:color .2s, border-color .2s; }
 .acc-link::after{ content:' →'; }
 .acc-link:hover{ color:#fff; border-color:rgba(226,232,244,0.7); }
-.acc-link + .acc-link{ margin-left:22px; }
+.prow-shot{ margin:0; position:relative; aspect-ratio:16/10; border-radius:10px; overflow:hidden; background:#0a0c14;
+  border:1px solid rgba(226,232,244,.1); box-shadow:0 30px 70px -30px rgba(0,0,0,.75); align-self:start; }
+.prow-shot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 0; display:block;
+  transform:scale(1.06); transition:transform 1.1s var(--ease-out); }
+.prow.is-open .prow-shot img{ transform:scale(1); }
 
 @media (--bp-900){
   #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
-  .acc-desc{ padding-left:4px; }
-  .acc-extra{ padding-left:4px; }
+  #projects-section .ps-hint{ display:none; }
+  .prow-kind{ display:none; }
+  .prow-jump{ padding:9px 12px; font-size:9.5px; }
+  .prow-jump .lbl{ display:none; }
+  .prow-grid{ grid-template-columns:1fr; padding-left:0; }
+  .prow-shot{ order:-1; }
+  .prow-meta{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: reduce){
+  .prow-body, .prow-text, .prow-shot, .prow-shot img, .prow-name{ transition:none !important; }
 }
 </style>
-<section id="projects-section" aria-label="Selected projects">
+<section id="projects-section" aria-labelledby="ps-title">
   <div class="ps-inner">
     <div class="ps-head">
-      <h2 class="ps-title">Projects</h2>
-    </div>
-    <div class="psplit">
-      <div class="psplit-left">
-        <div class="accord">
-          <article class="acc is-open" data-idx="0" id="sec-sentinel">
-            <button class="acc-head" aria-expanded="true">
-              <span class="acc-num">01</span>
-              <span class="acc-title">SENTINEL</span>
-              <span class="acc-mark" aria-hidden="true"></span>
-            </button>
-            <div class="acc-body"><div class="acc-inner">
-              <p class="acc-desc">A code-driven SOC lab. Every detection is a Sigma rule in Git, validated in CI and then fired against Elastic with a real attacker technique. Two AI models triage each alert in parallel, and Shuffle SOAR acts only when both agree.</p>
-              <div class="acc-extra">
-                <div class="acc-section">
-                  <span class="acc-section-lbl">Tools used</span>
-                  <div class="acc-chips">
-                    <span class="acc-chip">Sigma</span><span class="acc-chip">Elastic</span><span class="acc-chip">Wazuh</span><span class="acc-chip">n8n</span><span class="acc-chip">Ollama + Claude</span><span class="acc-chip">Shuffle</span>
-                  </div>
-                </div>
-                <div class="acc-section">
-                  <span class="acc-section-lbl">Results</span>
-                  <ul class="acc-results">
-                    <li>18 rules, each caught firing on a real command</li>
-                    <li>Measured attack-to-alert times of 45 to 151 seconds</li>
-                  </ul>
-                </div>
-              </div>
-            </div></div>
-          </article>
-          <article class="acc" data-idx="1" id="sec-moat">
-            <button class="acc-head" aria-expanded="false">
-              <span class="acc-num">02</span>
-              <span class="acc-title">MOAT</span>
-              <span class="acc-mark" aria-hidden="true"></span>
-            </button>
-            <div class="acc-body"><div class="acc-inner">
-              <p class="acc-desc">A free, open-source ad blocker for Chrome and Firefox that runs entirely inside the browser. It blocks ads, trackers, cookie banners and scam pop-ups using the browser's own blocking engine. No server, no account, no telemetry.</p>
-              <div class="acc-extra">
-                <div class="acc-section">
-                  <span class="acc-section-lbl">Tools used</span>
-                  <div class="acc-chips">
-                    <span class="acc-chip">TypeScript</span><span class="acc-chip">Manifest V3</span><span class="acc-chip">declarativeNetRequest</span><span class="acc-chip">AdGuard lists</span>
-                  </div>
-                </div>
-                <div class="acc-section">
-                  <span class="acc-section-lbl">Results</span>
-                  <ul class="acc-results">
-                    <li>About 314,000 filter entries compiled into 72,000 browser rules</li>
-                    <li>Cosmetic rules per page cut from 5.8 MB to about 700 KB</li>
-                  </ul>
-                </div>
-                <a class="acc-link" href="/moat/">Get Moat</a>
-              </div>
-            </div></div>
-          </article>
-          <article class="acc" data-idx="2" id="sec-cluster">
-            <button class="acc-head" aria-expanded="false">
-              <span class="acc-num">03</span>
-              <span class="acc-title">CLUSTER</span>
-              <span class="acc-mark" aria-hidden="true"></span>
-            </button>
-            <div class="acc-body"><div class="acc-inner">
-              <p class="acc-desc">A Chrome extension that cleans up Gmail and Outlook and flags impersonation, reading only message metadata. Lookalike domains, failed DMARC and Reply-To tricks are caught from headers alone, with no server and no message bodies.</p>
-              <div class="acc-extra">
-                <div class="acc-section">
-                  <span class="acc-section-lbl">Tools used</span>
-                  <div class="acc-chips">
-                    <span class="acc-chip">TypeScript</span><span class="acc-chip">Gmail API</span><span class="acc-chip">Microsoft Graph</span><span class="acc-chip">OAuth 2.0</span>
-                  </div>
-                </div>
-                <div class="acc-section">
-                  <span class="acc-section-lbl">Results</span>
-                  <ul class="acc-results">
-                    <li>Six header-only phishing signals, scored per sender</li>
-                    <li>Every destructive action confirmed, with Undo where the provider allows</li>
-                  </ul>
-                </div>
-              </div>
-            </div></div>
-          </article>
-        </div>
+      <div>
+        <span class="ps-lbl">Selected work</span>
+        <h2 class="ps-title" id="ps-title" data-reveal="lines">Projects</h2>
       </div>
+      <span class="ps-hint" aria-hidden="true">Hover a project to open it</span>
+    </div>
+    <div class="prows" data-reveal-group>
+      <article class="prow is-open" id="sec-sentinel" data-idx="0">
+        <div class="prow-top">
+          <h3 class="prow-h"><button type="button" class="prow-head" aria-expanded="true" aria-controls="prow-b0">
+            <span class="prow-num">01</span><span class="prow-name">Sentinel</span><span class="prow-kind">Detection engineering</span>
+          </button></h3>
+          <a class="prow-jump" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener" aria-label="Sentinel on GitHub"><span class="lbl">Jump to project</span><span class="ar" aria-hidden="true">↗</span></a>
+        </div>
+        <div class="prow-body" id="prow-b0"><div class="prow-inner"><div class="prow-grid">
+          <div class="prow-text">
+            <dl class="prow-meta">
+              <div><dt>Role</dt><dd>Sole builder</dd></div>
+              <div><dt>Timeline</dt><dd>Feb – Aug 2026</dd></div>
+              <div><dt>Focus</dt><dd>SOC automation</dd></div>
+              <div><dt>Status</dt><dd>Lab, live-fire tested</dd></div>
+            </dl>
+            <p class="prow-desc">A code-driven SOC lab. Every detection is a Sigma rule in Git, validated in CI and then fired against Elastic with a real attacker technique. Two AI models triage each alert in parallel, and Shuffle SOAR acts only when both agree.</p>
+            <div class="acc-chips"><span class="acc-chip">Sigma</span><span class="acc-chip">Elastic</span><span class="acc-chip">Wazuh</span><span class="acc-chip">n8n</span><span class="acc-chip">Ollama + Claude</span><span class="acc-chip">Shuffle</span></div>
+            <ul class="acc-results">
+              <li>18 rules, each caught firing on a real command</li>
+              <li>Measured attack-to-alert times of 45 to 151 seconds</li>
+            </ul>
+          </div>
+          <figure class="prow-shot"><img src="/images/projects/sentinel-hero.svg" alt="Schematic of Sentinel's pipeline: an attack produces telemetry, Elastic detects it with Sigma rules, two AI models triage the alert, and Shuffle SOAR responds only when both agree." loading="lazy" decoding="async"></figure>
+        </div></div></div>
+      </article>
+      <article class="prow" id="sec-moat" data-idx="1">
+        <div class="prow-top">
+          <h3 class="prow-h"><button type="button" class="prow-head" aria-expanded="false" aria-controls="prow-b1">
+            <span class="prow-num">02</span><span class="prow-name">Moat</span><span class="prow-kind">Browser security</span>
+          </button></h3>
+          <a class="prow-jump" href="https://github.com/Samuelabhinav37/moat" target="_blank" rel="noopener" aria-label="Moat on GitHub"><span class="lbl">Jump to project</span><span class="ar" aria-hidden="true">↗</span></a>
+        </div>
+        <div class="prow-body" id="prow-b1"><div class="prow-inner"><div class="prow-grid">
+          <div class="prow-text">
+            <dl class="prow-meta">
+              <div><dt>Role</dt><dd>Sole developer</dd></div>
+              <div><dt>Timeline</dt><dd>Aug 2026 – now</dd></div>
+              <div><dt>Focus</dt><dd>Ad and tracker blocking</dd></div>
+              <div><dt>Status</dt><dd>v0.11, Chrome + Firefox</dd></div>
+            </dl>
+            <p class="prow-desc">A free, open-source ad blocker for Chrome and Firefox that runs entirely inside the browser. It blocks ads, trackers, cookie banners and scam pop-ups using the browser's own blocking engine. No server, no account, no telemetry.</p>
+            <div class="acc-chips"><span class="acc-chip">TypeScript</span><span class="acc-chip">Manifest V3</span><span class="acc-chip">declarativeNetRequest</span><span class="acc-chip">AdGuard lists</span></div>
+            <ul class="acc-results">
+              <li>About 314,000 filter entries compiled into 72,000 browser rules</li>
+              <li>Cosmetic rules per page cut from 5.8 MB to about 700 KB</li>
+            </ul>
+            <a class="acc-link" href="/moat/">Get Moat</a>
+          </div>
+          <figure class="prow-shot"><img src="/images/projects/moat-hero.webp" srcset="/images/projects/moat-hero.w800.webp 800w, /images/projects/moat-hero.webp 1500w" sizes="(max-width: 900px) 92vw, 46vw" alt="A WIRED article with Moat's popup open beside it, reporting 14 things blocked on the page." loading="lazy" decoding="async"></figure>
+        </div></div></div>
+      </article>
+      <article class="prow" id="sec-cluster" data-idx="2">
+        <div class="prow-top">
+          <h3 class="prow-h"><button type="button" class="prow-head" aria-expanded="false" aria-controls="prow-b2">
+            <span class="prow-num">03</span><span class="prow-name">Cluster</span><span class="prow-kind">Email security</span>
+          </button></h3>
+          <a class="prow-jump" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener" aria-label="Cluster on GitHub"><span class="lbl">Jump to project</span><span class="ar" aria-hidden="true">↗</span></a>
+        </div>
+        <div class="prow-body" id="prow-b2"><div class="prow-inner"><div class="prow-grid">
+          <div class="prow-text">
+            <dl class="prow-meta">
+              <div><dt>Role</dt><dd>Sole developer</dd></div>
+              <div><dt>Timeline</dt><dd>Aug 2026 – now</dd></div>
+              <div><dt>Focus</dt><dd>Phishing detection</dd></div>
+              <div><dt>Status</dt><dd>Pre-release 0.1</dd></div>
+            </dl>
+            <p class="prow-desc">A Chrome extension that cleans up Gmail and Outlook and flags impersonation, reading only message metadata. Lookalike domains, failed DMARC and Reply-To tricks are caught from headers alone, with no server and no message bodies.</p>
+            <div class="acc-chips"><span class="acc-chip">TypeScript</span><span class="acc-chip">Gmail API</span><span class="acc-chip">Microsoft Graph</span><span class="acc-chip">OAuth 2.0</span></div>
+            <ul class="acc-results">
+              <li>Six header-only phishing signals, scored per sender</li>
+              <li>Every destructive action confirmed, with Undo where the provider allows</li>
+            </ul>
+          </div>
+          <figure class="prow-shot"><img src="/images/projects/cluster-hero.webp" srcset="/images/projects/cluster-hero.w800.webp 800w, /images/projects/cluster-hero.webp 1500w" sizes="(max-width: 900px) 92vw, 46vw" alt="Cluster's Phishing screen flagging a sender that calls itself Netflix but sends from a lookalike domain, with DKIM and DMARC failing." loading="lazy" decoding="async"></figure>
+        </div></div></div>
+      </article>
     </div>
   </div>
 </section>
@@ -1073,8 +1049,6 @@ footer#site-footer{
    section goes too rather than leaving a heading over nothing. */
 @media (--bp-600){
   #snapshot{ display:none; }
-  /* Phones keep their original Beliefs spacing untouched. */
-  #editorial .ed-beliefs__text:last-child{ margin-bottom:clamp(70px,13vh,160px); }
 }
 @media (--bp-820){
   #signal .sig-grid{ grid-template-columns:1fr; }
@@ -1092,7 +1066,10 @@ footer#site-footer{
   #news-list .news-row:nth-child(n+4){ display:none; }
   .pod-shelf .pod-row:nth-child(n+4){ display:none; }
 }
-.sig-card{ border:1px solid rgba(var(--c-white),.1); border-radius:4px; background:rgba(var(--c-white),.015); padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
+/* Solid cards that float over the sky (same fill and shadow as the blog's). */
+.sig-card, .ctf-strip{ background:#0d1222; border:1px solid rgba(190,205,240,.11); border-radius:14px;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 22px 50px -26px rgba(0,0,0,.85), 0 6px 16px -8px rgba(0,0,0,.5); }
+.sig-card{ padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
 .sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
 .sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
 .news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
@@ -1122,7 +1099,7 @@ footer#site-footer{
 .pod-why{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:11.5px; line-height:1.35; color:rgba(226,232,244,0.5); }
 .pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.42); letter-spacing:1px; flex:none; transition:color .3s ease; }
 .pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
-.ctf-strip{ margin-top:clamp(20px,2.5vw,36px); border:1px solid rgba(var(--c-white),.1); border-radius:4px; padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
+.ctf-strip{ margin-top:clamp(20px,2.5vw,36px); padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
 .ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
 .ctf-item{ display:grid; grid-template-columns:30px auto; column-gap:10px; row-gap:2px; align-items:center; }
 .ctf-item > :not(.ctf-logo){ grid-column:2; }
@@ -1167,8 +1144,8 @@ footer#site-footer{
 <section id="signal" aria-label="Signal: news, podcasts and CTFs">
   <div class="sig-inner">
     <p class="sig-lbl">Signal</p>
-    <h2 class="sig-head">On my radar.</h2>
-    <div class="sig-grid">
+    <h2 class="sig-head" data-reveal="lines">On my radar.</h2>
+    <div class="sig-grid" data-reveal-group>
       <div class="sig-card">
         <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news">See more &rarr;</button></div>
         <div id="news-list"><div class="news-row"><span class="news-badge"></span><span class="news-body"><span class="news-title">Loading latest&hellip;</span><span class="news-meta">feed</span></span></div></div>
@@ -1184,7 +1161,7 @@ footer#site-footer{
         </div>
       </div>
     </div>
-    <div class="ctf-strip">
+    <div class="ctf-strip" data-reveal>
       <span class="ctf-strip__lbl">Upcoming CTFs</span>
       <span id="ctf-items" style="display:contents">
         <div class="ctf-item"><span class="ctf-name">picoCTF</span><span class="ctf-meta">loading&hellip;</span></div>
@@ -1237,8 +1214,8 @@ footer#site-footer{
 <section id="snapshot" aria-label="Snapshot: live security feeds">
   <div class="snap-inner">
     <p class="snap-lbl">Snapshot</p>
-    <h2 class="snap-head">Live security feed.</h2>
-    <div class="ed-beliefs__imgs">
+    <h2 class="snap-head" data-reveal="lines">Live security feed.</h2>
+    <div class="ed-beliefs__imgs" data-reveal>
       <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
         <div class="ed-bento__cell ed-bento__intel">
           <span class="ed-bento__lbl" title="Fresh threat reports shared by two open security-research communities, OTX and MISP."><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
@@ -1309,7 +1286,7 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
 <script is:inline defer src="/scripts/index-ascii-footer.js"></script>
-<script is:inline defer src="/scripts/index-projects-accordion.js"></script>
+<script is:inline defer src="/scripts/index-projects-rows.js"></script>
 <script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
 </body>
 </html>

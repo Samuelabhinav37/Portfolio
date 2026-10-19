@@ -1,4 +1,6 @@
-/* Homepage subliminal background-flash layer. Extracted from an inline <script> block, unmodified. */
+/* Screen-glitch layer used on every main page (src/components/Glitches.astro).
+   Tuned to be felt rather than watched: a hit every 6-12s, a second strike
+   about 1 time in 7, and the whole-screen flash about 1 time in 12. */
 (function(){
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var layer = document.getElementById('subliminal-layer');
@@ -87,15 +89,15 @@
   function spawn(){
     if (!visible) return;
     hit();
-    if (flash && Math.random() < 0.2){
-      flash.style.opacity = '.06';
+    if (flash && Math.random() < 0.08){
+      flash.style.opacity = '.045';
       setTimeout(function(){ flash.style.opacity = '0'; }, rnd(14,32));
     }
-    if (Math.random() < 0.25) setTimeout(hit, rnd(40,130));
+    if (Math.random() < 0.15) setTimeout(hit, rnd(40,130));
   }
   function loop(){
     spawn();
-    setTimeout(loop, 3400 + Math.random() * 3200);
+    setTimeout(loop, 6000 + Math.random() * 6000);
   }
-  setTimeout(loop, 900);
+  setTimeout(loop, 2500);
 })();

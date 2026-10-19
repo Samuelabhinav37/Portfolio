@@ -5,8 +5,10 @@
  * by sky.js (off the main thread where the browser allows). Replaces the old
  * NebulaBackground + nebula-engine(-home).js pair on every page.
  *
- * `avoid` names an element the cast should fly around rather than behind
- * (contact passes its form card); leave it out and the whole sky is open.
+ * `avoid` is a selector list of blocks the cast should fly around rather
+ * than behind (cards, headings); leave it out and the whole sky is open.
+ * `calm` swaps in the quiet sky for reading pages: clouds, stars, one slow
+ * satellite and the odd shooting star, no chase.
  *
  * Layering matches what pages were built against: #sky is position:fixed
  * with z-index:auto, so later positioned content paints above it, and the
@@ -14,11 +16,12 @@
  */
 interface Props {
   avoid?: string;
+  calm?: boolean;
 }
-const { avoid } = Astro.props;
+const { avoid, calm } = Astro.props;
 ---
 
-<div id="sky" aria-hidden="true" data-avoid={avoid}><div class="sky-grain"></div></div>
+<div id="sky" aria-hidden="true" data-avoid={avoid} data-mood={calm ? 'calm' : undefined}><div class="sky-grain"></div></div>
 <script is:inline defer src="/scripts/sky.js"></script>
 
 <style is:global>

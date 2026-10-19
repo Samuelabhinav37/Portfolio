@@ -78,7 +78,7 @@
   var _reduceMotion = false;
   try { _reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_) {}
 
-  if(FORCE_SKIP_INTRO || seen || _reduceMotion){
+  if(FORCE_SKIP_INTRO || seen || _reduceMotion || typeof gsap === 'undefined'){
     settleInstantly();
     return;
   }
