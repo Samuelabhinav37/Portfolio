@@ -5,8 +5,10 @@
  * by sky.js (off the main thread where the browser allows). Replaces the old
  * NebulaBackground + nebula-engine(-home).js pair on every page.
  *
- * `avoid` is a selector list of blocks the cast should fly around rather
- * than behind (cards, headings); leave it out and the whole sky is open.
+ * `avoid` is a selector list of blocks (cards, headings) the cast won't
+ * stop behind: it still flies behind them, but scans, vaults and hideouts
+ * are placed in the open sky around them. Leave it out and the whole sky
+ * is open.
  * `calm` swaps in the quiet sky for reading pages: clouds, stars, one slow
  * satellite and the odd shooting star, no chase.
  *

@@ -252,8 +252,10 @@
     }
     /* ── shared movement ──
        Everything that lives on screen (researchers, the patrol) steers toward
-       a point with a little inertia, is held inside the viewport by a soft
-       wall, and is pushed round the card rather than flying behind it. */
+       a point with a little inertia and is held inside the viewport by a soft
+       wall. In flight it passes behind the cards (pushing it round them made
+       it bounce off every block on a busy page); only the places it stops at
+       (scan spots, vaults, the robber's hideouts) are picked in open sky. */
     var TOP = 70;   /* clear of the site header */
     function zoneAt(x, y, pad){
       for(var i=0;i<zones.length;i++){ var z = zones[i]; if(x > z.x0-pad && x < z.x1+pad && y > z.y0-pad && y < z.y1+pad) return z; }
@@ -277,11 +279,6 @@
       var m = 34;
       if(o.x < m) o.vx += (m-o.x)*8*dt; else if(o.x > W-m) o.vx -= (o.x-(W-m))*8*dt;
       if(o.y < TOP) o.vy += (TOP-o.y)*8*dt; else if(o.y > H-m) o.vy -= (o.y-(H-m))*8*dt;
-      var zc = zoneAt(o.x, o.y, 24);
-      if(zc){
-        var l = o.x-(zc.x0-24), r = (zc.x1+24)-o.x, u = o.y-(zc.y0-24), b = (zc.y1+24)-o.y, n = Math.min(l, r, u, b), f = 1100*dt;
-        if(n === l) o.vx -= f; else if(n === r) o.vx += f; else if(n === u) o.vy -= f; else o.vy += f;
-      }
       o.x = Math.max(6, Math.min(W-6, o.x + o.vx*dt));
       o.y = Math.max(TOP-24, Math.min(H-6, o.y + o.vy*dt));
       if(Math.abs(o.vx) + Math.abs(o.vy) > 6) o.ang = Math.atan2(o.vy, o.vx);

@@ -1,4 +1,4 @@
-/* Site motion: smooth scroll, scroll reveals and the scroll-lit statement.
+/* Site motion: scroll reveals and the scroll-lit statement.
  *
  * One timing system for the whole site, so every page moves the same way.
  * The numbers follow common motion-design guidance: entrances take
@@ -16,8 +16,6 @@
  *   data-reveal-group      each child fades up in turn
  *   data-scroll-lit        words brighten one by one as you scroll past
  */
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
@@ -27,13 +25,6 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 window.gsap = window.gsap || gsap;
 
 /* ── tunables ─────────────────────────────────────────────────────── */
-// Smooth scroll is on trial. To switch it off site-wide, set this to false;
-// to try the site without it in one browser, open any page with ?lenis=0.
-const SMOOTH_SCROLL = true;
-const SCROLL = {
-  lerp: 0.14,          // share of the remaining distance covered per frame; higher = snappier
-  wheelMultiplier: 1,  // one notch moves the page as far as it does natively
-};
 export const MOTION = {
   ease: 'expo.out',    // entrances: quick start, long settle
   dur: 0.9,
@@ -45,38 +36,6 @@ export const MOTION = {
 
 const root = document.documentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-function wantsSmooth() {
-  if (!SMOOTH_SCROLL || reduce || !finePointer) return false;
-  try {
-    const flag = new URLSearchParams(location.search).get('lenis');
-    if (flag === '0') localStorage.setItem('lenis', 'off');
-    if (flag === '1') localStorage.removeItem('lenis');
-    return localStorage.getItem('lenis') !== 'off';
-  } catch (_) {
-    return true;
-  }
-}
-
-/* ── smooth scroll ────────────────────────────────────────────────── */
-// Driven from GSAP's ticker, not a second requestAnimationFrame loop, so
-// ScrollTrigger and Lenis read the same frame. Touch keeps native scrolling.
-let lenis = null;
-if (wantsSmooth()) {
-  lenis = new Lenis({
-    ...SCROLL,
-    smoothWheel: true,
-    anchors: true,
-    allowNestedScroll: true, // Kai's chat log and other scroll boxes scroll themselves
-    autoRaf: false,
-  });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((t) => lenis.raf(t * 1000));
-  gsap.ticker.lagSmoothing(0);
-  window.SITE = window.SITE || {};
-  window.SITE.lenis = lenis;
-}
 
 /* ── reveals ──────────────────────────────────────────────────────── */
 function fadeUp(targets, trigger, extra = {}) {

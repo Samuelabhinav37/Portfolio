@@ -6,13 +6,15 @@ Notable changes to the portfolio and blog will be recorded here.
 
 ### Added
 
+- A page editor for design passes (`scripts/page-editor/`): `make-copy.mjs` packages a copy of the built homepage with `editor.js`, a panel for changing fonts, sizes, colours, spacing and wording or hiding blocks, which exports the changes as JSON to apply to the source.
 - Expanded project setup, verification, deployment, security, and limitation documentation.
 - Contact form: a Reason dropdown (tagged into the email subject) and a direct `mailto:` line.
 
 ### Changed
 
-- **Motion, site-wide** (`Motion.astro` + `src/scripts/motion.js`): Lenis smooth scrolling is back on trial, tuned much snappier (a wheel notch settles in about 0.4s, mouse and trackpad only, off on touch and reduced motion, `?lenis=0` turns it off per browser). One set of motion tokens drives everything: headings rise line by line out of a mask, cards and blocks fade up in a short stagger as they come into view (once), images ease in from a slight zoom, and pages cross-fade into each other with view transitions. GSAP is bundled from npm (ScrollTrigger, SplitText), replacing the homepage's separate copy.
-- Homepage **beliefs** are now one statement in Inter Tight (self-hosted) whose words light up as you scroll past, with a row of proof numbers under it.
+- **Motion, site-wide** (`Motion.astro` + `src/scripts/motion.js`): one set of motion tokens drives everything: headings rise line by line out of a mask, cards and blocks fade up in a short stagger as they come into view (once), images ease in from a slight zoom, and pages cross-fade into each other with view transitions. GSAP is bundled from npm (ScrollTrigger, SplitText), replacing the homepage's separate copy.
+- Homepage **beliefs** ("What I optimize for") are now one smaller, left-set statement in Inter Tight (self-hosted) whose words light up as you scroll past.
+- The sky's satellites and patrol fly behind cards and text instead of being pushed round them, which made them bounce off every block; they still stop only in open sky.
 - Homepage **projects** are big-name rows on hairlines: hovering (or tapping) a row opens it with Role / Timeline / Focus / Status, the details and its screenshot, while the other rows dim. "Jump to project" opens the GitHub repo.
 - Cards are solid and float: the blog's cards and search fields, and the homepage's research-log, Signal and CTF cards, have an opaque fill and a soft shadow instead of see-through glass.
 - The sky is calmer: no ambient aircraft, freighter or satellite packets; two research satellites, and the police/robber chase over two vaults (one a honeypot). The blog gets a calm sky (one slow satellite and the odd shooting star). The cast now steers around every card and heading on the page, not just one block.
@@ -25,6 +27,8 @@ Notable changes to the portfolio and blog will be recorded here.
 
 ### Removed
 
+- Lenis smooth scrolling (it made scrolling lag again); the page scrolls natively.
+- The proof-numbers row under the homepage beliefs (Sigma rules, attack-to-alert, block rules, email bodies).
 - From the blog index: the hero rotator, the threat-wire ticker and its `/api/cve-wire` function, the category tabs and filter dialog, the grid/table views, and the case-study slide-over with its placeholder project data and images.
 - The divider lines between homepage sections, and the explainer line under the blog's threat ticker.
 - The project pages: `/projects/` and the Sentinel, Moat and Cluster case studies (layout, content collection, styles and case-study images). Old URLs, and `/work`, redirect to the homepage, whose projects accordion stays; the menus and Kai's chat point there now.

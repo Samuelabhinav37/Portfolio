@@ -19,3 +19,4 @@ dist/
 # Playwright
 test-results/
 playwright-report/
+.page-editor/

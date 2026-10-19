@@ -69,9 +69,7 @@ function render() {
     b.addEventListener('click', () => {
       page = target;
       render();
-      const lenis = window.SITE && window.SITE.lenis;
-      if (lenis) lenis.scrollTo(latest, { offset: -90 });
-      else latest.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      latest.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     });
     pg.appendChild(b);
   };
