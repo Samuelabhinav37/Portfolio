@@ -1,8 +1,8 @@
 ---
 import SiteMenu from '../components/SiteMenu.astro';
+import SkyBackground from '../components/SkyBackground.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import NebulaBackground from '../components/NebulaBackground.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
@@ -45,11 +45,6 @@ window.SITE=window.SITE||{};
 <style is:global>
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
-  /* The nebula is the backdrop here, not texture behind a busy layout — one
-     solid card sits in the middle and the sky gets the rest of the screen.
-     So the shared #bg-dim (below #sc) is turned almost all the way down and
-     there's no frosted pane over the scene; the card carries legibility. */
-  #bg-dim{ --bg-dim-opacity:0.08; }
   body{
     background:var(--c-bg); color:rgba(233,236,247,0.92);
     font-family:'Cormorant Garamond', Georgia, serif;
@@ -196,62 +191,10 @@ window.SITE=window.SITE||{};
 
 <a class="skip" href="#nm">Skip to the form</a>
 
-<NebulaBackground />
+<SkyBackground avoid=".form-panel" />
 
 <SiteMenu currentPath="/contact" />
 
-<!-- ════ Subliminal marks — brief screen-glitch artifacts that surface at
-     random points across the page on a slow, deliberate rhythm. Each hit is
-     a small rectangle (chromatic-fringed tear, desynced interlace bars,
-     RGB-split sliver, or a real noise-texture patch) and an irregular
-     hard-cut opacity/position stutter (3-6 abrupt jumps, no easing) built
-     from setTimeout, never CSS @keyframes/transitions/rAF — browsers can
-     suspend those mid-flight in a throttled/backgrounded tab, leaving marks
-     visually "stuck"; a setTimeout chain always finishes. Static uses an SVG
-     feTurbulence noise texture instead of a striped gradient so it reads as
-     grain, not pattern. ~1-in-4 hits doubles up as a quick second strike a
-     beat later, and ~1-in-5 also flashes a full-page overlay for a single
-     frame, selling "the whole screen hiccuped" rather than "a shape
-     appeared." Purely atmospheric: no meaning, no interaction, aria-hidden.
-     Ported verbatim from the homepage (index.astro) — same markup, CSS and
-     driver script, index-subliminal-layer.js has no page-specific
-     dependencies. ════ -->
-<style is:global>
-  #subliminal-layer{ position:fixed; inset:0; z-index:650; pointer-events:none; overflow:hidden; }
-  #subliminal-flash{ position:fixed; inset:0; z-index:649; pointer-events:none; opacity:0; background:#e6ebf6; mix-blend-mode:difference; transition:none; }
-  .subliminal-mark{ position:absolute; opacity:0; transition:none; will-change:opacity,transform; }
-
-  /* small rectangular tear with a chromatic fringe */
-  .sm-tear{ background:rgba(228,234,244,.55); }
-  .sm-tear::before,.sm-tear::after{ content:''; position:absolute; inset:0; mix-blend-mode:screen; }
-  .sm-tear::before{ background:rgba(255,45,55,.5); transform:translateX(-2px); }
-  .sm-tear::after{ background:rgba(55,150,255,.5); transform:translateX(2px); }
-
-  /* three tight interlace bars in a small box, desynced by a couple px each */
-  .sm-bars span{ position:absolute; left:-3px; right:-3px; height:2px; }
-  .sm-bars .b1{ top:0; background:rgba(255,45,55,.55); transform:translateX(-2px); }
-  .sm-bars .b2{ top:5px; background:rgba(228,234,244,.6); }
-  .sm-bars .b3{ top:10px; background:rgba(55,150,255,.55); transform:translateX(2px); }
-
-  /* localized RGB-split sliver, not a filled block */
-  .sm-rgb{ mix-blend-mode:screen; }
-  .sm-rgb span{ position:absolute; inset:0; }
-  .sm-rgb .r{ background:rgba(255,40,50,.6); transform:translateX(-2px); }
-  .sm-rgb .c{ background:rgba(90,255,190,.35); }
-  .sm-rgb .b{ background:rgba(60,140,255,.6); transform:translateX(2px); }
-
-  /* macroblock-style noise patch — real turbulence grain, jagged clip-path edges */
-  .sm-static{
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size:cover; filter:contrast(1.6) brightness(1.3); mix-blend-mode:overlay;
-  }
-
-  @media (--bp-480){ #subliminal-layer,#subliminal-flash{ display:none; } }
-  @media (prefers-reduced-motion: reduce){ #subliminal-layer,#subliminal-flash{ display:none; } }
-</style>
-<div id="subliminal-layer" aria-hidden="true"></div>
-<div id="subliminal-flash" aria-hidden="true"></div>
-<script is:inline src="/scripts/index-subliminal-layer.js"></script>
 
 
 
@@ -337,50 +280,10 @@ window.SITE=window.SITE||{};
      pinning it (https://developers.cloudflare.com/turnstile/). -->
 <script is:inline src="/scripts/contact-form-handler.js"></script>
 <script is:inline>
-/* The solid form card owns the centre; everything around it is open sky —
-   mark the margins so background craft spawn where they're actually visible. */
-window.SITE.NEBULA_SAFE_ZONES = [
-  {x0:0,    y0:0,    x1:0.25, y1:1  },  // left margin
-  {x0:0.75, y0:0,    x1:1,    y1:1  },  // right margin
-  {x0:0,    y0:0,    x1:1,    y1:0.1},  // top strip
-  {x0:0,    y0:0.9,  x1:1,    y1:1  },  // bottom strip
-];
-</script>
-<script is:inline src="/scripts/nebula-engine.js"></script>
-<script is:inline>
-/* The Contact page has no 6.4s intro choreography. Boot the ported network
-   immediately and settle it to its final lit state (mirrors the homepage
-   intro's returning-visitor fast-path). */
-(function(){
-  window.SITE._introRevealReady = true;
-  window.SITE._introFullyDone   = true;
-  /* Brighter than the homepage on purpose: the sky is the whole backdrop
-     here and the opaque form card handles legibility on its own. */
-  window.SITE._bgBoost = 1.3;
-  try { if (window.U && U.uBright) U.uBright.value = 0.9; } catch(e){}
-  try { startBootSeq(); }
-  catch(e){ try { window.NS && window.NS.startBootSeq && window.NS.startBootSeq(); } catch(_){} }
-})();
-</script>
-<script is:inline>
-/* ──────────────────────────────────────────────────────────────────
-   PAGE VISIBILITY HARD-PAUSE
-   The browser already throttles requestAnimationFrame in hidden tabs
-   to ~1Hz, but rAF callbacks still fire and accumulate state (U.uTime,
-   freighter/asteroid drift, satellite paths). When the user returns
-   they see "the network has been busy" — correct creative read but
-   wastes battery. We discard the accumulated threeClock delta on
-   show so scene time stands still while the tab is in the background.
-   ────────────────────────────────────────────────────────────────── */
-(function(){
-  'use strict';
-  if(typeof threeClock === 'undefined') return;
-  document.addEventListener('visibilitychange', function(){
-    if(!document.hidden && threeClock && typeof threeClock.getDelta === 'function'){
-      threeClock.getDelta(); /* drop the accumulated background dt */
-    }
-  });
-})();
+/* No intro choreography on this page: mark it settled straight away so
+   Kai's arrival greet runs (it waits on _introFullyDone). */
+window.SITE._introRevealReady = true;
+window.SITE._introFullyDone   = true;
 </script>
 
 <script is:inline>

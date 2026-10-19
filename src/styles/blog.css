@@ -32,7 +32,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 #main-content:focus { outline: none; }
 
 /* position:relative + z-index:1 (not just cosmetic): the fixed nebula
-   background (#window, from NebulaBackground) is a positioned element with
+   background (#sky, from SkyBackground) is a positioned element with
    z-index:auto, which always paints above any non-positioned static content
    regardless of DOM order. Every real-content wrapper needs to be a
    positioned element too so it lands in the same z-index:auto stacking
@@ -526,21 +526,8 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   from { opacity: 0; } to { opacity: 1; }
 }
 
-/* Ambient grain now comes from the shared NebulaBackground component
-   (its own #bg-grain, scoped inside #screen) — this page no longer draws
-   its own separate copy.
-   Extra dark-glass pane over the ambient background: #bg-dim (shared
-   component) sits BELOW #sc by default, so it never re-darkens ships CRAFT
-   already brightened. Without the homepage's intro choreography running
-   here, that restraint reads as thin — moving this page's copy above #sc
-   (z-index 2, tied with #bg-grain but later in DOM so it wins) puts a real
-   dim pane in front of the whole scene, ships included. Tuned to match the
-   rest of the site: light tint + a soft blur rather than a flat dark wash,
-   so the ships stay visible through it. */
-#bg-dim {
-  z-index: 2; background: rgba(6,6,8,0.34);
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
+/* Ambient grain comes from the shared SkyBackground component — this page
+   no longer draws its own separate copy. */
 
 /* ── Respect reduced-motion preference ── */
 @media (prefers-reduced-motion: reduce) {

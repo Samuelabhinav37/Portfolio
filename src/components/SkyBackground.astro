@@ -1,0 +1,35 @@
+---
+/**
+ * The site background: night cloud banks over a navy sky, stars, and the
+ * craft that fly through them. Drawn by public/scripts/sky-engine.js, booted
+ * by sky.js (off the main thread where the browser allows). Replaces the old
+ * NebulaBackground + nebula-engine(-home).js pair on every page.
+ *
+ * `avoid` names an element the cast should fly around rather than behind
+ * (contact passes its form card); leave it out and the whole sky is open.
+ *
+ * Layering matches what pages were built against: #sky is position:fixed
+ * with z-index:auto, so later positioned content paints above it, and the
+ * scanlines sit at z-index 200 over the page, as #window::before did.
+ */
+interface Props {
+  avoid?: string;
+}
+const { avoid } = Astro.props;
+---
+
+<div id="sky" aria-hidden="true" data-avoid={avoid}><div class="sky-grain"></div></div>
+<script is:inline defer src="/scripts/sky.js"></script>
+
+<style is:global>
+  /* The gradient shows before the first frame, and wherever WebGL is unavailable. */
+  #sky{ position:fixed; inset:0; pointer-events:none; overflow:hidden;
+    background:linear-gradient(0deg, #050917 0%, #0a1226 55%, #172445 100%); }
+  #sky canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #sky .sky-grain{ position:absolute; inset:0; opacity:.2; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  /* the site's CRT scanlines, over the whole page */
+  #sky::after{ content:''; position:fixed; inset:0; z-index:200;
+    background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.05) 3px 4px); }
+  @media print { #sky{ display:none; } }
+</style>
