@@ -24,9 +24,9 @@
   'use strict';
 
   var TIERS = {
-    full:  { res:.5,  oct:6, fps:30, aircraft:2, freighter:1, satellites:2, chase:true,  meteorGap:[25,55] },
-    lite:  { res:.35, oct:4, fps:24, aircraft:0, freighter:0, satellites:1, chase:false, meteorGap:[35,75] },
-    still: { res:.5,  oct:6, fps:0,  aircraft:0, freighter:0, satellites:0, chase:false, meteorGap:null }
+    full:  { res:.5,  oct:6, fps:30, aircraft:2, freighter:1, research:3, patrol:true,  meteorGap:[25,55] },
+    lite:  { res:.35, oct:4, fps:24, aircraft:0, freighter:0, research:1, patrol:false, meteorGap:[35,75] },
+    still: { res:.5,  oct:6, fps:0,  aircraft:0, freighter:0, research:0, patrol:false, meteorGap:null }
   };
 
   /* The "Night clouds" look from the workbench, frozen. */
@@ -240,76 +240,292 @@
       var dir = Math.random() < .5 ? 1 : -1;
       return { z:.3, s:1, seed:Math.random(), a:0, x: dir > 0 ? -60 : W+60, y: rnd(H*.12, H*.88), vx: dir*rnd(11,16), vy: rnd(-1.2,1.2) };
     }
-    /* satellites: a steady point crossing in a straight line, far above
-       the clouds, so they only show through the gaps; now and then one
-       catches the sun and flares */
-    function newSatellite(){
-      var a = rnd(0, 6.2832), cx = W/2, cy = H/2, R = Math.hypot(W, H)/2 + 30;
-      var tx = cx - Math.cos(a)*R + rnd(-W*.3, W*.3), ty = cy - Math.sin(a)*R + rnd(-H*.3, H*.3);
-      var sx = cx + Math.cos(a)*R, sy = cy + Math.sin(a)*R, d = Math.hypot(tx-sx, ty-sy), spd = rnd(16, 26);
-      return { x:sx, y:sy, vx:(tx-sx)/d*spd, vy:(ty-sy)/d*spd, life:0, dur:d/spd, flareAt: Math.random() < .4 ? rnd(.25,.75) : -1, a:0 };
+    /* ── shared movement ──
+       Everything that lives on screen (researchers, the patrol) steers toward
+       a point with a little inertia, is held inside the viewport by a soft
+       wall, and is pushed round the card rather than flying behind it. */
+    var TOP = 70;   /* clear of the site header */
+    function inCard(x, y, pad){ return !!card && x > card.x0-pad && x < card.x1+pad && y > card.y0-pad && y < card.y1+pad; }
+    function freeSpot(pad, from, minD){
+      for(var i=0;i<40;i++){
+        var x = rnd(44, W-44), y = rnd(TOP+24, H-44);
+        if(inCard(x, y, pad)) continue;
+        if(from && Math.hypot(x-from.x, y-from.y) < (minD || 0)) continue;
+        return { x:x, y:y };
+      }
+      /* the card fills the screen (phones): settle for the side margins */
+      return { x: Math.random() < .5 ? rnd(16, 40) : rnd(W-40, W-16), y: rnd(TOP+20, H-30) };
+    }
+    function steer(o, tx, ty, maxSpd, accel, dt){
+      var dx = tx-o.x, dy = ty-o.y, d = Math.hypot(dx, dy) || 1;
+      var want = Math.min(maxSpd, d*1.4), k = Math.min(1, accel*dt);
+      o.vx += ((dx/d)*want - o.vx)*k; o.vy += ((dy/d)*want - o.vy)*k;
+      var m = 34;
+      if(o.x < m) o.vx += (m-o.x)*8*dt; else if(o.x > W-m) o.vx -= (o.x-(W-m))*8*dt;
+      if(o.y < TOP) o.vy += (TOP-o.y)*8*dt; else if(o.y > H-m) o.vy -= (o.y-(H-m))*8*dt;
+      if(inCard(o.x, o.y, 24)){
+        var l = o.x-(card.x0-24), r = (card.x1+24)-o.x, u = o.y-(card.y0-24), b = (card.y1+24)-o.y, n = Math.min(l, r, u, b), f = 1100*dt;
+        if(n === l) o.vx -= f; else if(n === r) o.vx += f; else if(n === u) o.vy -= f; else o.vy += f;
+      }
+      o.x = Math.max(6, Math.min(W-6, o.x + o.vx*dt));
+      o.y = Math.max(TOP-24, Math.min(H-6, o.y + o.vy*dt));
+      if(Math.abs(o.vx) + Math.abs(o.vy) > 6) o.ang = Math.atan2(o.vy, o.vx);
+      return d;
     }
 
-    var aircraft = [], freighters = [], sats = [], meteors = [], launches = [], sparks = [];
-    var waitFreight = 0, waitSat = [], meteorIn = tier.meteorGap ? rnd(6, 14) : Infinity;
+    /* expanding rings: scans, handshakes, patches, honeypot alarms */
+    var rings = [];
+    function ring(x, y, rgb, r0, r1, life, w){ rings.push({ x:x, y:y, rgb:rgb, r0:r0, r1:r1, life:life, t:0, w:w || 1 }); }
+    function stepRings(dt){
+      for(var i=rings.length-1;i>=0;i--){
+        var g = rings[i]; g.t += dt;
+        var u = g.t/g.life; if(u >= 1){ rings.splice(i, 1); continue; }
+        ctx.strokeStyle = 'rgba(' + g.rgb + ',' + (.6*(1-u)).toFixed(3) + ')'; ctx.lineWidth = g.w;
+        ctx.beginPath(); ctx.arc(g.x, g.y, g.r0 + (g.r1-g.r0)*(1 - (1-u)*(1-u)), 0, 6.2832); ctx.stroke();
+      }
+    }
+    function mix3(a, b, u){ return Math.round(a[0]+(b[0]-a[0])*u) + ',' + Math.round(a[1]+(b[1]-a[1])*u) + ',' + Math.round(a[2]+(b[2]-a[2])*u); }
+    var RED = [255,82,82], AMBER = [255,190,80], GREEN = [110,232,150];
+
+    /* ── research satellites ──
+       Each one flies to a fresh patch of sky, parks and sweeps it with a scan.
+       Some sweeps turn up a bug, a red glitching mark. The satellite closes
+       in and beams a patch at it: the mark goes amber, then green, a check
+       pulses, and the satellite moves on to research somewhere else. */
+    var researchers = [];
+    function newResearcher(){
+      var p = freeSpot(40);
+      return { x:p.x, y:p.y, vx:0, vy:0, ang:0, rot:rnd(0, 6.28), spin:rnd(-.35, .35), state:'travel', t:0,
+        tx:p.x, ty:p.y, bug:null, seed:Math.random() };
+    }
+    function nextSpot(r){ var p = freeSpot(50, r, 170); r.tx = p.x; r.ty = p.y; r.state = 'travel'; r.t = 0; }
+    function drawSat(x, y, rot, lamp, lampOn){
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      glow(0, 0, 13, '170,205,255', .18);
+      ctx.fillStyle = 'rgba(200,214,240,.92)'; ctx.fillRect(-3, -2.2, 6, 4.4);
+      ctx.fillStyle = 'rgba(95,130,190,.85)'; ctx.fillRect(-12, -1.8, 7, 3.6); ctx.fillRect(5, -1.8, 7, 3.6);
+      ctx.strokeStyle = 'rgba(170,200,245,.55)'; ctx.lineWidth = .6;
+      ctx.strokeRect(-12, -1.8, 7, 3.6); ctx.strokeRect(5, -1.8, 7, 3.6);
+      ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(-3, 0); ctx.moveTo(3, 0); ctx.lineTo(5, 0); ctx.moveTo(0, -2.2); ctx.lineTo(0, -5); ctx.stroke();
+      ctx.restore();
+      if(lampOn) glow(x + Math.cos(rot - 1.57)*5, y + Math.sin(rot - 1.57)*5, 4, lamp, .9);
+    }
+    function drawBug(b, t){
+      var col = b.fix < .5 ? mix3(RED, AMBER, b.fix*2) : mix3(AMBER, GREEN, (b.fix-.5)*2);
+      var jit = b.fix < .9 ? 1.4*(1-b.fix) : 0, jx = rnd(-jit, jit), jy = rnd(-jit, jit);
+      glow(b.x, b.y, 12, col, .45);
+      ctx.save(); ctx.translate(b.x + jx, b.y + jy);
+      /* the bug: a little body with legs, flickering while it's live */
+      if(b.fix < .98 && Math.random() < .15*(1-b.fix)){ ctx.translate(rnd(-3, 3), 0); }
+      ctx.fillStyle = 'rgba(' + col + ',.95)';
+      ctx.beginPath(); ctx.ellipse(0, 0, 3, 4, 0, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = 'rgba(' + col + ',.85)'; ctx.lineWidth = .8; ctx.beginPath();
+      for(var i=-1;i<=1;i++){ ctx.moveTo(-3, i*2.4); ctx.lineTo(-6, i*3.4 - 1); ctx.moveTo(3, i*2.4); ctx.lineTo(6, i*3.4 - 1); }
+      ctx.moveTo(-1.2, -4); ctx.lineTo(-2.6, -6.4); ctx.moveTo(1.2, -4); ctx.lineTo(2.6, -6.4); ctx.stroke();
+      ctx.restore();
+      if(b.fix > 0 && b.fix < 1){
+        ctx.strokeStyle = 'rgba(' + col + ',.8)'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 11, -1.57, -1.57 + b.fix*6.2832); ctx.stroke();
+      }
+    }
+    function stepResearcher(r, dt, t){
+      r.t += dt; r.rot += r.spin*dt;
+      var lamp = '120,200,255', on = ((t*1.3 + r.seed) % 1) < .1;
+      if(r.state === 'travel'){
+        if(steer(r, r.tx, r.ty, 44, 1.3, dt) < 5){ r.state = 'scan'; r.t = 0; r.scanDur = rnd(2.8, 4.4); }
+      } else {
+        var hx = r.state === 'fix' ? r.bug.x + (r.x - r.bug.x)*.5 : r.x, hy = r.state === 'fix' ? r.bug.y + (r.y - r.bug.y)*.5 - 6 : r.y;
+        steer(r, r.state === 'fix' ? hx : r.x + r.vx*.1, r.state === 'fix' ? hy : r.y + r.vy*.1, 14, 2, dt);
+      }
+      if(r.state === 'scan'){
+        /* radar sweep: a fading wedge chasing its leading edge */
+        var a = r.t*2.6, R = 48;
+        ctx.strokeStyle = 'rgba(140,200,255,.12)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(r.x, r.y, R, 0, 6.2832); ctx.stroke();
+        var g = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, R);
+        g.addColorStop(0, 'rgba(140,200,255,.0)'); g.addColorStop(1, 'rgba(140,200,255,.16)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.arc(r.x, r.y, R, a - .7, a); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(170,220,255,.5)'; ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x + Math.cos(a)*R, r.y + Math.sin(a)*R); ctx.stroke();
+        lamp = '255,200,110'; on = ((t*2.4 + r.seed) % 1) < .3;
+        if(r.t > r.scanDur){
+          if(Math.random() < .62){
+            var ba = rnd(0, 6.28), bd = rnd(24, 40), bx = r.x + Math.cos(ba)*bd, by = r.y + Math.sin(ba)*bd;
+            if(inCard(bx, by, 8)){ bx = r.x - Math.cos(ba)*bd; by = r.y - Math.sin(ba)*bd; }
+            r.bug = { x:bx, y:by, fix:0 }; r.state = 'found'; r.t = 0;
+            ring(bx, by, '255,90,90', 4, 26, .9, 1.2);
+          } else { r.state = 'clear'; r.t = 0; ring(r.x, r.y, '120,230,160', 6, 40, 1.1); }
+        }
+      } else if(r.state === 'found'){
+        lamp = '255,80,80'; on = ((t*4 + r.seed) % 1) < .5;
+        if(r.t > 1.2){ r.state = 'fix'; r.t = 0; r.fixDur = rnd(2.4, 3.6); }
+      } else if(r.state === 'fix'){
+        r.bug.fix = Math.min(1, r.t/r.fixDur);
+        /* the patch beam: a crawling dashed line, red → green as the fix lands */
+        var col = r.bug.fix < .5 ? mix3(RED, AMBER, r.bug.fix*2) : mix3(AMBER, GREEN, (r.bug.fix-.5)*2);
+        ctx.setLineDash([3, 3]); ctx.lineDashOffset = -t*30;
+        ctx.strokeStyle = 'rgba(' + col + ',.75)'; ctx.lineWidth = 1.1;
+        ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.bug.x, r.bug.y); ctx.stroke();
+        ctx.setLineDash([]); ctx.lineDashOffset = 0;
+        lamp = col; on = true;
+        if(r.bug.fix >= 1){ r.state = 'patched'; r.t = 0; ring(r.bug.x, r.bug.y, '110,232,150', 6, 34, 1, 1.4); }
+      } else if(r.state === 'patched'){
+        lamp = '110,232,150'; on = true;
+        var u = Math.min(1, r.t/1.6), ca = 1 - u;
+        ctx.strokeStyle = 'rgba(110,232,150,' + ca.toFixed(3) + ')'; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(r.bug.x - 4, r.bug.y); ctx.lineTo(r.bug.x - 1, r.bug.y + 3); ctx.lineTo(r.bug.x + 5, r.bug.y - 4); ctx.stroke();
+        if(r.t > 1.6){ r.bug = null; nextSpot(r); }
+      } else if(r.state === 'clear'){
+        lamp = '110,232,150'; on = true;
+        if(r.t > 1.1) nextSpot(r);
+      }
+      if(r.bug && r.state !== 'patched') drawBug(r.bug, t);
+      drawSat(r.x, r.y, r.rot, lamp, on);
+    }
+
+    /* ── encrypted packets ──
+       Now and then two satellites open a secure link: a padlocked packet
+       crosses between them and lands with a handshake pulse. */
+    var packets = [], packetIn = rnd(4, 8);
+    function stepPackets(dt){
+      if(researchers.length > 1){
+        packetIn -= dt;
+        if(packetIn <= 0){
+          packetIn = rnd(7, 13);
+          var i = Math.random()*researchers.length | 0, j = (i + 1 + (Math.random()*(researchers.length-1) | 0)) % researchers.length;
+          packets.push({ a:researchers[i], b:researchers[j], u:0 });
+        }
+      }
+      for(var k=packets.length-1;k>=0;k--){
+        var p = packets[k], d = Math.hypot(p.b.x - p.a.x, p.b.y - p.a.y) || 1;
+        p.u += dt*110/d;
+        if(p.u >= 1){ ring(p.b.x, p.b.y, '120,220,255', 5, 22, .8); packets.splice(k, 1); continue; }
+        var env = Math.min(1, p.u*6, (1-p.u)*6);
+        ctx.setLineDash([2, 5]); ctx.strokeStyle = 'rgba(120,200,255,' + (.18*env).toFixed(3) + ')'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(p.a.x, p.a.y); ctx.lineTo(p.b.x, p.b.y); ctx.stroke(); ctx.setLineDash([]);
+        var x = p.a.x + (p.b.x - p.a.x)*p.u, y = p.a.y + (p.b.y - p.a.y)*p.u;
+        glow(x, y, 9, '120,220,255', .45);
+        ctx.fillStyle = 'rgba(200,240,255,.95)'; ctx.fillRect(x - 3, y - 1, 6, 5);
+        ctx.strokeStyle = 'rgba(200,240,255,.95)'; ctx.lineWidth = 1.1;
+        ctx.beginPath(); ctx.arc(x, y - 1, 2.2, 3.1416, 0); ctx.stroke();
+      }
+    }
+
+    /* ── data vaults, the firewall and the honeypot ──
+       Small locked nodes the robber goes after. Hitting one throws up a
+       firewall hex; one of them is secretly a honeypot, which flashes amber
+       and tags the robber so the cop closes in faster. */
+    var vaults = [];
+    function placeVaults(){
+      vaults = [];
+      for(var i=0;i<4;i++){
+        var p = null;
+        for(var k=0;k<30;k++){
+          var q = freeSpot(70);
+          if(vaults.every(function(v){ return Math.hypot(v.x - q.x, v.y - q.y) > 200; })){ p = q; break; }
+          p = p || q;
+        }
+        vaults.push({ x:p.x, y:p.y, honey:false, hit:0, shield:0, reveal:0, down:0 });
+      }
+      vaults[Math.random()*vaults.length | 0].honey = true;
+    }
+    function hexPath(x, y, r){
+      ctx.beginPath();
+      for(var i=0;i<6;i++){ var a = i*1.0472 + .5236; ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a)*r, y + Math.sin(a)*r); }
+      ctx.closePath();
+    }
+    function drawVault(v, t, dt){
+      var wasDown = v.down > 0;
+      v.shield = Math.max(0, v.shield - dt*.8); v.reveal = Math.max(0, v.reveal - dt*.35); v.down = Math.max(0, v.down - dt);
+      if(wasDown && v.down === 0) ring(v.x, v.y, '110,232,150', 6, 26, .8);   /* restored */
+      var col = v.reveal > 0 ? '255,190,80' : (v.down > 0 ? '255,96,96' : '130,200,255');
+      var pulse = .55 + .25*Math.sin(t*1.6 + v.x);
+      glow(v.x, v.y, 14, col, .22*pulse + (v.hit > 0 ? .25 : 0));
+      ctx.strokeStyle = 'rgba(' + col + ',' + (.7*pulse + .2).toFixed(3) + ')'; ctx.lineWidth = 1;
+      hexPath(v.x, v.y, 7); ctx.stroke();
+      /* the lock inside */
+      ctx.fillStyle = 'rgba(' + col + ',.9)'; ctx.fillRect(v.x - 2, v.y - .5, 4, 3.2);
+      ctx.beginPath(); ctx.arc(v.x, v.y - .6, 1.5, 3.1416, 0); ctx.strokeStyle = 'rgba(' + col + ',.9)'; ctx.lineWidth = .9; ctx.stroke();
+      if(v.shield > 0){
+        ctx.strokeStyle = 'rgba(120,210,255,' + (.75*v.shield).toFixed(3) + ')'; ctx.lineWidth = 1.4;
+        hexPath(v.x, v.y, 18 + (1-v.shield)*6); ctx.stroke();
+      }
+    }
+
+    /* ── the patrol: police and robber, always on screen ──
+       The robber prowls from vault to vault trying to breach them; the cop
+       hunts it, fires when it's in range, and a hit sends the robber
+       running. Both stay inside the viewport and go round the card. */
+    var robber = null, cop = null;
+    function newPatrol(){
+      var a = freeSpot(40), b = freeSpot(40, a, 260);
+      robber = { role:'hacker', x:a.x, y:a.y, vx:0, vy:0, ang:0, s:1.15, seed:.3, trail:[], a:1, flicker:0,
+        state:'prowl', t:0, target:null, tx:a.x, ty:a.y, tagged:0 };
+      cop = { role:'defender', x:b.x, y:b.y, vx:0, vy:0, ang:0, s:1.05, seed:.7, trail:[], a:1, cd:2 };
+    }
+    function robberPickVault(){
+      var options = vaults.filter(function(v){ return v.down <= 0 && v !== robber.target; });
+      robber.target = options.length ? options[Math.random()*options.length | 0] : null;
+      if(robber.target){ robber.state = 'prowl'; } else { var p = freeSpot(50); robber.tx = p.x; robber.ty = p.y; robber.state = 'roam'; }
+      robber.t = 0;
+    }
+    function robberFlee(){
+      var best = null, bd = -1;
+      for(var i=0;i<6;i++){ var p = freeSpot(50), d = Math.hypot(p.x - cop.x, p.y - cop.y); if(d > bd){ bd = d; best = p; } }
+      robber.tx = best.x; robber.ty = best.y; robber.state = 'flee'; robber.t = 0; robber.target = null;
+    }
+    function stepPatrol(dt, t){
+      var R = robber, C = cop;
+      R.t += dt; R.flicker = Math.max(0, R.flicker - dt); R.tagged = Math.max(0, R.tagged - dt);
+      var rSpd = R.tagged > 0 ? 72 : 98, cSpd = R.tagged > 0 ? 112 : 86;
+      if(R.state === 'prowl' && R.target){
+        var v = R.target;
+        if(steer(R, v.x + Math.cos(t*.8)*20, v.y + Math.sin(t*.8)*20, rSpd, 1.6, dt) < 30 || Math.hypot(R.x - v.x, R.y - v.y) < 30){
+          R.state = 'breach'; R.t = 0; v.shield = 1;
+          if(v.honey){ v.reveal = 1; R.tagged = 9; ring(v.x, v.y, '255,190,80', 8, 60, 1.4, 1.6); ring(v.x, v.y, '255,190,80', 4, 40, 1, 1); }
+        }
+      } else if(R.state === 'breach'){
+        var w = R.target;
+        steer(R, w.x + Math.cos(t*2)*22, w.y + Math.sin(t*2)*22, 40, 2.2, dt);
+        w.hit = 1;
+        /* the siphon: a jittery red line pulling from the vault */
+        ctx.setLineDash([2, 3]); ctx.lineDashOffset = t*40;
+        ctx.strokeStyle = 'rgba(255,90,80,' + (.5 + .3*Math.random()).toFixed(3) + ')'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(R.x, R.y); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0;
+        if(Math.hypot(C.x - R.x, C.y - R.y) < 130 || w.honey && R.t > .8){ w.hit = 0; robberFlee(); }
+        else if(R.t > 2.8){ w.hit = 0; w.down = 10; robberPickVault(); }
+      } else {
+        if(steer(R, R.tx, R.ty, R.state === 'flee' ? rSpd*1.2 : rSpd, 1.6, dt) < 24) robberPickVault();
+      }
+      if(!R.target && R.state === 'prowl') robberPickVault();
+
+      /* the cop leads its target a little and keeps a short standoff */
+      var px = R.x + R.vx*.6, py = R.y + R.vy*.6, dRC = Math.hypot(C.x - R.x, C.y - R.y);
+      steer(C, dRC < 70 ? C.x + (C.x - R.x)*.3 : px, dRC < 70 ? C.y + (C.y - R.y)*.3 : py, cSpd, 1.4, dt);
+      C.cd -= dt;
+      if(C.cd <= 0 && dRC < 240){
+        C.cd = rnd(1.6, 2.8);
+        var hit = Math.random() < (R.tagged > 0 ? .75 : .45);
+        launches.push({ bolt:true, x0:C.x, y0:C.y, x1:R.x + (hit ? 0 : rnd(-24, 24)), y1:R.y + (hit ? 0 : rnd(-24, 24)), t:0, hit:hit });
+      }
+      pushTrail(R, 26); pushTrail(C, 26);
+      if(R.tagged > 0){
+        /* tagged by the honeypot: a red reticle rides with the robber */
+        var rs = 15, ra = t*1.5;
+        ctx.save(); ctx.translate(R.x, R.y); ctx.rotate(ra);
+        ctx.strokeStyle = 'rgba(255,110,90,' + Math.min(.8, R.tagged*.3).toFixed(3) + ')'; ctx.lineWidth = 1;
+        for(var q=0;q<4;q++){ ctx.rotate(1.5708); ctx.beginPath(); ctx.moveTo(rs, -5); ctx.lineTo(rs, -rs); ctx.lineTo(5, -rs); ctx.stroke(); }
+        ctx.restore();
+      }
+      drawCraft(C, t); drawCraft(R, t);
+    }
+
+    var aircraft = [], freighters = [], meteors = [], launches = [], sparks = [];
+    var waitFreight = 0, meteorIn = tier.meteorGap ? rnd(6, 14) : Infinity;
     function seed(){
-      aircraft = []; freighters = []; sats = []; waitSat = [];
+      aircraft = []; freighters = []; researchers = []; vaults = []; packets = [];
       for(var i=0;i<tier.aircraft;i++){ var a = newAircraft(); a.x = rnd(W*.05, W*.95); aircraft.push(a); }
       for(var j=0;j<tier.freighter;j++){ var f = newFreighter(); f.x = rnd(W*.1, W*.9); freighters.push(f); }
-      for(var k=0;k<tier.satellites;k++){ var s = newSatellite(); s.life = rnd(0, s.dur*.6); s.x += s.vx*s.life; s.y += s.vy*s.life; sats.push(s); }
-    }
-
-    /* ── the chase: an occasional scene, not a constant ──
-       A hacker running dark breaks out of a cloud, a defender follows a beat
-       later, three shots, one hit, and the hacker dives back into the cloud.
-       Flown along a curve through whichever margin the card leaves open. */
-    var chase = null, chaseIn = tier.chase ? rnd(8, 14) : Infinity;
-    function lanes(){
-      var r = card || { x0:W*.5, y0:H*.5, x1:W*.5, y1:H*.5 }, L = [];
-      if(r.y0 > 120) L.push({ p:[[-60, r.y0*.55], [W*.3, r.y0*.15], [W*.7, r.y0*.95], [W+60, r.y0*.45]] });
-      if(H - r.y1 > 120){ var b = (H + r.y1)/2; L.push({ p:[[-60, b], [W*.35, b+50], [W*.65, b-50], [W+60, b+10]] }); }
-      if(r.x0 > 170){ var lx = r.x0*.5; L.push({ p:[[lx-40, H+60], [lx+60, H*.65], [lx-60, H*.35], [lx+20, -60]] }); }
-      if(W - r.x1 > 170){ var rx = (W + r.x1)/2; L.push({ p:[[rx+40, H+60], [rx-60, H*.6], [rx+60, H*.3], [rx-20, -60]] }); }
-      if(!L.length) L.push({ p:[[-60, H*.12], [W*.3, H*.05], [W*.7, H*.2], [W+60, H*.1]] });
-      var lane = L[Math.random()*L.length | 0];
-      if(Math.random() < .5) lane.p.reverse();
-      return lane.p;
-    }
-    function bez(P, u){
-      var v = 1-u, a = v*v*v, b = 3*v*v*u, c = 3*v*u*u, d = u*u*u;
-      return [a*P[0][0] + b*P[1][0] + c*P[2][0] + d*P[3][0], a*P[0][1] + b*P[1][1] + c*P[2][1] + d*P[3][1]];
-    }
-    function startChase(){
-      var P = lanes(), len = 0, prev = P[0];
-      for(var i=1;i<=20;i++){ var q = bez(P, i/20); len += Math.hypot(q[0]-prev[0], q[1]-prev[1]); prev = q; }
-      chase = { P:P, t:0, dur: len/210, lag:1.25, shots:[.36, .47, .6], fired:0,
-        hacker:{ role:'hacker', s:1.15, seed:.3, trail:[], a:0, flicker:0 },
-        defender:{ role:'defender', s:1.05, seed:.7, trail:[], a:0 } };
-    }
-    function flyChaser(o, u, zCurve){
-      var p = bez(chase.P, Math.min(1, Math.max(0, u))), q = bez(chase.P, Math.min(1, u + .01));
-      o.ang = Math.atan2(q[1]-p[1], q[0]-p[0]); o.x = p[0]; o.y = p[1];
-      o.z = zCurve(u);
-      var fade = smooth(0, .04, u) * (1 - smooth(.96, 1, u));
-      o.a = fade * seen(o.x, o.y, o.z);
-    }
-    function stepChase(dt, t){
-      if(!chase){ chaseIn -= dt; if(chaseIn <= 0) startChase(); return; }
-      chase.t += dt;
-      var h = chase.hacker, d = chase.defender;
-      var uh = chase.t / chase.dur, ud = (chase.t - chase.lag) / chase.dur;
-      /* hacker: out of the cloud, run, then dive back in */
-      flyChaser(h, uh, function(u){ return u < .18 ? .2 + u/.18*.7 : (u > .74 ? Math.max(.05, .9 - (u-.74)/.16*.85) : .9); });
-      flyChaser(d, ud, function(u){ return u < .18 ? .3 + u/.18*.55 : .85; });
-      if(h.flicker > 0) h.flicker -= dt;
-      pushTrail(h, 26); pushTrail(d, 26);
-      while(chase.fired < chase.shots.length && uh >= chase.shots[chase.fired] && ud > 0){
-        var hit = chase.fired === chase.shots.length - 1;
-        launches.push({ bolt:true, x0:d.x, y0:d.y, x1:h.x + (hit ? 0 : rnd(-26, 26)), y1:h.y + (hit ? 0 : rnd(-26, 26)), t:0, hit:hit });
-        chase.fired++;
-      }
-      drawCraft(d, t); drawCraft(h, t);
-      if(ud >= 1.02){ chase = null; chaseIn = rnd(70, 140); }
+      for(var k=0;k<tier.research;k++) researchers.push(newResearcher());
+      if(tier.patrol) newPatrol();
     }
 
     /* ── the courier: the form's message leaving (or bouncing) ── */
@@ -334,7 +550,7 @@
           glow(bx, by, 6, '170,215,255', .6);
           if(k >= 1){
             if(L.hit){
-              if(chase) chase.hacker.flicker = .5;
+              if(robber){ robber.flicker = .5; robberFlee(); }
               for(var s=0;s<9;s++){ var an = rnd(0, 6.2832), sp = rnd(30, 110); sparks.push({ x:L.x1, y:L.y1, vx:Math.cos(an)*sp, vy:Math.sin(an)*sp, life:rnd(.35,.7) }); }
             }
             launches.splice(i, 1);
@@ -372,19 +588,6 @@
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.clearRect(0, 0, W, H);
       ctx.lineCap = 'round';
-
-      /* satellites first: they're the farthest thing */
-      for(var i=0;i<sats.length;i++){
-        var s = sats[i];
-        if(!s){ waitSat[i] -= dt; if(waitSat[i] <= 0) sats[i] = newSatellite(); continue; }
-        s.life += dt; s.x += s.vx*dt; s.y += s.vy*dt;
-        var u = s.life/s.dur;
-        if(u >= 1){ sats[i] = null; waitSat[i] = rnd(6, 20); continue; }
-        var vis = seen(s.x, s.y, 0) * smooth(0, .04, u) * (1 - smooth(.96, 1, u));
-        var flare = s.flareAt < 0 ? 0 : Math.exp(-Math.pow((u - s.flareAt)*s.dur/0.7, 2));
-        glow(s.x, s.y, 2.4 + flare*11, '228,236,252', (.7 + flare*.3)*vis);
-        if(vis > .02){ ctx.fillStyle = 'rgba(236,242,255,' + (.85*vis).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(s.x, s.y, .9 + flare*.8, 0, 6.2832); ctx.fill(); }
-      }
 
       /* shooting stars, also far: they vanish into cloud */
       if(tier.meteorGap){
@@ -427,7 +630,13 @@
         if(o.x < -60 || o.x > W+60 || o.y < -60 || o.y > H+60) o.gone = rnd(4, 14);
       }
 
-      if(tier.chase) stepChase(dt, t);
+      /* the security layer, nearest of all: it never hides in cloud */
+      if(tier.patrol && !vaults.length && (card || t > 1.5)) placeVaults();
+      for(var v=0;v<vaults.length;v++) drawVault(vaults[v], t, dt);
+      stepPackets(dt);
+      for(var r=0;r<researchers.length;r++) stepResearcher(researchers[r], dt, t);
+      stepRings(dt);
+      if(robber && vaults.length) stepPatrol(dt, t);
       stepLaunches(dt, t);
     }
 
@@ -452,10 +661,12 @@
         var q = Math.min(m.dpr || 1, 1.5) * tier.res;
         skyCanvas.width = Math.max(2, Math.round(W*q)); skyCanvas.height = Math.max(2, Math.round(H*q));
         fxCanvas.width = Math.round(W*DPR); fxCanvas.height = Math.round(H*DPR);
-        if(reseed) seed();
+        if(reseed) seed(); else vaults = [];   /* re-place vaults for the new layout */
         if(!tier.fps) renderOnce();
       } else if(m.type === 'card'){
         card = m.rect;
+        /* a vault the card now covers (scroll, resize) moves to open sky */
+        for(var i=0;i<vaults.length;i++) if(inCard(vaults[i].x, vaults[i].y, 30)){ var p = freeSpot(70); vaults[i].x = p.x; vaults[i].y = p.y; }
       } else if(m.type === 'running'){
         running = !!m.on; last = 0;
         if(running && tier.fps) schedule();

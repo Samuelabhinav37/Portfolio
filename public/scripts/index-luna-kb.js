@@ -10,19 +10,19 @@
       keywords:['sentinel','soc','siem','elastic','kibana','sigma','wazuh','suricata','zeek','soar','shuffle','n8n','ollama','detection','detections','blue team','mttd','triage','log analysis'],
       reply:"Sentinel is the detection-engineering SOC lab. Every rule is Sigma in Git, fired live against Elastic, then triaged by two AI models that have to agree before Shuffle acts.",
       detail:"18 rules, each caught firing on a real command, with measured attack-to-alert times of 45 to 151 seconds. Ollama and Claude triage every alert in parallel, and the cases where they disagree go to a human queue. The full case study is at /projects/sentinel/.",
-      target:{type:'project', value:'sentinel'} },
+      target:{type:'scroll', value:'#sec-sentinel'} },
 
     { id:'moat', title:'Moat',
       keywords:['moat','ad blocker','adblock','ad block','ads','tracker','trackers','popup','pop-up','pop-ups','cookie banner','browser extension','chrome extension','firefox','manifest v3','mv3','declarativenetrequest'],
       reply:"Moat is Samuel's open-source ad blocker for Chrome and Firefox. It blocks ads, trackers, cookie banners and scam pop-ups entirely inside the browser. No server, no account, no telemetry.",
       detail:"About 314,000 filter entries compile into roughly 72,000 declarativeNetRequest rules, so the browser's own engine does the blocking. A small content script hides leftover boxes and closes hijacked pop-ups. The full case study is at /projects/moat/.",
-      target:{type:'project', value:'moat'} },
+      target:{type:'scroll', value:'#sec-moat'} },
 
     { id:'cluster', title:'Cluster',
       keywords:['cluster','gmail','outlook','inbox','phishing','impersonation','dmarc','spf','dkim','unsubscribe','lookalike','punycode','bec','newsletter','newsletters'],
       reply:"Cluster is a Chrome extension that cleans up Gmail and Outlook and flags impersonation, using only message metadata. It never reads a message body by default, and there's no server.",
       detail:"It checks headers for brand impersonation, lookalike and punycode domains, failed DMARC, Reply-To mismatches and known-bad domains, then scores each sender. The full case study is at /projects/cluster/.",
-      target:{type:'project', value:'cluster'} },
+      target:{type:'scroll', value:'#sec-cluster'} },
 
     { id:'bounty', title:'Bug bounty',
       keywords:['bug bounty','bounty','hackerone','vulnerability','vuln','idor','s3','bucket','subdomain','takeover','subdomain takeover','cname','dangling','pii','disclosure','findings','hacking','recon'],

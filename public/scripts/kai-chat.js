@@ -27,7 +27,7 @@
 
   // Playground fallback: score entries by the keywords the question contains.
   function simpleRespond(kb) {
-    var link = function (t) { return !t ? null : t.type === 'page' || t.type === 'url' ? t.value : t.type === 'project' ? '/projects/' + t.value + '/' : null; };
+    var link = function (t) { return !t ? null : t.type === 'page' || t.type === 'url' ? t.value : null; };
     return function (q, ctx) {
       var best = null;
       if (ctx && ctx.topic) best = kb.find(function (e) { return e.id === ctx.topic; });

@@ -1,10 +1,10 @@
 # Samuel Abhinav — Portfolio and Threat Intelligence Blog
 
-Source for [samuelabhinav.com](https://samuelabhinav.com), an Astro-based portfolio and technical blog focused on cybersecurity engineering, threat intelligence, and project case studies.
+Source for [samuelabhinav.com](https://samuelabhinav.com), an Astro-based portfolio and technical blog focused on cybersecurity engineering, threat intelligence, and security research.
 
 ## Overview
 
-The site combines portfolio pages, interactive WebGL and canvas experiences, and an MDX content collection. Blog posts share a common layout and schema, while project case studies appear alongside long-form articles in a unified index.
+The site combines portfolio pages, interactive WebGL and canvas experiences, and an MDX content collection. Blog posts share a common layout and schema.
 
 ## Technology
 
