@@ -7,9 +7,10 @@
    on the main thread, which loads sky-engine.js on demand.
 
    It also keeps the engine told about the viewport, whether the tab is
-   visible, and, when the page names one with data-avoid on #sky, where that
-   element sits, so the cast flies through open sky around it (contact's
-   form card). contact-form-handler.js fires `contact:sent` /
+   visible, and, when the page names them with data-avoid on #sky (any CSS
+   selector list), where those blocks sit on screen, so the cast flies
+   through open sky around the cards and text instead of behind them.
+   data-mood="calm" asks for the quiet sky used behind long reading. contact-form-handler.js fires `contact:sent` /
    `contact:failed`, which launch the courier. */
 (function(){
   'use strict';
@@ -17,7 +18,7 @@
   if(!host) return;
 
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var tier = reduce ? 'still' : (innerWidth <= 900 ? 'lite' : 'full');
+  var tier = reduce ? 'still' : (innerWidth <= 900 ? 'lite' : (host.getAttribute('data-mood') === 'calm' ? 'calm' : 'full'));
   var send = function(){};
 
   function canvases(){
@@ -30,11 +31,17 @@
   }
 
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
+  var avoidSel = host.getAttribute('data-avoid');
   function cardRect(){
-    var sel = host.getAttribute('data-avoid'), el = sel && document.querySelector(sel);
-    if(!el) return { type:'card', rect:null };
-    var r = el.getBoundingClientRect();
-    return { type:'card', rect:{ x0:r.left, y0:r.top, x1:r.right, y1:r.bottom } };
+    var rects = [];
+    if(avoidSel){
+      var els = document.querySelectorAll(avoidSel);
+      for(var i=0;i<els.length && rects.length < 16;i++){
+        var r = els[i].getBoundingClientRect();
+        if(r.width && r.bottom > 0 && r.top < innerHeight) rects.push({ x0:r.left, y0:r.top, x1:r.right, y1:r.bottom });
+      }
+    }
+    return { type:'card', rects:rects };
   }
   function greet(){ send(size()); send(cardRect()); send({ type:'running', on:!document.hidden }); }
 
@@ -86,8 +93,8 @@
   addEventListener('resize', sync, { passive:true });
   addEventListener('scroll', function(){ if(!queued){ queued = true; requestAnimationFrame(function(){ queued = false; send(cardRect()); }); } }, { passive:true });
   if('ResizeObserver' in window){
-    var panel = host.getAttribute('data-avoid') && document.querySelector(host.getAttribute('data-avoid'));
-    if(panel) new ResizeObserver(sync).observe(panel);
+    var ro = new ResizeObserver(sync);
+    if(avoidSel) document.querySelectorAll(avoidSel).forEach(function(el){ ro.observe(el); });
   }
   document.addEventListener('visibilitychange', function(){ send({ type:'running', on:!document.hidden }); });
   addEventListener('contact:sent', function(){ send(cardRect()); send({ type:'launch', ok:true }); });

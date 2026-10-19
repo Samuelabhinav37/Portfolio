@@ -6,15 +6,24 @@
    sky-worker.js on an OffscreenCanvas (sky.js decides which). The page
    hands it two canvases and talks to it through handle(msg):
      { type:'size', w, h, dpr }     viewport in CSS px
-     { type:'card', rect }          the element the cast should fly around
-                                    (contact's form card), viewport px, or null
+     { type:'card', rects }         the blocks the cast should fly around
+                                    (cards, text), viewport px; the first is
+                                    the one the contact courier launches from
      { type:'running', on }         tab hidden/visible
      { type:'launch', ok }          the contact form sent (ok) or failed (!ok)
 
    Tiers, picked by the page:
-     full   desktop: full-detail clouds, every member of the cast
+     full   desktop: full-detail clouds, two research satellites, the
+            police/robber chase over two vaults (one a honeypot), meteors
+     calm   desktop reading pages (the blog): the same clouds with one slow
+            satellite and the odd shooting star, nothing chasing anything
      lite   phones/tablets: cheaper clouds, one satellite + shooting stars
      still  reduced motion: one rendered frame, no cast
+
+   The cast was cut back on purpose (October 2026): ambient aircraft, the
+   freighter and the satellite-to-satellite packets made the sky too busy
+   behind text. Their code stays; raise aircraft / freighter / packets in a
+   tier to bring them back.
 
    Depth: every flying thing has a z from 0 (far, above the clouds' far
    side) to 1 (near). The cloud density at its position is computed on the
@@ -24,9 +33,10 @@
   'use strict';
 
   var TIERS = {
-    full:  { res:.5,  oct:6, fps:30, aircraft:2, freighter:1, research:3, patrol:true,  meteorGap:[25,55] },
-    lite:  { res:.35, oct:4, fps:24, aircraft:0, freighter:0, research:1, patrol:false, meteorGap:[35,75] },
-    still: { res:.5,  oct:6, fps:0,  aircraft:0, freighter:0, research:0, patrol:false, meteorGap:null }
+    full:  { res:.5,  oct:6, fps:30, aircraft:0, freighter:0, research:2, patrol:true,  vaults:2, packets:false, satSpeed:44, meteorGap:[25,55] },
+    calm:  { res:.45, oct:5, fps:24, aircraft:0, freighter:0, research:1, patrol:false, vaults:0, packets:false, satSpeed:24, meteorGap:[45,90] },
+    lite:  { res:.35, oct:4, fps:24, aircraft:0, freighter:0, research:1, patrol:false, vaults:0, packets:false, satSpeed:44, meteorGap:[35,75] },
+    still: { res:.5,  oct:6, fps:0,  aircraft:0, freighter:0, research:0, patrol:false, vaults:0, packets:false, satSpeed:0,  meteorGap:null }
   };
 
   /* The "Night clouds" look from the workbench, frozen. */
@@ -111,7 +121,7 @@
 
   function create(skyCanvas, fxCanvas, opts){
     var tier = TIERS[opts && opts.tier] || TIERS.full;
-    var W = 1, H = 1, DPR = 1, card = null, running = true;
+    var W = 1, H = 1, DPR = 1, card = null, zones = [], running = true;
     var sceneT = 40 + Math.random()*400;    /* a different sky on every visit */
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
 
@@ -245,7 +255,11 @@
        a point with a little inertia, is held inside the viewport by a soft
        wall, and is pushed round the card rather than flying behind it. */
     var TOP = 70;   /* clear of the site header */
-    function inCard(x, y, pad){ return !!card && x > card.x0-pad && x < card.x1+pad && y > card.y0-pad && y < card.y1+pad; }
+    function zoneAt(x, y, pad){
+      for(var i=0;i<zones.length;i++){ var z = zones[i]; if(x > z.x0-pad && x < z.x1+pad && y > z.y0-pad && y < z.y1+pad) return z; }
+      return null;
+    }
+    function inCard(x, y, pad){ return !!zoneAt(x, y, pad); }
     function freeSpot(pad, from, minD){
       for(var i=0;i<40;i++){
         var x = rnd(44, W-44), y = rnd(TOP+24, H-44);
@@ -263,8 +277,9 @@
       var m = 34;
       if(o.x < m) o.vx += (m-o.x)*8*dt; else if(o.x > W-m) o.vx -= (o.x-(W-m))*8*dt;
       if(o.y < TOP) o.vy += (TOP-o.y)*8*dt; else if(o.y > H-m) o.vy -= (o.y-(H-m))*8*dt;
-      if(inCard(o.x, o.y, 24)){
-        var l = o.x-(card.x0-24), r = (card.x1+24)-o.x, u = o.y-(card.y0-24), b = (card.y1+24)-o.y, n = Math.min(l, r, u, b), f = 1100*dt;
+      var zc = zoneAt(o.x, o.y, 24);
+      if(zc){
+        var l = o.x-(zc.x0-24), r = (zc.x1+24)-o.x, u = o.y-(zc.y0-24), b = (zc.y1+24)-o.y, n = Math.min(l, r, u, b), f = 1100*dt;
         if(n === l) o.vx -= f; else if(n === r) o.vx += f; else if(n === u) o.vy -= f; else o.vy += f;
       }
       o.x = Math.max(6, Math.min(W-6, o.x + o.vx*dt));
@@ -332,7 +347,7 @@
       r.t += dt; r.rot += r.spin*dt;
       var lamp = '120,200,255', on = ((t*1.3 + r.seed) % 1) < .1;
       if(r.state === 'travel'){
-        if(steer(r, r.tx, r.ty, 44, 1.3, dt) < 5){ r.state = 'scan'; r.t = 0; r.scanDur = rnd(2.8, 4.4); }
+        if(steer(r, r.tx, r.ty, tier.satSpeed, 1.3, dt) < 5){ r.state = 'scan'; r.t = 0; r.scanDur = rnd(2.8, 4.4); }
       } else {
         var hx = r.state === 'fix' ? r.bug.x + (r.x - r.bug.x)*.5 : r.x, hy = r.state === 'fix' ? r.bug.y + (r.y - r.bug.y)*.5 - 6 : r.y;
         steer(r, r.state === 'fix' ? hx : r.x + r.vx*.1, r.state === 'fix' ? hy : r.y + r.vy*.1, 14, 2, dt);
@@ -386,7 +401,7 @@
        crosses between them and lands with a handshake pulse. */
     var packets = [], packetIn = rnd(4, 8);
     function stepPackets(dt){
-      if(researchers.length > 1){
+      if(tier.packets && researchers.length > 1){
         packetIn -= dt;
         if(packetIn <= 0){
           packetIn = rnd(7, 13);
@@ -416,7 +431,7 @@
     var vaults = [];
     function placeVaults(){
       vaults = [];
-      for(var i=0;i<4;i++){
+      for(var i=0;i<tier.vaults;i++){
         var p = null;
         for(var k=0;k<30;k++){
           var q = freeSpot(70);
@@ -631,7 +646,7 @@
       }
 
       /* the security layer, nearest of all: it never hides in cloud */
-      if(tier.patrol && !vaults.length && (card || t > 1.5)) placeVaults();
+      if(tier.patrol && tier.vaults && !vaults.length && (card || t > 1.5)) placeVaults();
       for(var v=0;v<vaults.length;v++) drawVault(vaults[v], t, dt);
       stepPackets(dt);
       for(var r=0;r<researchers.length;r++) stepResearcher(researchers[r], dt, t);
@@ -664,7 +679,8 @@
         if(reseed) seed(); else vaults = [];   /* re-place vaults for the new layout */
         if(!tier.fps) renderOnce();
       } else if(m.type === 'card'){
-        card = m.rect;
+        zones = m.rects || (m.rect ? [m.rect] : []);
+        card = zones[0] || null;
         /* a vault the card now covers (scroll, resize) moves to open sky */
         for(var i=0;i<vaults.length;i++) if(inCard(vaults[i].x, vaults[i].y, 30)){ var p = freeSpot(70); vaults[i].x = p.x; vaults[i].y = p.y; }
       } else if(m.type === 'running'){

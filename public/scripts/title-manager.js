@@ -15,12 +15,14 @@
   // ── CONFIG ───────────────────────────────────────────────────────
   var PAGES = Object.freeze({
     home:    'Samuel Abhinav',
-    about:   '~/about',
-    blog:    '~/blog',
-    contact: '~/contact'
+    about:   'About',
+    blog:    'Blog',
+    contact: 'Contact'
   });
   var CURSOR = '▌';
-  var SUBPAGE_PREFIX = '~/';
+  // Page names are plain words now (no ~/ path), so nothing is shared
+  // between two titles and a page change retypes the whole word.
+  var SUBPAGE_PREFIX = '';
   var GLITCH_BLOCKS = ['▓', '░', '▒', '█', '▌'];
   var GLITCH_PUNCT  = ['~', '`', '*', '#'];
   var WIDE_LETTERS  = new Set('mbanwesMBANWES'.split(''));

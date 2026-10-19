@@ -1,4 +1,6 @@
 ---
+import Motion from '../components/Motion.astro';
+import Glitches from '../components/Glitches.astro';
 import SiteMenu from '../components/SiteMenu.astro';
 import SkyBackground from '../components/SkyBackground.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
@@ -41,6 +43,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <Fonts />
+<Motion />
 <script is:inline src="/scripts/title-manager.js"></script>
 <style is:global>
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -192,6 +195,7 @@ window.SITE=window.SITE||{};
 <a class="skip" href="#nm">Skip to the form</a>
 
 <SkyBackground avoid=".form-panel" />
+<Glitches />
 
 <SiteMenu currentPath="/contact" />
 
@@ -203,7 +207,7 @@ window.SITE=window.SITE||{};
 
   <!-- The form, centred on its own card. A real <form>: Enter submits, the
        browser autofills, password managers and screen readers understand it. -->
-  <div class="form-panel">
+  <div class="form-panel" data-reveal>
     <div class="stepper">(Get in touch)</div>
     <h1 class="form-title">Say something <em>worth decoding.</em></h1>
     <p class="form-direct">Or just write:<a href="mailto:samuelabhinav37@gmail.com">samuelabhinav37@gmail.com</a></p>
