@@ -6,6 +6,14 @@ import { checkRateLimit } from '../_lib/rate-limit.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const TO_EMAIL = 'samuelabhinav37@gmail.com';
+// The Reason <select> in contact.astro. Anything else (old cached page, hand-
+// crafted request) is dropped rather than echoed into the subject line.
+const REASONS = {
+  role: 'Role',
+  freelance: 'Freelance',
+  finding: 'Finding',
+  hello: 'Hello',
+};
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -67,6 +75,7 @@ export async function onRequestPost({ request, env }) {
   const name = stripControlChars(String(body.name || '').trim());
   const email = String(body.email || '').trim();
   const message = String(body.message || '').trim();
+  const reason = Object.hasOwn(REASONS, body.reason) ? REASONS[body.reason] : '';
   const company = String(body.company || '').trim(); // honeypot
   const turnstileToken = String(body.turnstileToken || '');
 
@@ -117,8 +126,8 @@ export async function onRequestPost({ request, env }) {
       from: 'Portfolio Contact <contact@samuelabhinav.com>',
       to: [TO_EMAIL],
       reply_to: email,
-      subject: `Portfolio contact from ${name}`,
-      text: `From: ${name} <${email}>\n\n${message}`,
+      subject: `${reason ? `[${reason}] ` : ''}Portfolio contact from ${name}`,
+      text: `From: ${name} <${email}>\n${reason ? `Reason: ${reason}\n` : ''}\n${message}`,
     }),
   });
 

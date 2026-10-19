@@ -26,6 +26,7 @@
     em: document.getElementById('em'),
     ms: document.getElementById('ms')
   };
+  var reason = document.getElementById('rs');
   var busy = false;
 
   /* Turnstile loads on first interaction with the form, not with the page.
@@ -72,7 +73,7 @@
        comment in contact.astro; the JSON key sent to the server stays
        "company" since that's just our own payload shape, unrelated to the
        HTML field name that autofill engines key off of. */
-    return { name:nm, email:em, message:ms, company:(form.hp_topic ? form.hp_topic.value : ''), turnstileToken:turnstileToken };
+    return { name:nm, email:em, message:ms, reason:(reason ? reason.value : ''), company:(form.hp_topic ? form.hp_topic.value : ''), turnstileToken:turnstileToken };
   }
 
   /* clear an error the moment the visitor starts fixing it */
