@@ -4,8 +4,8 @@
    ──────────────────────────────────────────────────────────────────
    The terminal frame is gone; the canvas is the page background from
    t=0. The intro is a pure chrome reveal (no window collapse). After
-   the main intro finishes and settles, Luna arrives through a portal,
-   the canvas brightness lifts, and the chrome-damp pools fade in
+   the main intro finishes and settles, Luna arrives through a portal
+   and the chrome-damp pools fade in
    alongside her — one combined "the page comes alive" beat.
 
    Timeline:
@@ -15,8 +15,8 @@
      t=2500   wordmark fades out
        t=3000   chrome reveal — identity, nav, topbar fade in together
      t=4500   main intro complete — body.intro-done
-     t=4900   Luna sequence begins: portal opens, brightness lift
-              starts, chrome-damp fades in
+     t=4900   Luna sequence begins: portal opens
+              and chrome-damp fades in
      t=5700   Luna fades in (emerging at the portal's peak)
      t=6400   portal collapses out, settled state reached
    ──────────────────────────────────────────────────────────────────*/
@@ -36,7 +36,6 @@
   var heroTagline  = document.getElementById('hero-tagline');
 
   window.SITE._introRevealReady = false;
-  window.SITE._bgBoost = 0.85;   // multiplier on #bg-bloom intensity; lifted on Luna's arrival
 
   /* #term-stage/#hero-tagline fade in on body.intro-done via their own
      CSS transition (1.1s / 1.1s+0.4s delay), authored assuming that class
@@ -68,9 +67,6 @@
     document.body.classList.add('intro-done');
     window.SITE._introFullyDone = true;
     window.SITE._introRevealReady = true;
-    try { startBootSeq(); } catch(_) {}
-    try { if(window.U && U.uBright){ U.uBright.value = 0.6; } } catch(_) {}   /* dimmer (was 0.85) */
-    window.SITE._bgBoost = 0.95;
     try { sessionStorage.setItem('introSeen', '1'); } catch(_) {}
   }
 
@@ -104,7 +100,7 @@
   window.SITE._introTL = introTL;
 
   introTL
-    .call(function(){ window.SITE._introRevealReady=true; startBootSeq(); }, null, 0.2)
+    .call(function(){ window.SITE._introRevealReady=true; }, null, 0.2)
     .call(function(){ logo.classList.add('in'); }, null, 0.7)
     .call(function(){
       logo.style.transition='opacity 0.5s cubic-bezier(0.4,0,0.6,1), transform 0.5s cubic-bezier(0.4,0,0.6,1)';
@@ -120,11 +116,10 @@
     }, null, 3.0)
     .call(function(){
       /* Luna arrival — fired before intro-done so the two reveals overlap
-         instead of stalling. Portal, damp pools and brightness lift start
+         instead of stalling. Portal and damp pools start
          together as one "the page comes alive" beat. */
       if(portal) portal.classList.add('opening');   // CSS keyframe runs 1.5s
       if(damp)   damp.style.opacity='1';            // CSS transition 1.3s ease
-      liftBrightness(0.6, 0.95, 850);   /* dimmer settled atmosphere (was 0.85) */
     }, null, 4.2)
     .call(function(){
       window.SITE._introFullyDone = true;
@@ -144,18 +139,4 @@
       try { sessionStorage.setItem('introSeen', '1'); } catch(_) {}
     }, null, 5.0);
 
-  /* Animates the shader nebula brightness (uBright) and the bloom
-     intensity multiplier (_bgBoost) together. easeOutCubic over `ms`. */
-  function liftBrightness(uBrightTo, bgBoostTo, ms){
-    if(!window.U || !U.uBright) return;
-    var uFrom = U.uBright.value, bFrom = window.SITE._bgBoost || 1.0;
-    var start = performance.now();
-    (function step(now){
-      var k = Math.min(1, (now - start) / ms);
-      var e = 1 - Math.pow(1 - k, 3);
-      U.uBright.value  = uFrom + (uBrightTo  - uFrom) * e;
-      window.SITE._bgBoost  = bFrom + (bgBoostTo  - bFrom) * e;
-      if(k < 1) requestAnimationFrame(step);
-    })(start);
-  }
 })();

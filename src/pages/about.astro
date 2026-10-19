@@ -2,7 +2,7 @@
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import NebulaBackground from '../components/NebulaBackground.astro';
+import SkyBackground from '../components/SkyBackground.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
@@ -58,18 +58,6 @@ html, body {
   html, body { height:auto; overflow-x:hidden; overflow-y:auto; }
 }
 
-/* Extra dark-glass pane over the ambient background, this page only (not
-   index). #bg-dim (from the shared NebulaBackground component) normally
-   sits BELOW #sc on purpose, so it never re-darkens ships/satellites that
-   CRAFT's brightness boost already lifted. Without index's constellation
-   running here, that restraint just reads as thin — moving this page's
-   copy of #bg-dim above #sc (z-index 2, same tier as #bg-grain, later in
-   DOM so it wins) and darkening it puts a real dim pane in front of the
-   whole scene, ships included, for a deeper "behind glass" depth. Tuned to
-   match the blog hero's frosted-glass overlay: light tint + a soft blur
-   rather than a flat dark wash, so ships stay visible through it. */
-#bg-dim{ z-index:2; background:rgba(8,8,10,0.15);
-  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 
 
 #about-main {
@@ -302,7 +290,7 @@ html, body {
 </head>
 <body>
 
-<NebulaBackground />
+<SkyBackground avoid="#about-inner" />
 
 <SiteMenu currentPath="/about" />
 
@@ -816,63 +804,12 @@ window.addEventListener('load', function(){ setTimeout(scaleAboutInner, 100); })
 </script>
 
 <script is:inline>
-/* The bento panel + arcade sit centered (#about-inner) and are rescaled by
-   scaleAboutInner() to fit the viewport on desktop, so a hand-picked
-   percentage margin would drift out of sync with the real layout as soon as
-   the scale factor isn't 1. Force the scale pass now (it normally only runs
-   on load/resize) and measure the actual rendered box, so background craft
-   get the full real margin on every side instead of a guessed band. */
-scaleAboutInner();
-var _aiR = document.getElementById('about-inner').getBoundingClientRect();
-var _vw = window.innerWidth, _vh = window.innerHeight;
-var _pad = 0.01; // small buffer so craft don't hug the card edges
-var _lx = Math.max(0, _aiR.left / _vw - _pad);
-var _rx = Math.min(1, _aiR.right / _vw + _pad);
-var _ty = Math.max(0, _aiR.top / _vh - _pad);
-var _by = Math.min(1, _aiR.bottom / _vh + _pad);
-window.SITE.NEBULA_SAFE_ZONES = [
-  {x0:0,  y0:0, x1:_lx, y1:1},  // left margin
-  {x0:_rx,y0:0, x1:1,   y1:1},  // right margin
-  {x0:0,  y0:0, x1:1,   y1:_ty}, // top strip
-  {x0:0,  y0:_by,x1:1,  y1:1},  // bottom strip
-];
-</script>
-<script is:inline src="/scripts/nebula-engine.js"></script>
-
-<script is:inline>
-/* About page has no 6.4s intro choreography. Boot the ported network
-   immediately and settle it to its final lit state (mirrors the homepage
-   intro's returning-visitor fast-path). */
-(function(){
-  window.SITE._introRevealReady = true;
-  window.SITE._introFullyDone   = true;
-  window.SITE._bgBoost = 0.95;
-  try { if (window.U && U.uBright) U.uBright.value = 0.6; } catch(e){}
-  try { startBootSeq(); }
-  catch(e){ try { window.NS && window.NS.startBootSeq && window.NS.startBootSeq(); } catch(_){} }
-})();
+/* No intro choreography on this page: mark it settled straight away so
+   Kai's arrival greet runs (it waits on _introFullyDone). */
+window.SITE._introRevealReady = true;
+window.SITE._introFullyDone   = true;
 </script>
 
-<script is:inline>
-/* ──────────────────────────────────────────────────────────────────
-   PAGE VISIBILITY HARD-PAUSE
-   The browser already throttles requestAnimationFrame in hidden tabs
-   to ~1Hz, but rAF callbacks still fire and accumulate state (U.uTime,
-   freighter/asteroid drift, satellite paths). When the user returns
-   they see "the network has been busy" — correct creative read but
-   wastes battery. We discard the accumulated threeClock delta on
-   show so scene time stands still while the tab is in the background.
-   ────────────────────────────────────────────────────────────────── */
-(function(){
-  'use strict';
-  if(typeof threeClock === 'undefined') return;
-  document.addEventListener('visibilitychange', function(){
-    if(!document.hidden && threeClock && typeof threeClock.getDelta === 'function'){
-      threeClock.getDelta(); /* drop the accumulated background dt */
-    }
-  });
-})();
-</script>
 
 
 

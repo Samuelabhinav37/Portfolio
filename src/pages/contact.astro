@@ -1,5 +1,6 @@
 ---
 import SiteMenu from '../components/SiteMenu.astro';
+import SkyBackground from '../components/SkyBackground.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import KaiSite from '../components/KaiSite.astro';
@@ -44,20 +45,6 @@ window.SITE=window.SITE||{};
 <style is:global>
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
-  /* ══════════════ NIGHT SKY ══════════════
-     This page's own background (contact-sky.js + sky-engine.js), not the
-     shared nebula: cloud banks over a navy sky with craft flying in and out
-     of them. One solid card sits in the middle and the sky gets the rest of
-     the screen. The gradient is what shows before the first frame, and
-     where WebGL is unavailable. */
-  #sky{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
-    background:linear-gradient(0deg, #050917 0%, #0a1226 55%, #172445 100%); }
-  #sky canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
-  #sky .sky-grain{ position:absolute; inset:0; opacity:.2; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-  /* the site's CRT scanlines, same as the shared background */
-  #sky::after{ content:''; position:absolute; inset:0;
-    background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.05) 3px 4px); }
   body{
     background:var(--c-bg); color:rgba(233,236,247,0.92);
     font-family:'Cormorant Garamond', Georgia, serif;
@@ -204,7 +191,7 @@ window.SITE=window.SITE||{};
 
 <a class="skip" href="#nm">Skip to the form</a>
 
-<div id="sky" aria-hidden="true"><div class="sky-grain"></div></div>
+<SkyBackground avoid=".form-panel" />
 
 <SiteMenu currentPath="/contact" />
 
@@ -292,7 +279,6 @@ window.SITE=window.SITE||{};
      SRI: Cloudflare serves it from a rotating URL and recommends against
      pinning it (https://developers.cloudflare.com/turnstile/). -->
 <script is:inline src="/scripts/contact-form-handler.js"></script>
-<script is:inline src="/scripts/contact-sky.js"></script>
 <script is:inline>
 /* No intro choreography on this page: mark it settled straight away so
    Kai's arrival greet runs (it waits on _introFullyDone). */

@@ -1,4 +1,4 @@
-/* Boots the contact page sky (sky-engine.js).
+/* Boots the site sky (sky-engine.js) for components/SkyBackground.astro.
 
    Where the browser can, both canvases are handed to sky-worker.js as
    OffscreenCanvases, so the sky renders off the main thread. If that isn't
@@ -6,10 +6,11 @@
    OffscreenCanvas 2D but not WebGL), it falls back to fresh canvases driven
    on the main thread, which loads sky-engine.js on demand.
 
-   It also keeps the engine told about the viewport, where the form card
-   sits (so the chase flies through open sky and the courier launches from
-   the card), whether the tab is visible, and the form's send result:
-   contact-form-handler.js fires `contact:sent` / `contact:failed`. */
+   It also keeps the engine told about the viewport, whether the tab is
+   visible, and, when the page names one with data-avoid on #sky, where that
+   element sits, so the cast flies through open sky around it (contact's
+   form card). contact-form-handler.js fires `contact:sent` /
+   `contact:failed`, which launch the courier. */
 (function(){
   'use strict';
   var host = document.getElementById('sky');
@@ -30,7 +31,7 @@
 
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
   function cardRect(){
-    var el = document.querySelector('.form-panel');
+    var sel = host.getAttribute('data-avoid'), el = sel && document.querySelector(sel);
     if(!el) return { type:'card', rect:null };
     var r = el.getBoundingClientRect();
     return { type:'card', rect:{ x0:r.left, y0:r.top, x1:r.right, y1:r.bottom } };
@@ -40,12 +41,12 @@
   function runInline(){
     var c = canvases();
     function boot(){
-      var engine = window.ContactSky.create(c.sky, c.fx, { tier:tier });
+      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier });
       if(!engine.hasGL) host.classList.add('no-gl');
       send = engine.handle;
       greet();
     }
-    if(window.ContactSky) return boot();
+    if(window.SiteSky) return boot();
     var s = document.createElement('script');
     s.src = '/scripts/sky-engine.js';
     s.addEventListener('load', boot);
@@ -85,7 +86,7 @@
   addEventListener('resize', sync, { passive:true });
   addEventListener('scroll', function(){ if(!queued){ queued = true; requestAnimationFrame(function(){ queued = false; send(cardRect()); }); } }, { passive:true });
   if('ResizeObserver' in window){
-    var panel = document.querySelector('.form-panel');
+    var panel = host.getAttribute('data-avoid') && document.querySelector(host.getAttribute('data-avoid'));
     if(panel) new ResizeObserver(sync).observe(panel);
   }
   document.addEventListener('visibilitychange', function(){ send({ type:'running', on:!document.hidden }); });

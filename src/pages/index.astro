@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import NebulaBackground from '../components/NebulaBackground.astro';
+import SkyBackground from '../components/SkyBackground.astro';
 import KaiSite from '../components/KaiSite.astro';
 import { SITE } from '../config';
 import '../styles/tokens.css';
@@ -107,113 +107,6 @@ body { min-height:100%; }
   font:13px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.04em;
 }
 
-/* ── T2 geometry: written by JS each frame, never authored by hand ───── */
-:root{
-  --gt-x:0px; --gt-y:0px; --gt-w:100vw; --gt-h:100vh; --gt-h:100svh; --gt-r:0px;
-  --gt-chrome:0; --gt-o:1; --gt-bar:34px;
-  --gl-x:0px; --gl-y:0px; --gl-s:100vh; --gl-s:100svh;
-  --rail-o:0;
-}
-#globe-term{
-  position:relative; z-index:1;
-  width:100%; height:100vh; height:100svh;
-  overflow:hidden;                 /* keeps the globe + chrome inside the section */
-  pointer-events:none; opacity:1;
-  background:rgba(4,4,10,0.9);     /* same calm panel as #editorial for a continuous field */
-}
-/* box-shadow copied verbatim from T3's .crt so the two frames read as the same
-   object. Background stays translucent rather than T3's #000: the nebula and
-   ships have to remain visible behind this one. */
-#globe-term::before{
-  content:''; position:absolute; inset:0; z-index:6; pointer-events:none;
-  border-radius:inherit; opacity:var(--gt-chrome);
-  background:rgba(3,4,10,0.16);
-  box-shadow:0 0 60px 10px rgba(var(--c-white),0.04),
-             0 0 170px 36px rgba(90,120,185,0.12);
-}
-#globe-term .gt-chrome{ position:absolute; inset:0; z-index:5;
-  pointer-events:none; opacity:var(--gt-chrome); border-radius:inherit; overflow:hidden; }
-#globe-gl{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  width:min(86vh,86vw); height:min(86vh,86vw); display:block; z-index:1;
-  pointer-events:none; opacity:0; transition:opacity .8s ease; }
-body.globe-active #globe-gl{ opacity:1; }
-#globe-term .gt-bar{
-  position:absolute; top:0; left:0; right:0; height:34px; z-index:7;   /* 34px = T3's .fterm-bar */
-  display:flex; align-items:center; gap:9px; padding:0 13px;
-  background:rgba(16,16,16,0.98); border-bottom:1px solid rgba(188,217,255,0.13);
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9.5px;
-  letter-spacing:0.16em; text-transform:uppercase; color:rgba(238,241,247,0.42); }
-#globe-term .gt-led{ width:5px; height:5px; border-radius:50%; background:#bcd9ff; opacity:.55; }
-#globe-term .gt-sweep{ position:absolute; left:0; right:0; height:38%; z-index:8; opacity:0; top:-40%;
-  pointer-events:none;
-  background:linear-gradient(to bottom, transparent, rgba(188,217,255,0.16) 46%, rgba(var(--c-white),0.30) 52%, transparent); }
-#globe-term.sweep .gt-sweep{ animation:gtSweep .52s cubic-bezier(.5,0,.4,1); }
-@keyframes gtSweep{ 0%{opacity:1; top:-40%} 100%{opacity:1; top:110%} }
-#globe-term.capture .crt-scan{ animation:gtGlitch .42s steps(8); }
-@keyframes gtGlitch{ 0%,100%{opacity:.40} 20%{opacity:.95} 40%{opacity:.10} 60%{opacity:.85} 80%{opacity:.28} }
-
-/* ── host chrome: rail + the metadata evicted from inside T2 ─────────── */
-#case-rail{ position:fixed; left:clamp(16px,3vw,48px); top:14vh;
-  width:clamp(160px,17vw,240px); z-index:1100; opacity:var(--rail-o);   /* was 471, under the drawer at 1200 */
-  transform:translateX(calc((1 - var(--rail-o)) * -12px)); pointer-events:none; }
-/* Parent stays none so it never blocks the canvas; the BUTTONS carry their
-   own auto, which works through a pointer-events:none ancestor. Visibility
-   is what gates them, so an invisible rail cannot be clicked. */
-#case-rail button, #case-rail a{ pointer-events:auto; }
-#case-rail .cr-head{ display:flex; justify-content:space-between; padding:0 0 10px;
-  border-bottom:1px solid rgba(188,217,255,0.30); }
-#case-rail .cr-lbl{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9.5px;
-  letter-spacing:0.16em; text-transform:uppercase; color:rgba(238,241,247,0.40); }
-#case-rail ul{ list-style:none; margin:0; padding:0; }
-#case-rail button{ position:relative; display:grid; grid-template-columns:auto 1fr;
-  align-items:baseline; gap:10px; width:100%; background:none; border:0;
-  border-bottom:1px solid rgba(188,217,255,0.13); padding:12px 4px 12px 0;
-  text-align:left; cursor:pointer; color:rgba(238,241,247,0.40); font:inherit;
-  transition:color .3s, background .3s, padding-left .3s; }
-#case-rail button:hover{ color:#eef1f7; background:rgba(188,217,255,0.035); padding-left:9px; }
-#case-rail .cr-id{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:10px;
-  letter-spacing:0.06em; color:rgba(238,241,247,0.22); transition:color .3s; }
-#case-rail .cr-nm{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:18px;
-  line-height:1.15; color:currentColor; }
-#case-rail button[aria-selected="true"]{ color:#eef1f7; padding-left:9px; }
-#case-rail button[aria-selected="true"] .cr-id{ color:#bcd9ff; }
-#case-rail button[aria-selected="true"] .cr-nm{ font-style:italic; }
-#case-rail button[aria-selected="true"]::before{ content:''; position:absolute; left:0; top:50%;
-  width:2px; height:19px; margin-top:-9px; background:#bcd9ff; }
-/* the case detail: title, metric and spec, all of which used to be inside T2 */
-#cr-detail{ display:none; }   /* names only; the case detail lives in T2 */
-#cr-detail .cd-kick{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9px;
-  letter-spacing:0.24em; text-transform:uppercase; color:rgba(150,190,255,0.55); }
-#cr-detail .cd-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; font-size:2.5rem;
-  line-height:1; margin:5px 0 3px; color:#eef1f7; }
-#cr-detail .cd-cap{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-style:italic; font-size:14px;
-  line-height:1.35; color:rgba(238,241,247,0.50); margin:0 0 16px; }
-#cr-detail .cd-metric{ display:flex; align-items:baseline; gap:8px; padding:0 0 14px;
-  border-bottom:1px solid rgba(188,217,255,0.13); }
-#cr-detail .cd-mv{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:1.5rem; color:#bcd9ff; }
-#cr-detail .cd-ml{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.18em;
-  text-transform:uppercase; color:rgba(238,241,247,0.38); }
-#cr-detail ul.cd-spec{ list-style:none; margin:0; padding:0; }
-#cr-detail .cd-spec li{ padding:9px 0; border-bottom:1px solid rgba(188,217,255,0.09); }
-#cr-detail .cd-k{ display:block; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8px;
-  letter-spacing:0.24em; text-transform:uppercase; color:rgba(238,241,247,0.32); margin-bottom:3px; }
-#cr-detail .cd-v{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11.5px; line-height:1.45;
-  color:rgba(238,241,247,0.82); }
-#cr-detail .cd-more{ display:inline-flex; gap:7px; margin-top:16px; text-decoration:none;
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:9.5px; letter-spacing:0.16em;
-  text-transform:uppercase; color:rgba(238,241,247,0.55);
-  border-bottom:1px solid rgba(188,217,255,0.22); padding-bottom:3px; transition:.25s; }
-#cr-detail .cd-more:hover{ color:#bcd9ff; border-color:rgba(188,217,255,0.55); }
-@media (--bp-980){
-  #case-rail{ left:4vw; right:4vw; width:auto; top:9vh; }
-  #case-rail ul{ display:flex; gap:6px; }
-  #case-rail li{ flex:1; }
-  #case-rail button{ grid-template-columns:1fr; gap:2px; padding:8px; }
-  #case-rail button[aria-selected="true"]::before{ top:auto; bottom:-1px; left:0; right:0;
-    width:auto; height:2px; margin:0; }
-  #cr-detail{ display:none; }
-}
-
 /* ── Intro ── */
 /* (intro-vignette removed — wordmark sits over the live boot, no dark veil) */
 
@@ -257,11 +150,6 @@ body.globe-active #globe-gl{ opacity:1; }
 @media (prefers-reduced-motion: reduce){
   #intro-logo.glitch-flick .gtxt::before, #intro-logo.glitch-flick .gtxt::after { opacity:0 !important; transform:none !important; }
 }
-
-/* system-sans direction: keep live numeric readouts on tabular figures so
-   ticking digits don't shift width each update */
-.ptile--spec .v, .ptile--metric .mv,
-#cr-detail .cd-v, #cr-detail .cd-mv { font-variant-numeric: tabular-nums; }
 
 /* ── chrome dampening — soft dark pools that keep the UI legible over the
       brightened canvas; sits above the canvas, below the chrome; fades in
@@ -355,185 +243,6 @@ body.intro-done #hero-tagline { opacity:1; }
 @media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:34px; } }
 @media (prefers-reduced-motion: reduce) { #hero-tagline-cursor { animation:none; } }
 
-/* ════ Globe arc overlays ════ */
-/* GUEST of T2, so window-relative. Edited in place rather than overridden
-   earlier in the sheet, because this rule is the one that wins. */
-#globe-labels { position:absolute; inset:0; z-index:2; pointer-events:none; }
-.glbl { position:absolute; transform:translateY(-50%); padding-left:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size:11px; letter-spacing:0.22em; color:rgba(214,226,250,0.95); white-space:nowrap;
-  pointer-events:auto; cursor:pointer; opacity:0; transition:opacity .25s ease;
-  text-shadow:0 0 12px rgba(20,30,60,0.9); }
-/* the dot IS the node marker: anchor its CENTRE exactly on the projected node
-   point (the JS sets the element's left/top to that point), text offset to the
-   right. Was translate(-50%,-50%) which centred the TEXT on the node and left
-   the dot ~half-the-text-width to the left — hence the "labels off the globe". */
-.glbl::before { content:''; position:absolute; left:0; top:50%; width:6px; height:6px;
-  margin-left:-3px; margin-top:-3px; border-radius:50%; background:rgba(150,185,255,0.9); box-shadow:0 0 10px rgba(150,200,255,0.9); }
-.glbl:hover { color:#fff; }
-/* signal tier — the knowledge-field / neighbor labels: whisper-size telemetry text.
-   Non-interactive atmosphere; opacity driven per-frame (facing + phase). */
-.gsig { position:absolute; transform:translateY(-50%); padding-left:11px;
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.16em;
-  color:rgba(190,208,240,0.85); white-space:nowrap; pointer-events:none; opacity:0; z-index:640; }
-.gsig::before { content:''; position:absolute; left:0; top:50%; width:3px; height:3px;
-  transform:translateY(-50%); border-radius:50%; background:rgba(170,195,240,0.8); }
-.gsig.sig-n { color:rgba(210,224,250,0.95); font-size:9px; }   /* neighbor tier: a step brighter */
-
-/* ════════════════ Project tour — blueprint window clusters ════════════════
-   Each project shows an asymmetric stack of windows (one large blueprint image +
-   offset title / spec / metric tiles) that stagger in as the globe lands. A focus
-   scrim darkens the background during each hold so the windows read clearly. Swap
-   real photos via the <img> src; the blueprint duotone stays in CSS. */
-#tour-scrim { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:0;
-  background:radial-gradient(150% 120% at 50% 46%, rgba(3,4,10,0.90) 0%, rgba(1,2,6,0.985) 68%); }
-#project-cards { position:absolute; inset:var(--gt-bar) 0 0 0; z-index:3; pointer-events:none; display:none; }
-.pcluster { position:absolute; top:50%; right:4%; width:min(440px,34%); height:540px; transform:translateY(-50%); }
-.ptile { position:absolute; opacity:0; pointer-events:none; }
-/* will-change is applied per-tile in JS only while the tile's cluster is
-   focused, then cleared — permanent promotion on all 21 tiles wastes GPU memory. */
-.ptile.live { pointer-events:auto; }
-/* v9's composition, restored inside T2. The element count was never the real
-   problem: the terminal RESIZING under them was. Now that it is born at final
-   size and only translates, the original layout holds. */
-.ptile--title { top:0; right:8px; text-align:right; }
-.ptile--title .pk { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; letter-spacing:0.34em;
-  text-transform:uppercase; color:rgba(226,232,244,0.74); margin-bottom:5px; }
-.ptile--title .pt { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; font-size:3.6rem; line-height:0.9;
-  color:#eef3ff; letter-spacing:-0.005em; text-shadow:0 0 24px rgba(210,220,240,0.14); }
-.ptile--img { top:72px; left:0; width:min(300px,96%); }
-.pblue { position:relative; width:100%; aspect-ratio:4/3; overflow:hidden;
-  border:1px solid rgba(226,232,244,0.30); background:#0a0a0b; }
-/* fine blueprint grid + soft core glow — shown only when no real image is loaded,
-   so the empty state reads as a schematic viewport rather than a blank void */
-.pblue--empty { background-image:
-    repeating-linear-gradient(0deg, rgba(226,232,244,0.06) 0 1px, transparent 1px 13px),
-    repeating-linear-gradient(90deg, rgba(226,232,244,0.06) 0 1px, transparent 1px 13px),
-    repeating-linear-gradient(0deg, rgba(226,232,244,0.12) 0 1px, transparent 1px 52px),
-    repeating-linear-gradient(90deg, rgba(226,232,244,0.12) 0 1px, transparent 1px 52px),
-    radial-gradient(130% 110% at 50% 50%, rgba(120,134,160,0.16), transparent 68%); }
-.pblue img { width:100%; height:100%; object-fit:cover; display:block; mix-blend-mode:screen; opacity:0.92;
-  filter:grayscale(1) contrast(0.92) brightness(0.82) blur(0.4px); }
-/* light-background source images (white-paper diagrams) invert first so the sheet
-   drops into the dark tile and the line-art glows, matching the dark screenshots */
-.pblue--invert img { filter:invert(1) grayscale(1) contrast(0.96) brightness(0.85) blur(0.4px); }
-/* ── scene integration: dissolve the loaded screenshots into the starfield.
-   feather every edge so the rectangle melts into the dark, drop the hard frame,
-   and lay film grain over the content so tile and scene share one surface. */
-.pblue:not(.pblue--empty){ background:transparent; border-color:transparent; }
-.pblue:not(.pblue--empty) img{
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); mask-composite:intersect; }
-.pblue:not(.pblue--empty)::before{ display:none; }
-.pblue:not(.pblue--empty)::after{ background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' preserveAspectRatio='none'><g stroke='rgb(216,216,220)' stroke-width='1' opacity='0.32'><path d='M27 30h14M34 23v14'/><path d='M359 30h14M366 23v14'/><path d='M27 270h14M34 263v14'/><path d='M359 270h14M366 263v14'/></g><g stroke='white' stroke-width='0.7' fill='none'><line x1='88' y1='20' x2='86' y2='280' opacity='0.15'/><line x1='210' y1='42' x2='212' y2='300' opacity='0.1'/><line x1='322' y1='0' x2='321' y2='214' opacity='0.16'/></g><g fill='white'><circle cx='120' cy='70' r='1.1' opacity='0.28'/><circle cx='262' cy='108' r='0.8' opacity='0.22'/><circle cx='182' cy='200' r='1.3' opacity='0.26'/><circle cx='340' cy='240' r='0.9' opacity='0.2'/><circle cx='60' cy='152' r='0.7' opacity='0.22'/><circle cx='300' cy='58' r='1.0' opacity='0.24'/><circle cx='150' cy='122' r='0.6' opacity='0.18'/><circle cx='232' cy='252' r='0.8' opacity='0.22'/></g></svg>") 0 0/100% 100% no-repeat, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='tg'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23tg)' opacity='0.6'/></svg>") 0 0/160px 160px, repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 4px), radial-gradient(120% 120% at 50% 45%, transparent 44%, rgba(0,0,0,0.66) 100%); mix-blend-mode:overlay; opacity:.66;
-  box-shadow:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(0deg,transparent,#000 13%,#000 87%,transparent); mask-composite:intersect; }
-/* depth: push the two flanking frames back so the hero reads first (opacity only,
-   so a project's invert filter is preserved) */
-.ptile--limg .pblue:not(.pblue--empty) img{ opacity:.58; }
-.ptile--img  .pblue:not(.pblue--empty) img{ opacity:.78; }
-
-/* engineering corner brackets — always frame the viewport (over image too) */
-.pblue::before { content:''; position:absolute; inset:0; pointer-events:none; z-index:3;
-  background:
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 0/15px 1px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 0/1px 15px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 0/15px 1px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 0/1px 15px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 100%/15px 1px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 0 100%/1px 15px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 100%/15px 1px no-repeat,
-    linear-gradient(rgba(226,232,244,0.34) 0 0) 100% 100%/1px 15px no-repeat; }
-.pblue::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
-  background:linear-gradient(180deg, rgba(10,16,30,0) 56%, rgba(6,8,16,0.6) 100%);
-  box-shadow:inset 0 0 0 1px rgba(226,232,244,0.10); }
-/* HUD status tag, top-left */
-.phud-tag { position:absolute; top:8px; left:9px; z-index:4; pointer-events:none;
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.24em;
-  text-transform:uppercase; color:rgba(210,210,214,0.7); }
-.phud-tag::before { content:'\25A6  '; color:rgba(205,205,210,0.85); }
-/* faded archival scan stamp, bottom-right of each recon tile */
-.phud-meta{ position:absolute; right:9px; bottom:7px; z-index:4; pointer-events:none;
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:7px; letter-spacing:0.18em;
-  text-transform:uppercase; color:rgba(210,210,214,0.4); }
-/* centered reticle + label, only on the empty (schematic) state */
-.phud-ret, .phud-empty { display:none; }
-.pblue--empty .phud-ret { display:block; position:absolute; left:50%; top:46%; z-index:3;
-  width:50px; height:50px; transform:translate(-50%,-50%); pointer-events:none;
-  border:1px solid rgba(226,232,244,0.26); border-radius:50%; }
-.pblue--empty .phud-ret::before, .pblue--empty .phud-ret::after { content:''; position:absolute; background:rgba(226,232,244,0.30); }
-.pblue--empty .phud-ret::before { left:50%; top:-13px; width:1px; height:76px; transform:translateX(-50%); }
-.pblue--empty .phud-ret::after { top:50%; left:-13px; height:1px; width:76px; transform:translateY(-50%); }
-.pblue--empty .phud-empty { display:block; position:absolute; left:0; right:0; top:64%; z-index:4;
-  text-align:center; pointer-events:none; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size:8.5px; letter-spacing:0.34em; text-transform:uppercase; color:rgba(226,232,244,0.42); }
-.ptile--img .pcap { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; letter-spacing:0.01em; line-height:1.6;
-  color:rgba(224,228,238,0.62); margin-top:9px; padding-left:1px; }
-.ptile--spec { bottom:26px; right:0; width:336px; padding:16px 18px;
-  background:linear-gradient(180deg, rgba(20,20,22,0.66), rgba(12,12,14,0.66)), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='sg'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23sg)' opacity='0.55'/></svg>") 0 0/150px 150px;
-  border:1px solid rgba(205,205,210,0.15); }
-/* backdrop-filter only once the tile has settled (.live). A backdrop blur
-   re-samples everything behind it every frame; doing that while the tile is
-   simultaneously transformed and faded (the reveal/exit stagger) is a jank
-   multiplier. The blur appears when the tile stops moving. */
-.ptile--spec.live { backdrop-filter:blur(6px); }
-.ptile--spec::before { content:''; position:absolute; top:-1px; left:-1px; width:11px; height:11px;
-  border-top:1px solid rgba(210,210,215,0.55); border-left:1px solid rgba(210,210,215,0.55); }
-.ptile--spec::after { content:''; position:absolute; bottom:-1px; right:-1px; width:11px; height:11px;
-  border-bottom:1px solid rgba(210,210,215,0.45); border-right:1px solid rgba(210,210,215,0.45); }
-.ptile--spec ul { list-style:none; margin:0; padding:0; }
-/* spec-sheet grammar (Atmospheric Depth Gallery reference): each row is a strict
-   two-column dt/dd — labels and values both use JetBrains Mono (the machine voice); values move
-   to a lighter weight for the document voice. The column alignment is what reads as
-   a real datasheet rather than stacked captions. */
-.ptile--spec li { padding:9px 0; border-top:1px solid rgba(205,205,210,0.10);
-  display:grid; grid-template-columns:58px 1fr; column-gap:14px; align-items:baseline; }
-.ptile--spec li:first-child { border-top:none; padding-top:0; }
-.ptile--spec li .k { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.24em;
-  text-transform:uppercase; color:rgba(200,200,206,0.58); padding-top:1px; }
-.ptile--spec li .v { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:11px; line-height:1.5; letter-spacing:0.005em;
-  color:rgba(226,226,230,0.9); text-wrap:pretty; }
-.ptile--metric { top:34px; left:236px; width:168px; background:rgba(9,12,22,0.6);
-  border:1px solid rgba(226,232,244,0.16); padding:11px 12px; }
-.ptile--metric .mv { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; font-size:1.85rem; color:#eef0f6; line-height:1.02; }
-.ptile--metric .ml { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:9px; letter-spacing:0.18em;
-  text-transform:uppercase; color:rgba(226,232,244,0.6); margin-top:4px; }
-.ptile--link { bottom:0; left:4px; }
-.ptile--link a { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:10px; letter-spacing:0.22em;
-  text-transform:uppercase; color:rgba(160,198,255,0.92); text-decoration:none; pointer-events:auto;
-  border-bottom:1px solid rgba(226,232,244,0); transition:color .2s, border-color .2s; padding-bottom:2px; }
-/* [ bracket ] control grammar (Son Daven-style ASCII UI): brackets sit dim,
-   brighten with the label on hover — reads as an interface control, not a link */
-.ptile--link a::before { content:'[ '; color:rgba(226,232,244,0.45); transition:color .2s; }
-.ptile--link a::after  { content:' ]'; color:rgba(226,232,244,0.45); transition:color .2s; }
-.ptile--link a:hover { color:#fff; border-bottom-color:rgba(226,232,244,0.6); }
-.ptile--link a:hover::before, .ptile--link a:hover::after { color:rgba(226,232,244,0.95); }
-
-/* left-side discovery windows — smaller + simpler than the right blueprint:
-   clean thin frame, subtle grid, no brackets / tag / reticle */
-.pcluster-l { position:absolute; inset:0; pointer-events:none; }   /* full area; each screen placed individually */
-.ptile--limg { position:absolute; }
-/* deliberately uneven: different x, y and size so it reads editorial, not gridded */
-.ptile--limg.l1 { top:13%; left:2%;  width:min(244px,18%); }   /* top-left, dropped clear of the logo */
-.ptile--limg.l2 { top:59%; left:7%; right:auto; width:min(272px,20%); }   /* lower, pushed right, a touch bigger */
-.ptile--limg .pblue { border-color:transparent; }
-.ptile--limg .pblue::before { display:none; }      /* no corner brackets */
-.ptile--limg .phud-tag { display:none; }            /* no status tag */
-.ptile--limg .pblue--empty .phud-ret { display:none; } /* no reticle crosshair */
-.ptile--limg .pblue--empty .phud-empty { top:auto; bottom:9px; font-size:7.5px; letter-spacing:0.28em;
-  color:rgba(226,232,244,0.34); }
-.ptile--limg .pcap { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:8.5px; letter-spacing:0.05em;
-  color:rgba(224,228,238,0.5); margin-top:6px; padding-left:1px; }
-
-@media (--bp-820){
-  .pcluster { right:3vw; left:3vw; width:auto; height:auto; min-height:62vh; }
-  .ptile { position:relative; left:auto; right:auto; top:auto; bottom:auto; margin-bottom:12px; text-align:left; }
-  .ptile--metric { left:auto; }
-  .pcluster-l { display:none; }       /* single-column on small screens */
-}
-
-/* Beat 1 scroll distance */
-/* beat spacers removed — sections are normal-flow now */
 </style>
 
 <script is:inline defer src="/scripts/gsap.min.js"></script>
@@ -790,7 +499,7 @@ footer#site-footer{
 
 
 
-<NebulaBackground />
+<SkyBackground />
 
 
 
@@ -849,8 +558,8 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-subliminal-layer.js"></script>
 
 <!-- ════ Terminal window — floating CRT feed; Beat 1 expands it to fullscreen ════
-     Sits in a fixed, centered stage at z-index 500: above the nebula/network
-     background (#window), below Luna (999) and the chrome (1000+), so the navbar
+     Sits in a fixed, centered stage at z-index 500: above the sky
+     background (#sky), below Luna (999) and the chrome (1000+), so the navbar
      and Luna ride on top throughout. Revealed at body.intro-done (Beat 0). -->
 <div id="term-stage">
   <div id="term-window" style="width:100%;height:100vh;height:100svh;border-radius:0;">
@@ -922,9 +631,8 @@ footer#site-footer{
 <!-- Beat 1 scroll distance: scrubs the expand floating &rarr; fullscreen -->
 <!-- beat1 removed: CRT is now a normal-flow section that scrolls away -->
 <!-- ═══════════════ EDITORIAL FLOW: KEV feed → beliefs → research log ═══════════════
-     Normal-flow content inserted between the CRT (beat1) and the globe (beat-arc).
-     Sits at z-index 300 over the ambient nebula/network (z0/z1); the CRT releases
-     on scroll and the globe stays unformed until its band, so nothing overlaps. -->
+     Normal-flow content between the CRT and the projects. Sits at z-index 300
+     over the sky background; the CRT releases on scroll, so nothing overlaps. -->
 <style is:global id="ed-styles">
   #editorial{ position:relative; z-index:300; background:rgba(4,4,10,0.9); color:#ededee;
     font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
@@ -1253,17 +961,7 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-editorial-flow.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
-<!-- Focus scrim retained (empty) so the globe module's scrim ref stays valid -->
-<div id="tour-scrim"></div>
-
-<!-- ══ T2 — the globe terminal ═══════════════════════════════════════
-     Owns beat 3 and nothing else. Full-viewport with invisible chrome while
-     the globe forms, then the chrome glitches in and the box closes around
-     it. overflow:hidden is what crops the guest and sells the capture.
-     Contains ONLY the globe, its labels and the stills. -->
-<!-- #globe-term relocated into the projects sticky-split (right panel) -->
-
-<!-- ═══════════════ PROJECTS — names left · big translucent globe terminal right ═══════════════ -->
+<!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
 #projects-section{ position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
   background:rgba(4,4,10,0.9); display:flex; align-items:center;
@@ -1273,9 +971,8 @@ footer#site-footer{
 #projects-section .ps-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
   font-size:clamp(1.6rem,2.4vw,2.2rem); letter-spacing:-0.3px; color:#eef3ff; margin:0; }
 
-.psplit{ display:grid; grid-template-columns:minmax(210px,0.5fr) minmax(0,1.5fr); gap:clamp(30px,4.5vw,72px); align-items:center; }
+.psplit{ max-width:860px; }
 .psplit-left{ display:flex; flex-direction:column; }
-.psplit-right{ position:relative; }
 
 .accord{ display:flex; flex-direction:column; border-top:1px solid rgba(226,232,244,0.1); }
 .acc{ border-bottom:1px solid rgba(226,232,244,0.1); }
@@ -1305,10 +1002,7 @@ footer#site-footer{
 .acc-desc{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:14px;
   line-height:1.55; color:rgba(226,232,244,0.6); margin:0; padding:2px 4px 22px 42px; max-width:46ch; }
 
-/* Was mobile-only (the desktop globe terminal covered "what tools/results"
-   visually, so this text readout was redundant there) — now shown at every
-   width, since the concrete tools/results list is useful context on
-   desktop too, not just a mobile fallback. */
+/* The concrete tools/results list, shown at every width. */
 .acc-extra{ padding:0 4px 20px 42px; max-width:46ch; }
 .acc-section{ margin-bottom:20px; }
 .acc-section:last-child{ margin-bottom:0; }
@@ -1331,72 +1025,7 @@ footer#site-footer{
 .acc-link:hover{ color:#fff; border-color:rgba(226,232,244,0.7); }
 .acc-link + .acc-link{ margin-left:22px; }
 
-/* ── the big translucent globe terminal ── */
-.pterm{ position:relative; width:100%; height:min(84vh,900px);
-  background:rgba(5,6,12,0.5); border:1px solid rgba(226,232,244,0.12); border-radius:5px;
-  overflow:hidden; box-shadow:0 30px 90px -50px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(226,232,244,0.02);
-  display:flex; flex-direction:column; }
-.pterm .pv-bar{ display:flex; align-items:center; gap:9px; height:34px; padding:0 14px; flex:none;
-  background:rgba(12,14,22,0.55); border-bottom:1px solid rgba(226,232,244,0.1);
-  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:rgba(226,232,244,0.72); }
-.pterm .pv-led{ width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.9); box-shadow:0 0 8px rgba(120,225,170,0.55); flex:none; }
-.pterm .pv-bar .pv-sub{ margin-left:auto; color:rgba(226,232,244,0.56); letter-spacing:.14em; }
-.pterm .pv-stage{ position:relative; flex:1; min-height:0; }
-.pterm #globe-term{ position:absolute; inset:0; width:100%; height:100%; background:transparent; overflow:visible; }
-.pterm #globe-gl{ left:50%; top:47%; transform:translate(-50%,-50%); width:min(74vh,40vw,720px); height:min(74vh,40vw,720px); }
-.pterm .gt-sweep, .pterm #globe-labels, .pterm #project-cards{ display:none; }
-.pterm .pv-stage::after{ content:''; position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(130% 130% at 50% 42%, transparent 58%, rgba(0,0,0,0.4) 100%); }
-
-/* screenshot — floats top-right, updates on project switch */
-.pv-shot{ position:absolute; top:16px; right:16px; z-index:6; width:132px; height:90px;
-  border:1px solid rgba(226,232,244,0.14); border-radius:3px; overflow:hidden; background:#05060b;
-  box-shadow:0 14px 40px -18px rgba(0,0,0,0.8); }
-.pv-shot img{ width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity .6s ease; filter:grayscale(1) brightness(0.55) contrast(0.85); }
-
-/* bottom strip — scrolling stack/pipeline/coverage terms, ticker-style like the CISA KEV feed */
-.pv-foot{ position:absolute; left:0; right:0; bottom:0; z-index:6; height:42px;
-  display:flex; align-items:center; box-sizing:border-box;
-  background:rgba(8,10,17,0.62); border-top:1px solid rgba(226,232,244,0.12);
-  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
-.pv-pills-wrap{ flex:1; min-width:0; overflow:hidden;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 92%,transparent);
-          mask-image:linear-gradient(90deg,transparent,#000 5%,#000 92%,transparent); }
-.pv-pills-track{ display:inline-flex; align-items:baseline; white-space:nowrap; will-change:transform;
-  animation:pvpillscroll 20s linear infinite; }
-.pv-foot:hover .pv-pills-track{ animation-play-state:paused; }
-@keyframes pvpillscroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
-.pv-pill{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.06em;
-  color:rgba(226,232,244,0.7); white-space:nowrap; display:inline-block; padding:0 16px; }
-.pv-pill-sep{ color:rgba(226,232,244,0.28); }
-
-/* view project — floats bottom-right, between the globe and the ticker strip */
-.pv-view{ position:absolute; right:16px; bottom:58px; z-index:7;
-  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
-  color:rgba(226,232,244,0.92); text-decoration:none; transition:color .3s; }
-.pv-view::before{ content:'[ '; color:rgba(226,232,244,0.45); }
-.pv-view::after{ content:' → ]'; color:rgba(226,232,244,0.45); transition:color .3s; }
-.pv-view:hover, .pv-view:hover::after{ color:#fff; }
-
-#c-labels{ position:absolute; inset:0; z-index:5; pointer-events:none; }
-/* Opacity for non-amb .clbl (the active project's tool constellation) is driven
-   frame-by-frame from JS (updateConstellation's _clblTarget/cascade), synced to
-   the same timer as the node/line glow — no CSS transition here, it would fight
-   the per-frame writes. .amb (the always-on ambient skills field) is dimmer and
-   static so the clicked project's own labels clearly read as "lit up" above it. */
-#c-labels .clbl{ position:absolute; transform:translate(-50%,-50%);
-  font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.06em; white-space:nowrap;
-  color:rgba(226,232,244,0.85); opacity:0; padding:1px 5px; text-shadow:0 0 7px rgba(0,0,0,0.9); }
-#c-labels .clbl.anchor{ color:#eef3ff; font-weight:600; }
-#c-labels .clbl.back{ opacity:0 !important; }
-#c-labels .clbl.amb{ font-size:9px; letter-spacing:.12em; text-transform:uppercase;
-  color:rgba(226,232,244,0.6); opacity:0.38; transition:opacity .8s ease; text-shadow:0 0 8px rgba(0,0,0,1); padding-left:9px; }
-#c-labels .clbl.amb::before{ content:''; position:absolute; left:0; top:50%; width:4px; height:4px; margin-top:-2px; border-radius:50%; background:rgba(226,232,244,0.5); }
-.pv-noise{ position:absolute; inset:0; width:100%; height:100%; z-index:4; pointer-events:none; opacity:0.05; mix-blend-mode:soft-light; }
-
 @media (--bp-900){
-  .psplit{ grid-template-columns:1fr; gap:22px; }
-  .psplit-right{ display:none; }
   #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
   .acc-desc{ padding-left:4px; }
   .acc-extra{ padding-left:4px; }
@@ -1489,30 +1118,6 @@ footer#site-footer{
               </div>
             </div></div>
           </article>
-        </div>
-      </div>
-      <div class="psplit-right">
-        <div class="pterm">
-          <div class="pv-bar"><span class="pv-led"></span><span id="pv-title">SENTINEL</span><span class="pv-sub">globe : live</span></div>
-          <div class="pv-stage">
-            <div id="globe-term">
-              <canvas id="globe-gl" aria-hidden="true"></canvas>
-              <div id="globe-labels" aria-hidden="false"></div>
-              <div id="project-cards" aria-hidden="false"></div>
-              <div id="c-labels" aria-hidden="true"></div>
-              <svg class="pv-noise" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><filter id="pvNoise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#pvNoise)"/></svg>
-              <div class="gt-chrome">
-                <div class="gt-bar"><span class="gt-led"></span><span id="gt-title">globe</span></div>
-                <div class="f-grain"></div><div class="crt-scan"></div><div class="crt-flicker"></div><div class="crt-curve"></div>
-              </div>
-              <div class="gt-sweep"></div>
-            </div>
-            <div class="pv-shot"><img id="pv-img" alt="" /></div>
-            <a id="pv-view" class="pv-view" href="/projects/sentinel/">view project</a>
-            <div class="pv-foot">
-              <div class="pv-pills-wrap"><div class="pv-pills-track" id="pv-pills"></div></div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -1679,14 +1284,6 @@ footer#site-footer{
 <script is:inline src="/scripts/index-signal-loaders.js"></script>
 <script is:inline src="/scripts/index-signal-dialog.js"></script>
 
-<!-- host chrome: the case list AND the metadata that used to fight inside T2 -->
-<nav id="case-rail" aria-label="Case queue">
-  <div class="cr-head"><span class="cr-lbl">triage queue</span><span class="cr-lbl">3 open</span></div>
-  <ul id="case-list" role="tablist"></ul>
-  <div id="cr-detail"></div>
-</nav>
-<!-- Project tour window clusters (built by the globe module) -->
-<script is:inline defer src="/scripts/nebula-engine-home.js"></script>
 
 
 
@@ -1697,15 +1294,6 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-hero-tagline.js"></script>
 
 
-<!-- ════════════════ Globe arc (Three.js) — composites over the live nebula ════════════════
-     Reuses #term-window as the shrinking CRT. Drives: fullscreen -> rest -> seed
-     node -> node-globe -> descent. Transparent canvas over #gc/#sc. Hard-guarded:
-     if Three fails, the page is untouched and the window simply stays at rest. -->
-<script is:inline type="importmap">
-{ "imports": { "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js" },
-  "integrity": { "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js": "sha384-8/hf5tabFfIo0BPku31TKUvGIKpWGYaMwNtlSNqNyZzXgZCMd4lnOGWbJElML9dv" } }
-</script>
-<script is:inline type="module" src="/scripts/index-globe-engine.js"></script>
 <!-- Post-tour scroll room: lets Cluster finish its hold on-screen, then provides the scroll
      distance for the footer to rise into view while the fixed space scene stays live behind it.
      Transparent + pointer-events:none so the background shows through and nothing is blocked. -->

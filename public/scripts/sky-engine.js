@@ -1,13 +1,15 @@
-/* Contact sky: night cloud banks drifting across a navy sky, three depths of
-   GPU stars, and a small cast that flies in and out of the clouds.
+/* The site sky: night cloud banks drifting across a navy sky, three depths
+   of GPU stars, and a small cast that flies in and out of the clouds. Every
+   page's background (components/SkyBackground.astro boots it via sky.js).
 
    Touches no DOM, so the same code runs on the main thread or inside
-   sky-worker.js on an OffscreenCanvas (contact-sky.js decides which). The
-   page hands it two canvases and talks to it through handle(msg):
+   sky-worker.js on an OffscreenCanvas (sky.js decides which). The page
+   hands it two canvases and talks to it through handle(msg):
      { type:'size', w, h, dpr }     viewport in CSS px
-     { type:'card', rect }          the form card in viewport px, or null
+     { type:'card', rect }          the element the cast should fly around
+                                    (contact's form card), viewport px, or null
      { type:'running', on }         tab hidden/visible
-     { type:'launch', ok }          the form sent (ok) or failed (!ok)
+     { type:'launch', ok }          the contact form sent (ok) or failed (!ok)
 
    Tiers, picked by the page:
      full   desktop: full-detail clouds, every member of the cast
@@ -466,5 +468,5 @@
     return { handle:handle, hasGL:!!gl };
   }
 
-  root.ContactSky = { create:create };
+  root.SiteSky = { create:create };
 })(typeof self !== 'undefined' ? self : this);
