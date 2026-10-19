@@ -45,264 +45,86 @@ window.SITE=window.SITE||{};
 <style is:global>
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
-  /* Extra dark-glass pane over the ambient background, this page only (not
-     index). #bg-dim (shared component) sits BELOW #sc on purpose, so it
-     never re-darkens ships/satellites CRAFT already brightened. Without
-     index's constellation running here, that restraint reads as thin —
-     moving this page's copy above #sc (z-index 2, tied with #bg-grain but
-     later in DOM so it wins) and darkening it puts a real dim pane in
-     front of the whole scene, ships included. Tuned to match the blog
-     hero's frosted-glass overlay: light tint + a soft blur rather than a
-     flat dark wash, so ships stay visible through it. */
-  #bg-dim{ z-index:2; background:rgba(8,8,10,0.15);
-    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
-  /* The site token is #080814. This page runs one notch below it on purpose:
-     the craft are the only thing meant to hold light here, so the floor drops
-     to near-black and lets them burn against it. */
+  /* The nebula is the backdrop here, not texture behind a busy layout — one
+     solid card sits in the middle and the sky gets the rest of the screen.
+     So the shared #bg-dim (below #sc) is turned almost all the way down and
+     there's no frosted pane over the scene; the card carries legibility. */
+  #bg-dim{ --bg-dim-opacity:0.08; }
   body{
     background:var(--c-bg); color:rgba(233,236,247,0.92);
     font-family:'Cormorant Garamond', Georgia, serif;
-    overflow:hidden; -webkit-font-smoothing:antialiased;
+    overflow-x:hidden; -webkit-font-smoothing:antialiased;
   }
 
-
-
-  /* ══════════════ WINDOW STACK ══════════════
-     Left: the clips, scattered as overlapping windows — different sizes,
-     deliberately misaligned, each one lapping over its neighbour so the
-     cluster reads as depth rather than a grid.
-     Right: the form, alone, with room to breathe. */
+  /* ══════════════ CENTERED CARD ══════════════
+     Scrolls with the page rather than sitting in a fixed viewport, so a
+     short window can never clip the form. */
   .field-wrap{
-    position:fixed; inset:0; z-index:40;
-    display:grid; grid-template-columns:1.12fr 0.88fr; grid-template-rows:1fr auto; align-items:center;
-    column-gap:3vw; row-gap:12px; padding:64px 4.5vw 22px; max-width:1500px; margin:0 auto;
+    position:relative; z-index:40; min-height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:22px; padding:88px 20px 22px;
   }
 
-  /* ── the stack: cards are absolutely placed, so they can overlap ── */
-  .stack{ position:relative; width:100%; height:min(70vh, 660px);
-    perspective:1400px; transform-style:preserve-3d; }
-
-  /* ── page footer: squeezed into the fixed viewport as a second grid row,
-     spanning both columns under the stack + form ── */
-  .pg-footer{ grid-column:1 / -1; grid-row:2; display:flex; align-items:center;
-    justify-content:space-between; flex-wrap:wrap; gap:10px 20px;
-    padding-top:14px; border-top:1px solid rgba(var(--c-white),0.1);
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em;
-    color:rgba(200,215,240,0.4); }
-  .pg-footer .f-links{ display:flex; align-items:center; gap:14px;
-    letter-spacing:.14em; text-transform:uppercase; }
-  .pg-footer .f-links a{ color:rgba(200,215,240,0.5); text-decoration:none;
-    transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
-  .pg-footer .f-links a:hover{ color:#fff; }
-  .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
-  @media (--bp-900){
-    .pg-footer{ grid-column:auto; grid-row:auto; margin-top:24px; padding:14px 20px; }
+  .form-panel{
+    width:100%; max-width:640px;
+    padding:44px 48px 40px;
+    background:rgba(10,10,13,0.94);
+    border:1px solid rgba(var(--c-white),0.08);
+    border-radius:2px;
+    box-shadow:0 40px 90px -40px rgba(0,0,0,0.9);
   }
-
-  /* .card is the PARALLAX box — JS writes a transform here every frame.
-     .card-inner is the VISUAL box — CSS owns its transform (entrance + hover).
-     Splitting them means the two transforms never fight over one property. */
-  .card{
-    position:absolute;
-    transform-style:preserve-3d;
-    will-change:transform;
-  }
-  /* resting shadow is STATIC — never transitioned. The hover shadow is a
-     separate layer whose opacity fades, so we only ever animate opacity and
-     transform (compositor-only; no paint, no reflow). */
-  .card::before{
-    content:''; position:absolute; inset:0; border-radius:14px; z-index:-1;
-    box-shadow:0 34px 70px -28px rgba(0,0,0,0.92);
-    pointer-events:none;
-  }
-  .card::after{
-    content:''; position:absolute; inset:0; border-radius:14px; z-index:-1;
-    box-shadow:0 50px 96px -30px rgba(0,0,0,0.96);
-    opacity:0; transition:opacity .5s ease; pointer-events:none;
-  }
-  .card:hover::after{ opacity:1; }
-
-  .card-inner{
-    position:absolute; inset:0; overflow:hidden; border-radius:14px;
-    border:1px solid rgba(var(--c-white),0.16);
-    background:rgba(26,29,44,0.72);
-    /* entrance state — cards settle in rather than snapping on */
-    opacity:0; transform:translateY(26px) scale(0.985);
-    transition:opacity .95s cubic-bezier(.22,1,.36,1),
-               transform .95s cubic-bezier(.22,1,.36,1),
-               border-color .45s ease;
-  }
-  .stack.ready .card-inner{ opacity:1; transform:none; }
-  .stack.ready .card:hover .card-inner{
-    transform:translateY(-6px);
-    border-color:rgba(180,210,250,0.3);
-  }
-  .card:hover{ z-index:20; }
-
-  /* staggered reveal — the composition assembles itself */
-  .c-globe .card-inner{ transition-delay:.05s; }
-
-  .card-inner canvas.gl{ display:none; }
-  .card-inner canvas.hud{ position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
-  .card-inner img.src{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-     z-index:0; display:block; filter:grayscale(1) contrast(1.1) brightness(1.25); }
-  .card-inner .recon-card{ display:none; }
-
-  /* slot 04 — image base (darker, dormant field) + coded traveler canvas */
-  .card-inner img.slot04-base{ filter:grayscale(1) contrast(1.05) brightness(0.95) !important; }
-  .card-inner canvas.anim04{ position:absolute; inset:0; width:100%; height:100%; z-index:1; display:block; pointer-events:none; }
-  .c-hard  .card-inner{ transition-delay:.13s; }
-  .c-slot1 .card-inner{ transition-delay:.21s; }
-  .c-mal   .card-inner{ transition-delay:.29s; }
-  .c-side  .card-inner{ transition-delay:.37s; }
-  .c-cyber .card-inner{ transition-delay:.45s; }
-  .c-slot2 .card-inner{ transition-delay:.53s; }
-  .c-slot3 .card-inner{ transition-delay:.61s; }
-
-  .card .label{ position:absolute; top:15px; left:17px; z-index:3; pointer-events:none; }
-  .card .label .a{ display:block; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500;
-    font-size:1.06rem; line-height:1.16; color:rgba(var(--c-white),0.94); }
-  .card .label .b{ display:block; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
-    font-size:1.06rem; line-height:1.16; color:rgba(190,205,232,0.5); }
-  /* ── reserved windows: holding space until the footage lands ──
-     These rules used to sit on .card, which carries no border, no background
-     and no radius — the visual box is .card-inner. The dashed border simply
-     never rendered and the translucent fill was painted over. Retargeted. */
-  .card.empty .card-inner{
-    background:rgba(9,11,20,0.42);
-    border-color:rgba(var(--c-white),0.06);
-    border-style:dashed;
-  }
-  .card.empty::before{ box-shadow:0 24px 50px -30px rgba(0,0,0,0.8); }
-  .card.empty::after{ box-shadow:0 34px 70px -32px rgba(0,0,0,0.85); }
-  .stack.ready .card.empty:hover .card-inner{ border-color:rgba(180,210,250,0.2); }
-  .card.empty .fill{
-    position:absolute; inset:0; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:7px; overflow:hidden;
-    background:repeating-linear-gradient(45deg, rgba(var(--c-white),0.012) 0 1px, transparent 1px 10px);
-  }
-  .card.empty .fill .n{ font-family:'JetBrains Mono', monospace; font-size:1.35rem;
-    letter-spacing:0.12em; color:rgba(var(--c-white),0.10); }
-  .card.empty .fill .r{ font-family:'JetBrains Mono', monospace; font-size:0.46rem;
-    letter-spacing:0.2em; text-transform:uppercase; color:rgba(170,195,235,0.26); }
-  /* a slow sweep, so an empty window still reads as a live channel */
-  /* animating `top` re-lays-out and repaints the card every frame, on three
-     cards at once. transform runs on the compositor for free. */
-  .card.empty .fill::after{
-    content:''; position:absolute; left:0; right:0; top:0; height:100%;
-    background:linear-gradient(90deg, transparent, rgba(190,215,255,0.16), transparent)
-               top left / 100% 1px no-repeat;
-    will-change:transform;
-    animation:slotSweep 4.2s linear infinite;
-  }
-  /* full-height layer with the line drawn on its top edge, so translateY(100%)
-     walks the line the exact height of the card no matter what that height is */
-  @keyframes slotSweep{ from{ transform:translateY(0); } to{ transform:translateY(100%); } }
-  @media (prefers-reduced-motion: reduce){ .card.empty .fill::after{ animation:none; opacity:0; } }
-
-  /* the two portrait cards are narrow — tuck their type in */
-  .c-globe .label, .c-side .label{ top:13px; left:14px; }
-  .c-globe .label .a, .c-globe .label .b,
-  .c-side .label .a,  .c-side .label .b{ font-size:0.95rem; }
-  .c-side .tag, .c-cyber .tag{ font-size:0.46rem; letter-spacing:0.18em; }
-
-  .card .tag{ position:absolute; bottom:12px; left:17px; z-index:3; pointer-events:none;
-    font-family:'JetBrains Mono', monospace; font-size:0.5rem; letter-spacing:0.22em;
-    text-transform:uppercase; color:rgba(170,195,235,0.36); }
-
-  /* ── THE SCATTER — single source of truth ──────────────────────────────
-     This used to be declared twice: an 8-card layout followed by an older
-     5-card one, which won the cascade and left the three .empty slots sitting
-     in the geometry of a layout that no longer existed. One block now, all
-     eight windows, percentages so the composition holds at any size.
-     Sizes are deliberately unequal — two portraits, one big landscape anchor,
-     and a spread of smaller windows. The clips are 16:9 and crop via
-     object-fit:cover; the globe and the malware blob are centred subjects, so
-     they survive the crop. z-index climbs toward the centre of the cluster.
-     Drop a clip into a slot and delete its .empty class.                    */
-  .c-globe { left:0;   top:2%;  width:26%; height:52%; z-index:4; }  /* tall portrait  */
-  .c-hard  { left:29%; top:0;   width:46%; height:28%; z-index:3; }  /* wide           */
-  .c-slot1 { left:78%; top:4%;  width:22%; height:34%; z-index:2; }  /* reserved       */
-  .c-mal   { left:18%; top:30%; width:54%; height:36%; z-index:8; }  /* the anchor     */
-  .c-side  { left:69%; top:40%; width:22%; height:32%; z-index:7; }  /* small portrait */
-  .c-cyber { left:3%;  top:58%; width:36%; height:26%; z-index:6; }  /* small wide     */
-  .c-slot2 { left:41%; top:68%; width:26%; height:26%; z-index:7; }  /* reserved       */
-  .c-slot3 { left:62%; top:74%; width:34%; height:22%; z-index:5; }  /* reserved       */
-
-
-  /* ── THE CLIP ITSELF ───────────────────────────────────────────────────
-     This had NO rule at all. The <video> was sitting at its intrinsic size
-     inside the card, unstretched and uncropped — every comment in the file
-     described an object-fit:cover crop that the stylesheet never performed.
-     The poster is painted as the element's background, so the frame is
-     already there before a single byte of video is fetched.                */
-  .card .clip{
-    position:absolute; inset:0; display:block;
-    width:100%; height:100%;
-    object-fit:cover; object-position:center;
-    background-size:cover; background-position:center; background-repeat:no-repeat;
-    z-index:0;
-  }
-
-  /* ── TINT + SCRIM ──────────────────────────────────────────────────────
-     Both divs were in the markup on every card and neither had a rule, so
-     the labels were sitting on raw footage and the clips punched through the
-     page's dimmed palette. tint = duotone-ish cool wash that folds the
-     footage back into the #080814 world. scrim = the legibility gradient the
-     label and tag were relying on.                                          */
-  .card .tint{
-    position:absolute; inset:0; z-index:1; pointer-events:none;
-    background:rgba(10,14,28,0.20);
-    mix-blend-mode:multiply;
-  }
-  .card .scrim{
-    position:absolute; inset:0; z-index:2; pointer-events:none;
-    background:
-      linear-gradient(180deg, rgba(4,6,14,0.4) 0%, rgba(4,6,14,0) 34%),
-      linear-gradient(0deg,   rgba(4,6,14,0.38) 0%, rgba(4,6,14,0) 40%);
-  }
-  /* on hover the window opens up a little — the footage comes forward */
-  .card .tint, .card .scrim{ transition:opacity .5s ease; }
-  .stack.ready .card:hover .tint{ opacity:0.55; }
-
-  /* ── the form: no card, no frame — just type on the ground ── */
-  .form-panel{ width:100%; max-width:440px; justify-self:center; }
-  .stepper{ display:flex; gap:14px; align-items:baseline; margin-bottom:20px;
+  .stepper{ margin-bottom:18px;
     font-family:'JetBrains Mono', monospace; font-size:0.56rem; letter-spacing:0.22em;
-    text-transform:uppercase; }
-  .stepper .n{ color:rgba(var(--c-white),0.6); }
-  .stepper .d{ color:rgba(170,195,235,0.38); }
-  .form-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
-    font-size:clamp(1.7rem, 2.4vw, 2.25rem); line-height:1.12; white-space:nowrap;
-    color:rgba(var(--c-white),0.93); margin-bottom:7px; }
-  .form-title em{ font-style:italic; color:rgba(190,205,232,0.62); }
-  .form-sub{ font-family:'Cormorant Garamond', serif; font-style:italic; font-size:1rem;
-    color:rgba(200,215,240,0.44); margin-bottom:30px; }
-  .field{ margin-bottom:20px; border-bottom:1px solid rgba(var(--c-white),0.13); transition:border-color .35s; }
+    text-transform:uppercase; color:rgba(200,210,230,0.55); }
+  .form-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400;
+    font-size:clamp(2rem, 4.2vw, 3.1rem); line-height:1.04; letter-spacing:-0.01em;
+    color:rgba(var(--c-white),0.95); margin-bottom:16px; }
+  .form-title em{ font-style:italic; font-weight:300; color:rgba(190,205,232,0.62); }
+  .form-direct{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size:0.95rem; color:rgba(200,210,230,0.55); margin-bottom:34px;
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 8px; }
+  .form-direct a{ overflow-wrap:anywhere; color:rgba(var(--c-white),0.94); text-decoration:none;
+    border-bottom:1px solid rgba(var(--c-white),0.35); padding-bottom:3px; transition:border-color .25s; }
+  .form-direct a:hover{ border-color:rgba(var(--c-white),0.9); }
+
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; column-gap:26px; }
+  .field{ margin-bottom:24px; border-bottom:1px solid rgba(var(--c-white),0.16); transition:border-color .35s; }
   .field:focus-within{ border-color:rgba(180,210,250,0.6); }
-  .field label{ display:block; font-family:'JetBrains Mono', monospace; font-size:0.5rem;
-    letter-spacing:0.22em; text-transform:uppercase; color:rgba(170,195,235,0.4); margin-bottom:5px; }
+  .field label{ display:block; font-family:'JetBrains Mono', monospace; font-size:0.52rem;
+    letter-spacing:0.2em; text-transform:uppercase; color:rgba(200,210,230,0.6); margin-bottom:8px; }
   .field label .req{ color:rgba(255,150,150,0.7); margin-left:3px; }
+  .field input, .field textarea, .field select{ width:100%; background:none; border:none; outline:none;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size:1rem; color:rgba(233,236,247,0.95); padding:2px 0 10px; }
+  .field textarea{ min-height:52px; line-height:1.45; resize:vertical; display:block; }
+  .field input::placeholder, .field textarea::placeholder{ color:rgba(180,190,210,0.4); }
+  .field select{ appearance:none; -webkit-appearance:none; cursor:pointer; padding-right:22px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23e9ecf7' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 4px top 9px; }
+  .field select option{ background:#0e0e12; color:#e9ecf7; }
   .req-note{ font-family:'JetBrains Mono', monospace; font-size:0.45rem; letter-spacing:0.14em;
-    text-transform:uppercase; color:rgba(var(--c-white),0.30); margin:-8px 0 18px; }
-  .field input, .field textarea{ width:100%; background:none; border:none; outline:none;
-    font-family:'Cormorant Garamond', serif; font-size:1.08rem; color:rgba(233,236,247,0.95); padding:2px 0 9px; }
-  .field textarea{ min-height:56px; line-height:1.45; resize:none; display:block; }
-  .field input::placeholder, .field textarea::placeholder{ color:rgba(180,200,235,0.28); }
+    text-transform:uppercase; color:rgba(var(--c-white),0.30); margin:-12px 0 18px; }
   /* Cloudflare's own chrome can't be restyled (cross-origin iframe), but a filter
      composites over the rendered pixels fine — dims/desaturates it to sit closer
      to the page's muted palette instead of popping as a bright foreign box. */
   /* min-height reserves the widget's 65px so the form doesn't jump when it
      loads on first interaction (see contact-form-handler.js). */
-  #turnstile-widget{ margin:2px 0 20px; min-height:65px; filter:grayscale(.4) brightness(.88) contrast(.94); }
-  .cta{ width:100%; margin-top:6px; padding:14px; cursor:pointer;
-    background:rgba(var(--c-white),0.94); color:#0a0c16; border:1px solid rgba(var(--c-white),0.94);
-    border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:0.58rem;
-    letter-spacing:0.24em; text-transform:uppercase;
+  #turnstile-widget{ margin:2px 0 22px; min-height:65px; filter:grayscale(.4) brightness(.88) contrast(.94); }
+
+  .cta-row{ display:flex; align-items:center; flex-wrap:wrap; gap:14px 24px; }
+  .cta{ padding:12px 20px; cursor:pointer;
+    background:rgba(var(--c-white),0.96); color:#0a0a0d; border:1px solid rgba(var(--c-white),0.96);
+    border-radius:2px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size:0.95rem; font-weight:500;
     transition:background .3s, color .3s, transform .12s; }
+  /* the arrow lives in CSS so the handler's textContent swaps never drop it */
+  .cta::after{ content:'\2192'; display:inline-block; margin-left:10px; transition:transform .25s; }
   .cta:hover{ background:transparent; color:rgba(var(--c-white),0.95); }
+  .cta:hover::after{ transform:translateX(3px); }
   .cta:active{ transform:translateY(1px); }
   .cta.sent{ background:rgba(89,212,153,0.9); border-color:rgba(89,212,153,0.9); color:#06120c; }
+  .cta.sent::after{ content:none; }
+  .cta-note{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size:0.8rem; color:rgba(200,210,230,0.5); }
 
   /* ── validation + send status ──────────────────────────────────────────
      The form had no error state and no live region: a screen reader user got
@@ -315,17 +137,29 @@ window.SITE=window.SITE||{};
   }
   .field.invalid .err{ display:block; }
   .form-status{
-    min-height:1.1em; margin-top:11px;
+    min-height:1.1em; margin-top:14px;
     font-family:'JetBrains Mono', monospace; font-size:0.55rem; letter-spacing:0.18em;
     text-transform:uppercase; color:rgba(170,195,235,0.5);
   }
   .form-status.ok{ color:rgba(120,220,170,0.85); }
   .form-status.bad{ color:rgba(232,140,140,0.85); }
   .cta[disabled]{ opacity:0.6; cursor:default; }
-  .cta[disabled]:hover{ background:rgba(var(--c-white),0.94); color:#0a0c16; }
+  .cta[disabled]:hover{ background:rgba(var(--c-white),0.96); color:#0a0a0d; }
+
+  /* ── page footer: under the card, same width ── */
+  .pg-footer{ width:100%; max-width:640px; display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:wrap; gap:10px 20px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em;
+    color:rgba(200,215,240,0.5); }
+  .pg-footer .f-links{ display:flex; align-items:center; gap:14px;
+    letter-spacing:.14em; text-transform:uppercase; }
+  .pg-footer .f-links a{ color:rgba(200,215,240,0.6); text-decoration:none;
+    transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
+  .pg-footer .f-links a:hover{ color:#fff; }
+  .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
 
   /* keyboard users could not see where they were on this page at all */
-  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
     outline:1px solid rgba(180,210,250,0.85); outline-offset:3px; border-radius:2px;
   }
   .skip{
@@ -337,28 +171,23 @@ window.SITE=window.SITE||{};
   }
   .skip:focus{ top:16px; }
 
-  /* ── narrow: the stack unpacks into a plain column, form beneath ── */
-  @media (prefers-reduced-motion: reduce){
-    .card-inner{ opacity:1; transform:none; transition:border-color .45s ease; }
-    .stack.ready .card:hover .card-inner{ transform:none; }
-  }
-
   @media (--bp-900){
-    .field-wrap{ position:absolute; inset:auto 0 auto 0; display:block;
-      padding:92px 20px 48px; max-width:none; }
-    body{ overflow-y:auto; }
-    /* The 8-window stack (parallax cards + up to 8 concurrent per-frame
-       recon-HUD canvas loops) is the heaviest thing on this page. Cut it
-       entirely on phone/tablet rather than shrink it, so only the form
-       shows — contact-window-stack.js and contact-recon-engine.js both
-       skip booting it under window.SITE.LOW_POWER to match. */
-    .stack{ display:none; }
-    .form-panel{ max-width:none; }
-    .form-title{ font-size:clamp(1.2rem, 5.8vw, 2rem); }
+    /* the bottom padding is a clear band for Kai (fixed bottom-right, ~150px
+       tall with its "Ask Kai" tag), so at the end of the scroll it sits
+       below the footer instead of over the send button */
+    .field-wrap{ padding:84px 16px 168px; gap:28px; }
+    .form-panel{ padding:32px 24px 28px; }
+    .field-row{ grid-template-columns:1fr; }
+    .cta-row{ flex-direction:column; align-items:center; gap:12px; text-align:center; }
+    .cta{ padding:10px 22px; font-size:0.85rem; }
+    .cta::after{ margin-left:8px; }
+    .cta-note{ font-size:0.72rem; }
+    .form-status{ text-align:center; }
+    /* links on top, copyright under them, both centred with room to breathe */
+    .pg-footer{ flex-direction:column-reverse; justify-content:center; gap:16px; text-align:center; }
+    .pg-footer .f-links{ flex-wrap:wrap; justify-content:center; gap:14px 22px; }
   }
 
-</style>
-<style is:global>
 </style>
 <ErrorReporter />
 <ClarityAnalytics />
@@ -429,113 +258,38 @@ window.SITE=window.SITE||{};
 
 <div class="field-wrap">
 
-  <!-- LEFT — the clips, overlapping like open windows -->
-  <div class="stack">
-    <div class="card c-globe" data-depth="0.55">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-globe.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="1" data-mode="SCAN" data-aspect="26,52" data-mask="" data-auto="0"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">The perimeter,</span><span class="b">before anyone knocks</span></div>
-        <div class="tag">Recon · Attack surface</div>
-      </div>
-    </div>
-    <div class="card c-hard" data-depth="0.35">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-hard.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="2" data-mode="BREACH" data-aspect="46,28" data-mask="0.4,0.3,0.75,0.7" data-auto="7"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">A request,</span><span class="b">that should have failed</span></div>
-        <div class="tag">CVE-2025-24813 · Tomcat</div>
-      </div>
-    </div>
-    <div class="card c-slot1" data-depth="0.25">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-slot1.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="3" data-mode="DRIFT" data-aspect="22,34" data-mask="" data-auto="0"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">Malware,</span><span class="b">taken apart</span></div>
-        <div class="tag">Reversing · Ghidra</div>
-      </div>
-    </div>
-    <div class="card c-mal" data-depth="1.00">
-      <div class="card-inner">
-        <img class="src slot04-base" alt="" src="/images/contact-card-mal.webp" loading="lazy" decoding="async">
-        <canvas class="anim04" aria-hidden="true"></canvas>
-        <canvas class="hud" aria-hidden="true"></canvas>
-        <div class="recon-card" data-seq="4"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">Four identities,</span><span class="b">one intruder</span></div>
-        <div class="tag">Lateral · Credential chain</div>
-      </div>
-    </div>
-    <div class="card c-side" data-depth="0.80">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-side.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="5" data-mode="DRIFT" data-aspect="22,32" data-mask="0.55,0.0,1.0,0.25" data-auto="9"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">The machine,</span><span class="b">learns its baseline</span></div>
-        <div class="tag">Anomaly · Modbus / DNP3</div>
-      </div>
-    </div>
-    <div class="card c-cyber" data-depth="0.65">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-cyber.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="6" data-mode="SCAN" data-aspect="36,26" data-mask="0.55,0.45,0.72,0.68" data-auto="8"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">The rule,</span><span class="b">fires</span></div>
-        <div class="tag">Sentinel · Sigma · SPL</div>
-      </div>
-    </div>
-    <div class="card c-slot2" data-depth="0.75">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-slot2.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="7" data-mode="DRIFT" data-aspect="26,26" data-mask="0.0,0.35,0.35,0.65" data-auto="10"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">Risk,</span><span class="b">answered with friction</span></div>
-        <div class="tag">Identity · NIST 800-63B</div>
-      </div>
-    </div>
-    <div class="card c-slot3" data-depth="0.45">
-      <div class="card-inner">
-        <canvas class="gl" aria-hidden="true"></canvas><canvas class="hud" aria-hidden="true"></canvas>
-        <img class="src" alt="" src="/images/contact-card-slot3.webp" loading="lazy" decoding="async">
-        <div class="recon-card" data-seq="8" data-mode="DRIFT" data-aspect="34,22" data-mask="" data-auto="0"></div>
-        <div class="tint"></div><div class="scrim"></div>
-        <div class="label"><span class="a">Quiet,</span><span class="b">is the deliverable</span></div>
-        <div class="tag">Containment · Telemetry</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT — the form, standing on its own.
-       Now a real <form>: Enter submits, the browser autofills, password
-       managers and screen readers understand it, and the h1 gives the page an
-       actual heading (it had none — the title was a bare div). -->
+  <!-- The form, centred on its own card. A real <form>: Enter submits, the
+       browser autofills, password managers and screen readers understand it. -->
   <div class="form-panel">
-    <div class="stepper"><span class="d">Get in touch</span></div>
+    <div class="stepper">(Get in touch)</div>
     <h1 class="form-title">Say something <em>worth decoding.</em></h1>
-    <p class="form-sub">Roles, findings, or anything that runs on a network.</p>
+    <p class="form-direct">Or just write:<a href="mailto:samuelabhinav37@gmail.com">samuelabhinav37@gmail.com</a></p>
     <form id="contact-form" novalidate>
-      <div class="field" data-field="nm">
-        <label for="nm">Name<span class="req" aria-hidden="true">*</span></label>
-        <input id="nm" name="name" type="text" placeholder="Your name" autocomplete="name" required aria-describedby="nm-err" />
-        <div class="err" id="nm-err">Your name, please</div>
+      <div class="field-row">
+        <div class="field" data-field="nm">
+          <label for="nm">Name<span class="req" aria-hidden="true">*</span></label>
+          <input id="nm" name="name" type="text" placeholder="Your full name" autocomplete="name" required aria-describedby="nm-err" />
+          <div class="err" id="nm-err">Your name, please</div>
+        </div>
+        <div class="field" data-field="em">
+          <label for="em">Email<span class="req" aria-hidden="true">*</span></label>
+          <input id="em" name="email" type="email" placeholder="name@company.com" autocomplete="email" required aria-describedby="em-err" />
+          <div class="err" id="em-err">That address doesn’t look routable</div>
+        </div>
       </div>
-      <div class="field" data-field="em">
-        <label for="em">Email<span class="req" aria-hidden="true">*</span></label>
-        <input id="em" name="email" type="email" placeholder="Your email address" autocomplete="email" required aria-describedby="em-err" />
-        <div class="err" id="em-err">That address doesn’t look routable</div>
+      <div class="field" data-field="rs">
+        <label for="rs">Reason</label>
+        <!-- values are whitelisted server-side in functions/api/contact.js -->
+        <select id="rs" name="reason">
+          <option value="role">Full-time role</option>
+          <option value="freelance">Freelance / contract</option>
+          <option value="finding">Security finding</option>
+          <option value="hello">Just saying hi</option>
+        </select>
       </div>
       <div class="field" data-field="ms">
         <label for="ms">Message<span class="req" aria-hidden="true">*</span></label>
-        <textarea id="ms" name="message" rows="2" placeholder="Whatever you’d like to say" required aria-describedby="ms-err"></textarea>
+        <textarea id="ms" name="message" rows="2" placeholder="A few words" required aria-describedby="ms-err"></textarea>
         <div class="err" id="ms-err">Say a little more</div>
       </div>
       <p class="req-note">* required</p>
@@ -550,14 +304,17 @@ window.SITE=window.SITE||{};
       <!-- Cloudflare Turnstile — verified server-side in functions/api/contact.js
            against TURNSTILE_SECRET_KEY. size="flexible" spans the full field width
            instead of Cloudflare's fixed ~300px box; the CSS filter on #turnstile-widget
-           below mutes its default chrome to sit closer to the page's palette (can't
+           above mutes its default chrome to sit closer to the page's palette (can't
            reach into the iframe itself, but a filter composites over it fine).
            data-action binds the resulting token to this specific form — the server
            checks result.action matches, so a token can't be solved somewhere else on
            the domain and replayed here (or vice versa, if another action is ever added). -->
       <div id="turnstile-widget" class="cf-turnstile" data-sitekey="0x4AAAAAAEPWqejRev3MMXij"
            data-action="contact" data-theme="dark" data-size="flexible"></div>
-      <button class="cta" id="send" type="submit">Send Message</button>
+      <div class="cta-row">
+        <button class="cta" id="send" type="submit">Send Message</button>
+        <span class="cta-note">No spam. A real reply, usually within a day.</span>
+      </div>
       <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
     </form>
   </div>
@@ -574,20 +331,19 @@ window.SITE=window.SITE||{};
 
 </div>
 
-<script is:inline src="/scripts/contact-window-stack.js"></script>
 <!-- Cloudflare Turnstile's api.js is injected by contact-form-handler.js on
      first interaction with the form, not loaded here. Still deliberately no
      SRI: Cloudflare serves it from a rotating URL and recommends against
      pinning it (https://developers.cloudflare.com/turnstile/). -->
 <script is:inline src="/scripts/contact-form-handler.js"></script>
 <script is:inline>
-/* The case-file cards cluster on the left; the form column (mostly thin
-   text/underlines, no opaque blocks) plus the margins are genuinely open —
-   mark them so background craft spawn where they're actually visible. */
+/* The solid form card owns the centre; everything around it is open sky —
+   mark the margins so background craft spawn where they're actually visible. */
 window.SITE.NEBULA_SAFE_ZONES = [
-  {x0:0.58, y0:0.05, x1:1, y1:0.9 },  // form column + right margin
-  {x0:0,    y0:0,    x1:1, y1:0.1},   // top strip
-  {x0:0,    y0:0.88, x1:1, y1:1  },   // bottom strip
+  {x0:0,    y0:0,    x1:0.25, y1:1  },  // left margin
+  {x0:0.75, y0:0,    x1:1,    y1:1  },  // right margin
+  {x0:0,    y0:0,    x1:1,    y1:0.1},  // top strip
+  {x0:0,    y0:0.9,  x1:1,    y1:1  },  // bottom strip
 ];
 </script>
 <script is:inline src="/scripts/nebula-engine.js"></script>
@@ -598,10 +354,10 @@ window.SITE.NEBULA_SAFE_ZONES = [
 (function(){
   window.SITE._introRevealReady = true;
   window.SITE._introFullyDone   = true;
-  /* Matched to the homepage's settled brightness (was dimmed lower here
-     for form legibility) so the background reads the same across pages. */
-  window.SITE._bgBoost = 0.95;
-  try { if (window.U && U.uBright) U.uBright.value = 0.6; } catch(e){}
+  /* Brighter than the homepage on purpose: the sky is the whole backdrop
+     here and the opaque form card handles legibility on its own. */
+  window.SITE._bgBoost = 1.3;
+  try { if (window.U && U.uBright) U.uBright.value = 0.9; } catch(e){}
   try { startBootSeq(); }
   catch(e){ try { window.NS && window.NS.startBootSeq && window.NS.startBootSeq(); } catch(_){} }
 })();
@@ -637,7 +393,6 @@ window.SITE.NEBULA_SAFE_ZONES = [
   setTimeout(function(){ portal.classList.add('opening'); }, 600);
 })();
 </script>
-<script src="../scripts/contact-recon-engine.js"></script>
 
 <KaiSite />
 <script is:inline src="/scripts/luna-kb-base.js"></script>
