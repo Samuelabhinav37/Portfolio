@@ -113,8 +113,8 @@ a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
 /* Anthropic-style static hero: one big featured post (image, kicker, title,
    excerpt) beside a short text list of a few more recent ones — replaces
    the old full-viewport rotating flip-card. The page-wide #content-scrim
-   (blur + dark overlay, added separately) already handles darkening the
-   starfield behind this section, so no dedicated hero glow/frosted-glass
+   (a blur, added separately) already softens the sky behind this
+   section, so no dedicated hero glow/frosted-glass
    layer is needed here anymore either. */
 /* Flex, not grid — a proportional 1.6fr/1fr grid split stretched the
    featured card's column across most of the page while its actual content
@@ -494,7 +494,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 
 <SkyBackground />
 <!-- This page is dense, text-heavy tables/cards that need to read clearly
-     over whatever's moving behind them, so it puts a page-local scrim ABOVE
+     over whatever's moving behind them, so it puts a page-local blur layer ABOVE
      the shared sky (not touching the component, so index/about/contact are
      unaffected) — plain fixed div, no explicit z-index needed: it paints
      above #sky (position:fixed, z-index:auto)
@@ -508,13 +508,12 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
      element, never the real content stacked above it. -->
 <div id="content-scrim" aria-hidden="true"></div>
 <style>
-  #content-scrim{position:fixed;inset:0;pointer-events:none;background:rgba(0,0,0,.5);
+  #content-scrim{position:fixed;inset:0;pointer-events:none;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
   /* backdrop-filter recomputes every frame the animated starfield behind it
      changes — one of the pricier CSS effects, worth skipping on phones and
      reduced-motion, matching the threshold where the sky drops to its
-     lighter tier on these devices. The solid
-     darkening (cheap, no compositing cost) still applies either way. */
+     lighter tier on these devices. */
   @media (--bp-900), (prefers-reduced-motion:reduce){
     #content-scrim{backdrop-filter:none;-webkit-backdrop-filter:none}
   }

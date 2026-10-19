@@ -19,6 +19,7 @@ Notable changes to the portfolio and blog will be recorded here.
 
 - The project pages: `/projects/` and the Sentinel, Moat and Cluster case studies (layout, content collection, styles and case-study images). Old URLs, and `/work`, redirect to the homepage, whose projects accordion stays; the menus and Kai's chat point there now.
 - The two near-duplicate nebula engines (`nebula-engine.js`, `nebula-engine-home.js`) and `NebulaBackground.astro`.
+- The homepage hero video (and its poster and 4.9 MB file) and the dark panels behind the homepage sections, so the sky shows through; the blog keeps its blur over the sky but no longer darkens it.
 - The homepage globe (`index-globe-engine.js`, Three.js) with its project-tour preview panel and case rail, ahead of a homepage redesign. The projects accordion stays.
 - The glitch-mark layer on the contact page.
 
