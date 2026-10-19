@@ -3,6 +3,9 @@
 /about.html     /about/      301
 /blog.html      /blog/       301
 /contact.html   /contact/    301
-/work.html      /projects/    301
-/work           /projects/    301
-/work/          /projects/    301
+/work.html      /             301
+/work           /             301
+/work/          /             301
+# the project pages were removed; old links land on the homepage projects
+/projects       /             301
+/projects/*     /             301

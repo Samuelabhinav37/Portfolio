@@ -16,10 +16,7 @@ interface Props {
 }
 const { currentPath, hasIntro = false } = Astro.props;
 
-// Projects has its own route (/projects/, one case study per project), but
-// none of the pages using this menu live under it, so it's never "current".
 const links = [
-  { href: '/projects/', label: 'Projects' },
   { href: '/about/', label: 'About' },
   { href: '/blog/', label: 'Blog' },
   { href: '/contact/', label: 'Contact' },

@@ -67,7 +67,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     }
     if (target.type === 'url') return { label: 'Open ' + target.value.replace(/^https?:\/\//, '').replace(/\/$/, ''), href: target.value };
     // Same-site page; values come only from the knowledge base, never from typed text.
-    if (target.type === 'page' && /^\/[a-z0-9\-\/]*$/.test(target.value)) return { label: /^\/projects\//.test(target.value) ? 'Read the case study' : 'Take me there', href: target.value };
+    if (target.type === 'page' && /^\/[a-z0-9\-\/]*$/.test(target.value)) return { label: 'Take me there', href: target.value };
     if (extraTargetHandler) {
       var r = extraTargetHandler(target, { close: function () { chat.close(true); }, reduce: reduce });
       if (r) return { label: r.label, run: r.run };
@@ -145,10 +145,10 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     if (e.data.result === 'win') window.SITE.kaiMoment('arcadeWin');
     else if (e.data.result === 'lose') window.SITE.kaiMoment('arcadeLose');
   });
-  // a project you hover: Kai looks (the brain does that) and perks up
+  // a project you hover on the homepage: Kai looks (the brain does that) and perks up
   var curiousAt = 0;
   document.addEventListener('pointerover', function (e) {
-    var card = e.target.closest && e.target.closest('a[href^="/projects/"]');
+    var card = e.target.closest && e.target.closest('#projects-section .acc-head');
     if (!card || chat.root.contains(card) || Date.now() - curiousAt < 2500) return;
     curiousAt = Date.now();
     kai.setMood('curious', 1400);
