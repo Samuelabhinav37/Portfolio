@@ -81,13 +81,13 @@ const links = [
     border-bottom: 1px solid transparent;
   }
   /* The fade alone let page text show straight through behind the name and
-     Menu once scrolled. Past the top it becomes a real bar: solid enough
-     that nothing reads through, blurred so it still feels light. */
+     Menu once scrolled. Past the top it becomes a frosted bar: the blur keeps
+     text behind it from reading through, with only a faint tint so the sky
+     stays visible instead of the header turning black. */
   :global(html.is-scrolled) #topbar-scrim {
     height: 56px;
-    background: rgba(5,5,10,0.82);
+    background: rgba(8,12,24,0.18);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-    border-bottom-color: rgba(var(--c-white),0.06);
   }
 
   #site-identity {
@@ -169,7 +169,7 @@ const links = [
 )}
 
 <script>
-  /* html.is-scrolled drives the solid top bar (see #topbar-scrim). An
+  /* html.is-scrolled drives the frosted top bar (see #topbar-scrim). An
      IntersectionObserver on a sentinel at the top of the page, not a scroll
      listener, so it costs nothing per scroll frame. */
   (function(){

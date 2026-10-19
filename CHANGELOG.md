@@ -17,6 +17,7 @@ Notable changes to the portfolio and blog will be recorded here.
 
 ### Removed
 
+- The divider lines between homepage sections, and the explainer line under the blog's threat ticker.
 - The project pages: `/projects/` and the Sentinel, Moat and Cluster case studies (layout, content collection, styles and case-study images). Old URLs, and `/work`, redirect to the homepage, whose projects accordion stays; the menus and Kai's chat point there now.
 - The two near-duplicate nebula engines (`nebula-engine.js`, `nebula-engine-home.js`) and `NebulaBackground.astro`.
 - The homepage hero video (and its poster and 4.9 MB file) and the dark panels behind the homepage sections, so the sky shows through; the blog keeps its blur over the sky but no longer darkens it.
@@ -25,6 +26,8 @@ Notable changes to the portfolio and blog will be recorded here.
 
 ### Fixed
 
+- The about-page arcade game never ran in production: its sandboxed iframe had an opaque origin, so the site-wide `Cross-Origin-Resource-Policy: same-origin` blocked its script and fonts. The iframe now also allows same-origin (it only ever holds the page's own srcdoc).
+- The site header no longer turns into a near-black bar on scroll; it becomes a frosted bar with a faint tint, so the sky stays visible.
 - A dark 1px line under the site header: its fade gradient repeated under its transparent bottom border.
 
 Release history before this changelog is available through the Git history and merged pull requests.

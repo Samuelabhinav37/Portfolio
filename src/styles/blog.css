@@ -69,6 +69,9 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   position: fixed; top: 0; left: 0; right: 0; height: 100px;
   z-index: 999; pointer-events: none;
   background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
+  /* sized to the border box, so the gradient can't repeat under the 1px
+     transparent border as a dark line (same fix as SiteMenu.astro) */
+  background-origin: border-box;
   border-bottom: 1px solid transparent;
   transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
 }
