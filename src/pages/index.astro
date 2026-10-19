@@ -195,10 +195,6 @@ body.intro-done #term-stage { opacity:1; }
   content:''; position:absolute; inset:0; z-index:200; pointer-events:none; border-radius:inherit;
   background:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 4px);
 }
-#term-window::after {
-  content:''; position:absolute; inset:0; z-index:199; pointer-events:none; border-radius:inherit;
-  background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,0.34) 100%);
-}
 #term-titlebar {
   position:relative; z-index:201; width:100%; height:34px; flex-shrink:0;
   background:rgba(16,16,16,0.98); border-bottom:1px solid rgba(var(--c-white),0.07);
@@ -212,25 +208,16 @@ body.intro-done #term-stage { opacity:1; }
   letter-spacing:0.10em; white-space:nowrap; pointer-events:none;
 }
 #term-status { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.52rem; color:rgba(var(--c-white),0.12); letter-spacing:0.14em; text-transform:uppercase; }
-#term-screen { position:relative; flex:1; background:var(--c-bg); overflow:hidden; }
+#term-screen { position:relative; flex:1; background:transparent; overflow:hidden; }
 .tcorner { position:absolute; z-index:10; width:20px; height:20px; border-color:rgba(var(--c-white),0.10); border-style:solid; }
 .tcorner.tl { top:20px; left:20px;  border-width:1px 0 0 1px; }
 .tcorner.tr { top:20px; right:20px; border-width:1px 1px 0 0; }
 .tcorner.bl { bottom:20px; left:20px;  border-width:0 0 1px 1px; }
 .tcorner.br { bottom:20px; right:20px; border-width:0 1px 1px 0; }
-#term-feed { position:absolute; inset:0; pointer-events:none; }
-/* poster (a real, compressed still pulled from the video's own first frame) paints
-   instantly and carries the same filter, so on a slow connection the CRT shows a
-   frozen frame of the feed rather than a loading state — the video fades in over
-   it once playable and the swap reads as "it started moving", not "it loaded". */
-#term-feed-video { width:100%; height:100%; object-fit:cover; display:block;
-  filter:grayscale(1) contrast(1.08) brightness(0.95); background:#000; }
-
 /* Pinned hero tagline — inset from the .tcorner brackets, bottom-left of the
    CRT feed. Fades in with the rest of the hero chrome on body.intro-done, a
    beat after the stage itself so it reads as a second, deliberate reveal.
-   No scrim needed: the video's own grayscale/contrast filter above already
-   keeps it dark enough for white text to read cleanly. */
+   It sits straight on the sky; the text-shadow keeps it readable over cloud. */
 #hero-tagline { position:absolute; z-index:11; left:52px; right:52px; bottom:48px; max-width:760px;
   pointer-events:none; opacity:0; transition:opacity 1.1s cubic-bezier(0.22,1,0.36,1); transition-delay:.4s; }
 body.intro-done #hero-tagline { opacity:1; }
@@ -257,9 +244,9 @@ body.intro-done #hero-tagline { opacity:1; }
   --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
 }
 footer#site-footer{
-    position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:rgba(4,4,10,0.9);
+    position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:transparent;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0;
-    opacity:1; pointer-events:auto;   /* same calm panel as #editorial; ::before bloom sits on top */
+    opacity:1; pointer-events:auto;   /* no panel: the sky shows through; ::before bloom sits on top */
   }
   footer#site-footer.fpin{ pointer-events:auto; opacity:1; }
   /* Footer entrance — mirrors the project-tile reveal (scale + slide + fade), staggered.
@@ -566,67 +553,12 @@ footer#site-footer{
     <div id="term-screen">
       <div class="tcorner tl"></div><div class="tcorner tr"></div>
       <div class="tcorner bl"></div><div class="tcorner br"></div>
-      <div id="term-feed">
-        <video id="term-feed-video" poster="/images/term-feed-poster.webp"
-          muted loop playsinline aria-hidden="true"></video>
-      </div>
       <div id="hero-tagline">
         <p>Everything is connected.<br>Everything must be <span id="hero-tagline-word" data-text="protected">protected</span><span id="hero-tagline-cursor" aria-hidden="true">|</span></p>
       </div>
     </div>
   </div>
 </div>
-<script is:inline>
-(function(){
-  var v = document.getElementById('term-feed-video');
-  if(!v) return;
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; // stays on the poster, as before
-
-  /* Connection-aware loading: on a slow/metered connection, never request
-     the 4.9MB video at all — src is only set below, so preload="auto"
-     never fires a byte over the wire, and the poster (a real compressed
-     still of the video's own first frame) just stays up permanently
-     instead of a video that would stall or eat someone's data cap. The
-     Network Information API is Chromium-only (no Safari/Firefox support);
-     absent that signal, default to loading normally rather than silently
-     degrading everyone on unsupported browsers. 3g is treated as slow too
-     (not just 2g) since that's the more common "bad mobile" case in the
-     real world, plus a downlink-based fallback for congested connections
-     that still self-report as 4g. */
-  var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  var slow = conn && (
-    conn.saveData ||
-    /^(slow-2g|2g|3g)$/.test(conn.effectiveType||'') ||
-    (typeof conn.downlink === 'number' && conn.downlink < 1.5)
-  );
-  if(slow) return;
-
-  function loadVideo(){
-    v.preload = 'auto';
-    v.src = '/videos/term-feed-hero.mp4';
-    v.autoplay = true;
-    var p = v.play();
-    if(p && p.catch) p.catch(function(){});
-  }
-
-  /* #term-stage stays opacity:0 until body.intro-done (see CSS above) —
-     no reason to spend 4.9MB of bandwidth on a video that isn't even
-     visible yet. Watching for the class (rather than assuming a fixed
-     delay) keeps this correct whether the instant-settle path or the
-     full ~6.4s choreography in index-intro-sequence.js is active. */
-  if(document.body.classList.contains('intro-done')){
-    loadVideo();
-  } else {
-    var mo = new MutationObserver(function(){
-      if(document.body.classList.contains('intro-done')){
-        mo.disconnect();
-        loadVideo();
-      }
-    });
-    mo.observe(document.body, {attributes:true, attributeFilter:['class']});
-  }
-})();
-</script>
 
 <!-- Beat 1 scroll distance: scrubs the expand floating &rarr; fullscreen -->
 <!-- beat1 removed: CRT is now a normal-flow section that scrolls away -->
@@ -634,7 +566,7 @@ footer#site-footer{
      Normal-flow content between the CRT and the projects. Sits at z-index 300
      over the sky background; the CRT releases on scroll, so nothing overlaps. -->
 <style is:global id="ed-styles">
-  #editorial{ position:relative; z-index:300; background:rgba(4,4,10,0.9); color:#ededee;
+  #editorial{ position:relative; z-index:300; background:transparent; color:#ededee;
     font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
   #editorial .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
     letter-spacing:2px; text-transform:uppercase; color:#87878d; }
@@ -964,7 +896,7 @@ footer#site-footer{
 <!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
 #projects-section{ position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
-  background:rgba(4,4,10,0.9); display:flex; align-items:center;
+  background:transparent; display:flex; align-items:center;
   padding:clamp(50px,7vh,100px) 0; }
 #projects-section .ps-inner{ width:100%; max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
 #projects-section .ps-head{ margin:0 0 clamp(20px,3.5vh,38px); }
@@ -1123,7 +1055,7 @@ footer#site-footer{
 
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
-#signal{ position:relative; z-index:1; background:rgba(4,4,10,0.9);
+#signal{ position:relative; z-index:1; background:transparent;
   padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1); }
 #signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
 #signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
@@ -1131,7 +1063,7 @@ footer#site-footer{
 #signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
 /* Snapshot: same section chrome as Signal. The grid/tile rules inside are the
    former "#editorial .ed-*" ones, re-scoped to #snapshot unchanged. */
-#snapshot{ position:relative; z-index:1; background:rgba(4,4,10,0.9); color:#ededee;
+#snapshot{ position:relative; z-index:1; background:transparent; color:#ededee;
   font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); border-top:1px solid rgba(var(--c-white),.1); }
 #snapshot .snap-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
