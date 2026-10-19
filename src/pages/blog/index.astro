@@ -5,10 +5,9 @@ import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
 import SkyBackground from '../../components/SkyBackground.astro';
 import KaiSite from '../../components/KaiSite.astro';
-import { FAKE_PROJECTS } from '../../data/projects.ts';
 import '../../styles/tokens.css';
 import Fonts from '../../components/Fonts.astro';
-import { srcsetWith } from '../../image-variant';
+import { variant, webpDims } from '../../image-variant';
 
 // Translations (e.g. es/anatomy-of-a-supply-chain-attack) live under a
 // locale subfolder and get their own index-free route — the grid here
@@ -18,41 +17,41 @@ const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 const year = new Date().getFullYear();
-const postCards = posts.map((p) => ({
-  id: p.id,
-  name: p.data.title,
-  cats: p.data.cats,
-  kick: p.data.category + ' · ' + p.data.pubDate.getFullYear(),
-  year: p.data.pubDate.getFullYear(),
-  seed: p.id,
-  // Horizontal rows want a wide image, so heroImage (already ~1.9:1) is the
-  // primary source now — cardImage is kept only as a fallback for any post
-  // that happens to have one set without a heroImage, not something new
-  // posts need to supply.
-  img: p.data.heroImage || p.data.cardImage || null,
-  // 800w variant for list cards and phones; the original stays for 2x desktop.
-  srcset: srcsetWith(p.data.heroImage, 800, 1600) || null,
-  lead: p.data.description,
-  href: '/blog/' + p.id + '/',
-}));
-// Featured hero card — an illustrative case study if any exist (FAKE_PROJECTS
-// is currently empty on purpose, see src/data/projects.ts), else the latest
-// real post. Matches what the client-side rotator in the script below would
-// pick as its first frame, so there's no server/client mismatch on load.
-const heroItem = FAKE_PROJECTS[0] ?? postCards[0] ?? null;
-// FakeProject has no `href` or `srcset` (it opens the case-study slide-over
-// instead), so take them from the post only when the post is the hero. An
-// `'href' in heroItem` check narrows to unknown under TypeScript 6.
-const heroPost = FAKE_PROJECTS[0] ? null : postCards[0] ?? null;
-const heroHref = heroPost?.href ?? null;
-// Anthropic-style static hero: one big featured item plus a short text list
-// of the next few recent posts beside it — skip postCards[0] only when it's
-// actually the one occupying the featured slot (FAKE_PROJECTS is currently
-// empty on purpose, so today heroItem always comes from postCards[0]).
-const sideItems = (FAKE_PROJECTS.length ? postCards : postCards.slice(1)).slice(0, 5);
-// The grid/table below needs to exclude whatever's already shown up here —
-// otherwise the same 3-4 posts appear twice on first load, back to back.
-const featuredSeeds = [heroItem, ...sideItems].filter(Boolean).map((p) => p.seed);
+
+/* Field Notes: every post as a card. Card art is the tall 4:5 cardImage; the
+   480w variant serves compact cards, the original backs it up for wide/2x. */
+const WPM = 230;
+function ordinal(n: number) {
+  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+function dateLabel(d: Date) {
+  return d.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' }) + ' ' + ordinal(d.getUTCDate()) + ', ' + d.getUTCFullYear();
+}
+const cards = posts.map((p) => {
+  const img = p.data.cardImage || p.data.heroImage || null;
+  const small = variant(img, 480);
+  const dims = img ? webpDims(img) : null;
+  const words = (p.body || '').split(/\s+/).filter(Boolean).length;
+  return {
+    id: p.id,
+    title: p.data.title,
+    topic: p.data.category,
+    date: p.data.pubDate.toISOString().slice(0, 10),
+    dateLabel: dateLabel(p.data.pubDate),
+    mins: Math.max(1, Math.round(words / WPM)),
+    desc: p.data.description,
+    href: '/blog/' + p.id + '/',
+    img,
+    srcset: img && small && small !== img && dims ? `${small} 480w, ${img} ${dims.width}w` : null,
+  };
+});
+const topics = [...new Set(cards.map((c) => c.topic))];
+const [featured, ...rest] = cards;
+/* Left column takes every other post as a wide card with its excerpt; the
+   right column gets compact cards. Same split the client script uses. */
+const wideCol = rest.filter((_, i) => i % 2 === 0);
+const narrowCol = rest.filter((_, i) => i % 2 === 1);
 ---
 
 <!DOCTYPE html>
@@ -72,17 +71,17 @@ window.SITE=window.SITE||{};
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
-<title>Samuel Abhinav — Blog</title>
-<meta name="description" content="Security systems I've built — a three-SIEM detection lab, federated anomaly detection for industrial networks, risk-adaptive auth — plus HackerOne findings and the threat-intel writeups.">
+<title>Field Notes — Samuel Abhinav</title>
+<meta name="description" content="Field Notes by Samuel Abhinav: how passwords, hashing, encryption and firewalls came to be, told from first principles, plus threat-intel writeups.">
 <link rel="canonical" href="https://samuelabhinav.com/blog/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Samuel Abhinav — Blog">
-<meta property="og:description" content="A three-SIEM detection lab, federated anomaly detection for industrial networks, risk-adaptive auth, accepted HackerOne reports, and the threat-intel writeups.">
+<meta property="og:title" content="Field Notes — Samuel Abhinav">
+<meta property="og:description" content="Field Notes by Samuel Abhinav: how passwords, hashing, encryption and firewalls came to be, told from first principles, plus threat-intel writeups.">
 <meta property="og:site_name" content="Samuel · Security Engineer">
 <meta property="og:url" content="https://samuelabhinav.com/blog/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Samuel Abhinav — Blog">
-<meta name="twitter:description" content="A three-SIEM detection lab, federated anomaly detection for industrial networks, risk-adaptive auth, accepted HackerOne reports, and the threat-intel writeups.">
+<meta name="twitter:title" content="Field Notes — Samuel Abhinav">
+<meta name="twitter:description" content="Field Notes by Samuel Abhinav: how passwords, hashing, encryption and firewalls came to be, told from first principles, plus threat-intel writeups.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -90,388 +89,124 @@ window.SITE=window.SITE||{};
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
 <style is:global>
+/* ══════════════ FIELD NOTES ══════════════
+   A serif title floating on the sky with search under it, a featured row,
+   then a two-column editorial list (wide cards left, compact cards right),
+   every card carrying its post art, and numbered pages at the bottom. */
 :root{
-  --bg:var(--c-bg);--ink:#ededee;--ink-soft:#c9c9cc;--muted:#94949a;--faint:#87878d;
-  --line:rgba(var(--c-white),.26);--line-soft:rgba(var(--c-white),.1);
-  --e:cubic-bezier(.22,1,.36,1);
-  /* Native OS font stack — same trick Apple's own site uses instead of
-     embedding the licensed SF Pro font: -apple-system pulls the real San
-     Francisco font on Mac/iPhone/iPad directly from the OS (zero download,
-     genuinely free/legal), falling back to each other OS's own native UI
-     font. Now the site-wide default for everything on the blog, not just
-     titles/descriptions — Hanken Grotesk dropped entirely. */
+  --bg:var(--c-bg);
+  --ink:#e9ecf7; --muted:rgba(200,210,232,.66); --faint:rgba(200,210,232,.42);
+  --card:rgba(12,17,35,.66); --card-line:rgba(190,205,240,.10);
+  --accent:#8fb3ff; --tag:#bcd4ff; --tag-ink:#0a1230;
+  --field:rgba(6,10,24,.72);
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --apple-sans:var(--sans);
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --e:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;
-  min-height:100vh;min-height:100svh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-.meta{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
-a:focus-visible,button:focus-visible,select:focus-visible,.card:focus-visible{
-  outline:1px solid #fff;outline-offset:4px}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;min-height:100svh;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 
-/* Anthropic-style static hero: one big featured post (image, kicker, title,
-   excerpt) beside a short text list of a few more recent ones — replaces
-   the old full-viewport rotating flip-card. The page-wide #content-scrim
-   (a blur, added separately) already softens the sky behind this
-   section, so no dedicated hero glow/frosted-glass
-   layer is needed here anymore either. */
-/* Flex, not grid — a proportional 1.6fr/1fr grid split stretched the
-   featured card's column across most of the page while its actual content
-   (a capped-width image + text) stayed narrow, leaving a big dead gap
-   before the side list started. Flex with a content-sized basis on each
-   side + justify-content:center means both blocks size to what they
-   actually need and sit snug next to each other, centered as one group. */
-.hero2{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;
-  gap:56px;padding:96px 38px 64px;max-width:1400px;margin:0 auto}
-/* The featured card is this page's LCP element, so it renders immediately
-   instead of fading in from opacity:0. Chrome doesn't count an invisible
-   element as painted, so the old 0.3s-delayed fade let any main-thread
-   stall (the nebula engine's startup task) push LCP back by seconds. The
-   side list below still fades in. */
-.hero2-feat{position:relative;display:block;flex:0 1 540px;text-decoration:none;color:inherit;cursor:pointer}
-.hero2-imgwrap{position:relative;aspect-ratio:16/10;overflow:hidden;border-radius:6px;background:#101012;margin-bottom:22px}
-.hero2-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;
-  filter:grayscale(.35) brightness(.75);transition:filter .5s var(--e),transform .7s var(--e)}
-.hero2-feat:hover .hero2-imgwrap img{filter:grayscale(0) brightness(.9);transform:scale(1.03)}
-/* Only the image reacted to hover before — the title is already pure
-   white (no headroom for a color brighten), so it gets a growing
-   underline instead; the category/excerpt get a real color shift so
-   nothing below the photo just sits there unchanged. */
-.hero2-feat .meta{display:block;color:var(--faint);transition:color .3s}
-.hero2-feat:hover .meta{color:var(--ink-soft)}
-.hero2-feat h1{margin-top:10px;font-family:var(--apple-sans);font-weight:300;font-size:clamp(26px,2.6vw,36px);line-height:1.12;
-  letter-spacing:-1px;color:#fff;position:relative;display:inline-block}
-.hero2-feat h1::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
-.hero2-feat:hover h1::after{width:100%}
-.hero2-feat p{margin-top:14px;font-family:var(--apple-sans);color:var(--faint);font-size:15px;line-height:1.6;transition:color .3s;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.hero2-feat:hover p{color:var(--muted)}
+/* every content block is positioned so it paints above the fixed #sky
+   (a positioned element with z-index:auto) */
+.fn{position:relative;z-index:1;max-width:1240px;margin:0 auto;
+  padding:0 max(20px, env(safe-area-inset-right, 0px)) 72px max(20px, env(safe-area-inset-left, 0px));
+  display:flex;flex-direction:column;gap:52px}
 
-.hero2-side{display:flex;flex-direction:column;flex:0 1 360px;padding-top:6px;
-  opacity:0;transform:translateY(24px);transition:opacity 1s var(--e),transform 1s var(--e)}
-.is-loaded .hero2-side{opacity:1;transform:none;transition-delay:.5s}
-.hero2-item{display:block;text-decoration:none;color:inherit;padding:20px 14px;margin:0 -14px;
-  border-top:1px solid var(--line-soft);border-radius:5px;transition:background-color .25s}
-.hero2-item:hover{background:rgba(var(--c-white),.07)}
-.hero2-side .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
-.hero2-item .meta{color:var(--faint);transition:color .3s}
-.hero2-item:hover .meta{color:var(--ink-soft)}
-.hero2-item h2{margin-top:8px;font-family:var(--apple-sans);font-weight:400;font-size:17px;line-height:1.3;color:var(--ink);transition:color .3s}
-.hero2-item:hover h2{color:#fff}
+/* ── title + search ── */
+.fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;padding:clamp(120px,15vw,170px) 0 4px}
+.fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(64px,11vw,132px);line-height:.95;letter-spacing:-.01em;
+  color:#eef2fb;text-align:center;text-wrap:balance;
+  text-shadow:0 0 24px rgba(143,179,255,.28),0 0 70px rgba(110,150,240,.22);
+  animation:fnDrift 9s ease-in-out infinite}
+.fn-title em{font-style:italic;color:#cdd9f7}
+@keyframes fnDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.fn-search{width:min(900px,100%);display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px}
+.fn-field{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;background:var(--field);
+  border:1px solid var(--card-line);border-radius:8px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  transition:border-color .2s,box-shadow .2s}
+.fn-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(143,179,255,.16)}
+.fn-field svg{width:17px;height:17px;flex:none;stroke:var(--muted);fill:none;stroke-width:2}
+.fn-field input,.fn-field select{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:400 15px var(--sans)}
+.fn-field input:focus-visible,.fn-field select:focus-visible{outline:0}
+.fn-field input::placeholder{color:var(--faint)}
+.fn-field input::-webkit-search-cancel-button{filter:invert(.8)}
+.fn-field select{appearance:none;-webkit-appearance:none;cursor:pointer}
+.fn-field select option{background:#0c1330;color:var(--ink)}
+@media (max-width:640px){.fn-search{grid-template-columns:1fr}}
 
-/* ── THREAT WIRE — live ticker (NVD → CIRCL → static pills fallback).
-   Awwwards-pattern mechanics: measured track duplication for a seamless
-   loop, constant px/s velocity (duration computed from content width),
-   pause on hover, edge fade masks, reduced-motion = static scrollable row. */
-.wire{position:relative;z-index:1;display:flex;align-items:stretch;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
-.wire-label{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:14px 22px;
-  border-right:1px solid var(--line-soft);color:var(--muted);white-space:nowrap;user-select:none}
-.wire-label .dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:wpulse 2.2s ease-in-out infinite}
-@keyframes wpulse{0%,100%{opacity:.9}50%{opacity:.25}}
-.wire-view{flex:1;overflow:hidden;position:relative;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);
-          mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
-.wire-track{display:flex;align-items:center;width:max-content;padding:9px 0;
-  animation:wscroll var(--wire-dur,40s) linear infinite;will-change:transform}
-.wire-view:hover .wire-track{animation-play-state:paused}
-@keyframes wscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.wire-item{display:inline-flex;align-items:center;gap:10px;margin:0 9px;padding:7px 14px;
-  border:1px solid var(--line-soft);border-radius:999px;text-decoration:none;white-space:nowrap;
-  color:var(--muted);transition:border-color .3s,color .3s,background .3s}
-/* these link out to real external URLs (NVD, etc.) — force the intended
-   color regardless of the visitor's browser history, since the default
-   a:visited color can otherwise outrank a plain class selector. */
-a.wire-item:visited{color:var(--muted)}
-a.wire-item:hover{border-color:var(--line);color:var(--ink);background:rgba(var(--c-white),.03)}
-.wire-item .sev{font-size:11px;font-weight:600;letter-spacing:2px;color:#fff}
-.wire-item .wid{font-size:11px;font-weight:500;letter-spacing:2px;color:var(--ink-soft);text-transform:uppercase}
-.wire-item .wtx{font-size:11px;font-weight:400;letter-spacing:.6px;color:var(--faint)}
-.wire-item.skel{min-width:220px;height:31px;position:relative;overflow:hidden;border-color:var(--line-soft)}
-.wire-item.skel::before{content:"";position:absolute;inset:0;
-  background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
-  animation:shim 1.6s linear infinite;opacity:.5}
-@media (--bp-760){.wire-label{padding:12px 14px}}
-@media (prefers-reduced-motion:reduce){
-  .wire-track{animation:none;width:auto}
-  .wire-view{overflow-x:auto;mask-image:none;-webkit-mask-image:none}
-}
-.intro{position:relative;z-index:1;padding:104px 38px 70px;max-width:1100px}
-.intro p{font-weight:200;font-size:clamp(24px,3.4vw,46px);line-height:1.18;letter-spacing:-.5px;color:var(--ink-soft)}
-.intro p em{font-style:normal;color:#fff}
+/* ── shared card art ── */
+.fn-shot{position:relative;overflow:hidden;background:#05091a;aspect-ratio:4/3;max-width:100%}
+.fn-shot img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 46%;
+  transition:transform .6s var(--e)}
+/* wide cards and the featured row show the whole picture, over a blurred,
+   dimmed copy of itself so the sides aren't empty */
+.fn-shot.fit .fill{filter:blur(22px) brightness(.5) saturate(1.2);transform:scale(1.2)}
+.fn-shot.fit .art{object-fit:contain;object-position:50% 50%}
+a:hover .fn-shot .art{transform:scale(1.03)}
+.fn-shot.fit .art{filter:drop-shadow(0 10px 30px rgba(0,0,0,.45))}
+.fn-tag{position:absolute;left:0;bottom:0;z-index:2;font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  background:var(--tag);color:var(--tag-ink);padding:7px 9px;border-top-right-radius:6px}
+.fn-meta{font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;flex-wrap:wrap;gap:4px 14px}
 
-section.block{position:relative;z-index:1;padding:40px 38px 96px}
-.lbl{color:var(--faint);margin-bottom:20px}
+/* ── featured row ── */
+.fn-feat{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,4vw,48px);align-items:center;
+  background:var(--card);border:1px solid var(--card-line);border-radius:22px;padding:14px 14px 14px clamp(20px,3.4vw,40px);
+  text-decoration:none;color:inherit;transition:transform .35s var(--e),box-shadow .35s}
+.fn-feat:hover{transform:translateY(-3px);box-shadow:0 26px 70px -34px rgba(0,0,0,.6)}
+.fn-feat .txt{display:flex;flex-direction:column;gap:16px;padding-block:18px;min-width:0}
+.fn-pill{align-self:flex-start;font:500 12px/1 var(--sans);padding:7px 10px;border-radius:6px;background:rgba(143,179,255,.12);
+  color:var(--muted);border:1px solid var(--card-line)}
+.fn-feat h2{font-weight:600;letter-spacing:-.02em;font-size:clamp(26px,2.8vw,36px);line-height:1.15;text-wrap:balance}
+.fn-feat p{color:var(--muted);font-size:16px;line-height:1.6;max-width:52ch}
+.fn-feat .fn-shot{aspect-ratio:16/10;border-radius:14px}
+.fn-feat[hidden]{display:none}
+@media (max-width:820px){.fn-feat{grid-template-columns:1fr;padding:14px}.fn-feat .txt{order:2;padding:4px 8px 10px}}
 
-.card{text-decoration:none;color:inherit;cursor:pointer;opacity:0;transform:translateY(20px);
-  transition:opacity .8s var(--e),transform .8s var(--e)}
-.card:visited{color:inherit}
-.card.in{opacity:1;transform:none}
+/* ── the list ── */
+.fn-list{display:flex;flex-direction:column;gap:26px}
+.fn-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fn-head h2{font-weight:600;font-size:20px;letter-spacing:-.01em}
+.fn-count{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.fn-cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.fn-col{display:flex;flex-direction:column;gap:24px;min-width:0}
+@media (max-width:820px){.fn-cols{grid-template-columns:minmax(0,1fr)}}
+.fn-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--card-line);border-radius:18px;overflow:hidden;
+  text-decoration:none;color:inherit;min-width:0;transition:transform .35s var(--e),box-shadow .35s,border-color .35s}
+.fn-card:hover{transform:translateY(-4px);box-shadow:0 26px 60px -34px rgba(0,0,0,.6);border-color:rgba(143,179,255,.28)}
+.fn-card .fn-shot{aspect-ratio:16/9}
+.fn-col.narrow .fn-card .fn-shot{aspect-ratio:4/3}
+.fn-card .body{display:flex;flex-direction:column;gap:10px;padding:18px 20px 22px}
+.fn-card h3{font-weight:600;letter-spacing:-.01em;line-height:1.3;font-size:20px;text-wrap:balance}
+.fn-col.narrow .fn-card h3{font-size:16px}
+.fn-card h3 .arr{display:inline-block;margin-left:6px;color:var(--accent);transition:transform .25s}
+.fn-card:hover h3 .arr{transform:translateX(4px)}
+.fn-card p{color:var(--muted);font-size:14.5px;line-height:1.55}
+.fn-empty{padding:44px;text-align:center;color:var(--muted);border:1px dashed var(--card-line);border-radius:14px}
 
-/* Mobile default: one consistent list — kicker + title, matching the
-   .hero2-item treatment used by the "recent posts" list next to the
-   featured hero. Narrow screens don't have room for a photo grid + a
-   separate table without either shrinking the images to nothing or
-   forcing a lot of scrolling, so mobile stays this one simple shape.
-   Desktop overrides this back to real image cards + a table below
-   (see the min-width:761px block further down) — restored at the site
-   owner's request after the "unify to one shape" pass went too far by
-   applying to every viewport, not just the narrow ones that needed it. */
-.grid{display:flex;flex-direction:column;max-width:880px;margin:0 auto 64px;padding-bottom:56px;border-bottom:1px solid var(--line-soft)}
-.no-results{padding:60px 0;text-align:center;color:var(--faint);font-size:15px;line-height:1.9}
-.no-results button{margin-top:6px;background:none;border:none;color:var(--muted);font:inherit;cursor:pointer;
-  text-decoration:underline;text-underline-offset:4px;transition:color .3s}
-.no-results button:hover{color:#fff}
-.grid .hero2-item:last-child{border-bottom:1px solid var(--line-soft)}
-.tbl{display:none}
+/* ── numbered pages ── */
+.fn-pg{display:flex;gap:8px;flex-wrap:wrap}
+.fn-pg[hidden]{display:none}
+.fn-pg button{min-width:36px;height:36px;padding:0 10px;display:grid;place-items:center;cursor:pointer;
+  font:500 13px var(--mono);color:var(--muted);background:var(--card);border:1px solid var(--card-line);border-radius:4px;
+  transition:color .2s,border-color .2s,background .2s}
+.fn-pg button:hover:not([disabled]){color:var(--ink);border-color:rgba(143,179,255,.45)}
+.fn-pg button[aria-current="page"]{background:var(--tag);color:var(--tag-ink);border-color:var(--tag)}
+.fn-pg button[disabled]{opacity:.35;cursor:default}
 
-/* ── Desktop only: real image cards for the first 3 archive posts, a plain
-   table for the rest. Paired with --bp-760 (max-width:760px) used
-   elsewhere on this page — blog-index-client.js's isDesktop() branches at
-   the same 761px so the rendered markup always matches which of these two
-   rule sets is actually active. ── */
-@media (min-width: 761px) {
-  /* auto-fit (not auto-fill): with only 3 cards, auto-fill was reserving
-     empty phantom column tracks to the right instead of letting the 3 real
-     cards stretch to fill the row — the whole page read as "stuck on the
-     left" because of it. auto-fit collapses those empty tracks so the 1fr
-     cards actually expand to fill the available width. */
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;
-    max-width:none;margin:0 0 64px;padding-bottom:56px;border-bottom:1px solid var(--line-soft)}
-  .no-results{grid-column:1/-1}
-  .grid .card{display:block}
-  .grid .card .ph{position:relative;aspect-ratio:16/10;overflow:hidden;background:#101012;border-radius:4px}
-  /* Static stand-in for cards with no real photo (no heroImage set) — same
-     gradient BlogPost.astro uses for its hero-art placeholder, so a missing
-     image reads as an intentional treatment, not a broken load. */
-  .grid .card .ph.noimg{background:
-    radial-gradient(at 50% 32%,rgba(132,132,146,.30) 0%,rgba(70,70,80,.18) 38%,transparent 70%),
-    linear-gradient(165deg,rgba(36,36,42,.95) 0%,rgba(10,10,12,.98) 100%)}
-  .grid .card .ph::before{content:"";position:absolute;inset:0;z-index:1;
-    background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
-    animation:shim 1.6s linear infinite;transition:opacity .7s ease;opacity:1}
-  .grid .card .ph.loaded::before{opacity:0}
-  @keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  .grid .card .ph img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:2;
-    filter:grayscale(1) brightness(.78);opacity:0;
-    transform:scale(1.03);transition:filter .7s var(--e),transform .9s var(--e),opacity .6s ease}
-  .grid .card .ph.loaded img{opacity:1}
-  .grid .card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,15,17,.05),rgba(15,15,17,.5))}
-  .grid .card:hover .ph img{filter:grayscale(0) brightness(.94);transform:scale(1.06)}
-  .grid .card .cbody{margin-top:16px}
-  .grid .card .cmeta{display:flex;align-items:center;color:var(--faint);margin-bottom:8px;transition:color .3s}
-  .grid .card .cmeta span+span::before{content:"·";margin:0 8px}
-  .grid .card:hover .cmeta{color:var(--ink-soft)}
-  .grid .card h2{font-family:var(--apple-sans);font-weight:600;font-size:clamp(19px,1.6vw,23px);line-height:1.2;letter-spacing:-.2px;color:var(--ink);
-    position:relative;display:inline-block;transition:color .3s}
-  .grid .card h2::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:#fff;transition:width .5s var(--e)}
-  .grid .card:hover h2{color:#fff}
-  .grid .card:hover h2::after{width:100%}
-  .grid .card .clead{margin-top:8px;font-family:var(--apple-sans);color:var(--faint);font-size:14px;line-height:1.6;transition:color .3s;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .grid .card:hover .clead{color:var(--muted)}
-
-  /* A literal date/category/title table, dividers instead of boxes, no
-     imagery — capped and centered rather than letting the title column's
-     1fr stretch across the whole page. */
-  .tbl{display:flex;flex-direction:column;max-width:880px;margin:0 auto}
-  .trow{display:grid;grid-template-columns:70px 180px 1fr;gap:20px;align-items:baseline;
-    padding:16px 12px;margin:0 -12px;border-radius:5px;
-    border-bottom:1px solid var(--line-soft);transition:background-color .25s}
-  .trow-head{pointer-events:none}
-  .trow-head span{color:var(--faint);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase}
-  a.trow:hover{background:rgba(var(--c-white),.07)}
-  .trow-date,.trow-cat{color:var(--faint);font-size:13px;transition:color .25s}
-  .trow-title{font-family:var(--apple-sans);font-weight:400;font-size:16px;line-height:1.4;color:var(--ink);transition:color .25s}
-  a.trow:hover .trow-date,a.trow:hover .trow-cat{color:var(--ink-soft)}
-  a.trow:hover .trow-title{color:#fff}
-}
-
-/* Filter/sort used to sit inside section.block, right before .grid, and
-   inherited that section's own horizontal padding for free. Moved up to
-   sit right under the featured post instead (inside .hero-wire-wrap,
-   between .hero2 and .wire) — it needs its own horizontal padding now,
-   matching what section.block/.hero2 use so the edges still line up. */
-/* position+z-index needed, not optional: .hero2/.wire both set this same
-   position:relative;z-index:1 because #sky (the fixed background,
-   a positioned element) paints above any *static* sibling
-   regardless of DOM order — a positioned element beats a non-positioned
-   one in stacking order even at z-index:0 vs "auto". Without this,
-   .filter-count-wrap rendered fully invisible behind the canvas. */
-.filter-count-wrap{position:relative;z-index:1;padding:28px 38px 0}
-.filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
-  border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:16px 0;margin-bottom:24px}
-.tabs{display:flex;flex-wrap:wrap;gap:26px}
-.tab{background:none;border:none;display:inline-flex;align-items:center;gap:9px;color:var(--muted);
-  font-family:var(--sans);cursor:pointer;transition:color .3s}
-.tab .ring{width:11px;height:11px;border-radius:50%;border:1px solid var(--faint);transition:all .3s}
-.tab.on{color:#fff}.tab.on .ring{border-color:#fff;background:radial-gradient(circle,#fff 42%,transparent 46%)}
-.tab:hover{color:var(--ink)}
-.sortwrap{color:var(--faint)}
-.sortwrap select{background:none;border:none;color:var(--ink);font-family:var(--sans);font-size:11px;
-  font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
-.sortwrap select option{background:#222;text-transform:none}
-.count{color:var(--faint);margin-bottom:30px}.count b{color:var(--muted);font-weight:500}
-.tab-more{color:var(--muted)}.tab-more.on{color:#fff}
-
-/* ── Filter dialog — "See more" panel for the secondary category set,
-   same modal pattern as the homepage Signal "See more" dialog. ── */
-.flt-dialog{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:24px;
-  opacity:0;visibility:hidden;transition:opacity .3s ease}
-.flt-dialog[aria-hidden="false"]{opacity:1;visibility:visible}
-.flt-dialog__backdrop{position:absolute;inset:0;background:rgba(4,4,8,.72);
-  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
-.flt-dialog__panel{position:relative;z-index:1;width:min(560px,92vw);max-height:80vh;overflow-y:auto;
-  background:#0a0a0f;border:1px solid var(--line-soft);border-radius:14px;padding:28px 28px 24px;
-  transform:translateY(10px);transition:transform .35s var(--e)}
-.flt-dialog[aria-hidden="false"] .flt-dialog__panel{transform:none}
-.flt-dialog__close{position:absolute;top:14px;right:14px;width:28px;height:28px;display:grid;place-items:center;
-  background:rgba(var(--c-white),.06);border:1px solid rgba(var(--c-white),.12);border-radius:50%;
-  color:#dfe4f0;font-size:16px;line-height:1;cursor:pointer;transition:background .2s}
-.flt-dialog__close::before{content:'';position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
-.flt-dialog__close:hover{background:rgba(var(--c-white),.12)}
-.flt-dialog__title{font-weight:300;font-size:24px;color:#fff;margin-bottom:6px}
-.flt-dialog__sub{color:var(--faint);margin-bottom:22px}
-.flt-pill-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px}
-.flt-pill{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;
-  color:var(--muted);background:none;border:1px solid var(--line-soft);border-radius:999px;
-  padding:10px 16px;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
-.flt-pill:hover{color:var(--ink);border-color:var(--line)}
-.flt-pill.on{color:#0a0a0f;background:#fff;border-color:#fff}
-.flt-dialog__apply{display:block;margin-left:auto;background:#fff;color:#0a0a0f;border:none;border-radius:999px;
-  padding:11px 24px;font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:1.5px;
-  text-transform:uppercase;cursor:pointer;transition:transform .2s}
-.flt-dialog__apply:hover{transform:translateY(-1px)}
-@media (prefers-reduced-motion:reduce){.flt-dialog,.flt-dialog__panel{transition:none}}
-
-footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 38px 50px;color:var(--faint)}
+/* ── footer ── */
+footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 38px 50px;color:var(--faint);font-size:12px}
 footer .f-links{display:flex;align-items:center;gap:14px;font-family:var(--sans);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
 footer .f-links a{color:var(--faint);text-decoration:none;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
 footer .f-links a:hover{color:#fff}
 footer .f-links .fic{width:12.5px;height:12.5px;fill:currentColor;opacity:0.9;flex:none}
 footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 
-/* case study */
-.flyer{position:fixed;z-index:450;object-fit:cover;filter:grayscale(1) brightness(.9);
-  will-change:transform;pointer-events:none}
-.cs{position:fixed;inset:0;z-index:400;background:var(--bg);overflow-y:auto;
-  opacity:0;visibility:hidden;transition:opacity .35s ease}
-.cs.open{opacity:1;visibility:visible}
-.cs-back{position:fixed;top:22px;left:38px;z-index:460;background:none;border:none;color:#fff;
-  font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
-  cursor:pointer;mix-blend-mode:difference}
-.cs-herowrap{position:relative;width:100%;height:64vh;min-height:380px;overflow:hidden;background:#101012}
-.cs-hero{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.7);opacity:0;position:relative;z-index:2;transition:opacity .5s ease}
-.cs-herowrap::before{content:"";position:absolute;inset:0;z-index:1;
-  background:linear-gradient(100deg,#161618 28%,#27272b 50%,#161618 72%);background-size:200% 100%;
-  animation:shim 1.6s linear infinite;transition:opacity .7s ease;opacity:1}
-.cs-herowrap.loaded::before{opacity:0}
-@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.cs-herowrap::after{content:"";position:absolute;inset:0;z-index:3;background:linear-gradient(180deg,rgba(27,27,30,.4),rgba(27,27,30,.85))}
-.cs-body{max-width:1100px;margin:0 auto;padding:0 38px 120px}
-.cs-rev{opacity:0;transform:translateY(20px);transition:opacity .8s var(--e),transform .8s var(--e)}
-.cs.shown .cs-rev{opacity:1;transform:none}
-.cs-kick{color:var(--muted);margin-top:-60px;position:relative;z-index:2}
-.cs-name{font-weight:200;font-size:clamp(48px,9vw,120px);line-height:.9;letter-spacing:-3px;
-  color:#fff;margin:14px 0 26px;position:relative;z-index:2}
-.cs-lead{font-weight:200;font-size:clamp(22px,3vw,38px);line-height:1.25;color:var(--ink-soft);max-width:22ch;margin-bottom:50px}
-.cs-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
-  background:var(--line-soft);border:1px solid var(--line-soft);margin-bottom:60px}
-.cs-metrics .m{background:var(--bg);padding:26px 22px}
-.cs-metrics .m .v{font-weight:200;font-size:clamp(30px,4vw,52px);color:#fff;letter-spacing:-1px}
-.cs-metrics .m .k{color:var(--faint);margin-top:8px}
-.cs-grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:60px}
-.cs-overview p{font-weight:300;font-size:18px;line-height:1.7;color:var(--ink-soft);margin-bottom:22px}
-.cs-side h4{color:var(--faint);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
-  margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line-soft)}
-.cs-side .blk{margin-bottom:34px}
-.cs-chips{display:flex;flex-wrap:wrap;gap:8px}
-.cs-chips span{border:1px solid var(--line-soft);padding:6px 11px;font-size:11px;letter-spacing:1px;
-  color:var(--muted);font-weight:500}
-.cs-side .lk{display:block;color:var(--ink);text-decoration:none;padding:10px 0;border-bottom:1px solid var(--line-soft);transition:color .3s}
-.cs-side .lk:hover{color:#fff}.cs-side .lk .ar{float:right;color:var(--faint)}
-
-@media (--bp-760){
-  /* padding-top used to clear the fixed header because .hero2 was the
-     first thing on the page — now the wire ticker is (see order:-1 below),
-     so that clearance moves there instead and this only needs normal
-     breathing room under it. */
-  /* .hero2's bottom padding (was 40px) + section.block's top padding (was
-     8px) summed to a 48px gap between .hero2-side's last recent-post row
-     and .grid's first archive row. Both use identical .hero2-item/.card
-     row styling on mobile (the "unified kicker+title list" this file's own
-     header comment describes), so that 48px read as a blank, missing card
-     slot in what's visually one continuous list, not as a section break —
-     nothing marks it as intentional (no label, no divider). Closed the gap
-     to match the flush, border-only spacing already used between rows
-     within each list, so the transition reads as the next row instead of a
-     hole. */
-  .hero2{gap:36px;padding:24px 20px 0}
-  .hero2-feat,.hero2-side{flex-basis:100%}
-  .intro{padding:72px 20px 50px}section.block{padding:0 20px 64px}
-
-  /* Threat wire above everything, filter/sort right above the archive
-     grid it controls, grid last — .hero-wire-wrap only becomes a flex
-     container at this width. Desktop DOM order is hero, wire, filter, grid;
-     mobile wants wire first instead, so these four explicit order values
-     override it rather than reordering the markup itself. section.block was
-     moved inside .hero-wire-wrap (from being a separate sibling)
-     specifically so it can share this flex/order context — CSS order can't
-     reorder across two different parents. */
-  .hero-wire-wrap{display:flex;flex-direction:column}
-  .wire{order:-1;padding-top:84px}
-  .hero2{order:0}
-  /* Gap above is deliberately bigger than the gap below: with the two
-     roughly equal (~60px vs ~48px) the filter row read as floating
-     equidistant between the hero's recent-post list and the archive
-     grid — neither one visually claimed it. Widening the gap from the
-     hero and tightening section.block's lead-in (below) groups it
-     with the grid it actually controls instead. */
-  .filter-count-wrap{order:1;padding:40px 20px 0}
-  section.block{order:2}
-  .cs-back{left:20px}.cs-body{padding:0 20px 80px}
-  .cs-grid2{grid-template-columns:1fr;gap:40px}
-
-  /* Wire + filters route their labels through .meta (11px/2px tracking) —
-     that tracking is what makes small badges/tabs read as oversized on a
-     phone, so both size and letter-spacing come down here. */
-  .meta{font-size:9px;letter-spacing:1px}
-
-  /* ── Threat wire: smaller pills, tighter padding on every side, so the
-     ticker reads as a thin compact strip instead of a row of desktop-sized
-     badges squeezed onto a phone ── */
-  .wire-label{padding:8px 10px;gap:6px}
-  .wire-label .dot{width:5px;height:5px}
-  .wire-track{padding:6px 0}
-  .wire-item{padding:4px 8px;margin:0 5px;gap:5px}
-  .wire-item .sev,.wire-item .wid,.wire-item .wtx{font-size:9px;letter-spacing:1px}
-  .wire-item.skel{min-width:130px;height:22px}
-
-  /* ── Filter/sort row AND the "Showing X of X results" count are both
-     hidden on mobile — narrow-screen visitors just get the plain archive
-     list, nothing to filter/sort and no count to read. Hiding the whole
-     wrap (not just its children) avoids leaving its top padding behind as
-     empty space. Underlying JS still runs and updates .count's text (still
-     needed for desktop), it's just not shown at this width. ── */
-  .filter-count-wrap{display:none}
-
-  /* The fixed corner nav (#site-identity's "Samuel Abhinav" wordmark,
-     #menu-trigger's "Menu" button — both rendered by SiteMenu.astro, a
-     child component; reachable here because this stylesheet is
-     is:global) had no backdrop behind it. On this page specifically,
-     scrolled post titles pass directly underneath and the thin serif
-     wordmark visibly collided with whatever title happened to be at that
-     exact scroll position. Hiding both on mobile "fixed" the overlap but
-     also removed the only way to navigate off this page on mobile — give
-     them a small blurred backdrop instead so they stay visible/clickable
-     without colliding with scrolled content underneath. Scoped to this
-     page only (blog index), not the whole site. */
-  #site-identity, #menu-trigger { background: rgba(5,5,9,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; }
-  #site-identity { padding: 5px 10px; margin: -5px -10px; }
-  #menu-trigger { padding: 6px 10px; margin: -6px -10px; }
-}
-@media (prefers-reduced-motion:reduce){
-  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+@media (prefers-reduced-motion: reduce){
+  .fn-title{animation:none}
+  .fn-shot img,.fn-feat,.fn-card,.fn-card h3 .arr{transition:none}
 }
 </style>
 <style is:global>
@@ -565,69 +300,79 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 <script is:inline src="/scripts/index-subliminal-layer.js"></script>
 
 
-<div class="hero-wire-wrap">
-<section class="hero2">
-  <a
-    class="hero2-feat"
-    id="heroFrame"
-    href={heroHref || '#'}
-    data-key={heroHref ? undefined : heroItem?.seed}
-  >
-    <div class="hero2-imgwrap"><img alt="" loading="eager" fetchpriority="high" src={heroItem?.img || undefined} srcset={heroPost?.srcset || undefined} sizes="(max-width: 760px) 92vw, 560px"></div>
-    <span class="meta">{heroItem?.kick ?? ''}</span>
-    <h1>{heroItem?.name ?? 'More stories soon'}</h1>
-    {heroItem?.lead && <p>{heroItem.lead}</p>}
-  </a>
-  {sideItems.length > 0 && (
-    <div class="hero2-side">
-      {sideItems.map((p) => (
-        <a class="hero2-item" href={p.href}>
-          <span class="meta">{p.kick}</span>
-          <h2>{p.name}</h2>
-        </a>
-      ))}
+<main class="fn" id="main">
+  <section class="fn-hero" aria-labelledby="fn-title">
+    <h1 class="fn-title" id="fn-title">Field <em>Notes</em></h1>
+    <div class="fn-search" role="search">
+      <label class="fn-field" for="fn-q">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="fn-q" type="search" placeholder="Search" autocomplete="off" aria-label="Search posts">
+      </label>
+      <label class="fn-field" for="fn-topic">
+        <select id="fn-topic" aria-label="Topic">
+          <option value="">Topic</option>
+          {topics.map((t) => <option value={t}>{t}</option>)}
+        </select>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </label>
     </div>
+  </section>
+
+  {featured && (
+    <a class="fn-feat" id="fn-feat" href={featured.href}>
+      <div class="txt">
+        <span class="fn-pill">Featured</span>
+        <h2>{featured.title}</h2>
+        <p>{featured.desc}</p>
+        <div class="fn-meta"><span>{featured.dateLabel}</span><span>{featured.mins} min read</span></div>
+      </div>
+      <div class="fn-shot fit">
+        {featured.img && <img class="fill" src={featured.img} alt="" aria-hidden="true" decoding="async" fetchpriority="high" />}
+        {featured.img && <img class="art" src={featured.img} srcset={featured.srcset || undefined} sizes="(max-width: 820px) 92vw, 620px" alt="" decoding="async" fetchpriority="high" />}
+        <span class="fn-tag">{featured.topic}</span>
+      </div>
+    </a>
   )}
-</section>
 
-<div class="wire" aria-label="Live security threat wire">
-  <div class="wire-label meta"><span class="dot"></span>Threat wire</div>
-  <div class="wire-view"><div class="wire-track" id="wireTrack"></div></div>
-</div>
-
-<div class="filter-count-wrap">
-  <div class="filter">
-    <div class="tabs" id="tabs">
-      <button class="tab on meta" data-cat="all"><span class="ring"></span>All</button>
-      <button class="tab meta" data-cat="detect"><span class="ring"></span>Detection</button>
-      <button class="tab meta" data-cat="otics"><span class="ring"></span>OT/ICS</button>
-      <button class="tab meta" data-cat="auth"><span class="ring"></span>Auth</button>
-      <button class="tab meta" data-cat="bb"><span class="ring"></span>Bug Bounty</button>
-      <button class="tab tab-more meta" id="moreTab" type="button">See more →</button>
+  <section class="fn-list" aria-labelledby="fn-latest">
+    <div class="fn-head"><h2 id="fn-latest">Latest</h2><span class="fn-count" id="fn-count">{cards.length} posts</span></div>
+    <!-- Rendered in full here, so every post is in the HTML without
+         JavaScript; blog-fieldnotes.js then pages it and runs search. -->
+    <div class="fn-cols" id="fn-cols">
+      <div class="fn-col wide" id="fn-wide">
+        {wideCol.map((c) => (
+          <a class="fn-card" href={c.href}>
+            <div class="fn-shot fit">
+              {c.img && <img class="fill" src={c.img} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+              {c.img && <img class="art" src={c.img} srcset={c.srcset || undefined} sizes="(max-width: 820px) 92vw, 780px" alt="" loading="lazy" decoding="async" />}
+              <span class="fn-tag">{c.topic}</span>
+            </div>
+            <div class="body">
+              <div class="fn-meta"><span>{c.dateLabel}</span><span>{c.mins} min read</span></div>
+              <h3>{c.title}<span class="arr" aria-hidden="true">›</span></h3>
+              <p>{c.desc}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div class="fn-col narrow" id="fn-narrow">
+        {narrowCol.map((c) => (
+          <a class="fn-card" href={c.href}>
+            <div class="fn-shot">
+              {c.img && <img class="art" src={c.img} srcset={c.srcset || undefined} sizes="(max-width: 820px) 92vw, 380px" alt="" loading="lazy" decoding="async" />}
+              <span class="fn-tag">{c.topic}</span>
+            </div>
+            <div class="body">
+              <div class="fn-meta"><span>{c.dateLabel}</span><span>{c.mins} min read</span></div>
+              <h3>{c.title}<span class="arr" aria-hidden="true">›</span></h3>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
-    <div class="sortwrap meta">Sort by:
-      <select id="sort" aria-label="Sort"><option value="latest">Latest</option><option value="oldest">Oldest</option><option value="az">A — Z</option></select>
-    </div>
-  </div>
-  <div class="count meta" id="count">Showing <b>09</b> of <b>09</b> results</div>
-</div>
-
-<section class="block">
-  <div class="grid" id="grid"></div>
-  <div class="tbl" id="tbl"></div>
-</section>
-</div>
-
-<div id="filterDialog" class="flt-dialog" aria-hidden="true">
-  <div class="flt-dialog__backdrop" data-flt-close></div>
-  <div class="flt-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="fltTitle">
-    <button type="button" class="flt-dialog__close" data-flt-close aria-label="Close">&times;</button>
-    <h3 class="flt-dialog__title" id="fltTitle">More categories</h3>
-    <p class="flt-dialog__sub meta">Select one or more to narrow the index</p>
-    <div class="flt-pill-grid" id="fltPills"></div>
-    <button type="button" class="flt-dialog__apply" id="fltApply">Apply →</button>
-  </div>
-</div>
+    <nav class="fn-pg" id="fn-pg" aria-label="Pages" hidden></nav>
+  </section>
+</main>
 
 <footer>
   <span>© {year} Samuel Abhinav</span>
@@ -639,23 +384,8 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
   </div>
 </footer>
 
-<div class="cs" id="cs" aria-hidden="true">
-  <button class="cs-back" id="csBack">← Index</button>
-  <div class="cs-herowrap"><img class="cs-hero" id="csHero" alt=""></div>
-  <div class="cs-body">
-    <div class="cs-kick meta cs-rev" id="csKick"></div>
-    <h1 class="cs-name cs-rev" id="csName"></h1>
-    <p class="cs-lead cs-rev" id="csLead"></p>
-    <div class="cs-metrics cs-rev" id="csMetrics"></div>
-    <div class="cs-grid2">
-      <div class="cs-overview cs-rev" id="csOverview"></div>
-      <aside class="cs-side cs-rev" id="csSide"></aside>
-    </div>
-  </div>
-</div>
-
-<script is:inline define:vars={{ postCards, featuredSeeds }}>window.__POST_CARDS__ = postCards; window.__FEATURED_SEEDS__ = featuredSeeds;</script>
-<script src="../../scripts/blog-index-client.js"></script>
+<script is:inline define:vars={{ cards }}>window.__FIELD_NOTES__ = cards;</script>
+<script src="../../scripts/blog-fieldnotes.js"></script>
 
 
 

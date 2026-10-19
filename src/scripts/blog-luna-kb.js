@@ -14,7 +14,7 @@ const KB = [
   { id:'moat', title:'Moat',
     keywords:['moat','ad blocker','adblock','ad block','ads','tracker','trackers','popup','pop-up','pop-ups','cookie banner','browser extension','chrome extension','firefox','manifest v3','mv3','declarativenetrequest'],
     reply:"Moat is Samuel's open-source ad blocker for Chrome and Firefox. It blocks ads, trackers, cookie banners and scam pop-ups entirely inside the browser. No server, no account, no telemetry.",
-    detail:"About 314,000 filter entries compile into roughly 72,000 declarativeNetRequest rules, so the browser's own engine does the blocking. A small content script hides leftover boxes and closes hijacked pop-ups. The full case study is at /projects/moat/.",
+    detail:"About 314,000 filter entries compile into roughly 72,000 declarativeNetRequest rules, so the browser's own engine does the blocking. A small content script hides leftover boxes and closes hijacked pop-ups.",
     target:{type:'page', value:'/'} },
 
   { id:'cluster', title:'Cluster',
@@ -37,15 +37,15 @@ const KB = [
 
   { id:'blog', title:'Writing',
     keywords:['blog','writing','write ups','writeups','articles','posts','threat intel','threat intelligence','intelligence','ioc','mitre','att&ck','case file','astro'],
-    reply:"The writing lives right here — filter to 'Writing' below for the threat-intel posts: IOC breakdowns, MITRE ATT&CK mappings, case files.",
+    reply:"The writing lives right here in Field Notes: search above, or pick a topic, for the threat-intel posts and the security-fundamentals series.",
     detail:"Posts follow a case-file format: the chain, the IOCs, the ATT&CK mapping, then detection ideas you could actually deploy. Start with the supply-chain anatomy post.",
-    target:{type:'scroll', value:'#grid'} },
+    target:{type:'scroll', value:'#fn-latest'} },
 
   { id:'skills', title:'Stack',
     keywords:['skills','stack','tools','tooling','technologies','kql','sentinel kql','python','powershell','languages','experience with'],
     reply:"The stack: Splunk SPL, Microsoft Sentinel KQL, Wazuh, Security Onion, MITRE ATT&CK for detection, plus Python and PowerShell for the glue.",
     detail:"Certifications behind it: Security+, Network+, ISC2 CC, AWS CCP, AZ-900 and HTB CJCA. The projects are where the stack gets exercised for real.",
-    target:{type:'scroll', value:'#grid'} },
+    target:{type:'scroll', value:'#fn-latest'} },
 
   { id:'about', title:'About Samuel',
     keywords:['about','who','samuel','background','resume','cv','education','degree','masters','opt','hire','hiring','job','jobs','open to work','soc analyst','detection engineer','security engineer'],
