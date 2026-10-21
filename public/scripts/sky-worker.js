@@ -8,7 +8,7 @@ self.onmessage = function(e){
   var m = e.data;
   if(m.type === 'init'){
     try{
-      engine = self.SiteSky.create(m.sky, m.fx, { tier:m.tier });
+      engine = self.SiteSky.create(m.sky, m.fx, { tier:m.tier, tone:m.tone });
       self.postMessage({ type:'ready', gl:engine.hasGL });
     }catch(err){
       self.postMessage({ type:'ready', gl:false, error:String(err && err.message) });

@@ -14,6 +14,9 @@
      lite   phones/tablets: cheaper clouds, shooting stars
      still  reduced motion: one rendered frame
 
+   Tones, also picked by the page (opts.tone): the default navy night, or
+   'aged', a faded umber night that sits behind the contact page's old print.
+
    The flying cast (satellites, the police/robber chase over vaults, the
    contact courier, aircraft, freighter) was removed in October 2026: the
    sky reads calmer as clouds and stars alone.
@@ -111,8 +114,14 @@
   }
   function smooth(e0, e1, x){ var t = Math.min(1, Math.max(0, (x-e0)/(e1-e0))); return t*t*(3-2*t); }
 
+  /* the 'aged' tone: the same sky, faded like an old photograph */
+  var AGED = { deep:[.030,.026,.024], body:[.118,.100,.084], cloud:[.470,.420,.355], rim:[.760,.700,.600] };
+  /* the 'mono' tone: the same sky in black and white */
+  var MONO = { deep:[.024,.024,.024], body:[.100,.100,.100], cloud:[.440,.440,.440], rim:[.740,.740,.740] };
+
   function create(skyCanvas, fxCanvas, opts){
     var tier = TIERS[opts && opts.tier] || TIERS.full;
+    var tone = { aged:AGED, mono:MONO }[opts && opts.tone] || LOOK;
     var W = 1, H = 1, DPR = 1, running = true;
     var sceneT = 40 + Math.random()*400;    /* a different sky on every visit */
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
@@ -132,8 +141,8 @@
           gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
           var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
           ['uTime','uRes','uDeep','uBody','uCloud','uRim'].forEach(function(n){ U[n] = gl.getUniformLocation(pr, n); });
-          gl.uniform3fv(U.uDeep, LOOK.deep); gl.uniform3fv(U.uBody, LOOK.body);
-          gl.uniform3fv(U.uCloud, LOOK.cloud); gl.uniform3fv(U.uRim, LOOK.rim);
+          gl.uniform3fv(U.uDeep, tone.deep); gl.uniform3fv(U.uBody, tone.body);
+          gl.uniform3fv(U.uCloud, tone.cloud); gl.uniform3fv(U.uRim, tone.rim);
         } else gl = null;
       } else gl = null;
     }

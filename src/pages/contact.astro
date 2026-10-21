@@ -8,6 +8,25 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
+import SkyLife from '../components/SkyLife.astro';
+import ContactArtifacts from '../components/ContactArtifacts.astro';
+import ContactSkyArtifacts from '../components/ContactSkyArtifacts.astro';
+
+/* the date stamp in the card's header, dd.mm.yy, set at build */
+const d = new Date();
+const stamp = [d.getDate(), d.getMonth() + 1, d.getFullYear() % 100].map((n) => String(n).padStart(2, '0')).join('.');
+/* and the postmark's, as a 1940s date stamp prints it: OCT 20 / 2026 */
+const pmDay = d.toLocaleString('en-US', { month: 'short' }).toUpperCase() + ' ' + d.getDate();
+const pmYear = String(d.getFullYear());
+
+/* The page's colour: 'aged' is the sepia print in a faded brown sky; 'cool'
+   is the site's usual navy night, with the card and picture cooled to match;
+   'mono' is all of it in black and white; 'holo' turns the card, the picture
+   and the console into a cyan hologram projected into the navy sky;
+   'holo-mono' is that hologram in white light, sky creatures included. */
+type Tone = 'aged' | 'cool' | 'mono' | 'holo' | 'holo-mono';
+const tone = 'holo-mono' as Tone;
+const bodyTone = tone === 'holo-mono' ? 'holo' : tone;
 ---
 
 <!DOCTYPE html>
@@ -28,7 +47,7 @@ window.SITE=window.SITE||{};
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Samuel Abhinav — Contact</title>
 <meta name="description" content="Get in touch with Samuel Abhinav — SIEM, incident response, and anything that runs on a network." />
-<meta name="theme-color" content="#080814" />
+<meta name="theme-color" content="#0b0908" />
 <meta name="color-scheme" content="dark" />
 <link rel="canonical" href="https://samuelabhinav.com/contact/" />
 <meta property="og:type" content="website" />
@@ -60,106 +79,458 @@ window.SITE=window.SITE||{};
   .field-wrap{
     position:relative; z-index:40; min-height:100%;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:22px; padding:88px 20px 22px;
+    gap:22px; padding:150px 20px 40px;
   }
 
+  /* ── an old print drifting in the void: the flower plate on the left, a
+     punched ledger page on the right, both scorched ──
+     The binder holes and the burnt-through corners are real cuts: masks take
+     them out, so the sky shows through. Masks also cut off box-shadows, so
+     the one shadow sits on .poster as a drop-shadow, which follows every
+     cut edge. */
+  .poster{ position:relative; width:100%; max-width:900px;
+    display:grid; grid-template-columns:minmax(0, 26%) minmax(0, 1fr);
+    filter:drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+    animation:drift 16s ease-in-out infinite alternate; will-change:transform; }
+  /* hold still while someone is typing into it */
+  .poster:focus-within{ animation-play-state:paused; }
+  @keyframes drift{
+    0%{ transform:translate3d(0, 0, 0) rotate(-0.5deg); }
+    50%{ transform:translate3d(4px, -10px, 0) rotate(0.3deg); }
+    100%{ transform:translate3d(-3px, 4px, 0) rotate(-0.2deg); }
+  }
+  @media (prefers-reduced-motion: reduce){ .poster{ animation:none; } }
+  /* desktop: shrink the whole print so it floats with sky around it */
+  @media (min-width:901px){ .poster{ zoom:0.8; } }
+
+  .poster-art{ position:relative; overflow:hidden; background:#5f5a50;
+    -webkit-mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat;
+    mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat; }
+  /* black and white, faded, like an old halftone plate */
+  .poster-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:47% 50%; display:block;
+    filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
+  /* the same years of age as the page, so the plate and paper read as one print */
+  .poster-art::after{ content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      url("/images/contact-scuff-top.webp") 0 0 / 300% 8.65% no-repeat,
+      url("/images/contact-scuff-bottom.webp") 0 100% / 300% 8.1% no-repeat,
+      url("/images/contact-paper-photo.webp") 30% 50% / auto 100% no-repeat,
+      url("/images/contact-paper.svg") 0 0 / 720px 960px;
+    box-shadow:inset 0 0 40px rgba(40,28,12,0.55); mix-blend-mode:multiply; opacity:0.95; }
+  .poster-art::before{ content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:url("/images/contact-burn-plate.svg") 0 0 / 100% 100% no-repeat; }
+  /* the title, written across the plate by hand like a caption on a photo.
+     Iron-gall ink fades to brown over the years; the #aged-ink filter roughens
+     the strokes and wears holes in them, and multiply lets the plate show
+     through, so it reads as written on the print, not laid over it. */
+  .plate-title{ position:absolute; left:20px; right:14px; top:44%; z-index:3; margin:0;
+    font-family:'Pinyon Script', cursive; font-weight:400; font-size:1.95rem; line-height:1.05;
+    color:rgba(58,36,18,0.86); transform:rotate(-4deg); transform-origin:left center;
+    filter:url(#aged-ink) blur(0.25px); mix-blend-mode:multiply; }
+  /* the wax seal, dulled and darkened by age */
+  .seal{ position:absolute; z-index:5; top:50px; left:calc(26% - 66px); width:100px; height:auto;
+    transform:rotate(-14deg); pointer-events:none;
+    filter:saturate(0.7) sepia(0.2) brightness(0.78) contrast(1.08) drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
+  .paper-shadow{ min-width:0; }
+
+  /* the attachment hangs off the right edge, turned a little, pivoting on
+     its own tie hole (62,34 in the 581px original, 23.5,13 here); the
+     twine runs from the letter's second hole to it */
+  /* (the title bar adds 18px above the picture, so the pivot sits 18px lower) */
+  .attach{ position:absolute; z-index:-1; top:132px; left:calc(100% + 14px); width:220px;
+    transform:rotate(7deg); transform-origin:23.5px 31px; }
+  .attach img{ display:block; width:100%; height:auto;
+    filter:drop-shadow(0 10px 14px rgba(0,0,0,0.55)); }
+  .attach-glitch{ position:absolute; left:0; bottom:0; width:100%; height:auto; aspect-ratio:330 / 514; pointer-events:none; }
+  .twine{ position:absolute; z-index:6; top:100px; left:calc(100% - 40px); width:100px; height:110px;
+    overflow:visible; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.5)); pointer-events:none; }
+  /* only where there's room beside the card */
+  @media (max-width:1180px){ .attach, .twine{ display:none; } }
+
+  /* ── Windows XP (Luna) title bar, faded and burnt ──
+     The blue is the real Luna gradient; a sepia filter ages it, the paper
+     texture is multiplied over it, a mask burns away its top edge and
+     corners, and a soot layer darkens what's left along the burn. */
+  .xp-bar{ position:absolute; z-index:7; left:0; right:0; top:-24px; height:42px;
+    display:flex; align-items:center; gap:6px; padding:6px 8px 0 12px; box-sizing:border-box;
+    background:linear-gradient(180deg, #0997ff, #0053ee 8%, #0050ee 40%, #06f 88%, #06f 93%, #005bff 95%, #003dd7 96%, #003dd7);
+    font:bold 17px 'Trebuchet MS', Tahoma, sans-serif; color:#fff; text-shadow:1px 1px #0f1089;
+    filter:sepia(0.55) saturate(0.6) brightness(0.8) contrast(0.95);
+    -webkit-mask:url("/images/contact-xp-wide-mask.webp") 0 0 / 100% 100% no-repeat;
+    mask:url("/images/contact-xp-wide-mask.webp") 0 0 / 100% 100% no-repeat; }
+  .xp-bar::after{ content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      url("/images/contact-xp-wide-char.webp") 0 0 / 100% 100% no-repeat,
+      url("/images/contact-paper-photo.webp") 30% 20% / 420px auto;
+    background-blend-mode:normal, multiply; mix-blend-mode:multiply; opacity:0.9; }
+  .xp-icon{ width:20px; height:20px; flex:none; }
+  .xp-title{ flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .xp-btn{ position:relative; flex:none; width:27px; height:27px; box-sizing:border-box;
+    border:1px solid #fff; border-radius:3px;
+    background:radial-gradient(circle at 90% 90%, #0054e9 0%, #2263d5 55%, #4479e4 70%, #a3bbec 90%, #fff 100%); }
+  .xp-close{ background:radial-gradient(circle at 90% 90%, #cc4600 0%, #dc6527 55%, #cd7546 70%, #ffccb2 90%, #fff 100%); }
+  .xp-min::before{ content:''; position:absolute; left:6px; bottom:6px; width:9px; height:3px; background:#fff; }
+  .xp-max::before{ content:''; position:absolute; left:6px; top:5px; width:13px; height:13px; box-sizing:border-box;
+    border:1px solid #fff; border-top-width:3px; }
+  .xp-close::before, .xp-close::after{ content:''; position:absolute; left:50%; top:50%; width:15px; height:2.5px;
+    margin:-1.25px 0 0 -7.5px; background:#fff; transform:rotate(45deg); }
+  .xp-close::after{ transform:rotate(-45deg); }
+
+  /* what's left of the window's blue frame down the sides and along the
+     bottom: whole near the title bar, burnt away in pieces further down */
+  .xp-frame{ position:absolute; z-index:6; left:-6px; right:-6px; top:18px; bottom:-6px; pointer-events:none;
+    border:6px solid #0831d9; border-top:0;
+    box-shadow:inset 2px 0 0 #3d7bf2, inset -2px 0 0 #3d7bf2, inset 0 -2px 0 #3d7bf2;
+    filter:sepia(0.55) saturate(0.6) brightness(0.8) contrast(0.95);
+    -webkit-mask:url("/images/contact-xpframe-wide-mask.webp") 0 0 / 100% 100% no-repeat;
+    mask:url("/images/contact-xpframe-wide-mask.webp") 0 0 / 100% 100% no-repeat; }
+  .xp-frame::after{ content:''; position:absolute; top:0; left:-6px; right:-6px; bottom:-6px;
+    background:url("/images/contact-xpframe-wide-char.webp") 0 0 / 100% 100% no-repeat; }
+  .xp-frame-small{ left:-3px; right:-3px; top:18px; bottom:-3px; border-width:0 3px 3px;
+    box-shadow:inset 1px 0 0 #3d7bf2, inset -1px 0 0 #3d7bf2, inset 0 -1px 0 #3d7bf2;
+    -webkit-mask-image:url("/images/contact-xpframe-small-mask.webp"); mask-image:url("/images/contact-xpframe-small-mask.webp"); }
+  .xp-frame-small::after{ left:-3px; right:-3px; bottom:-3px; background-image:url("/images/contact-xpframe-small-char.webp"); }
+
+  /* the picture viewer's bar, smaller, sitting on top of the plate */
+  .xp-bar.xp-small{ position:relative; top:auto; left:auto; right:auto; margin-bottom:-3px; height:21px; gap:3px;
+    padding:3px 3px 0 5px; font-size:8px; text-shadow:1px 1px #0f1089;
+    -webkit-mask-image:url("/images/contact-xp-small-mask.webp"); mask-image:url("/images/contact-xp-small-mask.webp"); }
+  .xp-small::after{ background-image:url("/images/contact-xp-small-char.webp"), url("/images/contact-paper-photo.webp"); }
+  .xp-small .xp-icon{ width:10px; height:10px; }
+  .xp-small .xp-btn{ width:13px; height:13px; border-radius:2px; }
+  .xp-small .xp-min::before{ left:2px; bottom:2px; width:5px; height:2px; }
+  .xp-small .xp-max::before{ left:2px; top:2px; width:7px; height:7px; border-top-width:2px; }
+  .xp-small .xp-close::before, .xp-small .xp-close::after{ width:8px; height:1.5px; margin:-0.75px 0 0 -4px; }
   .form-panel{
-    width:100%; max-width:640px;
-    padding:44px 48px 40px;
-    background:rgba(10,10,13,0.94);
-    border:1px solid rgba(var(--c-white),0.08);
+    --ink:40,31,22;
+    --strip:52px; --hole:14px; --pitch:46px; --top:58px;
+    --holes:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), #000 calc(var(--hole) / 2 + 0.6px));
+    --rims:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), rgba(80,56,28,0.3) calc(var(--hole) / 2 + 0.5px), rgba(80,56,28,0.08) calc(var(--hole) / 2 + 2px), transparent calc(var(--hole) / 2 + 5px));
+    position:relative; color-scheme:light;
+    padding:40px calc(var(--strip) + 36px) 36px calc(var(--strip) + 30px);
     border-radius:2px;
-    box-shadow:0 40px 90px -40px rgba(0,0,0,0.9);
+    /* top to bottom: the two creases of a page folded in thirds, the
+       embossed flowers pressed into the stock (pushed out toward the top and
+       bottom edges, so the middle stays clear), the aged texture (blotchy
+       tone, foxing spots, fibres, grain), a lighter middle, then the hole
+       rims, which paper patches hide where the mask has no hole */
+    background:
+      linear-gradient(180deg, transparent calc(34% - 14px), rgba(90,66,34,0.07) calc(34% - 1px), rgba(240,229,204,0.45) 34%, rgba(90,66,34,0.13) calc(34% + 1.5px), rgba(90,66,34,0.03) calc(34% + 10px), transparent calc(34% + 22px)),
+      linear-gradient(180deg, transparent calc(68% - 14px), rgba(90,66,34,0.07) calc(68% - 1px), rgba(240,229,204,0.45) 68%, rgba(90,66,34,0.13) calc(68% + 1.5px), rgba(90,66,34,0.03) calc(68% + 10px), transparent calc(68% + 22px)),
+      url("/images/contact-emboss-top.webp") 50% -34px / max(100%, 560px) auto no-repeat,
+      url("/images/contact-emboss-bottom.webp") 50% calc(100% + 60px) / max(100%, 560px) auto no-repeat,
+      url("/images/contact-scuff-top.webp") 100% 0 / 150% 8.65% no-repeat,
+      url("/images/contact-scuff-bottom.webp") 100% 100% / 150% 8.1% no-repeat,
+      url("/images/contact-paper-photo.webp") center / cover no-repeat,
+      url("/images/contact-paper.svg") 0 0 / 720px 960px,
+      radial-gradient(ellipse 70% 60% at 52% 45%, rgba(236,224,196,0.18), transparent 75%),
+      linear-gradient(#d3c6aa,#d3c6aa) 100% 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(#d3c6aa,#d3c6aa) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(#d3c6aa,#d3c6aa) 0 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(#d3c6aa,#d3c6aa) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      var(--rims) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
+      var(--rims) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
+      #d3c6aa;
+    /* edges browned by years of handling */
+    box-shadow:inset 0 0 0 1px rgba(100,70,34,0.35), inset 0 0 34px rgba(100,68,30,0.45), inset 0 0 130px rgba(90,62,28,0.25);
+    /* a punched strip down both edges, as on a loose-leaf page */
+    -webkit-mask:
+      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
+      var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
+      var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
+      linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
+      linear-gradient(#000,#000) 100% 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(#000,#000) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(#000,#000) 0 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(#000,#000) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat;
+    mask:
+      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
+      var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
+      var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
+      linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
+      linear-gradient(#000,#000) 100% 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(#000,#000) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(#000,#000) 0 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(#000,#000) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat;
+    /* the burn cut is taken out of everything under it; the rest add up */
+    -webkit-mask-composite:source-in, source-over, source-over, source-over, source-over, source-over, source-over, source-over;
+    mask-composite:intersect, add, add, add, add, add, add, add;
   }
-  .stepper{ margin-bottom:18px;
-    font-family:'JetBrains Mono', monospace; font-size:0.56rem; letter-spacing:0.22em;
-    text-transform:uppercase; color:rgba(200,210,230,0.55); }
-  .form-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400;
-    font-size:clamp(2rem, 4.2vw, 3.1rem); line-height:1.04; letter-spacing:-0.01em;
-    color:rgba(var(--c-white),0.95); margin-bottom:16px; }
-  .form-title em{ font-style:italic; font-weight:300; color:rgba(190,205,232,0.62); }
-  .form-direct{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:0.95rem; color:rgba(200,210,230,0.55); margin-bottom:34px;
-    display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 8px; }
-  .form-direct a{ overflow-wrap:anywhere; color:rgba(var(--c-white),0.94); text-decoration:none;
-    border-bottom:1px solid rgba(var(--c-white),0.35); padding-bottom:3px; transition:border-color .25s; }
-  .form-direct a:hover{ border-color:rgba(var(--c-white),0.9); }
+  /* scorch marks, over everything on the page */
+  .form-panel::after{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:url("/images/contact-burn-paper.svg") 0 0 / 100% 100% no-repeat; }
+  /* the margin rules between the hole strips and the page */
+  .form-panel::before{ content:''; position:absolute; top:0; bottom:0; left:var(--strip); right:var(--strip);
+    border:0 dashed rgba(var(--ink),0.38); border-width:0 1px; pointer-events:none; }
+  /* the little numbered key in the top corner of the strip */
+  .punch-key{ position:absolute; top:12px; right:calc(var(--strip) / 2 - 11px); width:22px;
+    display:grid; grid-template-columns:1fr 1fr; border:1px solid rgba(var(--ink),0.5);
+    font-family:'JetBrains Mono', monospace; font-size:7px; line-height:1; color:rgba(var(--ink),0.75); }
+  .punch-key span{ padding:2px 0 1px 2px; border:0 solid rgba(var(--ink),0.5); }
+  .punch-key span:nth-child(1){ grid-column:1 / -1; border-bottom-width:1px; }
+  .punch-key span:nth-child(2){ border-right-width:1px; }
+  .punch-key span:nth-child(3){ position:relative; }
+  .punch-key span:nth-child(3)::after{ content:''; position:absolute; right:2px; top:2px; width:5px; height:5px;
+    border-radius:50%; background:rgba(var(--ink),0.85); }
 
-  .field-row{ display:grid; grid-template-columns:1fr 1fr; column-gap:26px; }
-  .field{ margin-bottom:24px; border-bottom:1px solid rgba(var(--c-white),0.16); transition:border-color .35s; }
-  .field:focus-within{ border-color:rgba(180,210,250,0.6); }
-  .field label{ display:block; font-family:'JetBrains Mono', monospace; font-size:0.52rem;
-    letter-spacing:0.2em; text-transform:uppercase; color:rgba(200,210,230,0.6); margin-bottom:8px; }
-  .field label .req{ color:rgba(255,150,150,0.7); margin-left:3px; }
-  .field input, .field textarea, .field select{ width:100%; background:none; border:none; outline:none;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:1rem; color:rgba(233,236,247,0.95); padding:2px 0 10px; }
-  .field textarea{ min-height:52px; line-height:1.45; resize:vertical; display:block; }
-  .field input::placeholder, .field textarea::placeholder{ color:rgba(180,190,210,0.4); }
-  .field select{ appearance:none; -webkit-appearance:none; cursor:pointer; padding-right:22px;
-    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23e9ecf7' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 4px top 9px; }
-  .field select option{ background:#0e0e12; color:#e9ecf7; }
-  .req-note{ font-family:'JetBrains Mono', monospace; font-size:0.45rem; letter-spacing:0.14em;
-    text-transform:uppercase; color:rgba(var(--c-white),0.30); margin:-12px 0 18px; }
+  /* ── the back of a postcard: POST CARD across the top, message on the
+     left, the sender's lines on the right, stamp and postmark top right ── */
+  .pc-head{ padding:96px 130px 0 26px; margin-bottom:28px; }
+  .pc-title{ font-family:'Cormorant Garamond', serif; font-weight:500; font-size:2rem; line-height:1;
+    letter-spacing:0.32em; text-transform:uppercase; color:rgba(var(--ink),0.88);
+    text-shadow:0 0 0.6px rgba(var(--ink),0.5); }
+  /* the date, typed under the stamp */
+  .pc-date{ position:absolute; z-index:1; top:166px; right:calc(var(--strip) + 30px); width:94px; margin:0;
+    text-align:center; font-family:'Special Elite', 'JetBrains Mono', monospace; font-size:0.72rem;
+    letter-spacing:0.18em; color:rgba(var(--ink),0.7); }
+
+  /* the postage stamp, faded and yellowed like the card it's stuck to */
+  .pc-stamp{ position:absolute; z-index:1; top:26px; right:calc(var(--strip) + 30px); width:94px; height:auto;
+    transform:rotate(3deg);
+    filter:sepia(0.3) saturate(0.68) brightness(0.86) contrast(0.95) drop-shadow(0 1px 1.5px rgba(40,24,8,0.45)); }
+
+  /* the postmark: a dated ring and the wavy bars struck across the stamp */
+  .pc-postmark{ position:absolute; z-index:4; bottom:34px; left:calc(26% - 190px); width:190px; height:95px;
+    color:rgba(20,20,28,0.8); mix-blend-mode:multiply; transform:rotate(-8deg); pointer-events:none; }
+
+  .pc-body{ display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 0.92fr); column-gap:22px; }
+  /* the divider down the middle of the card */
+  .pc-rule{ border-right:1px solid rgba(var(--ink),0.55); }
+  .pc-addr{ padding-top:42px; }
+
+  .field{ margin-bottom:0; padding-top:12px; border-bottom:1px solid rgba(var(--ink),0.55); transition:border-color .35s; }
+  .field:focus-within{ border-bottom-color:rgba(var(--ink),0.9); }
+  .field label, .pc-reason legend{ display:block; font-family:'Special Elite', 'JetBrains Mono', monospace; font-size:0.78rem;
+    letter-spacing:0.2em; text-transform:uppercase; color:rgba(var(--ink),0.78); margin-bottom:8px; }
+  .field label .req{ color:rgba(158,44,32,0.85); margin-left:2px; }
+  .field input, .field textarea{ width:100%; background:none; border:none; outline:none;
+    font-family:'Special Elite', 'JetBrains Mono', monospace;
+    font-size:1.1rem; color:rgba(var(--ink),0.95); padding:4px 0 10px; }
+  .field input::placeholder, .field textarea::placeholder{ color:rgba(var(--ink),0.48); }
+
+  /* the message is written by hand on the card's ruled lines */
+  /* it sits level with the address side: the label lines up with "Return
+     address" and the ruled lines run down to the last tick box */
+  .pc-msg{ display:flex; flex-direction:column; padding-top:54px; }
+  .pc-msg .field{ flex:1; display:flex; flex-direction:column; border-bottom:0; padding-top:0; }
+  .field textarea{ display:block; resize:none;
+    flex:1; min-height:128px; padding:0;
+    font-family:'Homemade Apple', cursive; font-size:1rem; line-height:32px;
+    color:rgba(30,34,58,0.95);
+    background:repeating-linear-gradient(180deg, transparent 0 31px, rgba(var(--ink),0.42) 31px 32px);
+    background-attachment:local; }
+  .field textarea::placeholder{ color:rgba(30,34,58,0.4); }
+  /* the greeting, already written on the first ruled line; clicking it puts
+     the cursor in the message, which starts on the line below */
+  .dear{ display:block; flex:none; height:32px; margin:0; cursor:text;
+    font-family:'Homemade Apple', cursive; font-size:1rem; line-height:32px; color:rgba(30,34,58,0.95);
+    background:linear-gradient(transparent 31px, rgba(var(--ink),0.42) 31px); }
+  .field .dear{ letter-spacing:0; text-transform:none; margin-bottom:0; font-family:'Homemade Apple', cursive;
+    font-size:1rem; color:rgba(30,34,58,0.95); }
+
+  /* the street drawing on the plate brings its own words ("New York New
+     York"), and the handwritten title got lost in its lines. It is the
+     page's h1, so it stays for screen readers and search, just not on show. */
+  .plate-title{ position:absolute !important; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
+    clip-path:inset(50%); white-space:nowrap; }
+
+  /* reason: printed tick boxes, ticked by hand */
+  .pc-reason{ border:0; margin:16px 0 0; padding:0; min-width:0; }
+  .pc-reason legend{ padding:0; }
+  .pc-opt{ position:relative; display:flex; align-items:center; gap:10px; padding:6px 0; cursor:pointer;
+    font-family:'Special Elite', 'JetBrains Mono', monospace; font-size:0.95rem; color:rgba(var(--ink),0.92); }
+  .pc-opt input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .pc-box{ position:relative; flex:none; width:15px; height:15px; border:1px solid rgba(var(--ink),0.7); }
+  .pc-opt input:checked + .pc-box::after{ content:''; position:absolute; left:-3px; top:-9px; width:22px; height:22px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 13.5c2 .8 3.6 2.6 5.2 5.1C11 12 15.5 6.4 21.5 2.5' fill='none' stroke='%231e223a' stroke-opacity='.88' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain; }
+  .pc-opt input:focus-visible + .pc-box{ outline:1px solid rgba(var(--ink),0.75); outline-offset:3px; }
+
+  .req-note{ font-family:'Special Elite', 'JetBrains Mono', monospace; font-size:0.62rem; letter-spacing:0.22em;
+    text-transform:uppercase; color:rgba(var(--ink),0.5); margin:14px 0 16px; }
   /* Cloudflare's own chrome can't be restyled (cross-origin iframe), but a filter
      composites over the rendered pixels fine — dims/desaturates it to sit closer
      to the page's muted palette instead of popping as a bright foreign box. */
   /* min-height reserves the widget's 65px so the form doesn't jump when it
      loads on first interaction (see contact-form-handler.js). */
-  #turnstile-widget{ margin:2px 0 22px; min-height:65px; filter:grayscale(.4) brightness(.88) contrast(.94); }
+  #turnstile-widget{ margin:2px 0 22px; min-height:65px; filter:grayscale(.6) sepia(.35) contrast(.92);
+    /* multiply lets the paper show through its white box */
+    mix-blend-mode:multiply; }
 
   .cta-row{ display:flex; align-items:center; flex-wrap:wrap; gap:14px 24px; }
-  .cta{ padding:12px 20px; cursor:pointer;
-    background:rgba(var(--c-white),0.96); color:#0a0a0d; border:1px solid rgba(var(--c-white),0.96);
-    border-radius:2px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:0.95rem; font-weight:500;
+  .cta{ padding:10px 18px; cursor:pointer;
+    background:transparent; color:rgba(150,38,28,0.88); border:2px solid rgba(150,38,28,0.8);
+    border-radius:3px; font-family:'Special Elite', 'JetBrains Mono', monospace;
+    font-size:0.95rem; letter-spacing:0.2em; text-transform:uppercase;
+    box-shadow:inset 0 0 0 2px transparent, inset 0 0 0 3px rgba(150,38,28,0.45);
+    transform:rotate(-1.5deg);
     transition:background .3s, color .3s, transform .12s; }
   /* the arrow lives in CSS so the handler's textContent swaps never drop it */
   .cta::after{ content:'\2192'; display:inline-block; margin-left:10px; transition:transform .25s; }
-  .cta:hover{ background:transparent; color:rgba(var(--c-white),0.95); }
+  .cta:hover{ background:rgba(150,38,28,0.08); }
   .cta:hover::after{ transform:translateX(3px); }
-  .cta:active{ transform:translateY(1px); }
-  .cta.sent{ background:rgba(89,212,153,0.9); border-color:rgba(89,212,153,0.9); color:#06120c; }
+  .cta:active{ transform:rotate(-1.5deg) translateY(1px); }
+  .cta.sent{ color:rgba(32,96,60,0.9); border-color:rgba(32,96,60,0.85); box-shadow:inset 0 0 0 2px transparent, inset 0 0 0 3px rgba(32,96,60,0.45); }
   .cta.sent::after{ content:none; }
-  .cta-note{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:0.8rem; color:rgba(200,210,230,0.5); }
+  .cta-note{ font-family:'Homemade Apple', cursive;
+    font-size:0.78rem; color:rgba(30,34,58,0.7); }
 
   /* ── validation + send status ──────────────────────────────────────────
      The form had no error state and no live region: a screen reader user got
      no signal at all that anything had happened when the button was pressed. */
-  .field.invalid{ border-color:rgba(232,120,120,0.75); }
+  .field.invalid{ border-bottom:1px solid rgba(168,48,36,0.8); }
   .field .err{
     display:none; margin:5px 0 6px;
-    font-family:'JetBrains Mono', monospace; font-size:0.5rem; letter-spacing:0.18em;
-    text-transform:uppercase; color:rgba(232,140,140,0.85);
+    font-family:'Special Elite', 'JetBrains Mono', monospace; font-size:0.62rem; letter-spacing:0.16em;
+    text-transform:uppercase; color:rgba(168,48,36,0.9);
   }
   .field.invalid .err{ display:block; }
   .form-status{
-    min-height:1.1em; margin-top:14px;
-    font-family:'JetBrains Mono', monospace; font-size:0.55rem; letter-spacing:0.18em;
-    text-transform:uppercase; color:rgba(170,195,235,0.5);
+    min-height:1.1em; margin-top:12px;
+    font-family:'Special Elite', 'JetBrains Mono', monospace; font-size:0.7rem; letter-spacing:0.16em;
+    text-transform:uppercase; color:rgba(var(--ink),0.5);
   }
-  .form-status.ok{ color:rgba(120,220,170,0.85); }
-  .form-status.bad{ color:rgba(232,140,140,0.85); }
+  .form-status.ok{ color:rgba(36,110,70,0.9); }
+  .form-status.bad{ color:rgba(168,48,36,0.9); }
   .cta[disabled]{ opacity:0.6; cursor:default; }
-  .cta[disabled]:hover{ background:rgba(var(--c-white),0.96); color:#0a0a0d; }
+  .cta[disabled]:hover{ background:transparent; }
+
+  /* ── the page around the print, in the same faded tones ── */
+  body{ background:#080706; }
+  /* a darker edge to the whole view, like the corners of an old photo */
+  body::after{ content:''; position:fixed; inset:0; z-index:39; pointer-events:none;
+    background:radial-gradient(ellipse 85% 80% at 50% 48%, transparent 55%, rgba(8,5,2,0.55) 100%); }
+  body[data-tone="aged"] #site-identity, body[data-tone="aged"] #menu-trigger{ --c-white:226,212,184; }
+
+  /* ── the cool tone: the site's navy night. The print keeps all its age
+     (burns, creases, foxing) but loses the brown: it goes grey, then takes a
+     faint blue cast, so it reads as moonlit paper in the same sky. ── */
+  body[data-tone="cool"]{ background:#050917; }
+  body[data-tone="cool"]::after{ background:radial-gradient(ellipse 85% 80% at 50% 48%, transparent 55%, rgba(2,5,16,0.55) 100%); }
+  body[data-tone="cool"] .poster{
+    filter:grayscale(1) sepia(0.2) hue-rotate(180deg) saturate(1.5) brightness(1.03)
+      drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
+  body[data-tone="cool"] .sky-life{ filter:grayscale(1) brightness(1.08); }
+  body[data-tone="cool"] .xp-balloon{ filter:none; }
+  body[data-tone="cool"] .pg-footer{ color:rgba(176,192,220,0.5); }
+  body[data-tone="cool"] .pg-footer .f-links a{ color:rgba(176,192,220,0.62); }
+  body[data-tone="cool"] .pg-footer .f-links a:hover{ color:#e4ecfa; }
+
+  /* ── the mono tone: everything in black and white, like a photocopy of
+     the print left on a dead monitor ── */
+  body[data-tone="mono"]{ background:#060606; }
+  body[data-tone="mono"]::after{ background:radial-gradient(ellipse 85% 80% at 50% 48%, transparent 55%, rgba(0,0,0,0.6) 100%); }
+  body[data-tone="mono"] .poster{
+    filter:grayscale(1) contrast(1.06)
+      drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
+  body[data-tone="mono"] .sky-life{ filter:grayscale(1) brightness(1.08); }
+  body[data-tone="mono"] .xp-balloon{ filter:grayscale(1); }
+  body[data-tone="mono"] .pg-footer{ color:rgba(200,200,200,0.5); }
+  body[data-tone="mono"] .pg-footer .f-links a{ color:rgba(200,200,200,0.62); }
+  body[data-tone="mono"] .pg-footer .f-links a:hover{ color:#f2f2f2; }
+
+  /* ── the holo tone: the print as a hologram. The card is inverted, so its
+     ink becomes light lines on black; tinted cyan; and the whole layer is
+     screen-blended, so the black turns to nothing and the sky shows through.
+     The space photo and the console are light-on-dark already, so they get
+     inverted back. Scan lines roll over it and it flickers now and then,
+     with a magenta and blue fringe like a projector slightly out of true. ── */
+  body[data-tone="holo"]{ background:#050917; }
+  body[data-tone="holo"] .field-wrap{ mix-blend-mode:screen; }
+  body[data-tone="holo"] .poster{
+    filter:invert(1) grayscale(1) contrast(2.4) brightness(0.9) sepia(1) hue-rotate(140deg) saturate(2.8) brightness(1.3)
+      drop-shadow(1.5px 0 0 rgba(255,70,210,0.45)) drop-shadow(-1.5px 0 0 rgba(60,170,255,0.5))
+      drop-shadow(0 0 8px rgba(70,220,255,0.15));
+    animation:drift 16s ease-in-out infinite alternate, holo-flicker 18s steps(1) infinite; }
+  /* photos of light things (the flowers, the nebula) stay the right way round */
+  body[data-tone="holo"] .attach img{ filter:invert(1) grayscale(1); }
+  /* the plate's drawing: its ink is what glows. Its tones are squeezed so the
+     lines come out at about half strength and the paper drops away */
+  body[data-tone="holo"] .poster-art img{ filter:grayscale(1) contrast(0.45) brightness(1.6); }
+  body[data-tone="holo"] .poster-art::after{ display:none; }
+  /* the burns and soot are dark, so the inversion makes them the brightest
+     thing on the card: turned down, the edges glow softly instead of blazing */
+  body[data-tone="holo"] .poster-art::before, body[data-tone="holo"] .form-panel::after{ opacity:0.4; }
+  body[data-tone="holo"] .xp-bar::after{ opacity:0.45; }
+  body[data-tone="holo"] .xp-frame{ opacity:0.5; }
+  body[data-tone="holo"] .wreck-fx{ opacity:0.55; }
+  body[data-tone="holo"] .tear-fx{ opacity:0.7; }
+  body[data-tone="holo"] .attach{ opacity:0.8; }
+  /* the broken-screen overlay, gentler here: its rolling band lit the whole card */
+  body[data-tone="holo"] .wreck{ opacity:0.4; }
+  body[data-tone="holo"] .form-panel > .wreck{ opacity:0.2; }
+  body[data-tone="holo"] .form-panel:focus-within > .wreck{ opacity:0.05; }
+  body[data-tone="holo"] .tear-hole > .wreck{ opacity:0.55; }
+  /* the seal and the stamp: squeezed into the light, so after the inversion
+     they're a dim glow with their detail, not a bright blot */
+  body[data-tone="holo"] .seal, body[data-tone="holo"] .pc-stamp{ filter:grayscale(1) contrast(0.5) brightness(1.4); }
+  /* the status line: the card's filter would turn every colour cyan, so in
+     the hologram the message shows on a line of its own under the card
+     (.holo-status, copied by contact-artifacts.js); this one stays for
+     screen readers */
+  body[data-tone="holo"] .form-status{ color:transparent; }
+  /* the form's writing in full-strength ink, which the inversion turns into
+     the brightest light on the card, so every label reads clearly */
+  body[data-tone="holo"] .form-panel{ --ink:0,0,0; }
+  body[data-tone="holo"] .field label, body[data-tone="holo"] .pc-reason legend,
+  body[data-tone="holo"] .req-note{ color:rgba(var(--ink),0.95); }
+  body[data-tone="holo"] .field input::placeholder, body[data-tone="holo"] .field textarea::placeholder{ color:rgba(var(--ink),0.7); }
+  body[data-tone="holo"] .field{ border-bottom-color:rgba(var(--ink),0.8); }
+  body[data-tone="holo"] .field textarea{ background-image:repeating-linear-gradient(180deg, transparent 0 31px, rgba(var(--ink),0.7) 31px 32px); }
+  body[data-tone="holo"] .dear{ background-image:linear-gradient(transparent 31px, rgba(var(--ink),0.7) 31px); }
+  body[data-tone="holo"] .tear-hole{ filter:invert(1) brightness(1.1); }
+  /* projector scan lines (white here: the inversion turns them into gaps) and
+     a slow brighter band rolling down */
+  body[data-tone="holo"] .poster::after{ content:''; position:absolute; inset:0; z-index:20;
+    pointer-events:none;
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.07) 48%, transparent 56%) 0 0 / 100% 300% no-repeat,
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.28) 0 1px, transparent 1px 3px);
+    animation:holo-roll 16s linear infinite; }
+  @keyframes holo-roll{ from{ background-position:0 100%, 0 0; } to{ background-position:0 -200%, 0 0; } }
+  @keyframes holo-flicker{ 0%,100%{ opacity:0.92; } 41%{ opacity:0.78; } 41.6%{ opacity:0.94; } 78%{ opacity:0.85; } 78.6%{ opacity:0.92; } }
+  body[data-tone="holo"] .sky-life{ filter:grayscale(1) sepia(1) hue-rotate(140deg) saturate(1.6) brightness(1.1); }
+  .holo-status{ display:none; }
+  body[data-tone="holo"] .holo-status:not(:empty){ display:block; margin:-6px 0 0; text-align:center;
+    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.12em;
+    color:#8ff0ff; text-shadow:0 0 10px rgba(80,220,255,0.7); }
+  body[data-tone="holo"] .holo-status.bad{ color:#ffc266; text-shadow:0 0 10px rgba(255,170,60,0.7); }
+  body[data-tone="holo"] .pg-footer{ color:rgba(130,225,240,0.55); }
+  body[data-tone="holo"] .pg-footer .f-links a{ color:rgba(130,225,240,0.7); }
+  body[data-tone="holo"] .pg-footer .f-links a:hover{ color:#d8fbff; }
+
+  /* ── the white hologram (tone 'holo-mono'): the same projection in white
+     light: the card, the picture, the console, and the jellyfish, stars and
+     lilies in the sky ── */
+  body[data-holo="mono"] .poster{
+    filter:invert(1) grayscale(1) contrast(2.4) brightness(0.9) brightness(1.2)
+      drop-shadow(1px 0 0 rgba(255,255,255,0.18)) drop-shadow(0 0 8px rgba(255,255,255,0.1)); }
+  body[data-holo="mono"] .sky-life{ filter:grayscale(1) brightness(1.1); }
+  body[data-holo="mono"] .pg-footer{ color:rgba(205,210,220,0.55); }
+  body[data-holo="mono"] .pg-footer .f-links a{ color:rgba(205,210,220,0.7); }
+  body[data-holo="mono"] .pg-footer .f-links a:hover{ color:#f4f6fa; }
+  body[data-holo="mono"] .holo-status:not(:empty):not(.bad){ color:#f2f4f8; text-shadow:0 0 10px rgba(255,255,255,0.5); }
+  @media (prefers-reduced-motion: reduce){
+    body[data-tone="holo"] .poster{ animation:none; opacity:0.92; }
+    body[data-tone="holo"] .poster::after{ animation:none; }
+  }
 
   /* ── page footer: under the card, same width ── */
-  .pg-footer{ width:100%; max-width:640px; display:flex; align-items:center;
+  .pg-footer{ width:100%; max-width:648px; display:flex; align-items:center;
     justify-content:space-between; flex-wrap:wrap; gap:10px 20px;
     font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em;
-    color:rgba(200,215,240,0.5); }
+    color:rgba(214,198,168,0.5); }
   .pg-footer .f-links{ display:flex; align-items:center; gap:14px;
     letter-spacing:.14em; text-transform:uppercase; }
-  .pg-footer .f-links a{ color:rgba(200,215,240,0.6); text-decoration:none;
+  .pg-footer .f-links a{ color:rgba(214,198,168,0.62); text-decoration:none;
     transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
-  .pg-footer .f-links a:hover{ color:#fff; }
+  .pg-footer .f-links a:hover{ color:#ece0c6; }
   .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
 
   /* keyboard users could not see where they were on this page at all */
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
     outline:1px solid rgba(180,210,250,0.85); outline-offset:3px; border-radius:2px;
   }
+  .form-panel :focus-visible{ outline-color:rgba(var(--ink),0.75); }
   .skip{
     position:fixed; top:-60px; left:16px; z-index:10002; padding:9px 14px;
     background:#0b0e1a; border:1px solid rgba(180,210,250,0.5); border-radius:8px;
@@ -174,27 +545,50 @@ window.SITE=window.SITE||{};
        tall with its "Ask Kai" tag), so at the end of the scroll it sits
        below the footer instead of over the send button */
     .field-wrap{ padding:84px 16px 168px; gap:28px; }
-    .form-panel{ padding:32px 24px 28px; }
-    .field-row{ grid-template-columns:1fr; }
+    .form-panel{ --strip:36px; --hole:10px; --pitch:38px; --top:50px;
+      padding:28px calc(var(--strip) + 18px) 26px calc(var(--strip) + 14px); }
+    .punch-key{ right:calc(var(--strip) / 2 - 9px); width:18px; font-size:6px; }
+    /* phones: just the page itself, under its postcard.txt title bar */
+    .poster{ grid-template-columns:1fr; }
+    .poster-art{ display:none; }
+    /* the balloon would sit right over the form */
+    body .xp-balloon{ display:none; }
+    .plate-title{ font-size:2.1rem; top:auto; bottom:20px; left:16px; }
+    .seal{ top:auto; bottom:-30px; left:auto; right:14px; width:72px; height:72px; }
+    /* clear of the title bar, now that nothing sits between them */
+    .pc-head{ padding:30px 96px 0 10px; }
+    .pc-date{ top:136px; right:calc(var(--strip) + 14px); width:64px; font-size:0.6rem; letter-spacing:0.1em; }
+    .pc-title{ font-size:1.3rem; letter-spacing:0.16em; white-space:nowrap; }
+    .pc-stamp{ top:42px; right:calc(var(--strip) + 14px); width:64px; }
+    .pc-postmark{ display:none; }
+    .pc-body{ grid-template-columns:1fr; }
+    .pc-rule{ display:none; }
+    .pc-addr{ padding-top:8px; }
+    .pc-msg{ padding-top:0; }
+    .field textarea{ min-height:128px; }
     .cta-row{ flex-direction:column; align-items:center; gap:12px; text-align:center; }
     .cta{ padding:10px 22px; font-size:0.85rem; }
     .cta::after{ margin-left:8px; }
-    .cta-note{ font-size:0.72rem; }
+    .cta-note{ font-size:0.72rem; max-width:100%; line-height:1.9; text-wrap:balance; }
     .form-status{ text-align:center; }
     /* links on top, copyright under them, both centred with room to breathe */
     .pg-footer{ flex-direction:column-reverse; justify-content:center; gap:16px; text-align:center; }
-    .pg-footer .f-links{ flex-wrap:wrap; justify-content:center; gap:14px 22px; }
+    .pg-footer .f-links{ flex-wrap:wrap; justify-content:center; gap:6px 10px; font-size:11px; }
+    /* links big enough to tap */
+    .pg-footer .f-links a{ padding:10px 8px; }
   }
 
 </style>
 <ErrorReporter />
 <ClarityAnalytics />
 </head>
-<body>
+<body data-tone={bodyTone} data-holo={tone === 'holo-mono' ? 'mono' : undefined}>
 
 <a class="skip" href="#nm">Skip to the form</a>
 
-<SkyBackground />
+<SkyBackground tone={tone === "aged" || tone === "mono" ? tone : undefined} />
+<SkyLife />
+<ContactSkyArtifacts />
 <Glitches />
 
 <SiteMenu currentPath="/contact" />
@@ -207,37 +601,118 @@ window.SITE=window.SITE||{};
 
   <!-- The form, centred on its own card. A real <form>: Enter submits, the
        browser autofills, password managers and screen readers understand it. -->
+  <div class="poster">
+  <!-- an old XP window's title bar across the top, burnt like the rest -->
+  <div class="xp-bar" aria-hidden="true">
+    <svg class="xp-icon" viewBox="0 0 16 16"><rect x="2.5" y="1.5" width="11" height="13" rx="1" fill="#fff" stroke="#3b5a8a"/><path d="M5 5h6M5 7.5h6M5 10h4" stroke="#4d6fa6"/><path d="M4 1.5v-1M7 1.5v-1M10 1.5v-1" stroke="#3b5a8a"/></svg><span class="xp-title">postcard.txt - Notepad</span>
+    <span class="xp-btn xp-min"></span><span class="xp-btn xp-max"></span><span class="xp-btn xp-close"></span>
+  </div>
+  <div class="xp-frame" aria-hidden="true"></div>
+  <div class="poster-art">
+    <img src="/images/contact-nyc.webp" alt="" width="600" height="900" decoding="async" />
+    <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
+    <h1 class="plate-title">Say something<br />worth decoding.</h1>
+  </div>
+  <!-- faded, worn ink for the hand-written title -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="aged-ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".32" numOctaves="3" seed="9" result="w"/><feColorMatrix in="w" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.9 0 0 0 1.3" result="wm"/><feComposite in="d" in2="wm" operator="in"/></filter>
+  </svg>
+  <!-- the postmark, struck across the join -->
+  <svg class="pc-postmark" viewBox="0 0 232 116" aria-hidden="true">
+    <defs>
+      <!-- uneven ink: noise knocks holes in the strokes, as a worn
+           rubber die does -->
+      <filter id="pm-ink" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="3" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.4 0 0 0 1.75" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter>
+      <path id="pm-top" d="M 141,58 A 33,33 0 0 1 207,58"/>
+      <path id="pm-bot" d="M 132,58 A 42,42 0 0 0 216,58"/>
+    </defs>
+    <g filter="url(#pm-ink)">
+      <circle cx="174" cy="58" r="47" fill="none" stroke="currentColor" stroke-width="2.4"/>
+      <circle cx="174" cy="58" r="29" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <g font-family="'Special Elite', monospace" fill="currentColor" text-anchor="middle">
+        <text font-size="10" letter-spacing="1.6"><textPath href="#pm-top" startOffset="50%">SAMUEL ABHINAV</textPath></text>
+        <text font-size="9.5" letter-spacing="2"><textPath href="#pm-bot" startOffset="50%">CONTACT</textPath></text>
+        <text x="174" y="56" font-size="11.5">{pmDay}</text>
+        <text x="174" y="70" font-size="10.5">{pmYear}</text>
+      </g>
+      <g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <path d="M6 34 q8 -7 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0"/>
+        <path d="M6 50 q8 -7 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0"/>
+        <path d="M6 66 q8 -7 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0"/>
+        <path d="M6 82 q8 -7 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0"/>
+      </g>
+    </g>
+  </svg>
+  <!-- the wax seal over the join -->
+  <img class="seal" src="/images/contact-seal.webp" alt="" width="260" height="264" decoding="async" />
+  <!-- an old book plate sent along with the card, tied on through the
+       second punch hole with a loop of twine -->
+  <div class="attach" aria-hidden="true">
+    <div class="xp-bar xp-small" aria-hidden="true">
+    <svg class="xp-icon" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1" fill="#e9f1ff" stroke="#3b5a8a"/><path d="M2.5 12l3.5-4 2.5 3 2-2 3 3z" fill="#4c8a3c"/><circle cx="11" cy="5.5" r="1.4" fill="#f2c94c"/></svg><span class="xp-title">ngc6611.jpg - Windows Picture and Fax Viewer</span>
+    <span class="xp-btn xp-min"></span><span class="xp-btn xp-max"></span><span class="xp-btn xp-close"></span>
+  </div>
+    <div class="xp-frame xp-frame-small"></div>
+    <img src="/images/contact-attachment.webp" alt="" width="330" height="514" decoding="async" loading="lazy" />
+    <!-- the picture's glitch, drawn over it now and then (contact-artifacts.js) -->
+    <canvas class="attach-glitch"></canvas>
+    <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
+  </div>
+  <ContactArtifacts />
+  <svg class="twine" viewBox="0 0 100 110" aria-hidden="true">
+    <g fill="none" stroke-linecap="round">
+      <g stroke="#a88a5c" stroke-width="2.6">
+        <path d="M14 27 C34 28 58 42 76 58"/>
+        <path d="M14 29 C36 40 56 56 75 61"/>
+        <path d="M74 60 C77 70 72 80 76 92"/>
+        <path d="M75 60 C83 66 84 76 92 84"/>
+      </g>
+      <!-- the twist of the fibres -->
+      <g stroke="#6e5434" stroke-width="2.6" stroke-dasharray="1.1 1.9">
+        <path d="M14 27 C34 28 58 42 76 58"/>
+        <path d="M14 29 C36 40 56 56 75 61"/>
+        <path d="M74 60 C77 70 72 80 76 92"/>
+        <path d="M75 60 C83 66 84 76 92 84"/>
+      </g>
+    </g>
+    <ellipse cx="75" cy="60" rx="4.2" ry="3.4" fill="#9b7d50" stroke="#6e5434" stroke-width="1.2"/>
+  </svg>
+  <div class="paper-shadow">
   <div class="form-panel" data-reveal>
-    <div class="stepper">(Get in touch)</div>
-    <h1 class="form-title">Say something <em>worth decoding.</em></h1>
-    <p class="form-direct">Or just write:<a href="mailto:samuelabhinav37@gmail.com">samuelabhinav37@gmail.com</a></p>
+    <!-- the slow broken-screen overlay, faint here and fading out while someone writes -->
+    <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
+    <div class="punch-key" aria-hidden="true"><span>1</span><span>2</span><span>3</span></div>
+    <div class="pc-head">
+      <p class="pc-title">Post Card</p>
+    </div>
+    <img class="pc-stamp" src="/images/contact-stamp.webp" alt="" width="240" height="342" decoding="async" />
+    <p class="pc-date">{stamp}</p>
     <form id="contact-form" novalidate>
-      <div class="field-row">
-        <div class="field" data-field="nm">
-          <label for="nm">Name<span class="req" aria-hidden="true">*</span></label>
-          <input id="nm" name="name" type="text" placeholder="Your full name" autocomplete="name" required aria-describedby="nm-err" />
-          <div class="err" id="nm-err">Your name, please</div>
+      <div class="pc-body">
+        <div class="pc-msg">
+          <div class="field" data-field="ms">
+            <label for="ms">Correspondence<span class="req" aria-hidden="true">*</span></label>
+            <label class="dear" for="ms" aria-hidden="true">Dear Samuel,</label>
+            <textarea id="ms" name="message" rows="6" placeholder="Start writing here..." required aria-describedby="ms-err"></textarea>
+            <div class="err" id="ms-err">Say a little more</div>
+          </div>
         </div>
-        <div class="field" data-field="em">
-          <label for="em">Email<span class="req" aria-hidden="true">*</span></label>
-          <input id="em" name="email" type="email" placeholder="name@company.com" autocomplete="email" required aria-describedby="em-err" />
-          <div class="err" id="em-err">That address doesn’t look routable</div>
+        <span class="pc-rule" aria-hidden="true"></span>
+        <div class="pc-addr">
+          <div class="field" data-field="nm">
+            <label for="nm">From<span class="req" aria-hidden="true">*</span></label>
+            <input id="nm" name="name" type="text" placeholder="Your full name" autocomplete="name" required aria-describedby="nm-err" />
+            <div class="err" id="nm-err">Your name, please</div>
+          </div>
+          <!-- values are whitelisted server-side in functions/api/contact.js -->
+          <fieldset class="pc-reason">
+            <legend>Regarding</legend>
+            <label class="pc-opt"><input type="radio" name="reason" value="role" checked /><span class="pc-box"></span>Full-time role</label>
+            <label class="pc-opt"><input type="radio" name="reason" value="freelance" /><span class="pc-box"></span>Freelance / contract</label>
+            <label class="pc-opt"><input type="radio" name="reason" value="finding" /><span class="pc-box"></span>Security finding</label>
+            <label class="pc-opt"><input type="radio" name="reason" value="hello" /><span class="pc-box"></span>Just saying hi</label>
+          </fieldset>
         </div>
-      </div>
-      <div class="field" data-field="rs">
-        <label for="rs">Reason</label>
-        <!-- values are whitelisted server-side in functions/api/contact.js -->
-        <select id="rs" name="reason">
-          <option value="role">Full-time role</option>
-          <option value="freelance">Freelance / contract</option>
-          <option value="finding">Security finding</option>
-          <option value="hello">Just saying hi</option>
-        </select>
-      </div>
-      <div class="field" data-field="ms">
-        <label for="ms">Message<span class="req" aria-hidden="true">*</span></label>
-        <textarea id="ms" name="message" rows="2" placeholder="A few words" required aria-describedby="ms-err"></textarea>
-        <div class="err" id="ms-err">Say a little more</div>
       </div>
       <p class="req-note">* required</p>
       <!-- honeypot: bots fill it, humans never see it. Deliberately NOT named
@@ -257,7 +732,7 @@ window.SITE=window.SITE||{};
            checks result.action matches, so a token can't be solved somewhere else on
            the domain and replayed here (or vice versa, if another action is ever added). -->
       <div id="turnstile-widget" class="cf-turnstile" data-sitekey="0x4AAAAAAEPWqejRev3MMXij"
-           data-action="contact" data-theme="dark" data-size="flexible"></div>
+           data-action="contact" data-theme="light" data-size="flexible"></div>
       <div class="cta-row">
         <button class="cta" id="send" type="submit">Send Message</button>
         <span class="cta-note">No spam. A real reply, usually within a day.</span>
@@ -265,7 +740,11 @@ window.SITE=window.SITE||{};
       <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
     </form>
   </div>
+  </div>
+  </div>
 
+  <!-- the form status again, outside the hologram's filter (see .holo-status) -->
+  <p class="holo-status" id="holo-status" aria-hidden="true"></p>
   <div class="pg-footer">
     <span>© 2026 Samuel Abhinav</span>
     <div class="f-links">
@@ -283,6 +762,7 @@ window.SITE=window.SITE||{};
      SRI: Cloudflare serves it from a rotating URL and recommends against
      pinning it (https://developers.cloudflare.com/turnstile/). -->
 <script is:inline src="/scripts/contact-form-handler.js"></script>
+<script is:inline src="/scripts/contact-artifacts.js"></script>
 <script is:inline>
 /* No intro choreography on this page: mark it settled straight away so
    Kai's arrival greet runs (it waits on _introFullyDone). */

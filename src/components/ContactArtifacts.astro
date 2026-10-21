@@ -1,0 +1,92 @@
+---
+/**
+ * ContactArtifacts: things around the postcard. They sit inside .poster, so
+ * they drift with the card. Optional dressing: delete the <ContactArtifacts />
+ * tag in contact.astro and the page is exactly as it was.
+ *
+ * - the tear: behind the card's left edge the sky has broken open in a
+ *   stepped, glitching hole, and an old cmd.exe shows through underneath. It
+ *   encodes the message as it's typed (a hex dump, a byte count and a
+ *   CRC-32), all worked out in the browser and never sent or stored. Smeared
+ *   streaks and stray colour slices around the hole are drawn on a canvas;
+ *   /scripts/contact-artifacts.js reshapes the hole now and then, and as the
+ *   visitor types. Its height follows the text, so there's no empty console.
+ * - an XP dial-up "Connecting…" box shown while the message is sending.
+ */
+---
+
+<!-- the tear, half hidden behind the card's left edge -->
+<div class="tear" id="tear" aria-hidden="true">
+  <div class="tear-hole">
+    <pre class="ic-body" id="ic-body">{'Microsoft Windows XP [Version 5.1.2600]\n(C) Copyright 1985-2001 Microsoft Corp.\n\nC:\\> listen --band 1420MHz\nlistening for transmissions...'}<span class="ic-cursor">_</span></pre>
+    <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
+  </div>
+  <canvas class="tear-fx"></canvas>
+</div>
+
+<!-- smears off the card's and the picture's torn edges (contact-artifacts.js) -->
+<canvas class="wreck-fx" aria-hidden="true"></canvas>
+
+<!-- dial-up, while the message is on its way -->
+<div class="dialup" id="dialup" hidden>
+  <div class="xp-bar xp-small">
+    <svg class="xp-icon" viewBox="0 0 16 16"><rect x="1" y="4" width="6" height="5" fill="#cfe3ff" stroke="#3b5a8a"/><rect x="9" y="7" width="6" height="5" fill="#cfe3ff" stroke="#3b5a8a"/><path d="M4 9v4h8" stroke="#3b5a8a" fill="none"/></svg>
+    <span class="xp-title">Connecting to Samuel's Inbox...</span>
+    <span class="xp-btn xp-close"></span>
+  </div>
+  <div class="dialup-body">
+    <p id="dialup-status">Dialing...</p>
+    <div class="dialup-bar"><span id="dialup-fill"></span></div>
+  </div>
+</div>
+
+<style is:global>
+  /* ── the tear: behind the card (z-index -1 inside .poster), its right end
+     tucked under the card's left edge ── */
+  .tear{ position:absolute; z-index:-1; right:calc(100% - 56px); top:270px; width:390px; pointer-events:none; }
+  .tear-hole{ position:relative; background:#060505; filter:sepia(0.3) brightness(0.92); }
+  .ic-body{ margin:0; padding:12px 70px 14px 16px;
+    font-family:'Lucida Console', 'JetBrains Mono', monospace; font-size:12.5px; line-height:16px;
+    color:#c8c8c8; white-space:pre; overflow:hidden;
+    /* the colour fringing of a broken signal */
+    text-shadow:-1px 0 rgba(255,70,90,0.4), 1px 0 rgba(90,235,225,0.4); }
+  .ic-cursor{ animation:ic-blink 1s steps(1) infinite; }
+  @keyframes ic-blink{ 50%{ opacity:0; } }
+  .tear-fx{ position:absolute; left:-70px; top:-60px; width:calc(100% + 140px); height:calc(100% + 120px); }
+  /* a little smaller where the sky beside the card is narrower */
+  @media (max-width:1359px){ .tear{ width:340px; } .ic-body{ font-size:11px; line-height:14px; } }
+  /* only where there's room beside the card */
+  @media (max-width:1180px){ .tear{ display:none; } }
+
+  /* ── the wreck: a slow broken-screen video over the console, the card and
+     the picture. It's light marks on black, difference-blended: black leaves
+     the surface as it is, the marks invert what's under them. ── */
+  .wreck{ position:absolute; inset:0; z-index:2; width:100%; height:100%; object-fit:fill; display:block;
+    pointer-events:none; mix-blend-mode:difference; opacity:0.75; }
+  .tear-hole > .wreck{ opacity:0.9; }
+  /* the ledger is where people write: faint, and almost gone while they do */
+  .form-panel > .wreck{ z-index:3; opacity:0.4; transition:opacity .6s; }
+  .form-panel:focus-within > .wreck{ opacity:0.06; }
+  /* the picture sits under its 18px title bar */
+  .attach > .wreck{ top:18px; height:calc(100% - 18px); }
+  .wreck-fx{ position:absolute; z-index:8; left:-80px; top:-80px; width:calc(100% + 420px); height:calc(100% + 160px);
+    pointer-events:none; }
+  /* phones: no room either side, so it stays inside the card's width */
+  @media (max-width:900px){ .wreck-fx{ left:0; width:100%; } }
+  @media (prefers-reduced-motion: reduce){ .wreck{ display:none; } }
+  @media (prefers-reduced-motion: reduce){ .ic-cursor{ animation:none; } }
+
+  /* ── dial-up box ── */
+  .dialup{ position:absolute; z-index:30; left:50%; bottom:110px; width:300px; margin-left:-150px;
+    background:#ece9d8; border:3px solid #0831d9; border-top:0; filter:sepia(0.35);
+    box-shadow:0 12px 24px rgba(0,0,0,0.5); }
+  .dialup[hidden]{ display:none; }
+  .dialup .xp-bar.xp-small{ margin:0 -3px; height:24px; font-size:10px; }
+  .dialup-body{ padding:12px 14px 14px; font:11px Tahoma, 'Segoe UI', sans-serif; color:#000; }
+  .dialup-body p{ margin:0 0 9px; }
+  .dialup-bar{ height:14px; border:1px solid #7f9db9; padding:1px; background:#fff; }
+  .dialup-bar span{ display:block; height:100%; width:0;
+    background:repeating-linear-gradient(90deg, #37c33a 0 8px, transparent 8px 10px); transition:width .4s; }
+
+  @media (max-width:900px){ .dialup{ width:260px; margin-left:-130px; bottom:90px; } }
+</style>
