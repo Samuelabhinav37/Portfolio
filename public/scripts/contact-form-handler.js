@@ -23,10 +23,8 @@
 
   var F = {
     nm: document.getElementById('nm'),
-    em: document.getElementById('em'),
     ms: document.getElementById('ms')
   };
-  var reason = document.getElementById('rs');
   var busy = false;
 
   /* Turnstile loads on first interaction with the form, not with the page.
@@ -47,10 +45,6 @@
     form.addEventListener(t, loadTurnstile, { once: true, passive: true });
   });
 
-  /* deliberately permissive — the server is the real validator; this is only
-     here to catch the obvious typo before it costs a round trip */
-  function emailish(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
-
   function mark(key, bad){
     var wrap = form.querySelector('[data-field="' + key + '"]');
     if(wrap) wrap.classList.toggle('invalid', !!bad);
@@ -63,17 +57,16 @@
 
   function validate(){
     var bad = null;
-    var nm = F.nm.value.trim(), em = F.em.value.trim(), ms = F.ms.value.trim();
+    var nm = F.nm.value.trim(), ms = F.ms.value.trim();
     mark('nm', !nm);            if(!nm) bad = bad || F.nm;
-    mark('em', !emailish(em));  if(!emailish(em)) bad = bad || F.em;
     mark('ms', ms.length < 2);  if(ms.length < 2) bad = bad || F.ms;
-    if(bad){ bad.focus(); say('Three fields, that\u2019s all.', 'bad'); return null; }
+    if(bad){ bad.focus(); say('A name and a few words, that\u2019s all.', 'bad'); return null; }
     var turnstileToken = (window.turnstile && window.turnstile.getResponse) ? window.turnstile.getResponse() : '';
     /* form field is named hp_topic (not "company") — see the honeypot
        comment in contact.astro; the JSON key sent to the server stays
        "company" since that's just our own payload shape, unrelated to the
        HTML field name that autofill engines key off of. */
-    return { name:nm, email:em, message:ms, reason:(reason ? reason.value : ''), company:(form.hp_topic ? form.hp_topic.value : ''), turnstileToken:turnstileToken };
+    return { name:nm, message:ms, reason:((form.querySelector('input[name="reason"]:checked') || {}).value || ''), company:(form.hp_topic ? form.hp_topic.value : ''), turnstileToken:turnstileToken };
   }
 
   /* clear an error the moment the visitor starts fixing it */

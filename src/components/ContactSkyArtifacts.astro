@@ -1,0 +1,35 @@
+---
+/**
+ * ContactSkyArtifacts: a Windows XP notification balloon that pops up once,
+ * pointing at Kai in the corner like a tray icon; clicking it puts the
+ * cursor in the message. Optional dressing: delete the
+ * <ContactSkyArtifacts /> tag in contact.astro and it's gone.
+ */
+---
+
+<div class="xp-balloon" id="xp-balloon" role="status" hidden>
+  <button class="xp-balloon-x" type="button" aria-label="Dismiss">×</button>
+  <p class="xp-balloon-title"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#2f6fd6"/><path d="M8 7v4.5M8 4.6v.1" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>New message from deep space</p>
+  <p class="xp-balloon-text">A postcard is waiting. Click here to write back.</p>
+</div>
+
+<style is:global>
+  /* ── the balloon: XP's pale yellow, a tail pointing down at Kai ── */
+  .xp-balloon{ position:fixed; z-index:997; right:24px; bottom:178px; width:260px; padding:10px 28px 11px 12px;
+    background:#ffffe1; border:1px solid #000; border-radius:8px; box-shadow:2px 3px 6px rgba(0,0,0,0.4);
+    font:11px/1.4 Tahoma, 'Segoe UI', sans-serif; color:#000; cursor:pointer;
+    filter:sepia(0.3); animation:balloon-in .35s ease-out; }
+  .xp-balloon[hidden]{ display:none; }
+  .xp-balloon::after{ content:''; position:absolute; right:42px; bottom:-15px; width:16px; height:15px;
+    background:#ffffe1; clip-path:polygon(0 0, 100% 0, 100% 100%); border-right:1px solid #000; }
+  .xp-balloon::before{ content:''; position:absolute; right:41px; bottom:-17px; width:18px; height:17px;
+    background:#000; clip-path:polygon(0 0, 100% 0, 100% 100%); }
+  .xp-balloon-title{ display:flex; align-items:center; gap:6px; margin:0 0 4px; font-weight:bold; }
+  .xp-balloon-title svg{ width:16px; height:16px; flex:none; }
+  .xp-balloon-text{ margin:0; }
+  .xp-balloon-x{ position:absolute; top:5px; right:6px; width:16px; height:16px; padding:0; border:1px solid transparent;
+    border-radius:2px; background:none; font:14px/12px Tahoma, sans-serif; color:#555; cursor:pointer; }
+  .xp-balloon-x:hover{ border-color:#999; background:#fff; }
+  @keyframes balloon-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .xp-balloon{ animation:none; } }
+</style>

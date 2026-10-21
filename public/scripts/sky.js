@@ -8,7 +8,7 @@
 
    It also keeps the engine told about the viewport and whether the tab is
    visible. data-mood="calm" asks for the quiet sky used behind long
-   reading. */
+   reading; data-tone="aged" for the faded one behind the contact print. */
 (function(){
   'use strict';
   var host = document.getElementById('sky');
@@ -16,6 +16,7 @@
 
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var tier = reduce ? 'still' : (innerWidth <= 900 ? 'lite' : (host.getAttribute('data-mood') === 'calm' ? 'calm' : 'full'));
+  var tone = host.getAttribute('data-tone') || undefined;
   var send = function(){};
 
   function canvases(){
@@ -33,7 +34,7 @@
   function runInline(){
     var c = canvases();
     function boot(){
-      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier });
+      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier, tone:tone });
       if(!engine.hasGL) host.classList.add('no-gl');
       send = engine.handle;
       greet();
@@ -50,7 +51,7 @@
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
       worker = new Worker('/scripts/sky-worker.js');
-      worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier }, [offSky, offFx]);
+      worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;
     function fail(){ if(settled) return; settled = true; try{ worker.terminate(); }catch(e){} runInline(); }

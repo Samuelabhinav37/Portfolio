@@ -81,7 +81,9 @@ export async function onRequestPost({ request, env }) {
 
   if (company) return json({ ok: true }); // bot: silent no-op, matches client behavior
 
-  if (!name || !EMAIL_RE.test(email) || message.length < 2) {
+  // email is optional: the contact card no longer asks for one, so a sender
+  // who wants a reply leaves an address in the message itself
+  if (!name || (email && !EMAIL_RE.test(email)) || message.length < 2) {
     return json({ error: 'Invalid input' }, 400);
   }
   if (name.length > 200 || email.length > 200 || message.length > 5000) {
@@ -125,9 +127,9 @@ export async function onRequestPost({ request, env }) {
     body: JSON.stringify({
       from: 'Portfolio Contact <contact@samuelabhinav.com>',
       to: [TO_EMAIL],
-      reply_to: email,
+      ...(email ? { reply_to: email } : {}),
       subject: `${reason ? `[${reason}] ` : ''}Portfolio contact from ${name}`,
-      text: `From: ${name} <${email}>\n${reason ? `Reason: ${reason}\n` : ''}\n${message}`,
+      text: `From: ${name}${email ? ` <${email}>` : ''}\n${reason ? `Reason: ${reason}\n` : ''}\n${message}`,
     }),
   });
 
