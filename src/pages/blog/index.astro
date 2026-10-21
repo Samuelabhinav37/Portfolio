@@ -229,7 +229,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 </head>
 <body>
 
-<SkyBackground calm avoid=".fn-title, .fn-search, .fn-feat, .fn-card, .fn-pg" />
+<SkyBackground calm />
 <!-- This page is dense, text-heavy tables/cards that need to read clearly
      over whatever's moving behind them, so it puts a page-local blur layer ABOVE
      the shared sky (not touching the component, so index/about/contact are
@@ -238,7 +238,7 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
      purely by coming later in the DOM at the same stacking tier, and stays
      below real content since every content section already carries an
      explicit z-index that beats z-index:auto regardless of DOM order.
-     backdrop-filter:blur here softens the stars/ships themselves too, same
+     backdrop-filter:blur here softens the stars themselves too, same
      "frosted glass" trick the featured hero's own .hero::after already
      uses over its title card — just extended across the whole page instead
      of one small area, since backdrop-filter only blurs what's behind an
