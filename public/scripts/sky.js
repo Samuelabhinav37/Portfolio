@@ -6,12 +6,9 @@
    OffscreenCanvas 2D but not WebGL), it falls back to fresh canvases driven
    on the main thread, which loads sky-engine.js on demand.
 
-   It also keeps the engine told about the viewport, whether the tab is
-   visible, and, when the page names them with data-avoid on #sky (any CSS
-   selector list), where those blocks sit on screen, so the cast flies
-   through open sky around the cards and text instead of behind them.
-   data-mood="calm" asks for the quiet sky used behind long reading. contact-form-handler.js fires `contact:sent` /
-   `contact:failed`, which launch the courier. */
+   It also keeps the engine told about the viewport and whether the tab is
+   visible. data-mood="calm" asks for the quiet sky used behind long
+   reading. */
 (function(){
   'use strict';
   var host = document.getElementById('sky');
@@ -31,19 +28,7 @@
   }
 
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
-  var avoidSel = host.getAttribute('data-avoid');
-  function cardRect(){
-    var rects = [];
-    if(avoidSel){
-      var els = document.querySelectorAll(avoidSel);
-      for(var i=0;i<els.length && rects.length < 16;i++){
-        var r = els[i].getBoundingClientRect();
-        if(r.width && r.bottom > 0 && r.top < innerHeight) rects.push({ x0:r.left, y0:r.top, x1:r.right, y1:r.bottom });
-      }
-    }
-    return { type:'card', rects:rects };
-  }
-  function greet(){ send(size()); send(cardRect()); send({ type:'running', on:!document.hidden }); }
+  function greet(){ send(size()); send({ type:'running', on:!document.hidden }); }
 
   function runInline(){
     var c = canvases();
@@ -86,17 +71,9 @@
 
   /* keep the engine in step with the page */
   var queued = false;
-  function sync(){
+  addEventListener('resize', function(){
     if(queued) return; queued = true;
-    requestAnimationFrame(function(){ queued = false; send(size()); send(cardRect()); });
-  }
-  addEventListener('resize', sync, { passive:true });
-  addEventListener('scroll', function(){ if(!queued){ queued = true; requestAnimationFrame(function(){ queued = false; send(cardRect()); }); } }, { passive:true });
-  if('ResizeObserver' in window){
-    var ro = new ResizeObserver(sync);
-    if(avoidSel) document.querySelectorAll(avoidSel).forEach(function(el){ ro.observe(el); });
-  }
+    requestAnimationFrame(function(){ queued = false; send(size()); });
+  }, { passive:true });
   document.addEventListener('visibilitychange', function(){ send({ type:'running', on:!document.hidden }); });
-  addEventListener('contact:sent', function(){ send(cardRect()); send({ type:'launch', ok:true }); });
-  addEventListener('contact:failed', function(){ send(cardRect()); send({ type:'launch', ok:false }); });
 })();

@@ -1,6 +1,6 @@
-/* Runs the contact sky (sky-engine.js) off the main thread, on the two
-   OffscreenCanvases contact-sky.js transfers in, so typing in the form and
-   scrolling never wait on the background. */
+/* Runs the site sky (sky-engine.js) off the main thread, on the two
+   OffscreenCanvases sky.js transfers in, so typing and scrolling never
+   wait on the background. */
 importScripts('/scripts/sky-engine.js');
 
 var engine = null;
