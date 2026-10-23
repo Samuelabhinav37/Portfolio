@@ -211,9 +211,8 @@ a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
 /* hover card: pointing at a tile slides a panel over its frame (after
    Crunchyroll), laid out in three blocks (after TryHackMe's cards and
    Steam's tooltip): level and read time on top; the title and three lines
-   of summary in the middle; concept pills, the series and Read pinned to
-   the bottom under a hairline. The summary is the only part that gives way
-   when a frame is short. Pointer devices only; a tap just opens the post. */
+   of summary (cut with an ellipsis) in the middle; concept pills, the
+   series and Read pinned to the bottom under a hairline. Pointer devices only; a tap just opens the post. */
 .fn-peek{position:absolute;inset:0;display:flex;flex-direction:column;padding:clamp(14px,1.4vw,22px);
   background:linear-gradient(180deg,rgba(17,22,40,.97),rgba(9,12,22,.98));
   opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .22s,transform .3s var(--e)}
@@ -225,9 +224,13 @@ a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
 .fn-peek .bars i:nth-child(1){height:4px}.fn-peek .bars i:nth-child(2){height:7px}.fn-peek .bars i:nth-child(3){height:10px}
 .fn-peek .bars[data-n="1"] i:nth-child(-n+1),.fn-peek .bars[data-n="2"] i:nth-child(-n+2),.fn-peek .bars[data-n="3"] i{background:#bcd4ff}
 .fn-peek h4{margin-top:clamp(14px,1.6vw,22px);font-size:16px;font-weight:600;line-height:1.25;color:var(--ink);text-wrap:balance}
-.fn-peek .desc{margin-top:8px;flex:0 1 auto;min-height:0;max-height:calc(3 * 1.5em);max-width:48ch;overflow:hidden;
-  color:var(--muted);font-size:13px;line-height:1.5;font-weight:500;letter-spacing:-.01em;
-  -webkit-mask:linear-gradient(180deg,#000 60%,transparent);mask:linear-gradient(180deg,#000 60%,transparent)}
+.fn-peek .desc{margin-top:8px;max-width:48ch;color:var(--muted);font-size:13px;line-height:1.5;font-weight:500;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+/* short frames keep the top and bottom blocks whole: the summary drops to
+   two lines, then leaves */
+.fn-tile .fn-pic{container-type:size}
+@container (max-height:280px){.fn-peek .desc{-webkit-line-clamp:2;line-clamp:2}}
+@container (max-height:225px){.fn-peek .desc{display:none}}
 .fn-peek .bottom{margin-top:auto;padding-top:14px}
 .fn-peek .chips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;max-height:24px;overflow:hidden;margin-bottom:12px}
 .fn-peek .chips li{font:600 11px/1 var(--grot);letter-spacing:-.01em;padding:6px 10px;border-radius:999px;white-space:nowrap;
