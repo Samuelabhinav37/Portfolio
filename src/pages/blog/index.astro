@@ -20,9 +20,14 @@ const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.
 );
 const year = new Date().getFullYear();
 
-/* Field Notes: every post as a card. Card art is the tall 4:5 cardImage; the
-   480w variant serves compact cards, the original backs it up for wide/2x. */
+/* Field Notes: every post as a tile in an edge-to-edge grid. Tile art is the
+   wide heroImage (about 1.9:1) cropped to the tile's ratio; the 800w variant
+   serves 1x, the original backs it up for 2x. */
 const WPM = 230;
+/* Tiles share a width but not a height: each takes the next ratio in this
+   cycle, so a row's pictures end at slightly different lines. Same cycle in
+   blog-fieldnotes.js. */
+const RATIOS = ['16/9', '3/2', '13/9', '3/2', '29/20', '16/9', '9/7', '16/9', '3/2'];
 function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -31,8 +36,8 @@ function dateLabel(d: Date) {
   return d.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' }) + ' ' + ordinal(d.getUTCDate()) + ', ' + d.getUTCFullYear();
 }
 const cards = posts.map((p) => {
-  const img = p.data.cardImage || p.data.heroImage || null;
-  const small = variant(img, 480);
+  const img = p.data.heroImage || p.data.cardImage || null;
+  const small = variant(img, 800);
   const dims = img ? webpDims(img) : null;
   const words = (p.body || '').split(/\s+/).filter(Boolean).length;
   return {
@@ -41,19 +46,16 @@ const cards = posts.map((p) => {
     topic: p.data.category,
     date: p.data.pubDate.toISOString().slice(0, 10),
     dateLabel: dateLabel(p.data.pubDate),
+    month: p.data.pubDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }),
     mins: Math.max(1, Math.round(words / WPM)),
     desc: p.data.description,
     href: '/blog/' + p.id + '/',
     img,
-    srcset: img && small && small !== img && dims ? `${small} 480w, ${img} ${dims.width}w` : null,
+    srcset: img && small && small !== img && dims ? `${small} 800w, ${img} ${dims.width}w` : null,
   };
 });
 const topics = [...new Set(cards.map((c) => c.topic))];
-const [featured, ...rest] = cards;
-/* Left column takes every other post as a wide card with its excerpt; the
-   right column gets compact cards. Same split the client script uses. */
-const wideCol = rest.filter((_, i) => i % 2 === 0);
-const narrowCol = rest.filter((_, i) => i % 2 === 1);
+const TILE_SIZES = '(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw';
 ---
 
 <!DOCTYPE html>
@@ -93,21 +95,23 @@ window.SITE=window.SITE||{};
 <Motion />
 <style is:global>
 /* ══════════════ FIELD NOTES ══════════════
-   A serif title floating on the sky with search under it, a featured row,
-   then a two-column editorial list (wide cards left, compact cards right),
-   every card carrying its post art, and numbered pages at the bottom. */
+   A serif title floating on the sky with search under it, then every post
+   as a tile in an edge-to-edge, three-column grid: square-cornered art in
+   slightly different heights, two short lines of caption under each, and
+   numbered pages at the bottom. Everything under the title is set in one
+   small, tight grotesk. */
 :root{
   --bg:var(--c-bg);
   --ink:#e9ecf7; --muted:rgba(200,210,232,.66); --faint:rgba(200,210,232,.42);
-  /* solid cards that float over the sky: an opaque fill, a hairline
+  /* the search fields float over the sky: an opaque fill, a hairline
      top highlight and a long soft shadow underneath */
-  --card:#0d1222; --card-line:rgba(190,205,240,.11);
+  --card-line:rgba(190,205,240,.11);
   --float:0 1px 0 rgba(255,255,255,.04) inset,0 22px 50px -26px rgba(0,0,0,.85),0 6px 16px -8px rgba(0,0,0,.5);
-  --float-hi:0 1px 0 rgba(255,255,255,.05) inset,0 34px 70px -28px rgba(0,0,0,.9),0 10px 22px -10px rgba(0,0,0,.55);
-  --accent:#8fb3ff; --tag:#bcd4ff; --tag-ink:#0a1230;
+  --accent:#8fb3ff;
   --field:#0b1020;
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --grot:'Inter Tight',var(--sans);
+  --dim:rgba(233,236,247,.42);
   --serif:'Cormorant Garamond',Georgia,serif;
   --e:cubic-bezier(.2,.8,.2,1);
 }
@@ -118,12 +122,11 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
 
 /* every content block is positioned so it paints above the fixed #sky
    (a positioned element with z-index:auto) */
-.fn{position:relative;z-index:1;max-width:1240px;margin:0 auto;
-  padding:0 max(20px, env(safe-area-inset-right, 0px)) 72px max(20px, env(safe-area-inset-left, 0px));
-  display:flex;flex-direction:column;gap:52px}
+.fn{position:relative;z-index:1;padding-bottom:96px;display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
 
 /* ── title + search ── */
-.fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;padding:clamp(120px,15vw,170px) 0 4px}
+.fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
+  padding:clamp(120px,15vw,170px) max(20px, env(safe-area-inset-right, 0px)) 4px max(20px, env(safe-area-inset-left, 0px))}
 .fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(64px,11vw,132px);line-height:.95;letter-spacing:-.01em;
   color:#eef2fb;text-align:center;text-wrap:balance;
   text-shadow:0 0 24px rgba(143,179,255,.28),0 0 70px rgba(110,150,240,.22);
@@ -136,90 +139,58 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
   transition:border-color .2s,box-shadow .2s}
 .fn-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(143,179,255,.16)}
 .fn-field svg{width:17px;height:17px;flex:none;stroke:var(--muted);fill:none;stroke-width:2}
-.fn-field input,.fn-field select{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:400 15px var(--sans)}
+.fn-field input,.fn-field select{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);
+  font:500 14px var(--grot);letter-spacing:-.02em}
 .fn-field input:focus-visible,.fn-field select:focus-visible{outline:0}
 .fn-field input::placeholder{color:var(--faint)}
 .fn-field input::-webkit-search-cancel-button{filter:invert(.8)}
 .fn-field select{appearance:none;-webkit-appearance:none;cursor:pointer}
 .fn-field select option{background:#0c1330;color:var(--ink)}
-@media (max-width:640px){.fn-search{grid-template-columns:1fr}}
+@media (max-width:640px){.fn-search{grid-template-columns:1fr}.fn-field input,.fn-field select{font-size:16px}}
 
-/* ── shared card art ── */
-.fn-shot{position:relative;overflow:hidden;background:#05091a;aspect-ratio:4/3;max-width:100%}
-.fn-shot img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 46%;
-  transition:transform .6s var(--e)}
-/* wide cards and the featured row show the whole picture, over a blurred,
-   dimmed copy of itself so the sides aren't empty */
-.fn-shot.fit .fill{filter:blur(22px) brightness(.5) saturate(1.2);transform:scale(1.2)}
-.fn-shot.fit .art{object-fit:contain;object-position:50% 50%}
-a:hover .fn-shot .art{transform:scale(1.03)}
-.fn-shot.fit .art{filter:drop-shadow(0 10px 30px rgba(0,0,0,.45))}
-.fn-tag{position:absolute;left:0;bottom:0;z-index:2;font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
-  background:var(--tag);color:var(--tag-ink);padding:7px 9px;border-top-right-radius:6px}
-.fn-meta{font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;flex-wrap:wrap;gap:4px 14px}
-
-/* ── featured row ── */
-.fn-feat{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,4vw,48px);align-items:center;
-  background:var(--card);border:1px solid var(--card-line);border-radius:22px;padding:14px 14px 14px clamp(20px,3.4vw,40px);
-  text-decoration:none;color:inherit;transition:transform .35s var(--e),box-shadow .35s}
-.fn-feat{box-shadow:var(--float)}
-.fn-feat:hover{transform:translateY(-3px);box-shadow:var(--float-hi)}
-.fn-feat .txt{display:flex;flex-direction:column;gap:16px;padding-block:18px;min-width:0}
-.fn-pill{align-self:flex-start;font:500 12px/1 var(--sans);padding:7px 10px;border-radius:6px;background:rgba(143,179,255,.12);
-  color:var(--muted);border:1px solid var(--card-line)}
-.fn-feat h2{font-weight:600;letter-spacing:-.02em;font-size:clamp(26px,2.8vw,36px);line-height:1.15;text-wrap:balance}
-.fn-feat p{color:var(--muted);font-size:16px;line-height:1.6;max-width:52ch}
-.fn-feat .fn-shot{aspect-ratio:16/10;border-radius:14px}
-.fn-feat[hidden]{display:none}
-@media (max-width:820px){.fn-feat{grid-template-columns:1fr;padding:14px}.fn-feat .txt{order:2;padding:4px 8px 10px}}
-
-/* ── the list ── */
-.fn-list{display:flex;flex-direction:column;gap:26px}
-.fn-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.fn-head h2{font-weight:600;font-size:20px;letter-spacing:-.01em}
-.fn-count{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-.fn-cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
-.fn-col{display:flex;flex-direction:column;gap:24px;min-width:0}
-@media (max-width:820px){.fn-cols{grid-template-columns:minmax(0,1fr)}}
-.fn-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--card-line);border-radius:18px;overflow:hidden;
-  text-decoration:none;color:inherit;min-width:0;transition:transform .35s var(--e),box-shadow .35s,border-color .35s}
-.fn-card{box-shadow:var(--float)}
-.fn-card:hover{transform:translateY(-4px);box-shadow:var(--float-hi);border-color:rgba(143,179,255,.28)}
-.fn-card .fn-shot{aspect-ratio:16/9}
-.fn-col.narrow .fn-card .fn-shot{aspect-ratio:4/3}
-.fn-card .body{display:flex;flex-direction:column;gap:10px;padding:18px 20px 22px}
-.fn-card h3{font-weight:600;letter-spacing:-.01em;line-height:1.3;font-size:20px;text-wrap:balance}
-.fn-col.narrow .fn-card h3{font-size:16px}
-.fn-card h3 .arr{display:inline-block;margin-left:6px;color:var(--accent);transition:transform .25s}
-.fn-card:hover h3 .arr{transform:translateX(4px)}
-.fn-card p{color:var(--muted);font-size:14.5px;line-height:1.55}
-/* after a search or page change the new cards settle in one after another */
-.fn-card.fn-in{animation:fnIn .55s var(--ease-out,cubic-bezier(.16,1,.3,1)) both;animation-delay:calc(var(--i,0)*60ms)}
-@keyframes fnIn{from{opacity:0;transform:translateY(16px)}}
-.fn-empty{padding:44px;text-align:center;color:var(--muted);border:1px dashed var(--card-line);border-radius:14px}
+/* ── the grid ──
+   One type style for every line under the title: 12px, tight tracking, the
+   second line at lower contrast. Tiles run edge to edge with hairline gaps. */
+.fn-list,.fn-pg,footer{font:600 12px/1.2 var(--grot);letter-spacing:-.02em}
+.fn-list{display:flex;flex-direction:column;gap:14px}
+.fn-head{display:flex;align-items:baseline;gap:14px;padding:0 12px}
+.fn-head h2{font:inherit;color:var(--ink)}
+.fn-count{color:var(--dim)}
+.fn-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:6px;row-gap:clamp(36px,4vw,60px);align-items:start}
+@media (max-width:900px){.fn-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.fn-grid{grid-template-columns:minmax(0,1fr);row-gap:32px}}
+.fn-tile{display:block;min-width:0;color:inherit;text-decoration:none}
+.fn-tile:focus-visible{outline-offset:2px;border-radius:0}
+.fn-pic{position:relative;overflow:hidden;aspect-ratio:var(--r,16/9);background:#060a18}
+.fn-pic img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;
+  transition:transform 1.2s var(--e),filter .5s}
+.fn-tile:hover .fn-pic img{transform:scale(1.025);filter:brightness(1.08)}
+.fn-cap{display:flex;flex-direction:column;padding:12px 12px 0}
+.fn-cap h3{font:inherit;color:var(--ink)}
+.fn-cap span{color:var(--dim)}
+/* after a search or page change the new tiles settle in one after another */
+.fn-tile.fn-in{animation:fnIn .55s var(--ease-out,cubic-bezier(.16,1,.3,1)) both;animation-delay:calc(var(--i,0)*50ms)}
+@keyframes fnIn{from{opacity:0;transform:translateY(12px)}}
+.fn-empty{grid-column:1/-1;padding:60px 12px;color:var(--dim)}
 
 /* ── numbered pages ── */
-.fn-pg{display:flex;gap:8px;flex-wrap:wrap}
+.fn-pg{display:flex;gap:14px;flex-wrap:wrap;padding:0 12px}
 .fn-pg[hidden]{display:none}
-.fn-pg button{min-width:36px;height:36px;padding:0 10px;display:grid;place-items:center;cursor:pointer;
-  font:500 13px var(--mono);color:var(--muted);background:var(--card);border:1px solid var(--card-line);border-radius:4px;
-  transition:color .2s,border-color .2s,background .2s}
-.fn-pg button:hover:not([disabled]){color:var(--ink);border-color:rgba(143,179,255,.45)}
-.fn-pg button[aria-current="page"]{background:var(--tag);color:var(--tag-ink);border-color:var(--tag)}
-.fn-pg button[disabled]{opacity:.35;cursor:default}
+.fn-pg button{font:inherit;letter-spacing:inherit;color:var(--dim);background:none;border:0;padding:4px 0;cursor:pointer;transition:color .2s}
+.fn-pg button:hover:not([disabled]),.fn-pg button[aria-current="page"]{color:var(--ink)}
+.fn-pg button[disabled]{opacity:.4;cursor:default}
 
 /* ── footer ── */
-footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 38px 50px;color:var(--faint);font-size:12px}
-footer .f-links{display:flex;align-items:center;gap:14px;font-family:var(--sans);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
-footer .f-links a{color:var(--faint);text-decoration:none;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
-footer .f-links a:hover{color:#fff}
-footer .f-links .fic{width:12.5px;height:12.5px;fill:currentColor;opacity:0.9;flex:none}
-footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 12px 50px;color:var(--dim)}
+footer .f-links{display:flex;align-items:center;gap:14px}
+footer .f-links a{color:var(--dim);text-decoration:none;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
+footer .f-links a:hover{color:var(--ink)}
+footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 @media (prefers-reduced-motion: reduce){
   .fn-title{animation:none}
-  .fn-shot img,.fn-feat,.fn-card,.fn-card h3 .arr{transition:none}
-  .fn-card.fn-in{animation:none}
+  .fn-pic img{transition:none}
+  .fn-tile.fn-in{animation:none}
 }
 </style>
 <style is:global>
@@ -279,57 +250,22 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
     </div>
   </section>
 
-  {featured && (
-    <a class="fn-feat" id="fn-feat" href={featured.href} data-reveal>
-      <div class="txt">
-        <span class="fn-pill">Featured</span>
-        <h2>{featured.title}</h2>
-        <p>{featured.desc}</p>
-        <div class="fn-meta"><span>{featured.dateLabel}</span><span>{featured.mins} min read</span></div>
-      </div>
-      <div class="fn-shot fit">
-        {featured.img && <img class="fill" src={featured.img} alt="" aria-hidden="true" decoding="async" fetchpriority="high" />}
-        {featured.img && <img class="art" src={featured.img} srcset={featured.srcset || undefined} sizes="(max-width: 820px) 92vw, 620px" alt="" decoding="async" fetchpriority="high" />}
-        <span class="fn-tag">{featured.topic}</span>
-      </div>
-    </a>
-  )}
-
   <section class="fn-list" aria-labelledby="fn-latest">
     <div class="fn-head"><h2 id="fn-latest">Latest</h2><span class="fn-count" id="fn-count">{cards.length} posts</span></div>
     <!-- Rendered in full here, so every post is in the HTML without
          JavaScript; blog-fieldnotes.js then pages it and runs search. -->
-    <div class="fn-cols" id="fn-cols">
-      <div class="fn-col wide" id="fn-wide" data-reveal-group>
-        {wideCol.map((c) => (
-          <a class="fn-card" href={c.href}>
-            <div class="fn-shot fit">
-              {c.img && <img class="fill" src={c.img} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-              {c.img && <img class="art" src={c.img} srcset={c.srcset || undefined} sizes="(max-width: 820px) 92vw, 780px" alt="" loading="lazy" decoding="async" />}
-              <span class="fn-tag">{c.topic}</span>
-            </div>
-            <div class="body">
-              <div class="fn-meta"><span>{c.dateLabel}</span><span>{c.mins} min read</span></div>
-              <h3>{c.title}<span class="arr" aria-hidden="true">›</span></h3>
-              <p>{c.desc}</p>
-            </div>
-          </a>
-        ))}
-      </div>
-      <div class="fn-col narrow" id="fn-narrow" data-reveal-group>
-        {narrowCol.map((c) => (
-          <a class="fn-card" href={c.href}>
-            <div class="fn-shot">
-              {c.img && <img class="art" src={c.img} srcset={c.srcset || undefined} sizes="(max-width: 820px) 92vw, 380px" alt="" loading="lazy" decoding="async" />}
-              <span class="fn-tag">{c.topic}</span>
-            </div>
-            <div class="body">
-              <div class="fn-meta"><span>{c.dateLabel}</span><span>{c.mins} min read</span></div>
-              <h3>{c.title}<span class="arr" aria-hidden="true">›</span></h3>
-            </div>
-          </a>
-        ))}
-      </div>
+    <div class="fn-grid" id="fn-grid" data-reveal-group>
+      {cards.map((c, i) => (
+        <a class="fn-tile" href={c.href} style={`--r:${RATIOS[i % RATIOS.length]}`}>
+          <div class="fn-pic">
+            {c.img && <img src={c.img} srcset={c.srcset || undefined} sizes={TILE_SIZES} alt="" loading={i < 3 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} decoding="async" />}
+          </div>
+          <div class="fn-cap">
+            <h3>{c.title}</h3>
+            <span>{c.topic}, {c.month}</span>
+          </div>
+        </a>
+      ))}
     </div>
     <nav class="fn-pg" id="fn-pg" aria-label="Pages" hidden></nav>
   </section>
