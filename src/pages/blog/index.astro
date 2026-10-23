@@ -211,25 +211,25 @@ a:hover .go span{transform:translateX(3px)}
   border-top:1px solid rgba(200,215,245,.1);color:var(--dim)}
 
 /* ── featured card ──
-   Built from the grid's own parts so it reads as the first, widest tile:
-   edge to edge, square corners, no shadow. Its frame spans two of the
-   grid's three columns and a solid panel beside it holds the text. In
-   reading order it becomes "Start here", the first post of all. */
-.fn-feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:6px;align-items:stretch;
-  text-decoration:none;color:inherit;font:600 12px/1.2 var(--grot);letter-spacing:-.02em;transition:filter .35s}
-.fn-feat .fn-pic{grid-column:span 2}
-.fn-feat-txt{display:flex;flex-direction:column;min-width:0;padding:clamp(18px,2vw,30px);
-  background:#0a0d18;border:1px solid rgba(200,215,245,.1);transition:background .4s,border-color .4s}
-.fn-feat:hover .fn-feat-txt{background:#0e1220;border-color:rgba(200,215,245,.2)}
+   A rounded card floating over the sky: text on the left, a rounded frame
+   on the right. In reading order it becomes "Start here", the first post
+   of all. */
+.fn-feat{width:min(1200px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:clamp(20px,4vw,48px);align-items:center;background:#0d1222;border:1px solid var(--card-line);border-radius:22px;
+  padding:14px 14px 14px clamp(20px,3.4vw,40px);text-decoration:none;color:inherit;box-shadow:var(--float);
+  font:600 12px/1.2 var(--grot);letter-spacing:-.02em;transition:transform .35s var(--e),box-shadow .35s,filter .35s}
+.fn-feat:hover{transform:translateY(-3px);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 34px 70px -28px rgba(0,0,0,.9),0 10px 22px -10px rgba(0,0,0,.55)}
+.fn-feat .fn-pic{order:2;aspect-ratio:16/10;border-radius:14px}
+.fn-feat-txt{display:flex;flex-direction:column;min-width:0;padding-block:18px}
 .fn-feat .top{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--dim)}
 .fn-flag{color:var(--ink)}
-.fn-feat h2{margin-top:clamp(18px,2.4vw,36px);font-size:clamp(24px,2.3vw,34px);font-weight:600;line-height:1.12;letter-spacing:-.025em;text-wrap:balance}
-.fn-feat .desc{margin-top:14px;max-width:46ch;color:var(--muted);font-size:15px;line-height:1.55;font-weight:500;letter-spacing:-.01em;
+.fn-feat h2{margin-top:18px;font-size:clamp(26px,2.8vw,36px);font-weight:600;line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+.fn-feat .desc{margin-top:14px;max-width:52ch;color:var(--muted);font-size:16px;line-height:1.55;font-weight:500;letter-spacing:-.01em;
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;line-clamp:4;overflow:hidden}
-.fn-feat .bottom{margin-top:auto;padding-top:22px}
+.fn-feat .bottom{padding-top:22px}
 .fn-feat .chips{margin-bottom:14px}
 .fn-feat[hidden]{display:none}
-@media (max-width:900px){.fn-feat{grid-template-columns:minmax(0,1fr);row-gap:6px}.fn-feat .fn-pic{grid-column:auto}}
+@media (max-width:820px){.fn-feat{grid-template-columns:minmax(0,1fr);gap:4px;padding:14px}.fn-feat .fn-pic{order:0}.fn-feat-txt{padding:14px 8px 6px}}
 
 /* ── the grid ──
    One type style for every line under the featured card: 12px, tight
