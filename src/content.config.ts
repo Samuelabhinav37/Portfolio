@@ -7,6 +7,8 @@ const blog = defineCollection({
     title: z.string(),
     description: z.string(),
     category: z.string().default('Threat Intel'),
+    /** How much the post assumes: shown on the blog index hover card. */
+    level: z.enum(['Basics', 'Intermediate', 'Advanced']).optional(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     /** Minutes. Omit to auto-compute from word count. */

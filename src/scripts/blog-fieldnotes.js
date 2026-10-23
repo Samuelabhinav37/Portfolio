@@ -22,9 +22,18 @@ function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// the hover card inside a tile's frame (same markup as index.astro)
+function peek(c) {
+  const facts = (c.level ? `<b>${esc(c.level)}</b>` : '') + (c.level && c.areas ? ' · ' : '') + esc(c.areas);
+  const more = [c.series && `${c.series} series`, `${c.mins} min read`].filter(Boolean).join(' · ');
+  return `<div class="fn-peek" aria-hidden="true"><h4>${esc(c.title)}</h4>` +
+    `<p class="facts">${facts}</p><p class="facts">${esc(more)}</p>` +
+    `<p class="desc">${esc(c.desc)}</p><span class="go">Read<span aria-hidden="true">›</span></span></div>`;
+}
+
 function tile(c, i) {
   return `<a class="fn-tile${animate ? ' fn-in' : ''}" style="--r:${RATIOS[i % RATIOS.length]};--i:${i}" href="${esc(c.href)}">` +
-    '<div class="fn-pic"></div>' +
+    `<div class="fn-pic">${peek(c)}</div>` +
     `<div class="fn-cap"><h3>${esc(c.title)}</h3><span>${esc(c.topic)}</span></div></a>`;
 }
 
