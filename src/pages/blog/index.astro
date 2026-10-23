@@ -146,7 +146,7 @@ a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
 .fn-feat{width:min(1200px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
   gap:clamp(20px,4vw,48px);align-items:center;background:var(--card);border:1px solid var(--card-line);border-radius:22px;
   padding:14px 14px 14px clamp(20px,3.4vw,40px);text-decoration:none;color:inherit;box-shadow:var(--float);
-  font-family:var(--grot);letter-spacing:-.02em;transition:transform .35s var(--e),box-shadow .35s}
+  font-family:var(--grot);letter-spacing:-.02em;transition:transform .35s var(--e),box-shadow .35s,filter .35s}
 .fn-feat:hover{transform:translateY(-3px);box-shadow:var(--float-hi)}
 .fn-feat .txt{display:flex;flex-direction:column;gap:16px;padding-block:18px;min-width:0}
 .fn-pill{align-self:flex-start;font:600 12px/1 var(--grot);padding:7px 10px;border-radius:6px;background:rgba(143,179,255,.12);
@@ -164,9 +164,34 @@ a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
    hairline gaps. */
 .fn-list,.fn-pg,footer{font:600 12px/1.2 var(--grot);letter-spacing:-.02em}
 .fn-list{display:flex;flex-direction:column;gap:14px}
-.fn-head{display:flex;align-items:baseline;gap:14px;padding:0 12px}
-.fn-head h2{font:inherit;color:var(--ink)}
-.fn-count{color:var(--dim)}
+.fn-head{display:flex;align-items:baseline;gap:14px;padding:0 12px;scroll-margin-top:72px}
+.fn-head h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.fn-views{display:flex;gap:14px}
+.fn-views button{font:inherit;letter-spacing:inherit;color:var(--dim);background:none;border:0;padding:0;cursor:pointer;transition:color .2s}
+.fn-views button:hover,.fn-views button[aria-pressed="true"]{color:var(--ink)}
+.fn-count{color:var(--dim);margin-left:auto}
+
+/* ── index view ──
+   A plain list of every post, fixed at the top left. The featured card and
+   the tiles fade back; the post under the pointer (or keyboard focus, or a
+   tap) comes forward and the page scrolls to it. Fading uses filter, not
+   opacity: the reveal animation leaves an inline opacity on each tile. */
+.fn-index{position:fixed;left:12px;top:96px;z-index:20;width:min(420px,calc(100% - 24px));max-height:calc(100vh - 120px);
+  overflow:auto;overscroll-behavior:contain;padding:10px 12px;background:rgba(9,12,22,.94);border:1px solid rgba(200,215,245,.12);
+  font:600 12px/1.2 var(--grot);letter-spacing:-.02em}
+.fn-index[hidden]{display:none}
+.fn-index ol{list-style:none}
+.fn-index a{display:flex;gap:10px;padding:2.5px 0;color:var(--ink);text-decoration:none;white-space:nowrap;min-width:0}
+.fn-index b{font-weight:inherit;flex:none;max-width:68%;overflow:hidden;text-overflow:ellipsis}
+.fn-index span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.fn-index a.is-on span{color:var(--ink)}
+.fn-index a:focus-visible{outline-offset:2px;border-radius:2px}
+.fn-tile{transition:filter .35s}
+.fn.is-index .fn-tile,.fn.is-index .fn-feat{filter:opacity(.14)}
+.fn.is-index .fn-tile.is-lit,.fn.is-index .fn-feat.is-lit{filter:none}
+.fn.is-index .fn-tile,.fn.is-index .fn-feat{scroll-margin-top:90px}
+/* phones and tablets: the list sits at the bottom, clear of Kai's button */
+@media (max-width:900px){.fn-index{top:auto;bottom:12px;width:calc(100% - 104px);max-height:38vh}}
 .fn-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:6px;row-gap:clamp(36px,4vw,60px);align-items:start}
 @media (max-width:900px){.fn-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.fn-grid{grid-template-columns:minmax(0,1fr);row-gap:32px}}
@@ -196,7 +221,7 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 @media (prefers-reduced-motion: reduce){
   .fn-title{animation:none}
-  .fn-pic,.fn-feat{transition:none}
+  .fn-pic,.fn-feat,.fn-tile{transition:none}
   .fn-tile.fn-in{animation:none}
 }
 </style>
@@ -250,7 +275,16 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
   )}
 
   <section class="fn-list" aria-labelledby="fn-latest">
-    <div class="fn-head"><h2 id="fn-latest">Latest</h2><span class="fn-count" id="fn-count">{cards.length} posts</span></div>
+    <div class="fn-head">
+      <h2 id="fn-latest">Latest</h2>
+      <div class="fn-views" role="group" aria-label="View">
+        <button type="button" id="fn-overview" aria-pressed="true">Overview</button>
+        <button type="button" id="fn-index-btn" aria-pressed="false" aria-controls="fn-index">Index</button>
+      </div>
+      <span class="fn-count" id="fn-count">{cards.length} posts</span>
+    </div>
+    <!-- Index view: filled by blog-fieldnotes.js from whatever is on show -->
+    <nav class="fn-index" id="fn-index" aria-label="Index of posts" hidden><ol></ol></nav>
     <!-- Rendered in full here, so every post is in the HTML without
          JavaScript; blog-fieldnotes.js then pages it and runs search. -->
     <div class="fn-grid" id="fn-grid" data-reveal-group>
