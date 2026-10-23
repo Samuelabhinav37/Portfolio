@@ -28,6 +28,10 @@ const blog = defineCollection({
     heroCredit: z.string().optional(),
     /** Social card. Defaults to /og/<slug>.png */
     ogImage: z.string().optional(),
+    /** Art for the post's frame on the blog index (decorative: the caption
+     *  beside it names the post). Leave unset and the frame stays a black
+     *  placeholder. */
+    tileImage: z.string().optional(),
     /** Thumbnail used when this post appears in "More stories". */
     cardImage: z.string().optional(),
     /** Required once cardImage is set — screen readers get nothing otherwise. */
