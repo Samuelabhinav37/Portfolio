@@ -30,7 +30,8 @@ const WPM = 230;
 const RATIOS = ['16/9', '3/2', '13/9', '3/2', '29/20', '16/9', '9/7', '16/9', '3/2'];
 /* A post's first tag names its series when other posts lead with it too
    ("Analog Dawn"), the same rule the post pages use; the rest of its tags are
-   the areas of security it covers. */
+   the concepts it covers (the hover card shows up to three). */
+const LEVELS = ['Basics', 'Intermediate', 'Advanced'];
 const leadCount = new Map<string, number>();
 posts.forEach((p) => { const t = p.data.tags[0]; if (t) leadCount.set(t, (leadCount.get(t) || 0) + 1); });
 const cards = posts.map((p) => {
@@ -41,7 +42,8 @@ const cards = posts.map((p) => {
     title: p.data.title,
     topic: p.data.category,
     level: p.data.level || null,
-    areas: (series ? p.data.tags.slice(1) : p.data.tags).join(', '),
+    levelN: p.data.level ? LEVELS.indexOf(p.data.level) + 1 : 0,
+    concepts: (series ? p.data.tags.slice(1) : p.data.tags).slice(0, 3),
     series,
     mins: p.data.readTime || Math.max(1, Math.round(words / WPM)),
     desc: p.data.description,
@@ -206,18 +208,33 @@ a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
 @media (max-width:560px){.fn-grid{grid-template-columns:minmax(0,1fr);row-gap:32px}}
 .fn-tile{display:block;min-width:0;color:inherit;text-decoration:none}
 .fn-tile:focus-visible{outline-offset:2px;border-radius:0}
-/* hover card, after Crunchyroll's: pointing at a tile slides a panel over its
-   frame with the post's level, areas, series, read time and a few lines of
-   its summary. Pointer devices only; on touch the tap just opens the post. */
-.fn-peek{position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:16px 16px 14px;
-  background:linear-gradient(180deg,rgba(16,21,38,.97),rgba(10,13,24,.97));
+/* hover card: pointing at a tile slides a panel over its frame (after
+   Crunchyroll), laid out in three blocks (after TryHackMe's cards and
+   Steam's tooltip): level and read time on top; the title and three lines
+   of summary in the middle; concept pills, the series and Read pinned to
+   the bottom under a hairline. The summary is the only part that gives way
+   when a frame is short. Pointer devices only; a tap just opens the post. */
+.fn-peek{position:absolute;inset:0;display:flex;flex-direction:column;padding:clamp(14px,1.4vw,22px);
+  background:linear-gradient(180deg,rgba(17,22,40,.97),rgba(9,12,22,.98));
   opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .22s,transform .3s var(--e)}
-.fn-peek h4{font-size:15px;font-weight:600;line-height:1.2;color:var(--ink);margin-bottom:2px}
-.fn-peek .facts{color:var(--dim)}
-.fn-peek .facts b{font-weight:inherit;color:#bcd4ff}
-.fn-peek .desc{flex:1;min-height:0;overflow:hidden;margin-top:6px;color:var(--muted);font-size:13px;line-height:1.45;font-weight:500;letter-spacing:-.01em;
-  -webkit-mask:linear-gradient(180deg,#000 55%,transparent);mask:linear-gradient(180deg,#000 55%,transparent)}
-.fn-peek .go{display:inline-flex;gap:6px;color:var(--ink)}
+.fn-peek .top{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--dim)}
+/* the level: three signal bars, as many lit as the level is deep */
+.fn-peek .lvl{display:inline-flex;align-items:center;gap:7px;color:#bcd4ff}
+.fn-peek .bars{display:inline-flex;align-items:flex-end;gap:2px;height:10px}
+.fn-peek .bars i{width:3px;border-radius:1px;background:rgba(188,212,255,.25)}
+.fn-peek .bars i:nth-child(1){height:4px}.fn-peek .bars i:nth-child(2){height:7px}.fn-peek .bars i:nth-child(3){height:10px}
+.fn-peek .bars[data-n="1"] i:nth-child(-n+1),.fn-peek .bars[data-n="2"] i:nth-child(-n+2),.fn-peek .bars[data-n="3"] i{background:#bcd4ff}
+.fn-peek h4{margin-top:clamp(14px,1.6vw,22px);font-size:16px;font-weight:600;line-height:1.25;color:var(--ink);text-wrap:balance}
+.fn-peek .desc{margin-top:8px;flex:0 1 auto;min-height:0;max-height:calc(3 * 1.5em);max-width:48ch;overflow:hidden;
+  color:var(--muted);font-size:13px;line-height:1.5;font-weight:500;letter-spacing:-.01em;
+  -webkit-mask:linear-gradient(180deg,#000 60%,transparent);mask:linear-gradient(180deg,#000 60%,transparent)}
+.fn-peek .bottom{margin-top:auto;padding-top:14px}
+.fn-peek .chips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;max-height:24px;overflow:hidden;margin-bottom:12px}
+.fn-peek .chips li{font:600 11px/1 var(--grot);letter-spacing:-.01em;padding:6px 10px;border-radius:999px;white-space:nowrap;
+  color:#cdd9f2;background:rgba(188,212,255,.08);border:1px solid rgba(188,212,255,.16)}
+.fn-peek .foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;
+  border-top:1px solid rgba(200,215,245,.1);color:var(--dim)}
+.fn-peek .go{display:inline-flex;gap:6px;color:var(--ink);margin-left:auto}
 .fn-peek .go span{color:var(--accent);transition:transform .25s}
 @media (hover:hover){
   .fn-tile:hover .fn-peek,.fn-tile:focus-visible .fn-peek{opacity:1;transform:none;transition-delay:.12s}
@@ -320,11 +337,19 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
         <a class="fn-tile" href={c.href} style={`--r:${RATIOS[i % RATIOS.length]}`}>
           <div class="fn-pic">
             <div class="fn-peek" aria-hidden="true">
+              <div class="top">
+                {c.level ? <span class="lvl"><span class="bars" data-n={c.levelN}><i></i><i></i><i></i></span>{c.level}</span> : <span></span>}
+                <span>{c.mins} min read</span>
+              </div>
               <h4>{c.title}</h4>
-              <p class="facts">{c.level && <b>{c.level}</b>}{c.level && c.areas && ' · '}{c.areas}</p>
-              <p class="facts">{[c.series && `${c.series} series`, `${c.mins} min read`].filter(Boolean).join(' · ')}</p>
               <p class="desc">{c.desc}</p>
-              <span class="go">Read<span aria-hidden="true">›</span></span>
+              <div class="bottom">
+                {c.concepts.length > 0 && <ul class="chips">{c.concepts.map((t) => <li>{t}</li>)}</ul>}
+                <div class="foot">
+                  {c.series && <span>{c.series} series</span>}
+                  <span class="go">Read<span aria-hidden="true">›</span></span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="fn-cap">

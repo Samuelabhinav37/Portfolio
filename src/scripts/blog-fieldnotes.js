@@ -24,11 +24,15 @@ function esc(s) {
 
 // the hover card inside a tile's frame (same markup as index.astro)
 function peek(c) {
-  const facts = (c.level ? `<b>${esc(c.level)}</b>` : '') + (c.level && c.areas ? ' · ' : '') + esc(c.areas);
-  const more = [c.series && `${c.series} series`, `${c.mins} min read`].filter(Boolean).join(' · ');
-  return `<div class="fn-peek" aria-hidden="true"><h4>${esc(c.title)}</h4>` +
-    `<p class="facts">${facts}</p><p class="facts">${esc(more)}</p>` +
-    `<p class="desc">${esc(c.desc)}</p><span class="go">Read<span aria-hidden="true">›</span></span></div>`;
+  const lvl = c.level
+    ? `<span class="lvl"><span class="bars" data-n="${c.levelN}"><i></i><i></i><i></i></span>${esc(c.level)}</span>`
+    : '<span></span>';
+  const chips = c.concepts.length ? `<ul class="chips">${c.concepts.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : '';
+  return '<div class="fn-peek" aria-hidden="true">' +
+    `<div class="top">${lvl}<span>${c.mins} min read</span></div>` +
+    `<h4>${esc(c.title)}</h4><p class="desc">${esc(c.desc)}</p>` +
+    `<div class="bottom">${chips}<div class="foot">${c.series ? `<span>${esc(c.series)} series</span>` : ''}` +
+    '<span class="go">Read<span aria-hidden="true">›</span></span></div></div></div>';
 }
 
 function tile(c, i) {
@@ -40,7 +44,7 @@ function tile(c, i) {
 function render() {
   const query = q.value.trim().toLowerCase(), tp = topic.value, filtering = !!(query || tp);
   const list = cards.filter((c) =>
-    (!tp || c.topic === tp) && (!query || (c.title + ' ' + c.desc + ' ' + c.topic).toLowerCase().includes(query)));
+    (!tp || c.topic === tp) && (!query || [c.title, c.desc, c.topic, ...c.concepts].join(' ').toLowerCase().includes(query)));
 
   // the featured card is the newest post, and only while not searching
   let rest = list;
