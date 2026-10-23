@@ -2,7 +2,7 @@
    The page ships every post already rendered (src/pages/blog/index.astro);
    this re-renders the featured card's visibility and the grid from the same
    card data (window.__FIELD_NOTES__) whenever the query, topic or page
-   changes. Frames are empty glass until new art is made. */
+   changes. Frames are black placeholders until new art is made. */
 
 const cards = window.__FIELD_NOTES__ || [];
 const PER_PAGE = 12;

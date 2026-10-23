@@ -85,7 +85,7 @@ window.SITE=window.SITE||{};
    then every other post as a tile in an edge-to-edge, three-column grid:
    square-cornered frames in slightly different heights, two short lines of
    caption under each, and numbered pages at the bottom. Everything under
-   the title is set in one tight grotesk. The frames are empty glass for
+   the title is set in one tight grotesk. The frames are black placeholders for
    now, waiting on new art. */
 :root{
   --bg:var(--c-bg);
@@ -136,15 +136,11 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
 .fn-field select option{background:#0c1330;color:var(--ink)}
 @media (max-width:640px){.fn-search{grid-template-columns:1fr}.fn-field input,.fn-field select{font-size:16px}}
 
-/* ── empty picture frames: glass over the sky ── */
+/* ── empty picture frames: solid black placeholders until new art is made ── */
 .fn-pic{position:relative;overflow:hidden;aspect-ratio:var(--r,16/9);
-  background:linear-gradient(160deg,rgba(220,230,255,.075),rgba(220,230,255,.02) 60%);
-  border:1px solid rgba(200,215,245,.12);
-  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  background:#0a0d18;border:1px solid rgba(200,215,245,.1);
   transition:background .4s,border-color .4s}
-a:hover .fn-pic{background:linear-gradient(160deg,rgba(220,230,255,.12),rgba(220,230,255,.04) 60%);border-color:rgba(200,215,245,.22)}
-/* backdrop blur is pricey over a moving sky: phones and reduced motion get the plain glass */
-@media (max-width:900px),(prefers-reduced-motion:reduce){.fn-pic{backdrop-filter:none;-webkit-backdrop-filter:none}}
+a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
 
 /* ── featured card ── */
 .fn-feat{width:min(1200px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
@@ -240,7 +236,7 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
   </section>
 
   <!-- Pictures are left out until new art is made: the frames hold their
-       place (and their uneven heights) as empty glass. -->
+       place (and their uneven heights) as black placeholders. -->
   {featured && (
     <a class="fn-feat" id="fn-feat" href={featured.href} data-reveal>
       <div class="txt">
