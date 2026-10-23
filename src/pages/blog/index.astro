@@ -6,10 +6,10 @@ import SiteMenu from '../../components/SiteMenu.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
 import SkyBackground from '../../components/SkyBackground.astro';
+import SkyLife from '../../components/SkyLife.astro';
 import KaiSite from '../../components/KaiSite.astro';
 import '../../styles/tokens.css';
 import Fonts from '../../components/Fonts.astro';
-import { variant, webpDims } from '../../image-variant';
 
 // Translations (e.g. es/anatomy-of-a-supply-chain-attack) live under a
 // locale subfolder and get their own index-free route — the grid here
@@ -20,42 +20,28 @@ const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.
 );
 const year = new Date().getFullYear();
 
-/* Field Notes: every post as a tile in an edge-to-edge grid. Tile art is the
-   wide heroImage (about 1.9:1) cropped to the tile's ratio; the 800w variant
-   serves 1x, the original backs it up for 2x. */
+/* Field Notes: the newest post as a featured card, then every other post as
+   a tile in an edge-to-edge grid. No dates and, for now, no pictures: the
+   frames stay empty until new art is made. */
 const WPM = 230;
 /* Tiles share a width but not a height: each takes the next ratio in this
-   cycle, so a row's pictures end at slightly different lines. Same cycle in
+   cycle, so a row's frames end at slightly different lines. Same cycle in
    blog-fieldnotes.js. */
 const RATIOS = ['16/9', '3/2', '13/9', '3/2', '29/20', '16/9', '9/7', '16/9', '3/2'];
-function ordinal(n: number) {
-  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-function dateLabel(d: Date) {
-  return d.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' }) + ' ' + ordinal(d.getUTCDate()) + ', ' + d.getUTCFullYear();
-}
 const cards = posts.map((p) => {
-  const img = p.data.heroImage || p.data.cardImage || null;
-  const small = variant(img, 800);
-  const dims = img ? webpDims(img) : null;
   const words = (p.body || '').split(/\s+/).filter(Boolean).length;
   return {
     id: p.id,
     title: p.data.title,
     topic: p.data.category,
-    date: p.data.pubDate.toISOString().slice(0, 10),
-    dateLabel: dateLabel(p.data.pubDate),
-    month: p.data.pubDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }),
     mins: Math.max(1, Math.round(words / WPM)),
     desc: p.data.description,
     href: '/blog/' + p.id + '/',
-    img,
-    srcset: img && small && small !== img && dims ? `${small} 800w, ${img} ${dims.width}w` : null,
   };
 });
 const topics = [...new Set(cards.map((c) => c.topic))];
-const TILE_SIZES = '(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw';
+/* the newest post leads as the featured card; the grid holds the rest */
+const [featured, ...rest] = cards;
 ---
 
 <!DOCTYPE html>
@@ -95,18 +81,20 @@ window.SITE=window.SITE||{};
 <Motion />
 <style is:global>
 /* ══════════════ FIELD NOTES ══════════════
-   A serif title floating on the sky with search under it, then every post
-   as a tile in an edge-to-edge, three-column grid: square-cornered art in
-   slightly different heights, two short lines of caption under each, and
-   numbered pages at the bottom. Everything under the title is set in one
-   small, tight grotesk. */
+   A serif title floating on the sky with search under it, a featured card,
+   then every other post as a tile in an edge-to-edge, three-column grid:
+   square-cornered frames in slightly different heights, two short lines of
+   caption under each, and numbered pages at the bottom. Everything under
+   the title is set in one tight grotesk. The frames are empty glass for
+   now, waiting on new art. */
 :root{
   --bg:var(--c-bg);
   --ink:#e9ecf7; --muted:rgba(200,210,232,.66); --faint:rgba(200,210,232,.42);
-  /* the search fields float over the sky: an opaque fill, a hairline
-     top highlight and a long soft shadow underneath */
-  --card-line:rgba(190,205,240,.11);
+  /* the search fields and featured card float over the sky: an opaque
+     fill, a hairline top highlight and a long soft shadow underneath */
+  --card:#0d1222; --card-line:rgba(190,205,240,.11);
   --float:0 1px 0 rgba(255,255,255,.04) inset,0 22px 50px -26px rgba(0,0,0,.85),0 6px 16px -8px rgba(0,0,0,.5);
+  --float-hi:0 1px 0 rgba(255,255,255,.05) inset,0 34px 70px -28px rgba(0,0,0,.9),0 10px 22px -10px rgba(0,0,0,.55);
   --accent:#8fb3ff;
   --field:#0b1020;
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
@@ -121,8 +109,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 
 /* every content block is positioned so it paints above the fixed #sky
-   (a positioned element with z-index:auto) */
-.fn{position:relative;z-index:1;padding-bottom:96px;display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
+   (a positioned element with z-index:auto) and the jellyfish (z-index 2) */
+.fn{position:relative;z-index:3;padding-bottom:96px;display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
 
 /* ── title + search ── */
 .fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
@@ -148,9 +136,36 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
 .fn-field select option{background:#0c1330;color:var(--ink)}
 @media (max-width:640px){.fn-search{grid-template-columns:1fr}.fn-field input,.fn-field select{font-size:16px}}
 
+/* ── empty picture frames: glass over the sky ── */
+.fn-pic{position:relative;overflow:hidden;aspect-ratio:var(--r,16/9);
+  background:linear-gradient(160deg,rgba(220,230,255,.075),rgba(220,230,255,.02) 60%);
+  border:1px solid rgba(200,215,245,.12);
+  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  transition:background .4s,border-color .4s}
+a:hover .fn-pic{background:linear-gradient(160deg,rgba(220,230,255,.12),rgba(220,230,255,.04) 60%);border-color:rgba(200,215,245,.22)}
+/* backdrop blur is pricey over a moving sky: phones and reduced motion get the plain glass */
+@media (max-width:900px),(prefers-reduced-motion:reduce){.fn-pic{backdrop-filter:none;-webkit-backdrop-filter:none}}
+
+/* ── featured card ── */
+.fn-feat{width:min(1200px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:clamp(20px,4vw,48px);align-items:center;background:var(--card);border:1px solid var(--card-line);border-radius:22px;
+  padding:14px 14px 14px clamp(20px,3.4vw,40px);text-decoration:none;color:inherit;box-shadow:var(--float);
+  font-family:var(--grot);letter-spacing:-.02em;transition:transform .35s var(--e),box-shadow .35s}
+.fn-feat:hover{transform:translateY(-3px);box-shadow:var(--float-hi)}
+.fn-feat .txt{display:flex;flex-direction:column;gap:16px;padding-block:18px;min-width:0}
+.fn-pill{align-self:flex-start;font:600 12px/1 var(--grot);padding:7px 10px;border-radius:6px;background:rgba(143,179,255,.12);
+  color:var(--muted);border:1px solid var(--card-line)}
+.fn-feat h2{font-weight:600;font-size:clamp(26px,2.8vw,36px);line-height:1.15;text-wrap:balance}
+.fn-feat p{color:var(--muted);font-size:16px;line-height:1.55;max-width:52ch;letter-spacing:-.01em}
+.fn-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px/1.2 var(--grot);color:var(--dim)}
+.fn-feat .fn-pic{aspect-ratio:16/10;border-radius:14px}
+.fn-feat[hidden]{display:none}
+@media (max-width:820px){.fn-feat{grid-template-columns:1fr;padding:14px}.fn-feat .txt{order:2;padding:4px 8px 10px}}
+
 /* ── the grid ──
-   One type style for every line under the title: 12px, tight tracking, the
-   second line at lower contrast. Tiles run edge to edge with hairline gaps. */
+   One type style for every line under the featured card: 12px, tight
+   tracking, the second line at lower contrast. Tiles run edge to edge with
+   hairline gaps. */
 .fn-list,.fn-pg,footer{font:600 12px/1.2 var(--grot);letter-spacing:-.02em}
 .fn-list{display:flex;flex-direction:column;gap:14px}
 .fn-head{display:flex;align-items:baseline;gap:14px;padding:0 12px}
@@ -161,10 +176,6 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
 @media (max-width:560px){.fn-grid{grid-template-columns:minmax(0,1fr);row-gap:32px}}
 .fn-tile{display:block;min-width:0;color:inherit;text-decoration:none}
 .fn-tile:focus-visible{outline-offset:2px;border-radius:0}
-.fn-pic{position:relative;overflow:hidden;aspect-ratio:var(--r,16/9);background:#060a18}
-.fn-pic img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;
-  transition:transform 1.2s var(--e),filter .5s}
-.fn-tile:hover .fn-pic img{transform:scale(1.025);filter:brightness(1.08)}
 .fn-cap{display:flex;flex-direction:column;padding:12px 12px 0}
 .fn-cap h3{font:inherit;color:var(--ink)}
 .fn-cap span{color:var(--dim)}
@@ -181,7 +192,7 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
 .fn-pg button[disabled]{opacity:.4;cursor:default}
 
 /* ── footer ── */
-footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 12px 50px;color:var(--dim)}
+footer{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 12px 50px;color:var(--dim)}
 footer .f-links{display:flex;align-items:center;gap:14px}
 footer .f-links a{color:var(--dim);text-decoration:none;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
 footer .f-links a:hover{color:var(--ink)}
@@ -189,7 +200,7 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 @media (prefers-reduced-motion: reduce){
   .fn-title{animation:none}
-  .fn-pic img{transition:none}
+  .fn-pic,.fn-feat{transition:none}
   .fn-tile.fn-in{animation:none}
 }
 </style>
@@ -200,32 +211,10 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 </head>
 <body>
 
-<SkyBackground calm />
-<!-- This page is dense, text-heavy tables/cards that need to read clearly
-     over whatever's moving behind them, so it puts a page-local blur layer ABOVE
-     the shared sky (not touching the component, so index/about/contact are
-     unaffected) — plain fixed div, no explicit z-index needed: it paints
-     above #sky (position:fixed, z-index:auto)
-     purely by coming later in the DOM at the same stacking tier, and stays
-     below real content since every content section already carries an
-     explicit z-index that beats z-index:auto regardless of DOM order.
-     backdrop-filter:blur here softens the stars themselves too, same
-     "frosted glass" trick the featured hero's own .hero::after already
-     uses over its title card — just extended across the whole page instead
-     of one small area, since backdrop-filter only blurs what's behind an
-     element, never the real content stacked above it. -->
-<div id="content-scrim" aria-hidden="true"></div>
-<style>
-  #content-scrim{position:fixed;inset:0;pointer-events:none;
-    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  /* backdrop-filter recomputes every frame the animated starfield behind it
-     changes — one of the pricier CSS effects, worth skipping on phones and
-     reduced-motion, matching the threshold where the sky drops to its
-     lighter tier on these devices. */
-  @media (--bp-900), (prefers-reduced-motion:reduce){
-    #content-scrim{backdrop-filter:none;-webkit-backdrop-filter:none}
-  }
-</style>
+<!-- An open sky (full clouds, no blur over them) in the lighter tone with
+     whiter clouds, and the contact page's jellyfish drifting through it. -->
+<SkyBackground tone="bright" />
+<SkyLife jelliesOnly />
 
 <SiteMenu currentPath="/blog" />
 
@@ -250,19 +239,31 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
     </div>
   </section>
 
+  <!-- Pictures are left out until new art is made: the frames hold their
+       place (and their uneven heights) as empty glass. -->
+  {featured && (
+    <a class="fn-feat" id="fn-feat" href={featured.href} data-reveal>
+      <div class="txt">
+        <span class="fn-pill">Featured</span>
+        <h2>{featured.title}</h2>
+        <p>{featured.desc}</p>
+        <div class="fn-meta"><span>{featured.topic}</span><span>{featured.mins} min read</span></div>
+      </div>
+      <div class="fn-pic"></div>
+    </a>
+  )}
+
   <section class="fn-list" aria-labelledby="fn-latest">
     <div class="fn-head"><h2 id="fn-latest">Latest</h2><span class="fn-count" id="fn-count">{cards.length} posts</span></div>
     <!-- Rendered in full here, so every post is in the HTML without
          JavaScript; blog-fieldnotes.js then pages it and runs search. -->
     <div class="fn-grid" id="fn-grid" data-reveal-group>
-      {cards.map((c, i) => (
+      {rest.map((c, i) => (
         <a class="fn-tile" href={c.href} style={`--r:${RATIOS[i % RATIOS.length]}`}>
-          <div class="fn-pic">
-            {c.img && <img src={c.img} srcset={c.srcset || undefined} sizes={TILE_SIZES} alt="" loading={i < 3 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} decoding="async" />}
-          </div>
+          <div class="fn-pic"></div>
           <div class="fn-cap">
             <h3>{c.title}</h3>
-            <span>{c.topic}, {c.month}</span>
+            <span>{c.topic}</span>
           </div>
         </a>
       ))}

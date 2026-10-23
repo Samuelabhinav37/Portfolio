@@ -20,15 +20,26 @@
  *
  * The layer is fixed between the sky and the page content (.field-wrap is
  * z-index 40) and never takes pointer events.
+ *
+ * `jelliesOnly` leaves out both lilies: the blog index borrows just the
+ * jellyfish and their stars.
  */
+interface Props {
+  jelliesOnly?: boolean;
+}
+const { jelliesOnly } = Astro.props;
 ---
 
 <div class="sky-life" aria-hidden="true">
-  <img class="life-xray" src="/images/contact-lilies-xray.webp" alt="" width="738" height="1000" decoding="async" loading="lazy" />
-  <video class="life-lilies" muted loop playsinline preload="none" poster="/images/contact-lilies-poster.webp" data-sky-video>
-    <source src="/videos/contact-lilies.webm" type="video/webm" />
-    <source src="/videos/contact-lilies.mp4" type="video/mp4" />
-  </video>
+  {!jelliesOnly && (
+    <>
+      <img class="life-xray" src="/images/contact-lilies-xray.webp" alt="" width="738" height="1000" decoding="async" loading="lazy" />
+      <video class="life-lilies" muted loop playsinline preload="none" poster="/images/contact-lilies-poster.webp" data-sky-video>
+        <source src="/videos/contact-lilies.webm" type="video/webm" />
+        <source src="/videos/contact-lilies.mp4" type="video/mp4" />
+      </video>
+    </>
+  )}
   <div id="life-jellies"></div>
   <svg id="life-sky"></svg>
 </div>

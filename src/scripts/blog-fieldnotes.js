@@ -1,16 +1,16 @@
 /* Field Notes (blog index): search, topic filter and numbered pages.
    The page ships every post already rendered (src/pages/blog/index.astro);
-   this re-renders the grid from the same card data (window.__FIELD_NOTES__)
-   whenever the query, topic or page changes. */
+   this re-renders the featured card's visibility and the grid from the same
+   card data (window.__FIELD_NOTES__) whenever the query, topic or page
+   changes. Frames are empty glass until new art is made. */
 
 const cards = window.__FIELD_NOTES__ || [];
 const PER_PAGE = 12;
 // Same ratio cycle as index.astro, so tiles keep their uneven heights after a search
 const RATIOS = ['16/9', '3/2', '13/9', '3/2', '29/20', '16/9', '9/7', '16/9', '3/2'];
-const SIZES = '(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw';
 
 const $ = (id) => document.getElementById(id);
-const q = $('fn-q'), topic = $('fn-topic'), grid = $('fn-grid');
+const q = $('fn-q'), topic = $('fn-topic'), feat = $('fn-feat'), grid = $('fn-grid');
 const count = $('fn-count'), pg = $('fn-pg'), latest = $('fn-latest');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let page = 1;
@@ -21,11 +21,9 @@ function esc(s) {
 }
 
 function tile(c, i) {
-  const srcset = c.srcset ? ` srcset="${esc(c.srcset)}" sizes="${SIZES}"` : '';
-  const img = c.img ? `<img src="${esc(c.img)}"${srcset} alt="" loading="lazy" decoding="async">` : '';
   return `<a class="fn-tile${animate ? ' fn-in' : ''}" style="--r:${RATIOS[i % RATIOS.length]};--i:${i}" href="${esc(c.href)}">` +
-    `<div class="fn-pic">${img}</div>` +
-    `<div class="fn-cap"><h3>${esc(c.title)}</h3><span>${esc(c.topic)}, ${esc(c.month)}</span></div></a>`;
+    '<div class="fn-pic"></div>' +
+    `<div class="fn-cap"><h3>${esc(c.title)}</h3><span>${esc(c.topic)}</span></div></a>`;
 }
 
 function render() {
@@ -33,9 +31,16 @@ function render() {
   const list = cards.filter((c) =>
     (!tp || c.topic === tp) && (!query || (c.title + ' ' + c.desc + ' ' + c.topic).toLowerCase().includes(query)));
 
-  const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  // the featured card is the newest post, and only while not searching
+  let rest = list;
+  if (feat) {
+    feat.hidden = filtering || !list.length;
+    if (!filtering && list.length) rest = list.slice(1);
+  }
+
+  const pages = Math.max(1, Math.ceil(rest.length / PER_PAGE));
   page = Math.min(page, pages);
-  const visible = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const visible = rest.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   grid.innerHTML = list.length
     ? visible.map(tile).join('')
     : `<div class="fn-empty">No posts match “${esc(query || tp)}”. Try another word, or clear the topic.</div>`;
