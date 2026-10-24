@@ -190,6 +190,9 @@ html.is-scrolled #topbar-scrim {
   position: relative; z-index: 1;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center;
   margin-top: 56px; border-bottom: 1px solid var(--rule);
+  /* the header fills three quarters of the screen (counting the 56px above
+     it); the picture and words stay centred in it */
+  min-height: calc(75vh - 56px); min-height: calc(75svh - 56px);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
 /* 64px of open space above and below the picture, 32px at the sides */
@@ -486,7 +489,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
-  .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; }
+  .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
   .post-hero-pic { padding: 24px 24px 32px; }
   .post-hero-pic img { width: 100%; height: auto; }
