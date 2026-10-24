@@ -169,7 +169,7 @@ html.is-scrolled #topbar-scrim {
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
   --w-text: 800px;
-  --w-pic: 710px; /* the header picture's largest width (it never outgrows its half) */
+  --w-pic: 780px; /* the header picture's largest width (it never outgrows its half) */
   --w-wide: 1312px;
 }
 /* The one label style, used everywhere a label appears (Vogue's rubric and byline). */
@@ -188,11 +188,12 @@ html.is-scrolled #topbar-scrim {
    byline, 8px, date. A full-width hairline closes the header. */
 .post-hero {
   position: relative; z-index: 1;
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center;
+  /* the picture's side is a little wider than the words' side */
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center;
   margin-top: 56px; border-bottom: 1px solid var(--rule);
-  /* the header fills three quarters of the screen (counting the 56px above
-     it); the picture and words stay centred in it */
-  min-height: calc(75vh - 56px); min-height: calc(75svh - 56px);
+  /* the header fills 85% of the screen (counting the 56px above it); the
+     picture and words stay centred in it */
+  min-height: calc(85vh - 56px); min-height: calc(85svh - 56px);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
 /* 64px of open space above and below the picture, 32px at the sides */
