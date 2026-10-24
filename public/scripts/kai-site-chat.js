@@ -148,7 +148,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   // a project you hover on the homepage: Kai looks (the brain does that) and perks up
   var curiousAt = 0;
   document.addEventListener('pointerover', function (e) {
-    var card = e.target.closest && e.target.closest('#projects-section .acc-head');
+    var card = e.target.closest && e.target.closest('#projects-section .pw-tile');
     if (!card || chat.root.contains(card) || Date.now() - curiousAt < 2500) return;
     curiousAt = Date.now();
     kai.setMood('curious', 1400);
