@@ -18,15 +18,14 @@
  * Note:    { left?, right?, span?, tone?: 'flaw' }  (left/right sit on that
  *          party's lifeline; span runs across both)
  */
-import { SITE } from '../config';
 
 interface Party { label: string; sub?: string }
 interface Msg { msg: string; dir: 'r' | 'l' | 'both'; step?: string | number; tone?: 'flaw'; dashed?: boolean }
 interface Note { left?: string; right?: string; span?: string; tone?: 'flaw' }
 type Item = Msg | Note;
 const isMsg = (it: Item): it is Msg => 'msg' in it;
-interface Props { left: Party; right: Party; items: Item[]; caption: string; alt: string }
-const { left, right, items, caption, alt } = Astro.props as Props;
+interface Props { left: Party; right: Party; items: Item[]; caption: string; alt: string; credit?: string }
+const { left, right, items, caption, alt, credit } = Astro.props as Props;
 
 const W = 660, LX = 120, RX = 540, BW = 190;
 function wrap(text: string, max: number): string[] {
@@ -64,7 +63,6 @@ const laid = items.map((it) => {
   return { kind: 'note' as const, tone: it.tone, notes, yy, h };
 });
 const H = y + 10;
-const site = new URL(SITE.links.portfolio).hostname;
 const parties = [{ ...left, x: LX }, { ...right, x: RX }];
 ---
 
@@ -110,7 +108,6 @@ const parties = [{ ...left, x: LX }, { ...right, x: RX }];
         )}
       </svg>
     </div>
-    <div class="plate-foot"><span>{site}</span><span class="plate-n" aria-hidden="true"></span></div>
   </div>
-  <figcaption set:html={caption} />
+  <figcaption><span set:html={caption} />{credit && <span class="fig-credit">{credit}</span>}</figcaption>
 </figure>

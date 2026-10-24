@@ -14,6 +14,13 @@ export function variant(src: string | null | undefined, width: number): string |
   return existsSync(path.join(process.cwd(), 'public', v)) ? v : src;
 }
 
+/** The 1200x630 JPEG link-preview image written beside a header picture, if it exists. */
+export function ogVariant(src: string | null | undefined): string | null {
+  if (!src || !/^\/images\/[^?#]+-hero\.webp$/.test(src)) return null;
+  const v = src.replace(/\.webp$/, '.og.jpg');
+  return existsSync(path.join(process.cwd(), 'public', v)) ? v : null;
+}
+
 /** `srcset` pairing a variant with its original, or undefined if there's no variant. */
 export function srcsetWith(src: string | null | undefined, width: number, originalWidth: number): string | undefined {
   const v = variant(src, width);

@@ -6,10 +6,13 @@ import SiteMenu from '../../components/SiteMenu.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
 import SkyBackground from '../../components/SkyBackground.astro';
+import SkyLife from '../../components/SkyLife.astro';
 import KaiSite from '../../components/KaiSite.astro';
 import '../../styles/tokens.css';
 import Fonts from '../../components/Fonts.astro';
-import { variant, webpDims } from '../../image-variant';
+import FieldTile from '../../components/FieldTile.astro';
+import { fieldCards, levelsOf, partLabel } from '../../data/field-cards';
+import '../../styles/field-tiles.css';
 
 // Translations (e.g. es/anatomy-of-a-supply-chain-attack) live under a
 // locale subfolder and get their own index-free route — the grid here
@@ -20,40 +23,32 @@ const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.
 );
 const year = new Date().getFullYear();
 
-/* Field Notes: every post as a card. Card art is the tall 4:5 cardImage; the
-   480w variant serves compact cards, the original backs it up for wide/2x. */
-const WPM = 230;
-function ordinal(n: number) {
-  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-function dateLabel(d: Date) {
-  return d.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' }) + ' ' + ordinal(d.getUTCDate()) + ', ' + d.getUTCFullYear();
-}
-const cards = posts.map((p) => {
-  const img = p.data.cardImage || p.data.heroImage || null;
-  const small = variant(img, 480);
-  const dims = img ? webpDims(img) : null;
-  const words = (p.body || '').split(/\s+/).filter(Boolean).length;
-  return {
-    id: p.id,
-    title: p.data.title,
-    topic: p.data.category,
-    date: p.data.pubDate.toISOString().slice(0, 10),
-    dateLabel: dateLabel(p.data.pubDate),
-    mins: Math.max(1, Math.round(words / WPM)),
-    desc: p.data.description,
-    href: '/blog/' + p.id + '/',
-    img,
-    srcset: img && small && small !== img && dims ? `${small} 480w, ${img} ${dims.width}w` : null,
-  };
-});
+/* Field Notes: a featured post, then every other post as a tile in an
+   edge-to-edge grid. No dates are shown. A post's frame shows its tileImage
+   when it has one, and is a black placeholder until then. */
+const cards = fieldCards(posts);
+/* the filter menu: levels in their own order, then topics, then concepts */
+const levels = levelsOf(cards);
 const topics = [...new Set(cards.map((c) => c.topic))];
+const concepts = [...new Set(cards.flatMap((c) => c.concepts))].sort((a, b) => a.localeCompare(b));
+/* the newest post leads as the featured card; the grid holds the rest */
 const [featured, ...rest] = cards;
-/* Left column takes every other post as a wide card with its excerpt; the
-   right column gets compact cards. Same split the client script uses. */
-const wideCol = rest.filter((_, i) => i % 2 === 0);
-const narrowCol = rest.filter((_, i) => i % 2 === 1);
+const SITE_URL = 'https://samuelabhinav.com';
+const OG_IMAGE = SITE_URL + '/images/og-field-notes.png';
+const jsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'Field Notes',
+  url: SITE_URL + '/blog/',
+  author: { '@type': 'Person', name: 'Samuel Abhinav', url: SITE_URL + '/' },
+  blogPost: posts.map((p) => ({
+    '@type': 'BlogPosting',
+    headline: p.data.title,
+    description: p.data.description,
+    url: SITE_URL + '/blog/' + p.id + '/',
+    datePublished: p.data.pubDate.toISOString(),
+  })),
+});
 ---
 
 <!DOCTYPE html>
@@ -73,6 +68,7 @@ window.SITE=window.SITE||{};
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
+<meta name="darkreader-lock">
 <title>Field Notes — Samuel Abhinav</title>
 <meta name="description" content="Field Notes by Samuel Abhinav: how passwords, hashing, encryption and firewalls came to be, told from first principles, plus threat-intel writeups.">
 <link rel="canonical" href="https://samuelabhinav.com/blog/">
@@ -81,9 +77,15 @@ window.SITE=window.SITE||{};
 <meta property="og:description" content="Field Notes by Samuel Abhinav: how passwords, hashing, encryption and firewalls came to be, told from first principles, plus threat-intel writeups.">
 <meta property="og:site_name" content="Samuel · Security Engineer">
 <meta property="og:url" content="https://samuelabhinav.com/blog/">
+<meta property="og:image" content={OG_IMAGE}>
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Field Notes, by Samuel Abhinav">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Field Notes — Samuel Abhinav">
 <meta name="twitter:description" content="Field Notes by Samuel Abhinav: how passwords, hashing, encryption and firewalls came to be, told from first principles, plus threat-intel writeups.">
+<meta name="twitter:image" content={OG_IMAGE}>
+<link rel="alternate" type="application/rss+xml" title="Field Notes" href="/rss.xml">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -91,23 +93,29 @@ window.SITE=window.SITE||{};
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
 <Motion />
+<script type="application/ld+json" set:html={jsonLd} />
 <style is:global>
 /* ══════════════ FIELD NOTES ══════════════
-   A serif title floating on the sky with search under it, a featured row,
-   then a two-column editorial list (wide cards left, compact cards right),
-   every card carrying its post art, and numbered pages at the bottom. */
+   A serif title floating on the sky with search under it, a featured post
+   as the first, widest tile, then every other post as a tile in an
+   edge-to-edge, three-column grid: square-cornered frames in slightly
+   different heights, two short lines of caption under each, and numbered
+   pages at the bottom. Everything under the title is set in one tight
+   grotesk. Frames without art are black placeholders. */
 :root{
   --bg:var(--c-bg);
-  --ink:#e9ecf7; --muted:rgba(200,210,232,.66); --faint:rgba(200,210,232,.42);
-  /* solid cards that float over the sky: an opaque fill, a hairline
-     top highlight and a long soft shadow underneath */
-  --card:#0d1222; --card-line:rgba(190,205,240,.11);
+  --ink:#e9ecf7; --muted:rgba(200,210,232,.74); --faint:rgba(200,210,232,.58);
+  /* the search fields float over the sky: an opaque fill, a hairline top
+     highlight and a long soft shadow underneath */
+  --card-line:rgba(190,205,240,.11);
   --float:0 1px 0 rgba(255,255,255,.04) inset,0 22px 50px -26px rgba(0,0,0,.85),0 6px 16px -8px rgba(0,0,0,.5);
-  --float-hi:0 1px 0 rgba(255,255,255,.05) inset,0 34px 70px -28px rgba(0,0,0,.9),0 10px 22px -10px rgba(0,0,0,.55);
-  --accent:#8fb3ff; --tag:#bcd4ff; --tag-ink:#0a1230;
+  --accent:#8fb3ff;
   --field:#0b1020;
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --grot:'Inter Tight',var(--sans);
+  /* the second line of every caption: .62 clears 4.5:1 on the frames */
+  --dim:rgba(233,236,247,.62);
+  --lvl:#bcd4ff;
   --serif:'Cormorant Garamond',Georgia,serif;
   --e:cubic-bezier(.2,.8,.2,1);
 }
@@ -117,18 +125,24 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 
 /* every content block is positioned so it paints above the fixed #sky
-   (a positioned element with z-index:auto) */
-.fn{position:relative;z-index:1;max-width:1240px;margin:0 auto;
-  padding:0 max(20px, env(safe-area-inset-right, 0px)) 72px max(20px, env(safe-area-inset-left, 0px));
-  display:flex;flex-direction:column;gap:52px}
+   (a positioned element with z-index:auto) and the jellyfish (z-index 2) */
+.fn{position:relative;z-index:3;padding-bottom:96px;display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
 
 /* ── title + search ── */
-.fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;padding:clamp(120px,15vw,170px) 0 4px}
-.fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(64px,11vw,132px);line-height:.95;letter-spacing:-.01em;
+.fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
+  padding:clamp(120px,15vw,170px) max(20px, env(safe-area-inset-right, 0px)) 4px max(20px, env(safe-area-inset-left, 0px))}
+/* the title keeps one serif moment, with the number of posts beside it like
+   a shop menu's count and one quiet line of small capitals under it */
+.fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(72px,12vw,148px);line-height:.9;letter-spacing:-.03em;
   color:#eef2fb;text-align:center;text-wrap:balance;
-  text-shadow:0 0 24px rgba(143,179,255,.28),0 0 70px rgba(110,150,240,.22);
+  /* the glow is a filter on the whole heading, not a text-shadow: the line
+     reveal clips each line, and a clipped shadow showed as a box */
+  filter:drop-shadow(0 0 24px rgba(143,179,255,.28)) drop-shadow(0 0 70px rgba(110,150,240,.22));
   animation:fnDrift 9s ease-in-out infinite}
 .fn-title em{font-style:italic;color:#cdd9f7}
+.fn-title sup{font:500 .16em/1 var(--grot);letter-spacing:0;vertical-align:top;position:relative;top:.35em;margin-left:.12em;color:#c9d6ff}
+.fn-tag{margin-top:-14px;font:600 11px/1 var(--grot);letter-spacing:.24em;text-transform:uppercase;text-align:center;
+  color:rgba(226,232,250,.8);text-shadow:0 1px 8px rgba(3,6,16,.7)}
 @keyframes fnDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .fn-search{width:min(900px,100%);display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px}
 .fn-field{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;background:var(--field);
@@ -136,90 +150,94 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
   transition:border-color .2s,box-shadow .2s}
 .fn-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(143,179,255,.16)}
 .fn-field svg{width:17px;height:17px;flex:none;stroke:var(--muted);fill:none;stroke-width:2}
-.fn-field input,.fn-field select{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:400 15px var(--sans)}
+.fn-field input,.fn-field select{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);
+  font:500 14px var(--grot);letter-spacing:-.02em}
 .fn-field input:focus-visible,.fn-field select:focus-visible{outline:0}
 .fn-field input::placeholder{color:var(--faint)}
 .fn-field input::-webkit-search-cancel-button{filter:invert(.8)}
 .fn-field select{appearance:none;-webkit-appearance:none;cursor:pointer}
 .fn-field select option{background:#0c1330;color:var(--ink)}
-@media (max-width:640px){.fn-search{grid-template-columns:1fr}}
+@media (max-width:640px){.fn-search{grid-template-columns:1fr}.fn-field input,.fn-field select{font-size:16px}}
 
-/* ── shared card art ── */
-.fn-shot{position:relative;overflow:hidden;background:#05091a;aspect-ratio:4/3;max-width:100%}
-.fn-shot img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 46%;
-  transition:transform .6s var(--e)}
-/* wide cards and the featured row show the whole picture, over a blurred,
-   dimmed copy of itself so the sides aren't empty */
-.fn-shot.fit .fill{filter:blur(22px) brightness(.5) saturate(1.2);transform:scale(1.2)}
-.fn-shot.fit .art{object-fit:contain;object-position:50% 50%}
-a:hover .fn-shot .art{transform:scale(1.03)}
-.fn-shot.fit .art{filter:drop-shadow(0 10px 30px rgba(0,0,0,.45))}
-.fn-tag{position:absolute;left:0;bottom:0;z-index:2;font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
-  background:var(--tag);color:var(--tag-ink);padding:7px 9px;border-top-right-radius:6px}
-.fn-meta{font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;flex-wrap:wrap;gap:4px 14px}
-
-/* ── featured row ── */
-.fn-feat{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(20px,4vw,48px);align-items:center;
-  background:var(--card);border:1px solid var(--card-line);border-radius:22px;padding:14px 14px 14px clamp(20px,3.4vw,40px);
-  text-decoration:none;color:inherit;transition:transform .35s var(--e),box-shadow .35s}
-.fn-feat{box-shadow:var(--float)}
-.fn-feat:hover{transform:translateY(-3px);box-shadow:var(--float-hi)}
-.fn-feat .txt{display:flex;flex-direction:column;gap:16px;padding-block:18px;min-width:0}
-.fn-pill{align-self:flex-start;font:500 12px/1 var(--sans);padding:7px 10px;border-radius:6px;background:rgba(143,179,255,.12);
-  color:var(--muted);border:1px solid var(--card-line)}
-.fn-feat h2{font-weight:600;letter-spacing:-.02em;font-size:clamp(26px,2.8vw,36px);line-height:1.15;text-wrap:balance}
-.fn-feat p{color:var(--muted);font-size:16px;line-height:1.6;max-width:52ch}
-.fn-feat .fn-shot{aspect-ratio:16/10;border-radius:14px}
+/* ── featured card ──
+   A rounded card floating over the sky: text on the left, a rounded frame
+   on the right. In reading order it becomes "Start here", the first post
+   of all. */
+.fn-feat{width:min(1200px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:clamp(20px,4vw,48px);align-items:center;background:#0d1222;border:1px solid var(--card-line);border-radius:22px;
+  padding:14px 14px 14px clamp(20px,3.4vw,40px);text-decoration:none;color:inherit;box-shadow:var(--float);
+  font:600 12px/1.2 var(--grot);letter-spacing:-.02em;transition:transform .35s var(--e),box-shadow .35s,filter .35s}
+.fn-feat:hover{transform:translateY(-3px);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 34px 70px -28px rgba(0,0,0,.9),0 10px 22px -10px rgba(0,0,0,.55)}
+.fn-feat .fn-pic{order:2;aspect-ratio:16/10;border-radius:14px}
+.fn-feat-txt{display:flex;flex-direction:column;min-width:0;padding-block:18px}
+.fn-feat .top{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--dim)}
+.fn-flag{color:var(--ink)}
+.fn-feat h2{margin-top:18px;font-size:clamp(26px,2.8vw,36px);font-weight:600;line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+.fn-feat .desc{margin-top:14px;max-width:52ch;color:var(--muted);font-size:16px;line-height:1.55;font-weight:500;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;line-clamp:4;overflow:hidden}
+.fn-feat .bottom{padding-top:22px}
+.fn-feat .chips{margin-bottom:14px}
 .fn-feat[hidden]{display:none}
-@media (max-width:820px){.fn-feat{grid-template-columns:1fr;padding:14px}.fn-feat .txt{order:2;padding:4px 8px 10px}}
+@media (max-width:820px){.fn-feat{grid-template-columns:minmax(0,1fr);gap:4px;padding:14px}.fn-feat .fn-pic{order:0}.fn-feat-txt{padding:14px 8px 6px}}
 
-/* ── the list ── */
-.fn-list{display:flex;flex-direction:column;gap:26px}
-.fn-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.fn-head h2{font-weight:600;font-size:20px;letter-spacing:-.01em}
-.fn-count{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-.fn-cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
-.fn-col{display:flex;flex-direction:column;gap:24px;min-width:0}
-@media (max-width:820px){.fn-cols{grid-template-columns:minmax(0,1fr)}}
-.fn-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--card-line);border-radius:18px;overflow:hidden;
-  text-decoration:none;color:inherit;min-width:0;transition:transform .35s var(--e),box-shadow .35s,border-color .35s}
-.fn-card{box-shadow:var(--float)}
-.fn-card:hover{transform:translateY(-4px);box-shadow:var(--float-hi);border-color:rgba(143,179,255,.28)}
-.fn-card .fn-shot{aspect-ratio:16/9}
-.fn-col.narrow .fn-card .fn-shot{aspect-ratio:4/3}
-.fn-card .body{display:flex;flex-direction:column;gap:10px;padding:18px 20px 22px}
-.fn-card h3{font-weight:600;letter-spacing:-.01em;line-height:1.3;font-size:20px;text-wrap:balance}
-.fn-col.narrow .fn-card h3{font-size:16px}
-.fn-card h3 .arr{display:inline-block;margin-left:6px;color:var(--accent);transition:transform .25s}
-.fn-card:hover h3 .arr{transform:translateX(4px)}
-.fn-card p{color:var(--muted);font-size:14.5px;line-height:1.55}
-/* after a search or page change the new cards settle in one after another */
-.fn-card.fn-in{animation:fnIn .55s var(--ease-out,cubic-bezier(.16,1,.3,1)) both;animation-delay:calc(var(--i,0)*60ms)}
-@keyframes fnIn{from{opacity:0;transform:translateY(16px)}}
-.fn-empty{padding:44px;text-align:center;color:var(--muted);border:1px dashed var(--card-line);border-radius:14px}
+/* ── the grid ──
+   One type style for every line under the featured card: 12px, tight
+   tracking, the second line at lower contrast. Tiles run edge to edge with
+   hairline gaps. */
+.fn-list,.fn-pg,footer{font:600 12px/1.2 var(--grot);letter-spacing:-.02em}
+.fn-list{display:flex;flex-direction:column;gap:14px}
+.fn-head{display:flex;align-items:baseline;gap:14px;padding:0 12px;scroll-margin-top:72px;text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7)}
+.fn-head h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.fn-views{display:flex;gap:14px}
+.fn-views button{font:inherit;letter-spacing:inherit;color:var(--dim);background:none;border:0;padding:0;cursor:pointer;transition:color .2s}
+.fn-views button:hover,.fn-views button[aria-pressed="true"]{color:var(--ink)}
+.fn-sort{display:flex;gap:14px;margin-left:auto}
+.fn-sort button{font:inherit;letter-spacing:inherit;color:var(--dim);background:none;border:0;padding:0;cursor:pointer;transition:color .2s}
+.fn-sort button:hover,.fn-sort button[aria-pressed="true"]{color:var(--ink)}
+.fn-count{color:var(--dim)}
+@media (max-width:560px){.fn-head{flex-wrap:wrap;row-gap:10px}.fn-count{display:none}}
+
+/* ── index view ──
+   A plain list of every post, fixed at the top left. The featured card and
+   the tiles fade back; the post under the pointer (or keyboard focus, or a
+   tap) comes forward and the page scrolls to it. Fading uses filter, not
+   opacity: the reveal animation leaves an inline opacity on each tile. */
+.fn-index{position:fixed;left:12px;top:96px;z-index:20;width:min(420px,calc(100% - 24px));max-height:calc(100vh - 120px);
+  overflow:auto;overscroll-behavior:contain;padding:10px 12px;background:rgba(9,12,22,.94);border:1px solid rgba(200,215,245,.12);
+  font:600 12px/1.2 var(--grot);letter-spacing:-.02em}
+.fn-index[hidden]{display:none}
+.fn-index ol{list-style:none}
+.fn-index a{display:flex;gap:10px;padding:2.5px 0;color:var(--ink);text-decoration:none;white-space:nowrap;min-width:0}
+.fn-index b{font-weight:inherit;flex:none;max-width:68%;overflow:hidden;text-overflow:ellipsis}
+.fn-index span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.fn-index a.is-on span{color:var(--ink)}
+.fn-index a:focus-visible{outline-offset:2px;border-radius:2px}
+.fn-tile{transition:filter .35s}
+.fn.is-index .fn-tile,.fn.is-index .fn-feat{filter:opacity(.14)}
+.fn.is-index .fn-tile.is-lit,.fn.is-index .fn-feat.is-lit{filter:none}
+.fn.is-index .fn-tile,.fn.is-index .fn-feat{scroll-margin-top:90px}
+/* phones and tablets: the list sits at the bottom, clear of Kai's button */
+@media (max-width:900px){.fn-index{top:auto;bottom:12px;width:calc(100% - 104px);max-height:38vh}}
+.fn-empty{grid-column:1/-1;padding:60px 12px;color:var(--dim)}
 
 /* ── numbered pages ── */
-.fn-pg{display:flex;gap:8px;flex-wrap:wrap}
+.fn-pg{display:flex;gap:14px;flex-wrap:wrap;padding:0 12px}
 .fn-pg[hidden]{display:none}
-.fn-pg button{min-width:36px;height:36px;padding:0 10px;display:grid;place-items:center;cursor:pointer;
-  font:500 13px var(--mono);color:var(--muted);background:var(--card);border:1px solid var(--card-line);border-radius:4px;
-  transition:color .2s,border-color .2s,background .2s}
-.fn-pg button:hover:not([disabled]){color:var(--ink);border-color:rgba(143,179,255,.45)}
-.fn-pg button[aria-current="page"]{background:var(--tag);color:var(--tag-ink);border-color:var(--tag)}
-.fn-pg button[disabled]{opacity:.35;cursor:default}
+.fn-pg button{font:inherit;letter-spacing:inherit;color:var(--dim);background:none;border:0;padding:4px 0;cursor:pointer;transition:color .2s}
+.fn-pg button:hover:not([disabled]),.fn-pg button[aria-current="page"]{color:var(--ink)}
+.fn-pg button[disabled]{opacity:.4;cursor:default}
 
 /* ── footer ── */
-footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 38px 50px;color:var(--faint);font-size:12px}
-footer .f-links{display:flex;align-items:center;gap:14px;font-family:var(--sans);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
-footer .f-links a{color:var(--faint);text-decoration:none;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
-footer .f-links a:hover{color:#fff}
-footer .f-links .fic{width:12.5px;height:12.5px;fill:currentColor;opacity:0.9;flex:none}
-footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+footer{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:30px 12px 50px;color:var(--dim)}
+footer .f-links{display:flex;align-items:center;gap:14px}
+footer .f-links a{color:var(--dim);text-decoration:none;transition:color .25s;display:inline-flex;align-items:center;gap:6px}
+footer .f-links a:hover{color:var(--ink)}
+footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 @media (prefers-reduced-motion: reduce){
   .fn-title{animation:none}
-  .fn-shot img,.fn-feat,.fn-card,.fn-card h3 .arr{transition:none}
-  .fn-card.fn-in{animation:none}
+  .fn-pic,.fn-feat,.fn-feat-txt,.fn-tile,.fn-peek,.go span{transition:none}
+  .fn-tile.fn-in{animation:none}
 }
 </style>
 <style is:global>
@@ -229,32 +247,10 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 </head>
 <body>
 
-<SkyBackground calm />
-<!-- This page is dense, text-heavy tables/cards that need to read clearly
-     over whatever's moving behind them, so it puts a page-local blur layer ABOVE
-     the shared sky (not touching the component, so index/about/contact are
-     unaffected) — plain fixed div, no explicit z-index needed: it paints
-     above #sky (position:fixed, z-index:auto)
-     purely by coming later in the DOM at the same stacking tier, and stays
-     below real content since every content section already carries an
-     explicit z-index that beats z-index:auto regardless of DOM order.
-     backdrop-filter:blur here softens the stars themselves too, same
-     "frosted glass" trick the featured hero's own .hero::after already
-     uses over its title card — just extended across the whole page instead
-     of one small area, since backdrop-filter only blurs what's behind an
-     element, never the real content stacked above it. -->
-<div id="content-scrim" aria-hidden="true"></div>
-<style>
-  #content-scrim{position:fixed;inset:0;pointer-events:none;
-    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  /* backdrop-filter recomputes every frame the animated starfield behind it
-     changes — one of the pricier CSS effects, worth skipping on phones and
-     reduced-motion, matching the threshold where the sky drops to its
-     lighter tier on these devices. */
-  @media (--bp-900), (prefers-reduced-motion:reduce){
-    #content-scrim{backdrop-filter:none;-webkit-backdrop-filter:none}
-  }
-</style>
+<!-- An open sky (full clouds, no blur over them) in the lighter tone with
+     whiter clouds, and the contact page's jellyfish drifting through it. -->
+<SkyBackground tone="bright" />
+<SkyLife cast />
 
 <SiteMenu currentPath="/blog" />
 
@@ -263,73 +259,67 @@ footer .f-links .fic.line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-
 
 <main class="fn" id="main">
   <section class="fn-hero" aria-labelledby="fn-title">
-    <h1 class="fn-title" id="fn-title" data-reveal="lines">Field <em>Notes</em></h1>
+    <h1 class="fn-title" id="fn-title" data-reveal="lines">Field <em>Notes</em><sup aria-hidden="true">({cards.length})</sup></h1>
+    <p class="fn-tag" data-reveal>On security, from the start</p>
     <div class="fn-search" role="search" data-reveal>
       <label class="fn-field" for="fn-q">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input id="fn-q" type="search" placeholder="Search" autocomplete="off" aria-label="Search posts">
       </label>
-      <label class="fn-field" for="fn-topic">
-        <select id="fn-topic" aria-label="Topic">
-          <option value="">Topic</option>
-          {topics.map((t) => <option value={t}>{t}</option>)}
+      <label class="fn-field" for="fn-filter">
+        <select id="fn-filter" aria-label="Filter posts">
+          <option value="">All posts</option>
+          {levels.length > 0 && <optgroup label="Level">{levels.map((t) => <option value={`level:${t}`}>{t}</option>)}</optgroup>}
+          <optgroup label="Topic">{topics.map((t) => <option value={`topic:${t}`}>{t}</option>)}</optgroup>
+          <optgroup label="Concept">{concepts.map((t) => <option value={`concept:${t}`}>{t}</option>)}</optgroup>
         </select>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </label>
     </div>
   </section>
 
+  <!-- The featured post: the newest, or in reading order the first. Frames
+       show a post's tileImage, or stay a black placeholder until it has one. -->
   {featured && (
     <a class="fn-feat" id="fn-feat" href={featured.href} data-reveal>
-      <div class="txt">
-        <span class="fn-pill">Featured</span>
+      <div class="fn-pic" style="--r:16/9">{featured.img && <img class="art" src={featured.img} alt="" decoding="async" fetchpriority="high" />}</div>
+      <div class="fn-feat-txt">
+        <div class="top">
+          <span class="fn-flag">Featured</span>
+          {featured.level && <span class="lvl"><span class="bars" data-n={featured.levelN}><i></i><i></i><i></i></span>{featured.level}</span>}
+        </div>
         <h2>{featured.title}</h2>
-        <p>{featured.desc}</p>
-        <div class="fn-meta"><span>{featured.dateLabel}</span><span>{featured.mins} min read</span></div>
-      </div>
-      <div class="fn-shot fit">
-        {featured.img && <img class="fill" src={featured.img} alt="" aria-hidden="true" decoding="async" fetchpriority="high" />}
-        {featured.img && <img class="art" src={featured.img} srcset={featured.srcset || undefined} sizes="(max-width: 820px) 92vw, 620px" alt="" decoding="async" fetchpriority="high" />}
-        <span class="fn-tag">{featured.topic}</span>
+        <p class="desc">{featured.desc}</p>
+        <div class="bottom">
+          {featured.concepts.length > 0 && <ul class="chips">{featured.concepts.slice(0, 3).map((t) => <li>{t}</li>)}</ul>}
+          <div class="foot">
+            <span>{[partLabel(featured), `${featured.mins} min read`].filter(Boolean).join(' · ')}</span>
+            <span class="go">Read<span aria-hidden="true">›</span></span>
+          </div>
+        </div>
       </div>
     </a>
   )}
 
   <section class="fn-list" aria-labelledby="fn-latest">
-    <div class="fn-head"><h2 id="fn-latest">Latest</h2><span class="fn-count" id="fn-count">{cards.length} posts</span></div>
+    <div class="fn-head">
+      <h2 id="fn-latest">Latest</h2>
+      <div class="fn-views" role="group" aria-label="View">
+        <button type="button" id="fn-overview" aria-pressed="true">Overview</button>
+        <button type="button" id="fn-index-btn" aria-pressed="false" aria-controls="fn-index">Index</button>
+      </div>
+      <div class="fn-sort" role="group" aria-label="Order">
+        <button type="button" id="fn-newest" aria-pressed="true">Newest</button>
+        <button type="button" id="fn-order" aria-pressed="false">Reading order</button>
+      </div>
+      <span class="fn-count" id="fn-count">{cards.length} posts</span>
+    </div>
+    <!-- Index view: filled by blog-fieldnotes.js from whatever is on show -->
+    <nav class="fn-index" id="fn-index" aria-label="Index of posts" hidden><ol></ol></nav>
     <!-- Rendered in full here, so every post is in the HTML without
          JavaScript; blog-fieldnotes.js then pages it and runs search. -->
-    <div class="fn-cols" id="fn-cols">
-      <div class="fn-col wide" id="fn-wide" data-reveal-group>
-        {wideCol.map((c) => (
-          <a class="fn-card" href={c.href}>
-            <div class="fn-shot fit">
-              {c.img && <img class="fill" src={c.img} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-              {c.img && <img class="art" src={c.img} srcset={c.srcset || undefined} sizes="(max-width: 820px) 92vw, 780px" alt="" loading="lazy" decoding="async" />}
-              <span class="fn-tag">{c.topic}</span>
-            </div>
-            <div class="body">
-              <div class="fn-meta"><span>{c.dateLabel}</span><span>{c.mins} min read</span></div>
-              <h3>{c.title}<span class="arr" aria-hidden="true">›</span></h3>
-              <p>{c.desc}</p>
-            </div>
-          </a>
-        ))}
-      </div>
-      <div class="fn-col narrow" id="fn-narrow" data-reveal-group>
-        {narrowCol.map((c) => (
-          <a class="fn-card" href={c.href}>
-            <div class="fn-shot">
-              {c.img && <img class="art" src={c.img} srcset={c.srcset || undefined} sizes="(max-width: 820px) 92vw, 380px" alt="" loading="lazy" decoding="async" />}
-              <span class="fn-tag">{c.topic}</span>
-            </div>
-            <div class="body">
-              <div class="fn-meta"><span>{c.dateLabel}</span><span>{c.mins} min read</span></div>
-              <h3>{c.title}<span class="arr" aria-hidden="true">›</span></h3>
-            </div>
-          </a>
-        ))}
-      </div>
+    <div class="fn-grid" id="fn-grid" data-reveal-group>
+      {rest.map((c, i) => <FieldTile c={c} i={i} />)}
     </div>
     <nav class="fn-pg" id="fn-pg" aria-label="Pages" hidden></nav>
   </section>
