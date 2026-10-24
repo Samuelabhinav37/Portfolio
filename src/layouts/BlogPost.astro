@@ -391,14 +391,17 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     </div><!-- /.container -->
 
-    <!-- More stories: every other post in the blog index's tiles, in one row
-         that slides sideways as you scroll down past it (blog-client.js).
-         Phones and reduced motion get a row you swipe instead. -->
+    <!-- More stories: every other post in the blog index's tiles, in one row.
+         The page scrolls as normal; with the pointer over the row, the wheel
+         moves the row sideways until it reaches an end, then the page carries
+         on (blog-client.js). Trackpads, touch and the arrows move it too. -->
     {moreCards.length > 0 && (
       <section class="post-next fn-vars" id="postMore" aria-labelledby="post-next-h">
-        <div class="pm-pin">
-          <h2 class="post-next-h" id="post-next-h">{lang === 'es' ? 'Más artículos' : 'More stories'}<small aria-hidden="true">{lang === 'es' ? 'Desliza' : 'Scroll'} →</small></h2>
-          <div class="pm-view"><div class="pm-track">{moreCards.map((c, i) => <FieldTile c={c} i={i} />)}</div></div>
+        <h2 class="post-next-h" id="post-next-h">{lang === 'es' ? 'Más artículos' : 'More stories'}</h2>
+        <div class="pm-wrap">
+          <button type="button" class="pm-arrow pm-prev" aria-label={lang === 'es' ? 'Anteriores' : 'Previous stories'} disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="pm-view" tabindex="-1"><div class="pm-track">{moreCards.map((c, i) => <FieldTile c={c} i={i} />)}</div></div>
+          <button type="button" class="pm-arrow pm-next" aria-label={lang === 'es' ? 'Siguientes' : 'More stories'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
         </div>
       </section>
     )}

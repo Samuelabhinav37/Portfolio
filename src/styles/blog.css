@@ -487,24 +487,29 @@ button.faq-q { width: 100%; text-align: left; background: none; border: none; }
 button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outline-offset: 4px; }
 
 /* ── End of post: next in series ── */
-/* More stories: one row of the blog index's tiles. The section is tall and
-   its inside pinned, so scrolling down slides the row sideways
-   (blog-client.js sets the height and the slide). */
-.post-next { position: relative; z-index: 1; margin: 72px 0 32px; }
-.pm-pin { position: sticky; top: 96px; overflow: hidden; }
+/* More stories: a centred heading over one row of the blog index's tiles,
+   scrolled sideways (blog-client.js maps the wheel onto it while hovered) */
+.post-next { position: relative; z-index: 1; margin: 72px 0 48px; }
 .post-next-h {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 0 24px 24px;
+  text-align: center; padding: 0 24px 28px;
   font-family: var(--font-sans); font-size: var(--t-h2); line-height: 32px; font-weight: 600; letter-spacing: -0.2px; color: var(--ink-strong);
 }
-.post-next-h small { font-size: 12px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--ink-dim); }
-.pm-view { overflow: hidden; }
-.pm-track { display: flex; gap: 6px; align-items: flex-start; padding: 0 24px; width: max-content; will-change: transform; }
-.pm-track .fn-tile { flex: none; width: clamp(280px, 30vw, 440px); }
-/* phones and reduced motion: a row to swipe, no pinning */
-.post-next.is-swipe .pm-pin { position: static; height: auto; }
-.post-next.is-swipe .pm-view { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.post-next.is-swipe .pm-view::-webkit-scrollbar { display: none; }
-.post-next.is-swipe .fn-tile { scroll-snap-align: start; width: min(78vw, 360px); }
+.pm-wrap { position: relative; }
+.pm-view { overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; outline: none; }
+.pm-view::-webkit-scrollbar { display: none; }
+.pm-track { display: flex; gap: 6px; align-items: flex-start; padding: 0 24px; width: max-content; }
+.pm-track .fn-tile { flex: none; width: clamp(280px, 30vw, 440px); scroll-snap-align: start; scroll-margin-left: 24px; }
+.pm-arrow {
+  position: absolute; top: 40%; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--rule-strong); background: rgba(3,3,7,0.82); color: var(--ink-strong); cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+}
+.pm-arrow:hover { background: rgba(20,22,32,0.95); }
+.pm-arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.pm-arrow:disabled { opacity: 0; pointer-events: none; }
+.pm-prev { left: 16px; } .pm-next { right: 16px; }
+@media (hover: none) { .pm-arrow { display: none; } } /* touch: just swipe */
+@media (--bp-760) { .pm-track .fn-tile { width: min(78vw, 360px); } }
 /* ── Bottom bar: All stories on the left, Previous and Next on the right ── */
 .post-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 160; height: 30px;

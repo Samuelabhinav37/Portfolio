@@ -157,3 +157,16 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   window.SITE.LunaChat = { open: chat.open, close: function () { chat.close(true); }, isOpen: chat.isOpen };
   return chat;
 };
+
+/* Scrolling inside Kai's open chat scrolls only the chat, never the page:
+   a wheel over the panel goes to the message list while it can still move
+   that way, and is swallowed when it can't (at either end, or when the list
+   is too short to scroll). Touch is kept inside by overscroll-behavior on
+   the list (kai-chat.css). */
+document.addEventListener('wheel', function (e) {
+  var panel = e.target.closest && e.target.closest('.kc.open .kc-panel');
+  if (!panel) return;
+  var list = panel.querySelector('.kc-body');
+  var room = list ? (e.deltaY < 0 ? list.scrollTop > 0 : list.scrollTop + list.clientHeight < list.scrollHeight - 1) : false;
+  if (!room) e.preventDefault();
+}, { passive: false });

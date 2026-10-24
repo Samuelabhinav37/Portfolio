@@ -69,6 +69,10 @@ if (wantsSmooth()) {
     smoothWheel: true,
     anchors: true,
     allowNestedScroll: true, // Kai's chat log and other scroll boxes scroll themselves
+    // ...and Lenis leaves these alone entirely: Kai's open chat (scrolling it
+    // must never move the page, even when its log is too short to scroll) and
+    // the More stories row (its own script turns the wheel sideways)
+    prevent: (node) => !!(node.closest && node.closest('.kc-panel, .pm-view')),
     autoRaf: false,
   });
   lenis.on('scroll', ScrollTrigger.update);

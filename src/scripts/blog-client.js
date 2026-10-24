@@ -440,33 +440,32 @@ document.addEventListener('click', (ev) => {
   show();
 })();
 
-/* ── More stories: slide the row sideways as the page scrolls past it ──
-   The section is made exactly as tall as the row is wide (plus a screen), and
-   its inside is pinned, so each pixel scrolled down moves the row a pixel
-   left. Phones and reduced motion get a row to swipe instead. ── */
+/* ── More stories: a row you scroll sideways ──
+   The page scrolls as normal. With the pointer over the row, the mouse
+   wheel moves the row sideways instead, until it reaches an end; past that
+   the wheel scrolls the page again, so the reader is never trapped.
+   Trackpads (which scroll sideways themselves), touch and the arrow buttons
+   move it too; the arrows hide at the ends. ── */
 (() => {
   const sec = document.getElementById('postMore');
   if (!sec) return;
-  const track = sec.querySelector('.pm-track'), pin = sec.querySelector('.pm-pin');
-  const swipe = matchMedia('(max-width: 760px), (prefers-reduced-motion: reduce)');
-  let travel = 0, ticking = false;
-  function size() {
-    sec.classList.toggle('is-swipe', swipe.matches);
-    if (swipe.matches) { sec.style.height = ''; track.style.transform = ''; return; }
-    travel = Math.max(0, track.scrollWidth - innerWidth);
-    // tall enough for the whole slide while the row stays pinned under the site bar
-    sec.style.height = innerHeight - (parseFloat(getComputedStyle(pin).top) || 0) + travel + 'px';
-    slide();
+  const view = sec.querySelector('.pm-view'), prev = sec.querySelector('.pm-prev'), next = sec.querySelector('.pm-next');
+  const max = () => view.scrollWidth - view.clientWidth;
+  function ends() {
+    prev.disabled = view.scrollLeft <= 2;
+    next.disabled = view.scrollLeft >= max() - 2;
   }
-  function slide() {
-    ticking = false;
-    if (swipe.matches) return;
-    const top = parseFloat(getComputedStyle(pin).top) || 0;
-    const p = Math.min(1, Math.max(0, (top - sec.getBoundingClientRect().top) / Math.max(1, travel)));
-    track.style.transform = `translate3d(${-p * travel}px,0,0)`;
-  }
-  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(slide); } }, { passive: true });
-  addEventListener('resize', size);
-  swipe.addEventListener('change', size);
-  size();
+  view.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // a sideways trackpad swipe already scrolls the row
+    const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+    if ((dy > 0 && view.scrollLeft >= max() - 1) || (dy < 0 && view.scrollLeft <= 0)) return; // at an end: let the page scroll
+    e.preventDefault();
+    view.scrollLeft += dy;
+  }, { passive: false });
+  const page = () => Math.max(300, view.clientWidth * 0.8);
+  prev.addEventListener('click', () => view.scrollBy({ left: -page(), behavior: 'smooth' }));
+  next.addEventListener('click', () => view.scrollBy({ left: page(), behavior: 'smooth' }));
+  view.addEventListener('scroll', ends, { passive: true });
+  addEventListener('resize', ends);
+  ends();
 })();
