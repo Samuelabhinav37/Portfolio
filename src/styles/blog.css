@@ -192,10 +192,12 @@ html.is-scrolled #topbar-scrim {
   margin-top: 56px; border-bottom: 1px solid var(--rule);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
-.post-hero-pic { order: 2; padding: 32px; display: flex; justify-content: flex-start; }
+/* 64px of open space above and below the picture, 32px at the sides */
+.post-hero-pic { order: 2; padding: 64px 32px; display: flex; justify-content: flex-start; }
 .post-hero-pic img { display: block; width: 100%; max-width: var(--w-pic); height: auto; }
 .post-hero-text {
-  justify-self: center; width: min(500px, 100%); padding: 32px 24px;
+  /* the extra top padding sets the words about 40px below the picture's middle */
+  justify-self: center; width: min(500px, 100%); padding: 112px 24px 32px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
 .post-cat { font-size: 13px; line-height: 13px; color: var(--ink-strong); text-decoration: none; }
@@ -485,7 +487,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 @media (--bp-760) {
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
-  .post-hero-pic { padding: 24px 24px 0; }
+  .post-hero-pic { padding: 24px 24px 32px; }
   .post-hero-pic img { width: 100%; height: auto; }
   .post-title { font-size: 36px; line-height: 43px; }
   .heading-2, .faq-heading { font-size: 28px; line-height: 32px; }
