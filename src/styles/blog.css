@@ -150,7 +150,7 @@ html.is-scrolled #topbar-scrim {
                uppercase, 1.8px tracking. The headline is the same face at
                42/50 (36/43 on phones), 600, centred.
      Body      EB Garamond (for Adobe Garamond Pro) 20/30, in a centred
-               720px column (Vogue's 640, a little wider).
+               800px column.
      Headings  GFS Didot (for FB Didot) 32/36 (28/32 on phones).
      Lists     indented 48px with round bullets; the contents list 64px.
    Code and data keep JetBrains Mono. Figures, tables and callouts share
@@ -168,8 +168,8 @@ html.is-scrolled #topbar-scrim {
   --rule: rgba(200,206,218,0.16);
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
-  --w-text: 720px;
-  --w-pic: 600px; /* the header picture's largest width */
+  --w-text: 800px;
+  --w-pic: 710px; /* the header picture's largest width (it never outgrows its half) */
   --w-wide: 1312px;
 }
 /* The one label style, used everywhere a label appears (Vogue's rubric and byline). */
@@ -181,9 +181,9 @@ html.is-scrolled #topbar-scrim {
 }
 
 /* ── Header: Vogue's split screen ──
-   The page in two halves: the picture in the left at its own wide shape,
-   32px clear all round; in
-   the right, a 500px column of words centred in the open space, level with
+   The page in two halves: the picture in the right at its own wide shape,
+   32px clear all round, set against the middle of the page; in
+   the left, a 500px column of words centred in the open space, level with
    the middle of the picture. Vogue's spacing: rubric, 16px, headline, 16px,
    byline, 8px, date. A full-width hairline closes the header. */
 .post-hero {
@@ -192,7 +192,7 @@ html.is-scrolled #topbar-scrim {
   margin-top: 56px; border-bottom: 1px solid var(--rule);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
-.post-hero-pic { padding: 32px; display: flex; justify-content: center; }
+.post-hero-pic { order: 2; padding: 32px; display: flex; justify-content: flex-start; }
 .post-hero-pic img { display: block; width: 100%; max-width: var(--w-pic); height: auto; }
 .post-hero-text {
   justify-self: center; width: min(500px, 100%); padding: 32px 24px;
@@ -234,7 +234,7 @@ html.is-scrolled #topbar-scrim {
 .lang-notice:hover { color: var(--ink-strong); border-color: var(--rule-strong); }
 .lang-notice__icon { width: 15px; height: 15px; flex: none; opacity: 0.75; }
 
-/* ── Grid: the 720px text column, centred ── */
+/* ── Grid: the 800px text column, centred ── */
 .post-grid {
   position: relative; display: grid; grid-template-columns: minmax(0, var(--w-text)); justify-content: center;
   padding-top: 64px;
