@@ -90,6 +90,12 @@ const links = [
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   }
 
+  :global(html.on-light) #topbar-scrim {
+    background: rgba(241,241,241,0.72);
+  }
+  :global(html.on-light) #site-identity .name,
+  :global(html.on-light) #menu-trigger { color: rgba(20,20,24,0.88); }
+
   #site-identity {
     position: fixed;
     top: 14px; left: 28px;
@@ -180,6 +186,20 @@ const links = [
     new IntersectionObserver(function(es){
       document.documentElement.classList.toggle('is-scrolled', !es[0].isIntersecting);
     }).observe(s);
+  })();
+
+  /* html.on-light: a section marked data-header-light is under the header,
+     so the name and Menu turn dark over a light frosted bar. Watches only
+     the top 7% of the viewport, about the header's height. */
+  (function(){
+    var light = document.querySelectorAll('[data-header-light]');
+    if(!light.length) return;
+    var under = new Set();
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ e.isIntersecting ? under.add(e.target) : under.delete(e.target); });
+      document.documentElement.classList.toggle('on-light', under.size > 0);
+    }, { rootMargin: '0px 0px -93% 0px' });
+    light.forEach(function(el){ io.observe(el); });
   })();
 
   (function(){
