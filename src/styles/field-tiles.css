@@ -1,0 +1,75 @@
+/* Field Notes tiles: picture frames with a hover card and a two-line
+   caption, in an edge-to-edge grid. Shared by the blog index and the "More
+   stories" grid at the end of each post (FieldTile.astro). The blog index
+   sets these colours on :root; a post page sets them on .fn-vars. */
+.fn-vars{
+  --ink:#e9ecf7; --muted:rgba(200,210,232,.74);
+  --accent:#8fb3ff; --dim:rgba(233,236,247,.62); --lvl:#bcd4ff;
+  --grot:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --e:cubic-bezier(.2,.8,.2,1);
+  font:600 12px/1.2 var(--grot);letter-spacing:-.02em;
+}
+/* ── picture frames: a post's tileImage, or a black placeholder ── */
+.fn-pic{position:relative;overflow:hidden;aspect-ratio:var(--r,16/9);
+  background:#0a0d18;border:1px solid rgba(200,215,245,.1);
+  transition:background .4s,border-color .4s}
+a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
+.fn-pic .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+
+/* ── shared pieces: the level, concept pills, the Read link ── */
+.lvl{display:inline-flex;align-items:center;gap:7px;color:var(--lvl)}
+/* three signal bars, as many lit as the level is deep */
+.bars{display:inline-flex;align-items:flex-end;gap:2px;height:10px}
+.bars i{width:3px;border-radius:1px;background:rgba(188,212,255,.25)}
+.bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:7px}.bars i:nth-child(3){height:10px}
+.bars[data-n="1"] i:nth-child(-n+1),.bars[data-n="2"] i:nth-child(-n+2),.bars[data-n="3"] i{background:var(--lvl)}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;max-height:24px;overflow:hidden}
+.chips li{font:600 11px/1 var(--grot);letter-spacing:-.01em;padding:6px 10px;border-radius:999px;white-space:nowrap;
+  color:#cdd9f2;background:rgba(188,212,255,.08);border:1px solid rgba(188,212,255,.16)}
+.go{display:inline-flex;gap:6px;color:var(--ink);margin-left:auto}
+.go span{color:var(--accent);transition:transform .25s}
+a:hover .go span{transform:translateX(3px)}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;
+  border-top:1px solid rgba(200,215,245,.1);color:var(--dim)}
+
+.fn-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:6px;row-gap:clamp(36px,4vw,60px);align-items:start}
+@media (max-width:900px){.fn-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.fn-grid{grid-template-columns:minmax(0,1fr);row-gap:32px}}
+.fn-tile{display:block;min-width:0;color:inherit;text-decoration:none}
+.fn-tile:focus-visible{outline-offset:2px;border-radius:0}
+/* hover card: pointing at a tile slides a panel over its frame (after
+   Crunchyroll), laid out in three blocks (after TryHackMe's cards and
+   Steam's tooltip): level and read time on top; the title and three lines
+   of summary (cut with an ellipsis) in the middle; concept pills, the
+   series and Read pinned to the bottom under a hairline. Pointer devices only; a tap just opens the post. */
+.fn-peek{position:absolute;inset:0;display:flex;flex-direction:column;padding:clamp(14px,1.4vw,22px);
+  background:linear-gradient(180deg,rgba(17,22,40,.97),rgba(9,12,22,.98));
+  opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .22s,transform .3s var(--e)}
+.fn-peek .top{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--dim)}
+.fn-peek h4{margin-top:clamp(14px,1.6vw,22px);font-size:16px;font-weight:600;line-height:1.25;color:var(--ink);text-wrap:balance}
+.fn-peek .desc{margin-top:8px;max-width:48ch;color:var(--muted);font-size:13px;line-height:1.5;font-weight:500;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+/* short frames keep the top and bottom blocks whole: the summary drops to
+   two lines, then leaves */
+.fn-tile .fn-pic{container-type:size}
+@container (max-height:280px){.fn-peek .desc{-webkit-line-clamp:2;line-clamp:2}}
+@container (max-height:225px){.fn-peek .desc{display:none}}
+.fn-peek .bottom{margin-top:auto;padding-top:14px}
+.fn-peek .chips{margin-bottom:12px}
+@media (hover:hover){
+  .fn-tile:hover .fn-peek,.fn-tile:focus-visible .fn-peek{opacity:1;transform:none;transition-delay:.12s}
+}
+/* the index view has its own way of pointing at a post */
+.fn.is-index .fn-peek{display:none}
+.fn-cap{display:flex;flex-direction:column;padding:12px 12px 0;
+  /* captions sit straight on the sky: a soft dark halo keeps them readable over bright cloud */
+  text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7)}
+.fn-cap h3{font:inherit;color:var(--ink)}
+.fn-cap span{color:var(--dim)}
+/* after a search or page change the new tiles settle in one after another */
+.fn-tile.fn-in{animation:fnIn .55s var(--ease-out,cubic-bezier(.16,1,.3,1)) both;animation-delay:calc(var(--i,0)*50ms)}
+@keyframes fnIn{from{opacity:0;transform:translateY(12px)}}
+@media (prefers-reduced-motion: reduce){
+  .fn-pic,.fn-tile,.fn-peek,.go span{transition:none}
+  .fn-tile.fn-in{animation:none}
+}

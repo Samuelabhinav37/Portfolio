@@ -14,6 +14,9 @@ import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
 import { srcsetWith, variant, webpDims } from '../image-variant';
+import FieldTile from '../components/FieldTile.astro';
+import { fieldCards } from '../data/field-cards';
+import '../styles/field-tiles.css';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -59,8 +62,10 @@ if (!nextPosts.length) {
   nextPosts = [...others].sort((a, b) => byDate(b, a)).slice(0, 3);
   nextHeading = i18n.moreFromBlog;
 }
-const cardDate = (dt: Date) =>
-  dt.toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase();
+// the next posts as Field Notes tiles, from the same card data as the blog index
+const listed = await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/'));
+const cardById = new Map(fieldCards(listed).map((c) => [c.id, c]));
+const nextCards = nextPosts.map((p) => cardById.get(p.id)).filter((c) => !!c);
 // Series parts, numbered by publish date oldest first, as on the blog index.
 const run = siblings.length ? [...siblings, post].sort(byDate) : [];
 const partOf = (id: string) => run.findIndex((p) => p.id.replace(/^[a-z]{2}\//, '') === id) + 1;
@@ -171,7 +176,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <meta name="darkreader-lock" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {d.draft && <meta name="robots" content="noindex, nofollow" />}
-    <title>{d.title} — {SITE.author}</title>
+    <title>{d.title}</title>
 
     <meta name="description" content={d.description} />
     <meta property="og:type" content="article" />
@@ -288,17 +293,25 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     {d.heroCredit && <p class="post-credit">{d.heroCredit}</p>}
 
     <!-- Listen: reads the post aloud with the browser's own voice, a
-         paragraph at a time (blog-client.js). Hidden where the browser has
-         no speech voice. -->
+         sentence at a time (blog-client.js). Laid out like the audio players
+         on news sites: play, skip back and forward 15 seconds, a progress
+         bar you can click, the time as "2:15 / 7:40", and the speed. Hidden
+         where the browser has no speech voice. -->
     <div class="post-audio" id="postAudio" hidden data-lang={lang === 'es' ? 'es' : 'en'}>
-      <button type="button" class="pa-play" id="paPlay" aria-label={lang === 'es' ? 'Escuchar este artículo' : 'Listen to this story'}>
+      <button type="button" class="pa-play" id="paPlay" aria-label={lang === 'es' ? 'Escuchar' : 'Listen'}>
         <svg class="pa-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
         <svg class="pa-i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
       </button>
+      <button type="button" class="pa-skip" id="paBack" aria-label={lang === 'es' ? 'Retroceder 15 segundos' : 'Back 15 seconds'}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/><text x="12" y="16.2" text-anchor="middle">15</text></svg>
+      </button>
+      <button type="button" class="pa-skip" id="paFwd" aria-label={lang === 'es' ? 'Avanzar 15 segundos' : 'Forward 15 seconds'}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/><text x="12" y="16.2" text-anchor="middle">15</text></svg>
+      </button>
       <div class="pa-main">
         <div class="pa-top">
-          <span class="pa-label">{lang === 'es' ? 'Escuchar este artículo' : 'Listen to this story'}</span>
-          <span class="pa-time" id="paTime">{readTime} min</span>
+          <span class="pa-label">{lang === 'es' ? 'Escuchar' : 'Listen'}</span>
+          <span class="pa-time" id="paTime"></span>
         </div>
         <div class="pa-bar" id="paBar" role="slider" tabindex="0" aria-label={lang === 'es' ? 'Progreso' : 'Progress'} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="paFill"></span></div>
       </div>
@@ -359,25 +372,15 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
       <Faq faqs={d.faqs as { q: string; a: string }[]} lang={lang} />
 
-      {nextPosts.length > 0 && (
-        <section class="post-next" aria-labelledby="post-next-h">
-          <h2 class="post-next-h" id="post-next-h">{nextHeading}</h2>
-          <div class="post-next-row">
-            {nextPosts.map((p) => (
-              <a class="next-card" href={`/blog/${p.id}/`}>
-                <div class="next-img">
-                  {p.data.heroImage
-                    ? <img src={variant(p.data.heroImage, 800)} alt="" loading="lazy" decoding="async" />
-                    : <div class="story-image-ph" aria-hidden="true"></div>}
-                </div>
-                <span class="next-date">{cardDate(p.data.pubDate)}</span>
-                <span class="next-title">{p.data.title}</span>
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
     </div><!-- /.container -->
+
+    <!-- More stories, in the blog index's own tiles and grid, edge to edge -->
+    {nextCards.length > 0 && (
+      <section class="post-next fn-vars" aria-labelledby="post-next-h">
+        <h2 class="post-next-h" id="post-next-h">{nextHeading}</h2>
+        <div class="fn-grid">{nextCards.map((c, i) => <FieldTile c={c} i={i} />)}</div>
+      </section>
+    )}
 
     <!-- On this page, pinned to the right edge (Notion-style floating
          contents, built on the parked toc-hover-reveal bar strip): one dash

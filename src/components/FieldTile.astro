@@ -1,0 +1,33 @@
+---
+/* One Field Notes tile: a picture frame with a hover card, and a two-line
+   caption under it. Used by the blog index grid and the "More stories" grid
+   at the end of each post (styles in src/styles/field-tiles.css;
+   blog-fieldnotes.js builds the same markup when the index re-renders). */
+import { RATIOS, caption, partLabel, type FieldCard } from '../data/field-cards';
+interface Props { c: FieldCard; i: number }
+const { c, i } = Astro.props;
+---
+<a class="fn-tile" href={c.href} style={`--r:${RATIOS[i % RATIOS.length]}`}>
+  <div class="fn-pic">
+    {c.img && <img class="art" src={c.img} alt="" loading="lazy" decoding="async" />}
+    <div class="fn-peek" aria-hidden="true">
+      <div class="top">
+        {c.level ? <span class="lvl"><span class="bars" data-n={c.levelN}><i></i><i></i><i></i></span>{c.level}</span> : <span></span>}
+        <span>{c.mins} min read</span>
+      </div>
+      <h4>{c.title}</h4>
+      <p class="desc">{c.desc}</p>
+      <div class="bottom">
+        {c.concepts.length > 0 && <ul class="chips">{c.concepts.slice(0, 3).map((t) => <li>{t}</li>)}</ul>}
+        <div class="foot">
+          {c.series && <span>{partLabel(c)}</span>}
+          <span class="go">Read<span aria-hidden="true">›</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="fn-cap">
+    <h3>{c.title}</h3>
+    <span>{caption(c)}</span>
+  </div>
+</a>

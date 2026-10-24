@@ -334,71 +334,108 @@ document.addEventListener('click', (ev) => {
 })();
 
 /* ── Listen: read the post aloud with the browser's own voice ──
-   The article is read a paragraph at a time (long single utterances stall
-   in Chrome), so pause, speed changes and seeking all restart at a
-   paragraph boundary. The paragraph being read is underlined. ── */
+   The article is spoken a sentence at a time: Chrome's network voices stop
+   mid-utterance after about 15 seconds, and short pieces let pause, speed
+   and seeking pick up exactly where they left off. Progress and time come
+   from a clock that estimates how far into the current sentence the voice
+   is (refined by word-boundary events where the voice sends them). The
+   paragraph being read is underlined. ── */
 (() => {
   const box = document.getElementById('postAudio');
   const synth = window.speechSynthesis;
   if (!box || !synth || typeof SpeechSynthesisUtterance === 'undefined') return;
   const article = document.querySelector('.article-col');
   if (!article) return;
-  const parts = [...article.querySelectorAll('.post-standfirst, .heading-2, .heading-3, .body-text, .lead-list li, .article-col > ol li, .pull-quote p, .callout-detect p')]
+  const blocks = [...article.querySelectorAll('.post-standfirst, .heading-2, .heading-3, .body-text, .lead-list li, .article-col > ol li, .pull-quote p, .callout-detect p')]
     .filter((el) => !el.closest('figure, .dtable, .toc-inline') && el.textContent.trim());
-  if (!parts.length) return;
-  const texts = parts.map((el) => el.textContent.replace(/#$/, '').replace(/\s+/g, ' ').trim());
-  const lens = texts.map((t) => t.length), total = lens.reduce((a, b) => a + b, 0);
-  const before = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
+  // every sentence, with the block it belongs to
+  const chunks = [];
+  blocks.forEach((el, b) => {
+    const text = el.textContent.replace(/#$/, '').replace(/\s+/g, ' ').trim();
+    (text.match(/[^.!?]+(?:[.!?]+["”’)]*|$)\s*/g) || [text]).map((t) => t.trim()).filter(Boolean)
+      .forEach((t) => chunks.push({ t, b }));
+  });
+  if (!chunks.length) return;
+  const CPS = 14.5; // characters spoken per second at 1x, about 150 words a minute
+  const starts = [], total = chunks.reduce((n, c) => { starts.push(n); return n + c.t.length + 1; }, 0);
   const RATES = [1, 1.25, 1.5, 2, 0.75];
-  const lang = box.dataset.lang, es = lang === 'es';
-  const play = document.getElementById('paPlay'), bar = document.getElementById('paBar'), fill = document.getElementById('paFill');
-  const time = document.getElementById('paTime'), speed = document.getElementById('paSpeed');
-  const minutes = time.textContent;
-  let i = 0, rate = 1, playing = false, voice = null;
+  const es = box.dataset.lang === 'es';
+  const $ = (id) => document.getElementById(id);
+  const play = $('paPlay'), bar = $('paBar'), fill = $('paFill'), time = $('paTime'), speed = $('paSpeed');
+  let i = 0, rate = 1, playing = false, voice = null, current = null, t0 = 0, within = 0, boundary = -1;
 
   function pickVoice() {
-    const vs = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith(lang));
-    voice = vs.find((v) => /natural|neural|google|samantha|daniel/i.test(v.name)) || vs[0] || null;
+    const vs = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith(es ? 'es' : 'en'));
+    voice = vs.find((v) => /natural|neural/i.test(v.name)) || vs.find((v) => /google|samantha|daniel|aria|jenny/i.test(v.name)) || vs[0] || null;
   }
   pickVoice();
   if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice);
   box.hidden = false;
 
+  const fmt = (sec) => { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); };
+  // characters read so far
+  function pos() {
+    if (i >= chunks.length) return total;
+    let w = within;
+    if (playing) w = boundary >= 0 ? boundary : Math.min(chunks[i].t.length, within + (performance.now() - t0) / 1000 * CPS * rate);
+    return starts[i] + w;
+  }
   function show() {
-    const pct = Math.min(100, Math.round((before[i] || total) / total * 100));
-    fill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', String(pct));
-    const left = Math.max(0, Math.ceil(parseInt(minutes, 10) * (1 - pct / 100) / rate));
-    time.textContent = pct ? (es ? `quedan ${left} min` : `${left} min left`) : minutes;
-    parts.forEach((el, k) => el.classList.toggle('is-reading', playing && k === i));
+    const p = pos(), whole = total / CPS / rate;
+    fill.style.width = (p / total * 100).toFixed(2) + '%';
+    bar.setAttribute('aria-valuenow', String(Math.round(p / total * 100)));
+    bar.setAttribute('aria-valuetext', fmt(p / CPS / rate) + (es ? ' de ' : ' of ') + fmt(whole));
+    time.textContent = p > 0 ? `${fmt(p / CPS / rate)} / ${fmt(whole)}` : fmt(whole);
+    const b = i < chunks.length ? chunks[i].b : -1;
+    blocks.forEach((el, k) => el.classList.toggle('is-reading', (playing || p > 0) && k === b));
     box.classList.toggle('is-playing', playing);
-    play.setAttribute('aria-label', playing ? (es ? 'Pausa' : 'Pause') : (es ? 'Escuchar este artículo' : 'Listen to this story'));
+    play.setAttribute('aria-label', playing ? (es ? 'Pausa' : 'Pause') : (es ? 'Escuchar' : 'Listen'));
   }
   function speak() {
-    if (i >= parts.length) { i = 0; playing = false; show(); return; }
-    const u = new SpeechSynthesisUtterance(texts[i]);
-    u.rate = rate; if (voice) u.voice = voice; u.lang = voice ? voice.lang : lang;
-    u.onend = () => { if (!playing || u !== current) return; i++; show(); speak(); };
-    current = u; synth.speak(u); show();
+    if (i >= chunks.length) { playing = false; i = 0; within = 0; show(); return; }
+    const c = chunks[i], text = c.t.slice(Math.floor(within));
+    const u = new SpeechSynthesisUtterance(text);
+    const offset = Math.floor(within);
+    u.rate = rate; if (voice) u.voice = voice; u.lang = voice ? voice.lang : (es ? 'es-ES' : 'en-US');
+    u.onstart = () => { if (u === current) t0 = performance.now(); };
+    u.onboundary = (e) => { if (u === current && e.name !== 'sentence') boundary = offset + e.charIndex; };
+    u.onend = () => { if (u !== current || !playing) return; i++; within = 0; boundary = -1; t0 = performance.now(); speak(); };
+    current = u; t0 = performance.now(); boundary = -1;
+    synth.speak(u);
   }
-  let current = null;
-  function stop() { current = null; synth.cancel(); }
-  function start() { stop(); playing = true; speak(); }
+  // Chrome sometimes drops a speak() that follows cancel() at once
+  function startAt(chunk, offset) {
+    current = null; synth.cancel();
+    i = Math.max(0, Math.min(chunks.length - 1, chunk)); within = offset || 0; boundary = -1;
+    if (playing) setTimeout(speak, 60);
+    show();
+  }
+  // the start of the word being spoken
+  const wordAt = () => Math.max(0, chunks[i].t.lastIndexOf(' ', pos() - starts[i]) + 1);
+  function pause() { within = wordAt(); playing = false; current = null; synth.cancel(); show(); }
+  function seekTo(chars) {
+    let k = starts.findIndex((s, n) => s + chunks[n].t.length >= chars);
+    if (k < 0) k = chunks.length - 1;
+    // start at the beginning of that sentence, so no word is cut in half
+    startAt(k, 0);
+  }
 
-  play.addEventListener('click', () => { if (playing) { playing = false; stop(); show(); } else start(); });
+  play.addEventListener('click', () => { if (playing) pause(); else { playing = true; startAt(i, within); } });
+  $('paBack').addEventListener('click', () => seekTo(pos() - 15 * CPS * rate - 1));
+  $('paFwd').addEventListener('click', () => seekTo(pos() + 15 * CPS * rate));
   speed.addEventListener('click', () => {
+    const at = i < chunks.length ? wordAt() : 0;
     rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
     speed.textContent = rate + '×';
-    if (playing) start(); else show();
+    // carry on from the same word at the new speed
+    if (playing) startAt(i, at); else show();
   });
-  function seek(pct) {
-    const at = pct * total;
-    i = Math.max(0, before.findIndex((b, k) => b + lens[k] > at));
-    if (playing) start(); else show();
-  }
-  bar.addEventListener('click', (e) => { const r = bar.getBoundingClientRect(); seek((e.clientX - r.left) / r.width); });
+  bar.addEventListener('click', (e) => { const r = bar.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width * total); });
   bar.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') { i = Math.min(parts.length - 1, i + 1); if (playing) start(); else show(); e.preventDefault(); }
-    if (e.key === 'ArrowLeft') { i = Math.max(0, i - 1); if (playing) start(); else show(); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { seekTo(pos() + 15 * CPS * rate); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { seekTo(pos() - 15 * CPS * rate - 1); e.preventDefault(); }
   });
-  addEventListener('pagehide', stop);
+  setInterval(() => { if (playing) show(); }, 250);
+  addEventListener('pagehide', () => { current = null; synth.cancel(); });
+  show();
 })();
