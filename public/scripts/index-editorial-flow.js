@@ -1,7 +1,6 @@
 /* Homepage editorial-flow widgets: CISA KEV live ticker, Beliefs scroll-reveal,
    cert badges marquee, threat-intel feed, DDoS-targets tile, and the MITRE
-   ATT&CK technique spotlight. Extracted from an inline <script> block, matching
-   every other homepage widget already split out (index-logo-glitch.js, etc.). */
+   ATT&CK technique spotlight. Extracted from an inline <script> block. */
 (function(){
   var KEV='/api/kev';
   var track=document.getElementById('ed-track');

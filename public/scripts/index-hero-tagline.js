@@ -1,5 +1,4 @@
-/* Hero tagline "protected" idle glitch (monochrome char-scramble), same
-   technique as index-logo-glitch.js. Only runs while the CRT hero is
+/* Hero tagline "protected" idle glitch (monochrome char-scramble), Only runs while the CRT hero is
    actually on screen and the tab is visible. */
 (function(){
   "use strict";
