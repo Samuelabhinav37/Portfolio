@@ -287,7 +287,6 @@ html.is-scrolled #topbar-scrim {
 .article-col {
   grid-column: 1; grid-row: 1; min-width: 0; /* grid items refuse to shrink below a long code line otherwise */
   font-family: var(--font-body); font-size: var(--t-body); line-height: 30px; color: var(--ink);
-  counter-reset: fig tbl;
 }
 
 /* ── Body ── */
@@ -371,14 +370,8 @@ html.is-scrolled #topbar-scrim {
 /* figures, tables and code blocks reach past the text column and get room
    above and below (Surface gives its pictures about 56px either side) */
 .post-figure, .code-wrap, .article-col > table { width: min(var(--w-wide-fig), calc(100vw - 96px)); margin: 56px 0 56px 50%; translate: -50% 0; }
-.post-figure.is-figure { counter-increment: fig; }
-.post-figure.is-table { counter-increment: tbl; }
 .post-figure figcaption { margin-top: 8px; font-family: var(--font-sans); font-size: 12px; line-height: 18px; font-weight: 500; color: var(--ink-faint); }
 .fig-credit { display: block; margin-top: 2px; }
-.post-figure.is-figure figcaption::before { content: 'Figure ' counter(fig) '. '; color: var(--ink-dim); }
-.post-figure.is-table figcaption::before { content: 'Table ' counter(tbl) '. '; color: var(--ink-dim); }
-:lang(es) .post-figure.is-figure figcaption::before { content: 'Figura ' counter(fig) '. '; }
-:lang(es) .post-figure.is-table figcaption::before { content: 'Tabla ' counter(tbl) '. '; }
 .plate { border: 1px solid var(--rule); border-radius: 10px; background: #0a0b10; overflow: hidden; }
 .plate-in { padding: 22px 22px 14px; overflow-x: auto; }
 /* diagrams keep their drawn size; the wider frame gives them room, not bigger text */
