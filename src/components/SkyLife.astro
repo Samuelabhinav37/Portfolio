@@ -21,29 +21,35 @@
  * The layer is fixed between the sky and the page content (.field-wrap is
  * z-index 40) and never takes pointer events.
  *
- * `jelliesOnly` leaves out both lilies: the blog index borrows just the
- * jellyfish and their stars.
+ * `cast` swaps all of this for the blog's sky cast (/scripts/sky-cast-life.js):
+ * jellyfish, a whale, mantas, a turtle, fish and sea stars in the same digit
+ * style, with soft stars and bubbles, and no lilies.
  */
 interface Props {
-  jelliesOnly?: boolean;
+  cast?: boolean;
 }
-const { jelliesOnly } = Astro.props;
+const { cast } = Astro.props;
 ---
 
-<div class="sky-life" aria-hidden="true">
-  {!jelliesOnly && (
-    <>
+{cast ? (
+  <>
+    <div class="sky-life" aria-hidden="true"></div>
+    <script is:inline defer src="/scripts/sky-cast-life.js"></script>
+  </>
+) : (
+  <>
+    <div class="sky-life" aria-hidden="true">
       <img class="life-xray" src="/images/contact-lilies-xray.webp" alt="" width="738" height="1000" decoding="async" loading="lazy" />
       <video class="life-lilies" muted loop playsinline preload="none" poster="/images/contact-lilies-poster.webp" data-sky-video>
         <source src="/videos/contact-lilies.webm" type="video/webm" />
         <source src="/videos/contact-lilies.mp4" type="video/mp4" />
       </video>
-    </>
-  )}
-  <div id="life-jellies"></div>
-  <svg id="life-sky"></svg>
-</div>
-<script is:inline defer src="/scripts/sky-life.js"></script>
+      <div id="life-jellies"></div>
+      <svg id="life-sky"></svg>
+    </div>
+    <script is:inline defer src="/scripts/sky-life.js"></script>
+  </>
+)}
 
 <style>
   .sky-life{ position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; mix-blend-mode:screen; }
@@ -87,4 +93,18 @@ const { jelliesOnly } = Astro.props;
     background:#000; opacity:0.85; will-change:transform; }
   :global(.life-star){ position:absolute; display:block; aspect-ratio:1; background:#000;
     transform:translate(-50%, -50%); }
+
+  /* the blog's sky cast (sky-cast-life.js builds these) */
+  :global(.sc-layer){ position:absolute; inset:0; overflow:hidden; }
+  :global(.sc-jelly){ position:absolute; left:0; top:0; display:block; height:auto; aspect-ratio:240 / 420;
+    background:#000; mix-blend-mode:screen; opacity:0; will-change:transform, opacity; }
+  /* soft points of light that brighten and dim, each at its own pace */
+  :global(.sc-star){ position:absolute; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,249,236,1) 0, rgba(255,246,228,.45) 25%, rgba(255,246,228,0) 70%);
+    animation:sc-twinkle var(--d) ease-in-out var(--o) infinite alternate; }
+  @keyframes sc-twinkle{ from{ opacity:var(--lo); } to{ opacity:var(--hi); } }
+  :global(.sc-bubble){ position:absolute; border:.8px solid rgba(236,223,200,.6); border-radius:50%;
+    animation:sc-rise var(--d) linear forwards; }
+  @keyframes sc-rise{ 0%{ opacity:0; transform:translate(0, 0); } 50%{ opacity:1; } 100%{ opacity:0; transform:translate(var(--dx), -45px); } }
+  @media (prefers-reduced-motion: reduce){ :global(.sc-star){ animation:none; opacity:var(--hi); } }
 </style>

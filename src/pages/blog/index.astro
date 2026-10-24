@@ -166,11 +166,18 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{ou
 /* ── title + search ── */
 .fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
   padding:clamp(120px,15vw,170px) max(20px, env(safe-area-inset-right, 0px)) 4px max(20px, env(safe-area-inset-left, 0px))}
-.fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(64px,11vw,132px);line-height:.95;letter-spacing:-.01em;
+/* the title keeps one serif moment, with the number of posts beside it like
+   a shop menu's count and one quiet line of small capitals under it */
+.fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(72px,12vw,148px);line-height:.9;letter-spacing:-.03em;
   color:#eef2fb;text-align:center;text-wrap:balance;
-  text-shadow:0 0 24px rgba(143,179,255,.28),0 0 70px rgba(110,150,240,.22);
+  /* the glow is a filter on the whole heading, not a text-shadow: the line
+     reveal clips each line, and a clipped shadow showed as a box */
+  filter:drop-shadow(0 0 24px rgba(143,179,255,.28)) drop-shadow(0 0 70px rgba(110,150,240,.22));
   animation:fnDrift 9s ease-in-out infinite}
 .fn-title em{font-style:italic;color:#cdd9f7}
+.fn-title sup{font:500 .16em/1 var(--grot);letter-spacing:0;vertical-align:top;position:relative;top:.35em;margin-left:.12em;color:#c9d6ff}
+.fn-tag{margin-top:-14px;font:600 11px/1 var(--grot);letter-spacing:.24em;text-transform:uppercase;text-align:center;
+  color:rgba(226,232,250,.8);text-shadow:0 1px 8px rgba(3,6,16,.7)}
 @keyframes fnDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .fn-search{width:min(900px,100%);display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px}
 .fn-field{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;background:var(--field);
@@ -338,7 +345,7 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 <!-- An open sky (full clouds, no blur over them) in the lighter tone with
      whiter clouds, and the contact page's jellyfish drifting through it. -->
 <SkyBackground tone="bright" />
-<SkyLife jelliesOnly />
+<SkyLife cast />
 
 <SiteMenu currentPath="/blog" />
 
@@ -347,7 +354,8 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 <main class="fn" id="main">
   <section class="fn-hero" aria-labelledby="fn-title">
-    <h1 class="fn-title" id="fn-title" data-reveal="lines">Field <em>Notes</em></h1>
+    <h1 class="fn-title" id="fn-title" data-reveal="lines">Field <em>Notes</em><sup aria-hidden="true">({cards.length})</sup></h1>
+    <p class="fn-tag" data-reveal>On security, from the start</p>
     <div class="fn-search" role="search" data-reveal>
       <label class="fn-field" for="fn-q">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
