@@ -366,7 +366,7 @@ html.is-scrolled #topbar-scrim {
 .mnote-sub { display: block; margin-top: 4px; font-family: var(--font-sans); font-size: 13px; line-height: 20px; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
 .mnote-tag { display: inline-block; margin-top: 8px; padding: 1px 6px; border: 1px solid var(--rule-strong); border-radius: 4px; color: var(--ink-faint); }
 
-/* ── Figures and tables (numbered by the counters on .article-col) ── */
+/* ── Figures and tables ── */
 /* figures, tables and code blocks reach past the text column and get room
    above and below (Surface gives its pictures about 56px either side) */
 .post-figure, .code-wrap, .article-col > table { width: min(var(--w-wide-fig), calc(100vw - 96px)); margin: 56px 0 56px 50%; translate: -50% 0; }
