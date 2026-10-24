@@ -332,3 +332,73 @@ document.addEventListener('click', (ev) => {
     document.documentElement.classList.toggle('is-scrolled', !es[0].isIntersecting);
   }).observe(s);
 })();
+
+/* ── Listen: read the post aloud with the browser's own voice ──
+   The article is read a paragraph at a time (long single utterances stall
+   in Chrome), so pause, speed changes and seeking all restart at a
+   paragraph boundary. The paragraph being read is underlined. ── */
+(() => {
+  const box = document.getElementById('postAudio');
+  const synth = window.speechSynthesis;
+  if (!box || !synth || typeof SpeechSynthesisUtterance === 'undefined') return;
+  const article = document.querySelector('.article-col');
+  if (!article) return;
+  const parts = [...article.querySelectorAll('.post-standfirst, .heading-2, .heading-3, .body-text, .lead-list li, .article-col > ol li, .pull-quote p, .callout-detect p')]
+    .filter((el) => !el.closest('figure, .dtable, .toc-inline') && el.textContent.trim());
+  if (!parts.length) return;
+  const texts = parts.map((el) => el.textContent.replace(/#$/, '').replace(/\s+/g, ' ').trim());
+  const lens = texts.map((t) => t.length), total = lens.reduce((a, b) => a + b, 0);
+  const before = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
+  const RATES = [1, 1.25, 1.5, 2, 0.75];
+  const lang = box.dataset.lang, es = lang === 'es';
+  const play = document.getElementById('paPlay'), bar = document.getElementById('paBar'), fill = document.getElementById('paFill');
+  const time = document.getElementById('paTime'), speed = document.getElementById('paSpeed');
+  const minutes = time.textContent;
+  let i = 0, rate = 1, playing = false, voice = null;
+
+  function pickVoice() {
+    const vs = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith(lang));
+    voice = vs.find((v) => /natural|neural|google|samantha|daniel/i.test(v.name)) || vs[0] || null;
+  }
+  pickVoice();
+  if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice);
+  box.hidden = false;
+
+  function show() {
+    const pct = Math.min(100, Math.round((before[i] || total) / total * 100));
+    fill.style.width = pct + '%'; bar.setAttribute('aria-valuenow', String(pct));
+    const left = Math.max(0, Math.ceil(parseInt(minutes, 10) * (1 - pct / 100) / rate));
+    time.textContent = pct ? (es ? `quedan ${left} min` : `${left} min left`) : minutes;
+    parts.forEach((el, k) => el.classList.toggle('is-reading', playing && k === i));
+    box.classList.toggle('is-playing', playing);
+    play.setAttribute('aria-label', playing ? (es ? 'Pausa' : 'Pause') : (es ? 'Escuchar este artículo' : 'Listen to this story'));
+  }
+  function speak() {
+    if (i >= parts.length) { i = 0; playing = false; show(); return; }
+    const u = new SpeechSynthesisUtterance(texts[i]);
+    u.rate = rate; if (voice) u.voice = voice; u.lang = voice ? voice.lang : lang;
+    u.onend = () => { if (!playing || u !== current) return; i++; show(); speak(); };
+    current = u; synth.speak(u); show();
+  }
+  let current = null;
+  function stop() { current = null; synth.cancel(); }
+  function start() { stop(); playing = true; speak(); }
+
+  play.addEventListener('click', () => { if (playing) { playing = false; stop(); show(); } else start(); });
+  speed.addEventListener('click', () => {
+    rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
+    speed.textContent = rate + '×';
+    if (playing) start(); else show();
+  });
+  function seek(pct) {
+    const at = pct * total;
+    i = Math.max(0, before.findIndex((b, k) => b + lens[k] > at));
+    if (playing) start(); else show();
+  }
+  bar.addEventListener('click', (e) => { const r = bar.getBoundingClientRect(); seek((e.clientX - r.left) / r.width); });
+  bar.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { i = Math.min(parts.length - 1, i + 1); if (playing) start(); else show(); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { i = Math.max(0, i - 1); if (playing) start(); else show(); e.preventDefault(); }
+  });
+  addEventListener('pagehide', stop);
+})();

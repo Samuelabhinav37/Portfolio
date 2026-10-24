@@ -287,6 +287,24 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     </header>
     {d.heroCredit && <p class="post-credit">{d.heroCredit}</p>}
 
+    <!-- Listen: reads the post aloud with the browser's own voice, a
+         paragraph at a time (blog-client.js). Hidden where the browser has
+         no speech voice. -->
+    <div class="post-audio" id="postAudio" hidden data-lang={lang === 'es' ? 'es' : 'en'}>
+      <button type="button" class="pa-play" id="paPlay" aria-label={lang === 'es' ? 'Escuchar este artículo' : 'Listen to this story'}>
+        <svg class="pa-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+        <svg class="pa-i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+      </button>
+      <div class="pa-main">
+        <div class="pa-top">
+          <span class="pa-label">{lang === 'es' ? 'Escuchar este artículo' : 'Listen to this story'}</span>
+          <span class="pa-time" id="paTime">{readTime} min</span>
+        </div>
+        <div class="pa-bar" id="paBar" role="slider" tabindex="0" aria-label={lang === 'es' ? 'Progreso' : 'Progress'} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="paFill"></span></div>
+      </div>
+      <button type="button" class="pa-speed" id="paSpeed" aria-label={lang === 'es' ? 'Velocidad' : 'Playback speed'}>1×</button>
+    </div>
+
     <div class="container">
       <!-- Language notice — Cloudflare-blog-style: a plain, always-visible
            line right under the hero, only rendered when a translation of
