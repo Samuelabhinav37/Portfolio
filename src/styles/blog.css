@@ -169,6 +169,7 @@ html.is-scrolled #topbar-scrim {
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
   --w-text: 720px;
+  --w-pic: 600px; /* the header picture's largest width */
   --w-wide: 1312px;
 }
 /* The one label style, used everywhere a label appears (Vogue's rubric and byline). */
@@ -192,7 +193,7 @@ html.is-scrolled #topbar-scrim {
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
 .post-hero-pic { padding: 32px; display: flex; justify-content: center; }
-.post-hero-pic img { display: block; width: 100%; max-width: 540px; height: auto; }
+.post-hero-pic img { display: block; width: 100%; max-width: var(--w-pic); height: auto; }
 .post-hero-text {
   justify-self: center; width: min(500px, 100%); padding: 32px 24px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
