@@ -13,7 +13,6 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
-import SkyBackground from '../components/SkyBackground.astro';
 import { srcsetWith, variant, webpDims } from '../image-variant';
 
 interface Props {
@@ -263,8 +262,6 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </ul>
     </nav>
 
-    <SkyBackground calm tone="bright" />
-
     <!-- Header, after Vogue's split-screen article header: the page split
          in half, the picture in the left half (32px clear all round), and in the right half, centred in the
          open space, the topic label, headline, the series line where Vogue
@@ -303,7 +300,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </a>
       )}
 
-      <!-- The 640px text column, centred, the open space to its right
+      <!-- The 720px text column, centred, the open space to its right
            holding the margin notes (.mnote). The share button sits at the
            screen's left edge, where Vogue keeps its bookmark. -->
       <div class="post-grid">
@@ -354,7 +351,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
                     ? <img src={variant(p.data.heroImage, 800)} alt="" loading="lazy" decoding="async" />
                     : <div class="story-image-ph" aria-hidden="true"></div>}
                 </div>
-                <span class="next-date">{partOf(p.id) ? partLabel(partOf(p.id)) : cardDate(p.data.pubDate)}</span>
+                <span class="next-date">{cardDate(p.data.pubDate)}</span>
                 <span class="next-title">{p.data.title}</span>
               </a>
             ))}

@@ -150,7 +150,7 @@ html.is-scrolled #topbar-scrim {
                uppercase, 1.8px tracking. The headline is the same face at
                42/50 (36/43 on phones), 600, centred.
      Body      EB Garamond (for Adobe Garamond Pro) 20/30, in a centred
-               640px column.
+               720px column (Vogue's 640, a little wider).
      Headings  GFS Didot (for FB Didot) 32/36 (28/32 on phones).
      Lists     indented 48px with round bullets; the contents list 64px.
    Code and data keep JetBrains Mono. Figures, tables and callouts share
@@ -168,12 +168,12 @@ html.is-scrolled #topbar-scrim {
   --rule: rgba(200,206,218,0.16);
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
-  --w-text: 640px;
+  --w-text: 720px;
   --w-wide: 1312px;
 }
 /* The one label style, used everywhere a label appears (Vogue's rubric and byline). */
 .post-cat, .post-series, .etoc-h, .mnote-day, .mnote-tag,
-.copy-btn, .callout-detect-label, .dtable th, .plate-foot, .faq-kicker, .next-date,
+.copy-btn, .callout-detect-label, .dtable th, .plate-foot, .faq-kicker,
 .lang-notice, .heading-3, .post-share-label {
   font-family: var(--font-sans); font-size: 12px; font-weight: 600;
   letter-spacing: 1.8px; text-transform: uppercase; line-height: 16px;
@@ -192,7 +192,7 @@ html.is-scrolled #topbar-scrim {
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
 .post-hero-pic { padding: 32px; display: flex; justify-content: center; }
-.post-hero-pic img { display: block; width: 100%; height: auto; }
+.post-hero-pic img { display: block; width: 100%; max-width: 540px; height: auto; }
 .post-hero-text {
   justify-self: center; width: min(500px, 100%); padding: 32px 24px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -233,7 +233,7 @@ html.is-scrolled #topbar-scrim {
 .lang-notice:hover { color: var(--ink-strong); border-color: var(--rule-strong); }
 .lang-notice__icon { width: 15px; height: 15px; flex: none; opacity: 0.75; }
 
-/* ── Grid: the 640px text column, centred ── */
+/* ── Grid: the 720px text column, centred ── */
 .post-grid {
   position: relative; display: grid; grid-template-columns: minmax(0, var(--w-text)); justify-content: center;
   padding-top: 64px;
@@ -443,20 +443,20 @@ button.faq-q { width: 100%; text-align: left; background: none; border: none; }
 button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outline-offset: 4px; }
 
 /* ── End of post: next in series ── */
-.post-next { max-width: var(--w-wide); margin: 96px auto 112px; }
-/* a full-width band between two hairlines, like Vogue's "Read more" */
-.post-next-h {
-  font-family: var(--font-sans); font-weight: 400; font-size: 22px; line-height: 28px; letter-spacing: 1.5px; text-transform: uppercase;
-  text-align: center; color: var(--ink-strong); padding: 12px 0; margin-bottom: 16px;
-  border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong);
+/* As in production: a mono label under a hairline, three framed 3:2 pictures,
+   each with its month in mono and its title in the system sans. */
+.post-next { max-width: 1184px; margin: 80px auto 96px; padding-top: 28px; border-top: 1px solid var(--rule); }
+.post-next-h, .next-date {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.4;
+  color: var(--ink-faint);
 }
-.post-next-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
-.next-card { display: grid; gap: 0; align-content: start; text-decoration: none; color: inherit; min-width: 0; }
-.next-img { aspect-ratio: 1; overflow: hidden; background: #0a0b10; }
+.post-next-h { margin-bottom: 16px; }
+.post-next-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.next-card { display: grid; gap: 10px; align-content: start; text-decoration: none; color: inherit; min-width: 0; }
+.next-img { aspect-ratio: 3 / 2; border-radius: 6px; overflow: hidden; border: 1px solid var(--rule); background: #0a0b10; }
 .next-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
 .next-card:hover .next-img img { transform: scale(1.02); }
-.next-date { color: var(--ink-strong); margin-top: 16px; font-size: 13px; }
-.next-title { margin-top: 8px; font-family: var(--font-sans); font-weight: 500; font-size: 18px; line-height: 22px; color: var(--ink-strong); }
+.next-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 600; font-size: 18px; line-height: 1.35; color: var(--ink-strong); }
 .story-image-ph {
   width: 100%; height: 100%; min-height: 120px;
   background: radial-gradient(circle at 30% 30%, rgba(var(--c-white),0.06), transparent 60%), linear-gradient(145deg, rgba(20,20,28,1), rgba(10,10,16,1));
