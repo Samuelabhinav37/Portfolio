@@ -439,3 +439,32 @@ document.addEventListener('click', (ev) => {
   addEventListener('pagehide', () => { current = null; synth.cancel(); });
   show();
 })();
+
+/* ── More stories: slide the row sideways as the page scrolls past it ──
+   The section is made exactly as tall as the row is wide (plus a screen), and
+   its inside is pinned, so each pixel scrolled down moves the row a pixel
+   left. Phones and reduced motion get a row to swipe instead. ── */
+(() => {
+  const sec = document.getElementById('postMore');
+  if (!sec) return;
+  const track = sec.querySelector('.pm-track');
+  const swipe = matchMedia('(max-width: 760px), (prefers-reduced-motion: reduce)');
+  let travel = 0, ticking = false;
+  function size() {
+    sec.classList.toggle('is-swipe', swipe.matches);
+    if (swipe.matches) { sec.style.height = ''; track.style.transform = ''; return; }
+    travel = Math.max(0, track.scrollWidth - innerWidth);
+    sec.style.height = innerHeight + travel + 'px';
+    slide();
+  }
+  function slide() {
+    ticking = false;
+    if (swipe.matches) return;
+    const p = Math.min(1, Math.max(0, -sec.getBoundingClientRect().top / Math.max(1, travel)));
+    track.style.transform = `translate3d(${-p * travel}px,0,0)`;
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(slide); } }, { passive: true });
+  addEventListener('resize', size);
+  swipe.addEventListener('change', size);
+  size();
+})();

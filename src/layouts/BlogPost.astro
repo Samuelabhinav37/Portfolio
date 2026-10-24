@@ -13,7 +13,7 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
-import { srcsetWith, variant, webpDims } from '../image-variant';
+import { ogVariant, srcsetWith, variant, webpDims } from '../image-variant';
 import FieldTile from '../components/FieldTile.astro';
 import { fieldCards } from '../data/field-cards';
 import '../styles/field-tiles.css';
@@ -57,15 +57,22 @@ let nextPosts = [
   ...siblings.filter((p) => p.data.pubDate >= d.pubDate).sort(byDate),
   ...siblings.filter((p) => p.data.pubDate < d.pubDate).sort((a, b) => byDate(b, a)),
 ].slice(0, 3);
-let nextHeading = series ? i18n.nextIn(series) : i18n.moreFromBlog;
-if (!nextPosts.length) {
-  nextPosts = [...others].sort((a, b) => byDate(b, a)).slice(0, 3);
-  nextHeading = i18n.moreFromBlog;
-}
+if (!nextPosts.length) nextPosts = [...others].sort((a, b) => byDate(b, a)).slice(0, 3);
 // the next posts as Field Notes tiles, from the same card data as the blog index
 const listed = await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/'));
 const cardById = new Map(fieldCards(listed).map((c) => [c.id, c]));
 const nextCards = nextPosts.map((p) => cardById.get(p.id)).filter((c) => !!c);
+// the scrolling "More stories" row: this series in reading order first, then
+// every other post, newest first
+const moreCards = [
+  ...nextCards,
+  ...[...listed].sort((a, b) => byDate(b, a)).map((p) => cardById.get(p.id)!).filter((c) => c.id !== ownId && !nextCards.includes(c)),
+];
+// the bottom bar: the posts published just before and after this one
+const byDateAll = [...listed].sort(byDate);
+const at = byDateAll.findIndex((p) => p.id === ownId);
+const prevPost = at > 0 ? byDateAll[at - 1] : null;
+const nextPost = at >= 0 && at < byDateAll.length - 1 ? byDateAll[at + 1] : null;
 // Series parts, numbered by publish date oldest first, as on the blog index.
 const run = siblings.length ? [...siblings, post].sort(byDate) : [];
 const partOf = (id: string) => run.findIndex((p) => p.id.replace(/^[a-z]{2}\//, '') === id) + 1;
@@ -87,7 +94,8 @@ const xDefaultUrl = lang === 'en' ? canonicalUrl : altUrl;
 /* Share image: explicit ogImage, else the card crop (also used as the "More
    stories" thumbnail), else the hero crop. No hardcoded /og/ path — that
    folder was never populated, so it silently broke every share preview. */
-const ogImageSrc = d.ogImage ?? d.cardImage ?? d.heroImage;
+const ogImageSrc = d.ogImage ?? ogVariant(d.heroImage) ?? d.cardImage ?? d.heroImage;
+const ogIsPreview = !d.ogImage && ogImageSrc === ogVariant(d.heroImage);
 const ogImage = ogImageSrc ? new URL(ogImageSrc, Astro.site).href : undefined;
 // Share dialog preview always shows the post's own hero image (what the
 // reader actually saw at the top of the article), independent of the
@@ -185,10 +193,19 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <meta property="og:site_name" content={`${SITE.author} · ${SITE.publication}`} />
     <meta property="og:url" content={canonicalUrl} />
     {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && ogIsPreview && <meta property="og:image:width" content="1200" />}
+    {ogImage && ogIsPreview && <meta property="og:image:height" content="630" />}
+    {ogImage && ogIsPreview && <meta property="og:image:type" content="image/jpeg" />}
+    {ogImage && d.heroImageAlt && <meta property="og:image:alt" content={d.heroImageAlt} />}
+    <meta property="og:locale" content={lang === 'es' ? 'es_ES' : 'en_US'} />
+    <meta property="article:published_time" content={pubIso} />
+    <meta property="article:modified_time" content={modIso} />
+    <meta property="article:section" content={d.category} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={d.title} />
     <meta name="twitter:description" content={d.description} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
+    {ogImage && d.heroImageAlt && <meta name="twitter:image:alt" content={d.heroImageAlt} />}
     <link rel="canonical" href={canonicalUrl} />
     {altUrl && (
       <>
@@ -374,13 +391,27 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     </div><!-- /.container -->
 
-    <!-- More stories, in the blog index's own tiles and grid, edge to edge -->
-    {nextCards.length > 0 && (
-      <section class="post-next fn-vars" aria-labelledby="post-next-h">
-        <h2 class="post-next-h" id="post-next-h">{nextHeading}</h2>
-        <div class="fn-grid">{nextCards.map((c, i) => <FieldTile c={c} i={i} />)}</div>
+    <!-- More stories: every other post in the blog index's tiles, in one row
+         that slides sideways as you scroll down past it (blog-client.js).
+         Phones and reduced motion get a row you swipe instead. -->
+    {moreCards.length > 0 && (
+      <section class="post-next fn-vars" id="postMore" aria-labelledby="post-next-h">
+        <div class="pm-pin">
+          <h2 class="post-next-h" id="post-next-h">{i18n.moreFromBlog}</h2>
+          <div class="pm-view"><div class="pm-track">{moreCards.map((c, i) => <FieldTile c={c} i={i} />)}</div></div>
+        </div>
       </section>
     )}
+
+    <!-- The bottom bar, always there: back to all stories, or on to the post
+         published before or after this one -->
+    <nav class="post-bar" aria-label={lang === 'es' ? 'Artículos' : 'Stories'}>
+      <a href={SITE.links.blogIndex}>{lang === 'es' ? 'Todos los artículos' : 'All stories'}</a>
+      <span class="post-bar-pn">
+        {prevPost ? <a href={`/blog/${prevPost.id}/`} title={prevPost.data.title} rel="prev">{lang === 'es' ? 'Anterior' : 'Previous'}</a> : <span aria-disabled="true">{lang === 'es' ? 'Anterior' : 'Previous'}</span>}
+        {nextPost ? <a href={`/blog/${nextPost.id}/`} title={nextPost.data.title} rel="next">{lang === 'es' ? 'Siguiente' : 'Next'}</a> : <span aria-disabled="true">{lang === 'es' ? 'Siguiente' : 'Next'}</span>}
+      </span>
+    </nav>
 
     <!-- On this page, pinned to the right edge (Notion-style floating
          contents, built on the parked toc-hover-reveal bar strip): one dash

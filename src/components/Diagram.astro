@@ -19,7 +19,6 @@
  * Edge labels sit above horizontal edges and to the right of vertical ones
  * (labelPos overrides). "\n" in a label starts a new line.
  */
-import { SITE } from '../config';
 
 type Tone = 'flaw' | 'muted';
 interface DNode { id: string; label: string; sub?: string; col: number; row: number; span?: number; tone?: Tone }
@@ -39,8 +38,10 @@ interface Props {
   rowGap?: number;
   /** Cap on node width in px (viewBox units). Default 210. */
   maxNodeWidth?: number;
+  /** Only for a figure that isn't our own: e.g. "Courtesy of MITRE". */
+  credit?: string;
 }
-const { nodes, edges = [], groups = [], caption, alt, rowGap = 64, maxNodeWidth = 210 } = Astro.props;
+const { nodes, edges = [], groups = [], caption, alt, rowGap = 64, maxNodeWidth = 210, credit } = Astro.props;
 
 const W = 660;
 const cols = Math.max(...nodes.map((n) => n.col + (n.span ?? 1)));
@@ -127,7 +128,6 @@ const bottom = Math.max(
   ...drawn.map((e) => e.ly + 6),
 );
 const H = Math.ceil(bottom + 12);
-const site = new URL(SITE.links.portfolio).hostname;
 const r = (n: number) => Math.round(n * 10) / 10;
 ---
 
@@ -172,7 +172,6 @@ const r = (n: number) => Math.round(n * 10) / 10;
         ))}
       </svg>
     </div>
-    <div class="plate-foot"><span>{site}</span><span class="plate-n" aria-hidden="true"></span></div>
   </div>
-  <figcaption set:html={caption} />
+  <figcaption><span set:html={caption} />{credit && <span class="fig-credit">{credit}</span>}</figcaption>
 </figure>

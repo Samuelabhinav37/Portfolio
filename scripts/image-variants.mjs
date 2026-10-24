@@ -61,4 +61,18 @@ for (const name of await readdir(IMAGES_PATH, { recursive: true })) {
     written++;
   }
 }
+// Link previews: a 1200x630 JPEG beside each header picture (name.og.jpg).
+// WhatsApp only shows a preview image under about 300KB, and not every app
+// reads WebP, so these are JPEG, cropped to the 1.91:1 shape every platform
+// expects (LinkedIn, X, Facebook, Slack, iMessage, WhatsApp).
+for (const name of await readdir(IMAGES_PATH, { recursive: true })) {
+  if (!/-hero\.webp$/.test(name)) continue;
+  const src = path.join(IMAGES_PATH, name);
+  const out = path.join(IMAGES_PATH, name.replace(/\.webp$/, '.og.jpg'));
+  if ((await mtime(out)) >= (await mtime(src))) { kept++; continue; }
+  let q = 82, buf;
+  do { buf = await sharp(src).resize(1200, 630, { fit: 'cover' }).jpeg({ quality: q, mozjpeg: true }).toBuffer(); q -= 8; } while (buf.length > 280_000 && q > 40);
+  await sharp(buf).toFile(out);
+  written++;
+}
 console.log(`image-variants: ${written} written, ${kept} up to date.`);
