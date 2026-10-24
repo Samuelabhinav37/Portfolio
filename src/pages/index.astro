@@ -826,8 +826,12 @@ footer#site-footer{
 .pw-img img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
   transition:transform 1.2s var(--ease-out); }
 .pw-tile:hover .pw-img img, .pw-tile:focus-visible .pw-img img{ transform:scale(1.025); }
-#sec-moat .pw-img img{ object-position:100% 50%; }
-#sec-cluster .pw-img img{ object-position:55% 60%; }
+/* Moat and Cluster show their logo centred on the tile; Sentinel holds a
+   placeholder until it has a real screenshot. */
+.pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
+.pw-img--logo img{ position:static; width:clamp(64px,13%,150px); height:auto; }
+.pw-tile--small .pw-img--logo img{ width:clamp(48px,20%,110px); }
+.pw-img--todo span{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(226,232,244,.35); }
 .pw-cap{ margin-top:clamp(14px,1.6vw,22px); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 .pw-name{ display:block; font-size:clamp(15px,1.15vw,18px); color:rgba(226,232,244,.7); margin-bottom:6px; }
 .pw-line{ display:block; max-width:44ch; font-size:clamp(18px,1.6vw,24px); line-height:1.25; letter-spacing:-.01em; color:#f3f5fb; text-wrap:pretty; }
@@ -850,15 +854,15 @@ footer#site-footer{
     </div>
     <div class="pw-grid" data-reveal-group>
       <a class="pw-tile pw-tile--big" id="sec-moat" href="/moat/">
-        <figure class="pw-img"><img src="/images/projects/moat-hero.webp" srcset="/images/projects/moat-hero.w800.webp 800w, /images/projects/moat-hero.webp 1500w" sizes="(max-width: 900px) 94vw, 64vw" alt="Moat's popup over a WIRED article, showing 14 ads and trackers blocked on the page." loading="lazy" decoding="async"></figure>
+        <figure class="pw-img pw-img--logo"><img src="/images/projects/moat-logo.svg" alt="Moat logo" width="32" height="32" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
       <a class="pw-tile pw-tile--small" id="sec-sentinel" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">
-        <figure class="pw-img"><img src="/images/projects/sentinel-hero.svg" alt="Schematic of Sentinel's pipeline: an attack produces telemetry, Elastic detects it with Sigma rules, two AI models triage the alert, and Shuffle SOAR responds." loading="lazy" decoding="async"></figure>
+        <figure class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
       <a class="pw-tile pw-tile--big pw-tile--alone" id="sec-cluster" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">
-        <figure class="pw-img"><img src="/images/projects/cluster-hero.webp" srcset="/images/projects/cluster-hero.w800.webp 800w, /images/projects/cluster-hero.webp 1500w" sizes="(max-width: 900px) 94vw, 64vw" alt="Cluster's Phishing view flagging a fake Netflix sender that failed DMARC." loading="lazy" decoding="async"></figure>
+        <figure class="pw-img pw-img--logo"><img src="/images/projects/cluster-logo.svg" alt="Cluster logo" width="256" height="256" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
       </a>
     </div>
