@@ -14,7 +14,7 @@ import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
 import SkyBackground from '../components/SkyBackground.astro';
-import { srcsetWith, variant, webpDims } from '../image-variant';
+import { variant } from '../image-variant';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -35,7 +35,6 @@ interface Props {
 const { post, headings, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
 
-const heroDims = d.heroImage ? webpDims(d.heroImage) : null;
 const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
 const altUrl = altHref ? new URL(altHref, Astro.site).href : null;
@@ -67,16 +66,8 @@ const partOf = (id: string) => run.findIndex((p) => p.id.replace(/^[a-z]{2}\//, 
 const partLabel = (n: number) => (lang === 'es' ? `Parte ${n} de ${run.length}` : `Part ${n} of ${run.length}`);
 const ownPart = run.length ? partOf(ownId) : 0;
 
-// The title's one italic phrase (the editorial habit of setting a name in
-// italics): the bracketed part if there is one, otherwise the last word.
-const bracket = d.title.match(/^(.*?)\s*(\(.+\))\s*$/);
-const [titleMain, titleItalic] = bracket
-  ? [bracket[1], bracket[2]]
-  : [d.title.replace(/\s*\S+$/, ''), d.title.match(/\S+$/)?.[0] ?? ''];
-
-// Contents list: the post's own H2/H3s plus the FAQ. Rendered twice from
-// this one array: the right-edge strip (wide screens) and the collapsible
-// box at the top of the article (narrow screens).
+// Contents list: the post's own H2/H3s plus the FAQ, shown as a plain list
+// of links near the top of the article, the way Vogue lists a guide's parts.
 const faqHeading = lang === 'es' ? 'Preguntas frecuentes' : 'Frequently asked questions';
 const toc = [
   ...headings.filter((h) => h.depth === 2 || h.depth === 3).map((h) => ({ slug: h.slug, text: h.text, sub: h.depth === 3 })),
@@ -109,9 +100,7 @@ const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
 // on a bare "2026-04-01"), so without pinning the format to UTC too, this
 // silently renders in whatever timezone the build machine happens to be in
 // (e.g. a west-of-UTC build server shows "MAR 2026" for an April 1 post).
-const dateLabel = d.pubDate
-  .toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-  .toUpperCase();
+const dateLabel = d.pubDate.toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 const shareX =
   'https://x.com/intent/post?url=' +
@@ -274,54 +263,17 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     <SkyBackground calm tone="bright" />
 
-    <!-- Hero (Vogue-style split): the post's image on the left; on the
-         right, centred, a plain topic label, the serif title with its one
-         italic phrase, and the date. On phones the title comes first. No
-         author byline: this is a single-author site and the wordmark
-         already names it. -->
+    <!-- Header, after Vogue's article pages: centred, no picture. The topic
+         label, the headline, the series line where Vogue has its byline (no
+         author name: this is a single-author site and the wordmark already
+         names it), then the date and read time. -->
     <header class="post-hero" id="hero">
-      <figure class="post-hero-img">
-        {d.heroImage
-          ? <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 640px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
-          : <div class="post-hero-ph" aria-hidden="true"></div>}
-        {d.heroCredit && <figcaption class="post-hero-credit">{d.heroCredit}</figcaption>}
-      </figure>
-      <div class="post-hero-text">
-        <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
-        <h1 class="post-title">{titleMain} <em>{titleItalic}</em></h1>
-        <time class="post-date" datetime={pubIso}>{dateLabel}</time>
-        {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
-      </div>
+      <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
+      <h1 class="post-title">{d.title}</h1>
+      {series && <p class="post-series">{ownPart ? `${series} · ${partLabel(ownPart)}` : series}</p>}
+      <p class="post-date"><time datetime={pubIso}>{dateLabel}</time> · {readTime} {i18n.minRead.toLowerCase()}</p>
+      {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
     </header>
-
-    <!-- Under a hairline, like a magazine's photo-credit line: the series
-         part on the left; read time and sharing on the right. -->
-    <div class="post-strip">
-      <span>{series && (ownPart ? <><span class="post-strip-series">{series} · </span>{partLabel(ownPart)}</> : series)}</span>
-      <span class="post-strip-end">
-        {readTime} {i18n.minRead}
-        <!-- Single share affordance: navigator.share() (the native OS share
-             sheet) where supported, falling back to #shareDialog's own
-             X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
-             keeps blog-client.js's dialog wiring working for the fallback;
-             the capture-phase listener below intercepts first when
-             navigator.share exists. -->
-        <button class="post-share" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
-      </span>
-    </div>
-    <script is:inline>
-      (function(){
-        var btn = document.getElementById('shareBtn');
-        if(!btn) return;
-        btn.addEventListener('click', function(e){
-          if(navigator.share){
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            navigator.share({ title: document.title, url: location.href }).catch(function(){});
-          }
-        }, true);
-      })();
-    </script>
 
     <div class="container">
       <!-- Language notice — Cloudflare-blog-style: a plain, always-visible
@@ -337,18 +289,39 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </a>
       )}
 
-      <!-- 700px text column between two 170px gutters. The left gutter holds
-           margin notes (.mnote); the right one stays empty so the column
-           sits centred. -->
+      <!-- The text column between two 170px gutters. The left gutter holds
+           the share button (where Vogue keeps its bookmark) and margin notes
+           (.mnote); the right one stays empty so the column sits centred. -->
       <div class="post-grid">
+        <div class="post-side">
+          <!-- Single share affordance: navigator.share() (the native OS share
+               sheet) where supported, falling back to #shareDialog's own
+               X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
+               keeps blog-client.js's dialog wiring working for the fallback;
+               the capture-phase listener below intercepts first when
+               navigator.share exists. -->
+          <button class="post-share" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><span class="post-share-label">{lang === 'es' ? 'Compartir' : 'Share this story'}</span></button>
+        </div>
+        <script is:inline>
+          (function(){
+            var btn = document.getElementById('shareBtn');
+            if(!btn) return;
+            btn.addEventListener('click', function(e){
+              if(navigator.share){
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                navigator.share({ title: document.title, url: location.href }).catch(function(){});
+              }
+            }, true);
+          })();
+        </script>
         <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
           <!-- the summary, set apart as the piece's italic intro -->
           <p class="post-standfirst">{d.description}</p>
           {toc.length > 1 && (
-            <details class="toc-inline">
-              <summary>{i18n.onThisPage}</summary>
-              <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
-            </details>
+            <nav class="toc-inline" aria-label={i18n.onThisPage}>
+              <ul>{toc.map((h) => <li class:list={[h.sub && 'sub']}><a href={'#' + h.slug}>{h.text}</a></li>)}</ul>
+            </nav>
           )}
           <slot />
         </main>
@@ -375,24 +348,6 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </section>
       )}
     </div><!-- /.container -->
-
-    <!-- On this page, pinned to the right edge (Notion-style floating
-         contents, built on the parked toc-hover-reveal bar strip): one dash
-         per section, the current one longer and brighter; hover or keyboard
-         focus opens a card of headings. Dashes are decorative; the card's
-         links are the real, always-focusable ones. Hidden under 1100px,
-         where .toc-inline above takes over. Wired in blog-client.js. -->
-    {toc.length > 1 && (
-      <nav class="etoc" id="etoc" aria-label={i18n.onThisPage}>
-        <ol class="etoc-dashes" aria-hidden="true">
-          {toc.map((h) => <li><span data-toc={h.slug} class:list={[h.sub && 'sub']}></span></li>)}
-        </ol>
-        <div class="etoc-card">
-          <div class="etoc-h">{i18n.onThisPage}</div>
-          <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
-        </div>
-      </nav>
-    )}
 
     <footer class="post-footer">
       <span>&copy; {new Date().getFullYear()} {SITE.author}</span>
