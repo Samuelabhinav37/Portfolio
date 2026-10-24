@@ -447,20 +447,22 @@ document.addEventListener('click', (ev) => {
 (() => {
   const sec = document.getElementById('postMore');
   if (!sec) return;
-  const track = sec.querySelector('.pm-track');
+  const track = sec.querySelector('.pm-track'), pin = sec.querySelector('.pm-pin');
   const swipe = matchMedia('(max-width: 760px), (prefers-reduced-motion: reduce)');
   let travel = 0, ticking = false;
   function size() {
     sec.classList.toggle('is-swipe', swipe.matches);
     if (swipe.matches) { sec.style.height = ''; track.style.transform = ''; return; }
     travel = Math.max(0, track.scrollWidth - innerWidth);
-    sec.style.height = innerHeight + travel + 'px';
+    // tall enough for the whole slide while the row stays pinned under the site bar
+    sec.style.height = innerHeight - (parseFloat(getComputedStyle(pin).top) || 0) + travel + 'px';
     slide();
   }
   function slide() {
     ticking = false;
     if (swipe.matches) return;
-    const p = Math.min(1, Math.max(0, -sec.getBoundingClientRect().top / Math.max(1, travel)));
+    const top = parseFloat(getComputedStyle(pin).top) || 0;
+    const p = Math.min(1, Math.max(0, (top - sec.getBoundingClientRect().top) / Math.max(1, travel)));
     track.style.transform = `translate3d(${-p * travel}px,0,0)`;
   }
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(slide); } }, { passive: true });

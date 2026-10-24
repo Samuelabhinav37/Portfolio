@@ -397,7 +397,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     {moreCards.length > 0 && (
       <section class="post-next fn-vars" id="postMore" aria-labelledby="post-next-h">
         <div class="pm-pin">
-          <h2 class="post-next-h" id="post-next-h">{i18n.moreFromBlog}</h2>
+          <h2 class="post-next-h" id="post-next-h">{lang === 'es' ? 'Más artículos' : 'More stories'}<small aria-hidden="true">{lang === 'es' ? 'Desliza' : 'Scroll'} →</small></h2>
           <div class="pm-view"><div class="pm-track">{moreCards.map((c, i) => <FieldTile c={c} i={i} />)}</div></div>
         </div>
       </section>

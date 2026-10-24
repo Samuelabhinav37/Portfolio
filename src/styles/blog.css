@@ -189,17 +189,17 @@ html.is-scrolled #topbar-scrim {
    byline, 8px, date. A full-width hairline closes the header. */
 .post-hero {
   position: relative; z-index: 1;
-  /* the picture's side is a little wider than the words' side */
   /* the words take what the picture leaves */
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
   margin-top: 56px; border-bottom: 1px solid var(--rule);
-  /* the header fills 72% of the screen (counting the 56px above it), leaving
-     room for the listen bar; the picture and words stay centred in it */
-  min-height: calc(72vh - 56px); min-height: calc(72svh - 56px);
+  /* the header fills the whole screen (counting the 56px above it), the
+     picture and words centred in it; the story starts as you scroll */
+  min-height: calc(100vh - 56px); min-height: calc(100svh - 56px);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
 /* 64px of open space above and below the picture, 32px at the sides */
-.post-hero-pic { order: 2; padding: 64px 32px; display: flex; justify-content: flex-start; }
+/* extra room on the right sets the picture a little in from the edge */
+.post-hero-pic { order: 2; padding: 64px 96px 64px 32px; display: flex; justify-content: flex-start; }
 .post-hero-pic img { display: block; width: min(var(--w-pic), 60vw); height: auto; }
 .post-hero-text {
   /* the words are centred on the picture's middle at every width (the
@@ -259,7 +259,8 @@ html.is-scrolled #topbar-scrim {
 .post-standfirst { font-family: var(--font-body); font-size: 24px; line-height: 34px; color: var(--ink-strong); margin: 0 0 40px; }
 /* the share button where Vogue keeps its bookmark: a 56px square at the
    screen's left edge, level with the start of the text */
-.post-side { position: absolute; top: 64px; left: calc(32px - (100vw - 100%) / 2); }
+.post-side { position: absolute; top: 64px; bottom: 0; left: calc(32px - (100vw - 100%) / 2); }
+.post-share { position: sticky; top: 96px; }
 .post-share {
   display: grid; place-items: center; width: 56px; height: 56px; border-radius: 8px;
   background: transparent; border: 1px solid var(--rule-strong); color: var(--ink); cursor: pointer;
@@ -496,9 +497,13 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 /* More stories: one row of the blog index's tiles. The section is tall and
    its inside pinned, so scrolling down slides the row sideways
    (blog-client.js sets the height and the slide). */
-.post-next { position: relative; z-index: 1; margin: 96px 0 64px; }
-.pm-pin { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
-.post-next-h { padding: 0 24px 20px; font: inherit; color: var(--ink); }
+.post-next { position: relative; z-index: 1; margin: 72px 0 32px; }
+.pm-pin { position: sticky; top: 96px; overflow: hidden; }
+.post-next-h {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 0 24px 24px;
+  font-family: var(--font-sans); font-size: var(--t-h2); line-height: 32px; font-weight: 600; letter-spacing: -0.2px; color: var(--ink-strong);
+}
+.post-next-h small { font-size: 12px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--ink-dim); }
 .pm-view { overflow: hidden; }
 .pm-track { display: flex; gap: 6px; align-items: flex-start; padding: 0 24px; width: max-content; will-change: transform; }
 .pm-track .fn-tile { flex: none; width: clamp(280px, 30vw, 440px); }
@@ -509,18 +514,18 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 .post-next.is-swipe .fn-tile { scroll-snap-align: start; width: min(78vw, 360px); }
 /* ── Bottom bar: All stories on the left, Previous and Next on the right ── */
 .post-bar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 160; height: 40px; padding: 0 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(3,3,7,0.92); border-top: 1px solid var(--rule); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 160; height: 30px;
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  background: var(--c-bg);
+  font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase;
 }
-.post-bar a, .post-bar span[aria-disabled] { color: var(--ink); text-decoration: none; padding: 12px 0; }
-.post-bar a:hover { color: #fff; }
-.post-bar span[aria-disabled] { color: var(--ink-faint); }
-.post-bar-pn { display: flex; gap: 28px; }
+.post-bar a, .post-bar span[aria-disabled] { color: var(--ink-dim); text-decoration: none; padding: 8px 0; transition: color 0.2s; }
+.post-bar a:hover { color: var(--ink-strong); }
+.post-bar span[aria-disabled] { color: var(--ink-faint); opacity: 0.6; }
+.post-bar-pn { display: contents; }
 /* lift what floats in the bottom corners above the bar */
-.kc.kc-cornermode, .kc.kc-tapmode { bottom: 56px; }
-.post-footer { padding-bottom: 96px; }
+.kc.kc-cornermode, .kc.kc-tapmode { bottom: 44px; }
+.post-footer { padding-bottom: 72px; }
 .story-image-ph {
   width: 100%; height: 100%; min-height: 120px;
   background: radial-gradient(circle at 30% 30%, rgba(var(--c-white),0.06), transparent 60%), linear-gradient(145deg, rgba(20,20,28,1), rgba(10,10,16,1));
@@ -564,7 +569,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   .post-share-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
 }
 @media (--bp-600) {
-  #back-to-top { bottom: 52px; left: 16px; }
+  #back-to-top { bottom: 42px; left: 16px; }
   .luna-slot { right: 18px; bottom: 22px; }
   .dtable td.k { white-space: normal; }
 }
@@ -575,7 +580,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
    fills as you scroll through the page, same pattern Cloudflare's blog
    uses on its own back-to-top control. ── */
 #back-to-top {
-  position: fixed; bottom: 60px; left: 34px; z-index: 150; /* clear of the bottom bar */
+  position: fixed; bottom: 48px; left: 34px; z-index: 150; /* clear of the bottom bar */
   width: 44px; height: 44px; border-radius: 50%;
   background: linear-gradient(145deg, rgba(28,28,28,0.94), rgba(18,18,18,0.92));
   border: 1px solid rgba(var(--c-white),0.07);
