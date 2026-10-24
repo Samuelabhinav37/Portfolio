@@ -14,7 +14,7 @@ import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
 import SkyBackground from '../components/SkyBackground.astro';
-import { variant } from '../image-variant';
+import { srcsetWith, variant, webpDims } from '../image-variant';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -34,6 +34,8 @@ interface Props {
 
 const { post, headings, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
+
+const heroDims = d.heroImage ? webpDims(d.heroImage) : null;
 
 const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
@@ -263,7 +265,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     <SkyBackground calm tone="bright" />
 
-    <!-- Header, after Vogue's article pages: centred, no picture. The topic
+    <!-- Header, after Vogue's article pages: centred. The topic
          label, the headline, the series line where Vogue has its byline (no
          author name: this is a single-author site and the wordmark already
          names it), then the date and read time. -->
@@ -274,6 +276,16 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <p class="post-date"><time datetime={pubIso}>{dateLabel}</time> · {readTime} {i18n.minRead.toLowerCase()}</p>
       {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
     </header>
+
+    <!-- The lead picture in Vogue's frame: 40px under the date, 949px wide
+         (edge to edge on phones), at the picture's own shape with no border
+         or rounding, and its credit underneath when the post has one. -->
+    {d.heroImage && (
+      <figure class="post-lead">
+        <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 100vw, 949px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
+        {d.heroCredit && <figcaption>{d.heroCredit}</figcaption>}
+      </figure>
+    )}
 
     <div class="container">
       <!-- Language notice — Cloudflare-blog-style: a plain, always-visible

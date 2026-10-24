@@ -178,7 +178,7 @@ html.is-scrolled #topbar-scrim {
   letter-spacing: 1.8px; text-transform: uppercase; line-height: 16px;
 }
 
-/* ── Header: centred, no picture ──
+/* ── Header: centred ──
    Vogue's spacing: rubric, 16px, headline, 16px, byline, 8px, date. */
 .post-hero {
   position: relative; z-index: 1; text-align: center;
@@ -206,6 +206,11 @@ html.is-scrolled #topbar-scrim {
 .post-share svg { width: 18px; height: 18px; }
 .post-share-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .post-mitre { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+/* the lead picture in Vogue's frame: 949px, 40px under the date, the picture's
+   own shape, no border or rounding; the credit 8px under it, inset 24px */
+.post-lead { position: relative; z-index: 1; width: min(949px, calc(100% - 96px)); margin: 40px auto 0; }
+.post-lead img { display: block; width: 100%; height: auto; }
+.post-lead figcaption { padding: 8px 24px 0; margin-bottom: 16px; font-family: var(--font-sans); font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-dim); }
 
 /* ── Language notice ── */
 .lang-notice {
@@ -439,6 +444,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 }
 @media (--bp-900) {
   .post-hero { padding: 120px 24px 0; }
+  .post-lead { width: 100%; } /* edge to edge, as on Vogue's phone pages */
   .post-title { font-size: 36px; line-height: 43px; }
   .heading-2, .faq-heading { font-size: 28px; line-height: 32px; }
   #site-identity { top: 12px; left: 20px; }
