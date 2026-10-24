@@ -239,6 +239,17 @@ body.intro-done #hero-tagline { opacity:1; }
 <style is:global>
 
 /* ===== v9 CRT VIDEO FOOTER (scoped, self-contained) ===== */
+/* the name across the bottom: fitted to the width by footer-wordmark.js,
+   its lower part cut off by the edge of the page; a dim gradient fill, and
+   a bright copy revealed by a soft light at the pointer (--mx, --my) */
+#site-footer .f-mark{ position:relative; width:100%; height:calc(var(--mfs, 16vw) * .62); overflow:hidden; margin-top:clamp(24px, 4vw, 56px);
+  font-family:'Cormorant Garamond', Georgia, serif; font-weight:500; line-height:1; white-space:nowrap; text-align:center;
+  font-size:var(--mfs, 16vw); letter-spacing:-.02em; user-select:none; pointer-events:auto; --mx:50%; --my:40%; }
+#site-footer .f-mark span{ position:absolute; left:0; right:0; top:-.08em; color:transparent; -webkit-background-clip:text; background-clip:text; }
+#site-footer .f-mark-base{ background-image:linear-gradient(180deg, rgba(160,175,210,.3) 0%, rgba(160,175,210,.1) 70%, rgba(150,165,200,0) 100%); }
+#site-footer .f-mark-glow{ background-image:radial-gradient(circle at var(--mx) var(--my), rgba(240,244,252,.95) 0, rgba(200,214,245,.55) 10%, rgba(160,180,230,.18) 24%, rgba(160,180,230,0) 36%);
+  opacity:var(--mo, 0); transition:opacity .5s ease; }
+@media (prefers-reduced-motion: reduce){ #site-footer .f-mark-glow{ transition:none; } }
 #site-footer{
   --fbg:#070710; --fink:#eef0f6; --fdim:#717890; --fline:rgba(220,225,235,0.12);
   --faccent:#8fb8ff; --faccent-gray:#52565f;
@@ -1282,7 +1293,17 @@ footer#site-footer{
       <a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
     </div>
   </div>
+
+  <!-- The name at full width, cropped by the bottom of the page (after
+       micro1's footer). Two copies of the same text: a dim one, and over it a
+       bright one shown only through a soft light that follows the pointer
+       (footer-wordmark.js), so the letters glow where you point. -->
+  <div class="f-mark" id="footerMark" aria-hidden="true">
+    <span class="f-mark-base">Samuel Abhinav</span>
+    <span class="f-mark-glow">Samuel Abhinav</span>
+  </div>
 </footer>
+<script is:inline defer src="/scripts/footer-wordmark.js"></script>
 <KaiSite hasIntro={true} />
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
