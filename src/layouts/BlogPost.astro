@@ -266,12 +266,12 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <SkyBackground calm tone="bright" />
 
     <!-- Header, after Vogue's split-screen article header: the page split
-         in half, the picture in the left half (32px clear all round, a
-         portrait crop of its centre), and in the right half, centred in the
+         in half, the picture in the left half (32px clear all round), and in the right half, centred in the
          open space, the topic label, headline, the series line where Vogue
          has its byline (no author name: this is a single-author site and
-         the wordmark already names it), then the date and read time. A
-         full-width hairline closes it, with the picture's credit under it.
+         the wordmark already names it), then the date and read time. The
+         picture keeps its own wide shape. A full-width hairline closes the
+         header, with the picture's credit under it.
          On phones the words come first, then the picture. -->
     <header class:list={['post-hero', !d.heroImage && 'no-pic']} id="hero">
       {d.heroImage && (
@@ -303,10 +303,9 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </a>
       )}
 
-      <!-- Vogue's body grid: a 640px text column set to the left of a
-           1088px grid, the open space to its right holding the margin notes
-           (.mnote). The share button sits at the screen's left edge, where
-           Vogue keeps its bookmark. -->
+      <!-- The 640px text column, centred, the open space to its right
+           holding the margin notes (.mnote). The share button sits at the
+           screen's left edge, where Vogue keeps its bookmark. -->
       <div class="post-grid">
         <div class="post-side">
           <!-- Single share affordance: navigator.share() (the native OS share
@@ -363,6 +362,24 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </section>
       )}
     </div><!-- /.container -->
+
+    <!-- On this page, pinned to the right edge (Notion-style floating
+         contents, built on the parked toc-hover-reveal bar strip): one dash
+         per section, the current one longer and brighter; hover or keyboard
+         focus opens a card of headings. Dashes are decorative; the card's
+         links are the real, always-focusable ones. Hidden under 1100px; the
+         plain contents list near the top serves every width. Wired in blog-client.js. -->
+    {toc.length > 1 && (
+      <nav class="etoc" id="etoc" aria-label={i18n.onThisPage}>
+        <ol class="etoc-dashes" aria-hidden="true">
+          {toc.map((h) => <li><span data-toc={h.slug} class:list={[h.sub && 'sub']}></span></li>)}
+        </ol>
+        <div class="etoc-card">
+          <div class="etoc-h">{i18n.onThisPage}</div>
+          <ol>{toc.map((h) => <li><a href={'#' + h.slug} data-toc={h.slug} class:list={[h.sub && 'sub']}>{h.text}</a></li>)}</ol>
+        </div>
+      </nav>
+    )}
 
     <footer class="post-footer">
       <span>&copy; {new Date().getFullYear()} {SITE.author}</span>

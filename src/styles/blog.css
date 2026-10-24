@@ -149,8 +149,8 @@ html.is-scrolled #topbar-scrim {
      Labels    TeX Gyre Adventor (for Vogue Avant Garde): 12-13px, 600,
                uppercase, 1.8px tracking. The headline is the same face at
                42/50 (36/43 on phones), 600, centred.
-     Body      EB Garamond (for Adobe Garamond Pro) 20/30, in a 640px column
-               set to the left of a 1088px grid.
+     Body      EB Garamond (for Adobe Garamond Pro) 20/30, in a centred
+               640px column.
      Headings  GFS Didot (for FB Didot) 32/36 (28/32 on phones).
      Lists     indented 48px with round bullets; the contents list 64px.
    Code and data keep JetBrains Mono. Figures, tables and callouts share
@@ -169,11 +169,10 @@ html.is-scrolled #topbar-scrim {
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
   --w-text: 640px;
-  --w-grid: min(1088px, 75vw); /* Vogue's body grid is three quarters of the screen, up to 1088px */
   --w-wide: 1312px;
 }
 /* The one label style, used everywhere a label appears (Vogue's rubric and byline). */
-.post-cat, .post-series, .mnote-day, .mnote-tag,
+.post-cat, .post-series, .etoc-h, .mnote-day, .mnote-tag,
 .copy-btn, .callout-detect-label, .dtable th, .plate-foot, .faq-kicker, .next-date,
 .lang-notice, .heading-3, .post-share-label {
   font-family: var(--font-sans); font-size: 12px; font-weight: 600;
@@ -181,7 +180,8 @@ html.is-scrolled #topbar-scrim {
 }
 
 /* ── Header: Vogue's split screen ──
-   The page in two halves: the picture in the left, 32px clear all round; in
+   The page in two halves: the picture in the left at its own wide shape,
+   32px clear all round; in
    the right, a 500px column of words centred in the open space, level with
    the middle of the picture. Vogue's spacing: rubric, 16px, headline, 16px,
    byline, 8px, date. A full-width hairline closes the header. */
@@ -192,9 +192,7 @@ html.is-scrolled #topbar-scrim {
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
 .post-hero-pic { padding: 32px; display: flex; justify-content: center; }
-/* Vogue's lead pictures are portrait; ours are wide, so the frame shows a
-   4:5 crop of the centre, as tall as the screen allows */
-.post-hero-pic img { display: block; height: min(calc(100vh - 152px), 760px); width: auto; max-width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.post-hero-pic img { display: block; width: 100%; height: auto; }
 .post-hero-text {
   justify-self: center; width: min(500px, 100%); padding: 32px 24px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -207,9 +205,9 @@ html.is-scrolled #topbar-scrim {
 }
 .post-series { color: var(--ink-strong); margin: 0; }
 .post-date { font-family: var(--font-sans); font-weight: 500; font-size: 13px; line-height: 16px; letter-spacing: -0.1px; color: var(--ink-dim); margin: 8px 0 0; }
-/* the credit sits under the hairline, at the left of the body grid */
+/* the credit sits under the hairline, lined up with the text column */
 .post-credit {
-  position: relative; z-index: 1; width: min(var(--w-grid), calc(100% - 96px)); margin: 0 auto; padding-top: 8px;
+  position: relative; z-index: 1; width: min(var(--w-text), calc(100% - 96px)); margin: 0 auto; padding-top: 8px;
   font-family: var(--font-sans); font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-dim);
 }
 /* the summary opens the article as its italic intro, at body size */
@@ -228,17 +226,17 @@ html.is-scrolled #topbar-scrim {
 .post-mitre { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
 /* ── Language notice ── */
 .lang-notice {
-  display: flex; align-items: center; gap: 9px; max-width: var(--w-text); margin: 24px auto 8px max(0px, calc((100% - var(--w-grid)) / 2)); padding: 11px 16px;
+  display: flex; align-items: center; gap: 9px; max-width: var(--w-text); margin: 24px auto 8px; padding: 11px 16px;
   border: 1px solid var(--rule); border-radius: 6px; background: rgba(var(--c-white),0.02);
   text-decoration: none; color: var(--ink-dim); transition: color 0.25s, border-color 0.25s;
 }
 .lang-notice:hover { color: var(--ink-strong); border-color: var(--rule-strong); }
 .lang-notice__icon { width: 15px; height: 15px; flex: none; opacity: 0.75; }
 
-/* ── Grid: the 640px text column at the left of the 1088px grid ── */
+/* ── Grid: the 640px text column, centred ── */
 .post-grid {
-  position: relative; display: grid; grid-template-columns: minmax(0, var(--w-text)) minmax(0, 1fr);
-  max-width: var(--w-grid); margin: 0 auto; padding-top: 64px;
+  position: relative; display: grid; grid-template-columns: minmax(0, var(--w-text)); justify-content: center;
+  padding-top: 64px;
 }
 .article-col {
   grid-column: 1; grid-row: 1; min-width: 0; /* grid items refuse to shrink below a long code line otherwise */
@@ -393,7 +391,30 @@ html.is-scrolled #topbar-scrim {
 .heading-2:hover .hlink, .heading-3:hover .hlink, .hlink:focus-visible { opacity: 1; transform: none; }
 .hlink:hover { color: var(--ink-strong); }
 
-/* ── On this page: a plain list of section links near the top ── */
+/* ── On this page: the right-edge strip (wide screens): one dash per
+   section, the current one longer and brighter; hover or focus opens a
+   card of headings ── */
+.etoc {
+  position: fixed; right: 22px; top: 50%; transform: translateY(-50%); z-index: 140;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.etoc.is-shown, .etoc:focus-within { opacity: 1; pointer-events: auto; } /* a tabbed-to link must never sit inside an invisible strip */
+.etoc-dashes { list-style: none; margin: 0; padding: 12px 6px 12px 28px; display: grid; gap: 12px; justify-items: end; } /* left padding bridges to the card */
+.etoc-dashes span { display: block; width: 22px; height: 2px; border-radius: 2px; background: rgba(var(--c-white),0.24); transition: width 0.25s, background 0.25s; }
+.etoc-dashes span.sub { width: 14px; }
+.etoc-dashes span.is-active { width: 32px; background: rgba(var(--c-white),0.9); }
+.etoc-card {
+  position: absolute; right: calc(100% - 20px); top: 50%; width: 280px; padding: 10px;
+  border: 1px solid var(--rule-strong); border-radius: 10px; background: rgba(12,13,19,0.97); box-shadow: 0 18px 50px rgba(0,0,0,0.6);
+  opacity: 0; pointer-events: none; transform: translate(8px, -50%); transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.etoc.is-open .etoc-card, .etoc:focus-within .etoc-card { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
+.etoc-h { color: var(--ink-faint); margin: 4px 10px 8px; }
+.etoc-card ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.etoc-card a { display: block; padding: 7px 10px; border-radius: 6px; font-size: var(--t-small); line-height: 1.35; color: var(--ink-dim); text-decoration: none; }
+.etoc-card a:hover { background: rgba(var(--c-white),0.05); color: var(--ink-strong); }
+.etoc-card a.is-active { color: var(--ink-strong); background: rgba(200,206,218,0.08); box-shadow: inset 2px 0 0 #c8ceda; }
+/* ── and a plain list of section links near the top ── */
 .toc-inline { margin: 0 0 32px; }
 .toc-inline ul { list-style: disc; margin: 0; padding: 0 0 0 64px; }
 .toc-inline li { font-size: var(--t-body); line-height: 30px; }
@@ -402,8 +423,7 @@ html.is-scrolled #topbar-scrim {
 .toc-inline a:hover { color: var(--ink-strong); text-decoration-color: var(--ink-dim); }
 
 /* ── FAQ: centred on the text column ── */
-.faq-section { max-width: var(--w-grid); margin: 80px auto 0; scroll-margin-top: 96px; }
-.faq-section > * { max-width: var(--w-text); }
+.faq-section { max-width: var(--w-text); margin: 80px auto 0; scroll-margin-top: 96px; }
 .faq-head { display: grid; justify-items: center; gap: 10px; text-align: center; margin-bottom: 22px; }
 .faq-kicker { color: var(--ink-faint); }
 .faq-heading { font-family: var(--font-head); font-weight: 400; font-size: var(--t-h2); line-height: 36px; letter-spacing: 0.8px; color: var(--ink-strong); }
@@ -444,6 +464,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 
 /* ── Narrow screens ── */
 @media (--bp-1100) {
+  .etoc { display: none; }
   /* margin notes fold inline above their paragraph */
   .mnote { position: static; display: block; width: auto; text-align: left; margin: 0 0 8px; padding-left: 12px; border-left: 1px solid var(--rule-strong); }
   .mnote-day, .mnote-sub { display: inline; }
