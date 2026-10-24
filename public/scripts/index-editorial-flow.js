@@ -4,9 +4,6 @@
 (function(){
   var KEV='/api/kev';
   var track=document.getElementById('ed-track');
-  var status=document.getElementById('ed-status');
-  var statusText=document.getElementById('ed-status-text');
-  var foot=document.getElementById('ed-foot');
   if(!track) return;
   var FALLBACK=[
     {cveID:'CVE-2026-2041',vendorProject:'Cisco',product:'IOS XE',dateAdded:'2026-07-21',ransom:false},
@@ -76,10 +73,7 @@
     fetch(KEV).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
       var recent=d.items||[];
       if(recent.length){ paint(recent); }
-      if(status) status.classList.add('ed-live');
-      if(statusText) statusText.textContent='live · '+(d.count||recent.length)+' tracked';
-      if(foot && d.dateReleased){ foot.textContent='Source: CISA KEV'; }
-    }).catch(function(){ if(statusText) statusText.textContent='cached'; });
+    }).catch(function(){});
   }
   /* Defer the KEV fetch until the section is actually about to be seen,
      instead of firing it on every page load regardless of whether the

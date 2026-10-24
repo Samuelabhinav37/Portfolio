@@ -505,21 +505,7 @@ footer#site-footer{
     letter-spacing:2px; text-transform:uppercase; color:#87878d; }
 
   /* ── KEV live feed ── */
-  #editorial .ed-kev{ padding:clamp(70px,13vh,150px) 0; max-width:1500px; margin:0 auto; }
-  #editorial .ed-kev__head{ padding:0 clamp(24px,5vw,80px); margin-bottom:clamp(30px,5vh,48px);
-    display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
-  #editorial .ed-kev__head .ed-lbl{ display:block; margin-bottom:14px; }
-  #editorial .ed-kev__head h2{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; }
-  #editorial .ed-kev__head h2 em{ font-style:normal; color:#94949a; }
-  /* One plain-language line so a non-security visitor knows this is a real,
-     live feed and what it is, not decoration. */
-  #editorial .ed-explain{ margin-top:10px; max-width:68ch; font-weight:300;
-    font-size:13px; line-height:1.55; color:#94949a; }
-  #editorial .ed-kev__status{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.5px;
-    color:#87878d; display:flex; align-items:center; gap:8px; }
-  #editorial .ed-kev__status .ed-dot{ width:6px; height:6px; border-radius:50%; background:#87878d; }
-  #editorial .ed-kev__status.ed-live .ed-dot{ background:rgba(120,225,170,.9);
-    box-shadow:0 0 6px rgba(120,225,170,.7); animation:edpulse 2.2s infinite; }
+  #editorial .ed-kev{ max-width:1500px; margin:0 auto; }
   @keyframes edpulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
   #editorial .ed-ticker{ position:relative; border-top:1px solid rgba(var(--c-white),.1);
     border-bottom:1px solid rgba(var(--c-white),.1); overflow:hidden;
@@ -539,9 +525,6 @@ footer#site-footer{
   #editorial .ed-kv .ed-ransom{ color:#e5b8b8; font-size:10px; letter-spacing:1px;
     border:1px solid rgba(229,184,184,.3); border-radius:3px; padding:1px 6px; }
   #editorial .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
-  #editorial .ed-kev__foot{ padding:18px clamp(24px,5vw,80px) 0; }
-  #editorial .ed-kev__foot span{ font-family:'JetBrains Mono',monospace; font-size:10.5px;
-    letter-spacing:.5px; color:#87878d; }
 
   /* ── KEV feed, mobile: this section had no phone-specific sizing at all —
      desktop's 24-32px heading and 34px-padded ticker pills just ran at full
@@ -550,15 +533,8 @@ footer#site-footer{
      padding for breathing room, so shrinking that without adding gap back
      is what read as "no spacing" once the paddings came down). */
   @media (--bp-760){
-    #editorial .ed-kev{ padding:clamp(40px,8vh,80px) 0; }
-    #editorial .ed-kev__head{ padding:0 20px; margin-bottom:22px; gap:10px 16px; }
-    #editorial .ed-kev__head .ed-lbl{ margin-bottom:10px; }
-    #editorial .ed-kev__head h2{ font-size:1.3rem; }
-    #editorial .ed-kev__status{ font-size:9.5px; gap:7px; }
     #editorial .ed-kv{ padding:11px 16px; gap:8px; font-size:10.5px; }
     #editorial .ed-kv .ed-ransom{ font-size:8.5px; padding:1px 5px; }
-    #editorial .ed-kev__foot{ padding:14px 20px 0; }
-    #editorial .ed-kev__foot span{ font-size:9.5px; }
   }
 
   /* ── Beliefs: one statement alone on a full screen over the sky, with a few
@@ -781,17 +757,9 @@ footer#site-footer{
 
 <div id="editorial">
 
-  <!-- KEV feed -->
+  <!-- KEV feed: the moving row of exploited CVEs, right under the hero -->
   <section class="ed-kev" aria-label="Live threat feed from the CISA KEV catalog">
-    <div class="ed-kev__head">
-      <div>
-        <h2 data-reveal="lines">Exploited in the <em>wild.</em></h2>
-        <p class="ed-explain">Software flaws attackers are exploiting right now, live from CISA.</p>
-      </div>
-      <div class="ed-kev__status" id="ed-status"><span class="ed-dot"></span><span id="ed-status-text">connecting…</span></div>
-    </div>
     <div class="ed-ticker"><div class="ed-track" id="ed-track"></div></div>
-    <div class="ed-kev__foot"><span id="ed-foot">Source: CISA KEV</span></div>
   </section>
 
   <!-- Beliefs: one statement that lights up word by word as you scroll -->
