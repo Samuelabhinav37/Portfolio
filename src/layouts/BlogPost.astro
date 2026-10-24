@@ -13,6 +13,7 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
+import SkyBackground from '../components/SkyBackground.astro';
 import { srcsetWith, variant, webpDims } from '../image-variant';
 
 interface Props {
@@ -60,6 +61,18 @@ if (!nextPosts.length) {
 }
 const cardDate = (dt: Date) =>
   dt.toLocaleString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase();
+// Series parts, numbered by publish date oldest first, as on the blog index.
+const run = siblings.length ? [...siblings, post].sort(byDate) : [];
+const partOf = (id: string) => run.findIndex((p) => p.id.replace(/^[a-z]{2}\//, '') === id) + 1;
+const partLabel = (n: number) => (lang === 'es' ? `Parte ${n} de ${run.length}` : `Part ${n} of ${run.length}`);
+const ownPart = run.length ? partOf(ownId) : 0;
+
+// The title's one italic phrase (the editorial habit of setting a name in
+// italics): the bracketed part if there is one, otherwise the last word.
+const bracket = d.title.match(/^(.*?)\s*(\(.+\))\s*$/);
+const [titleMain, titleItalic] = bracket
+  ? [bracket[1], bracket[2]]
+  : [d.title.replace(/\s*\S+$/, ''), d.title.match(/\S+$/)?.[0] ?? ''];
 
 // Contents list: the post's own H2/H3s plus the FAQ. Rendered twice from
 // this one array: the right-edge strip (wide screens) and the collapsible
@@ -259,37 +272,43 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </ul>
     </nav>
 
-    <!-- Hero (WIRED-style split): category label and date, title, dek,
-         read time and series on the left; the post's image at 3:2 on the
-         right. No author byline: this is a single-author site and the
-         wordmark already names it. -->
+    <SkyBackground calm tone="bright" />
+
+    <!-- Hero (Vogue-style split): the post's image on the left; on the
+         right, centred, a plain topic label, the serif title with its one
+         italic phrase, and the date. On phones the title comes first. No
+         author byline: this is a single-author site and the wordmark
+         already names it. -->
     <header class="post-hero" id="hero">
-      <div class="post-hero-text">
-        <div class="post-meta">
-          <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
-          <time datetime={pubIso}>{dateLabel}</time>
-        </div>
-        <h1 class="post-title">{d.title}</h1>
-        <p class="post-dek">{d.description}</p>
-        <div class="post-sub">
-          <span>{readTime} {i18n.minRead}{series && <span class="post-sub-sep" aria-hidden="true"> · </span>}{series}</span>
-          <!-- Single share affordance: navigator.share() (the native OS share
-               sheet) where supported, falling back to #shareDialog's own
-               X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
-               keeps blog-client.js's dialog wiring working for the fallback;
-               the capture-phase listener below intercepts first when
-               navigator.share exists. -->
-          <button class="post-share" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
-        </div>
-        {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
-      </div>
       <figure class="post-hero-img">
         {d.heroImage
           ? <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 92vw, 640px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
           : <div class="post-hero-ph" aria-hidden="true"></div>}
         {d.heroCredit && <figcaption class="post-hero-credit">{d.heroCredit}</figcaption>}
       </figure>
+      <div class="post-hero-text">
+        <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
+        <h1 class="post-title">{titleMain} <em>{titleItalic}</em></h1>
+        <time class="post-date" datetime={pubIso}>{dateLabel}</time>
+        {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
+      </div>
     </header>
+
+    <!-- Under a hairline, like a magazine's photo-credit line: the series
+         part on the left; read time and sharing on the right. -->
+    <div class="post-strip">
+      <span>{series && (ownPart ? <><span class="post-strip-series">{series} · </span>{partLabel(ownPart)}</> : series)}</span>
+      <span class="post-strip-end">
+        {readTime} {i18n.minRead}
+        <!-- Single share affordance: navigator.share() (the native OS share
+             sheet) where supported, falling back to #shareDialog's own
+             X/LinkedIn/copy-link tabs where it isn't. data-share-open="x"
+             keeps blog-client.js's dialog wiring working for the fallback;
+             the capture-phase listener below intercepts first when
+             navigator.share exists. -->
+        <button class="post-share" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle} aria-label={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
+      </span>
+    </div>
     <script is:inline>
       (function(){
         var btn = document.getElementById('shareBtn');
@@ -323,6 +342,8 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
            sits centred. -->
       <div class="post-grid">
         <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
+          <!-- the summary, set apart as the piece's italic intro -->
+          <p class="post-standfirst">{d.description}</p>
           {toc.length > 1 && (
             <details class="toc-inline">
               <summary>{i18n.onThisPage}</summary>
@@ -346,7 +367,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
                     ? <img src={variant(p.data.heroImage, 800)} alt="" loading="lazy" decoding="async" />
                     : <div class="story-image-ph" aria-hidden="true"></div>}
                 </div>
-                <span class="next-date">{cardDate(p.data.pubDate)}</span>
+                <span class="next-date">{partOf(p.id) ? partLabel(partOf(p.id)) : cardDate(p.data.pubDate)}</span>
                 <span class="next-title">{p.data.title}</span>
               </a>
             ))}
