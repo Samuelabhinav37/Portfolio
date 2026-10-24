@@ -149,7 +149,8 @@ html.is-scrolled #topbar-scrim {
      Labels    TeX Gyre Adventor (for Vogue Avant Garde): 12-13px, 600,
                uppercase, 1.8px tracking. The headline is the same face at
                42/50 (36/43 on phones), 600, centred.
-     Body      EB Garamond (for Adobe Garamond Pro) 20/30, in an 864px column.
+     Body      EB Garamond (for Adobe Garamond Pro) 20/30, in a 640px column
+               set to the left of a 1088px grid.
      Headings  GFS Didot (for FB Didot) 32/36 (28/32 on phones).
      Lists     indented 48px with round bullets; the contents list 64px.
    Code and data keep JetBrains Mono. Figures, tables and callouts share
@@ -167,7 +168,8 @@ html.is-scrolled #topbar-scrim {
   --rule: rgba(200,206,218,0.16);
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
-  --w-text: 864px;
+  --w-text: 640px;
+  --w-grid: min(1088px, 75vw); /* Vogue's body grid is three quarters of the screen, up to 1088px */
   --w-wide: 1312px;
 }
 /* The one label style, used everywhere a label appears (Vogue's rubric and byline). */
@@ -178,27 +180,45 @@ html.is-scrolled #topbar-scrim {
   letter-spacing: 1.8px; text-transform: uppercase; line-height: 16px;
 }
 
-/* ── Header: centred ──
-   Vogue's spacing: rubric, 16px, headline, 16px, byline, 8px, date. */
+/* ── Header: Vogue's split screen ──
+   The page in two halves: the picture in the left, 32px clear all round; in
+   the right, a 500px column of words centred in the open space, level with
+   the middle of the picture. Vogue's spacing: rubric, 16px, headline, 16px,
+   byline, 8px, date. A full-width hairline closes the header. */
 .post-hero {
-  position: relative; z-index: 1; text-align: center;
-  display: flex; flex-direction: column; align-items: center;
-  max-width: calc(var(--w-text) + 96px); margin: 0 auto; padding: 150px 48px 0;
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center;
+  margin-top: 56px; border-bottom: 1px solid var(--rule);
+}
+.post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
+.post-hero-pic { padding: 32px; display: flex; justify-content: center; }
+/* Vogue's lead pictures are portrait; ours are wide, so the frame shows a
+   4:5 crop of the centre, as tall as the screen allows */
+.post-hero-pic img { display: block; height: min(calc(100vh - 152px), 760px); width: auto; max-width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.post-hero-text {
+  justify-self: center; width: min(500px, 100%); padding: 32px 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
 }
 .post-cat { font-size: 13px; line-height: 13px; color: var(--ink-strong); text-decoration: none; }
 .post-cat:hover { color: #fff; }
 .post-title {
   font-family: var(--font-sans); font-weight: 600; font-size: var(--t-h1); line-height: 50px; letter-spacing: -0.2px;
-  color: var(--ink-strong); max-width: 864px; margin: 16px 0 16px; text-wrap: balance;
+  color: var(--ink-strong); margin: 16px 0 16px; text-wrap: balance;
 }
 .post-series { color: var(--ink-strong); margin: 0; }
 .post-date { font-family: var(--font-sans); font-weight: 500; font-size: 13px; line-height: 16px; letter-spacing: -0.1px; color: var(--ink-dim); margin: 8px 0 0; }
+/* the credit sits under the hairline, at the left of the body grid */
+.post-credit {
+  position: relative; z-index: 1; width: min(var(--w-grid), calc(100% - 96px)); margin: 0 auto; padding-top: 8px;
+  font-family: var(--font-sans); font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-dim);
+}
 /* the summary opens the article as its italic intro, at body size */
 .post-standfirst { font-family: var(--font-body); font-style: italic; font-size: var(--t-body); line-height: 30px; color: var(--ink); margin: 0 0 32px; }
-/* the share button where Vogue keeps its bookmark: a square in the left margin */
-.post-side { grid-column: 1; grid-row: 1; justify-self: start; align-self: start; }
+/* the share button where Vogue keeps its bookmark: a 56px square at the
+   screen's left edge, level with the start of the text */
+.post-side { position: absolute; top: 64px; left: calc(32px - (100vw - 100%) / 2); }
 .post-share {
-  display: grid; place-items: center; width: 58px; height: 58px; border-radius: 4px;
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 8px;
   background: transparent; border: 1px solid var(--rule-strong); color: var(--ink); cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
@@ -206,28 +226,22 @@ html.is-scrolled #topbar-scrim {
 .post-share svg { width: 18px; height: 18px; }
 .post-share-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .post-mitre { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
-/* the lead picture in Vogue's frame: 949px, 40px under the date, the picture's
-   own shape, no border or rounding; the credit 8px under it, inset 24px */
-.post-lead { position: relative; z-index: 1; width: min(949px, calc(100% - 96px)); margin: 40px auto 0; }
-.post-lead img { display: block; width: 100%; height: auto; }
-.post-lead figcaption { padding: 8px 24px 0; margin-bottom: 16px; font-family: var(--font-sans); font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-dim); }
-
 /* ── Language notice ── */
 .lang-notice {
-  display: flex; align-items: center; gap: 9px; max-width: var(--w-text); margin: 0 auto 8px; padding: 11px 16px;
+  display: flex; align-items: center; gap: 9px; max-width: var(--w-text); margin: 24px auto 8px max(0px, calc((100% - var(--w-grid)) / 2)); padding: 11px 16px;
   border: 1px solid var(--rule); border-radius: 6px; background: rgba(var(--c-white),0.02);
   text-decoration: none; color: var(--ink-dim); transition: color 0.25s, border-color 0.25s;
 }
 .lang-notice:hover { color: var(--ink-strong); border-color: var(--rule-strong); }
 .lang-notice__icon { width: 15px; height: 15px; flex: none; opacity: 0.75; }
 
-/* ── Grid: 170 | 864 | 170, centred ── */
+/* ── Grid: the 640px text column at the left of the 1088px grid ── */
 .post-grid {
-  display: grid; grid-template-columns: 170px minmax(0, var(--w-text)) 170px; column-gap: 56px; justify-content: center;
-  padding-top: 64px;
+  position: relative; display: grid; grid-template-columns: minmax(0, var(--w-text)) minmax(0, 1fr);
+  max-width: var(--w-grid); margin: 0 auto; padding-top: 64px;
 }
 .article-col {
-  grid-column: 2; grid-row: 1; min-width: 0; /* grid items refuse to shrink below a long code line otherwise */
+  grid-column: 1; grid-row: 1; min-width: 0; /* grid items refuse to shrink below a long code line otherwise */
   font-family: var(--font-body); font-size: var(--t-body); line-height: 30px; color: var(--ink);
   counter-reset: fig tbl;
 }
@@ -301,7 +315,7 @@ html.is-scrolled #topbar-scrim {
 .callout-detect p + p { margin-top: 12px; }
 
 /* ── Margin notes: year/label plus a short line, in the left gutter ── */
-.mnote { position: absolute; top: 0.3em; right: calc(100% + 56px); width: 170px; text-align: right; }
+.mnote { position: absolute; top: 0.3em; left: calc(100% + 56px); width: 170px; text-align: left; }
 .mnote-day { display: block; color: var(--ink-dim); }
 .mnote-sub { display: block; margin-top: 4px; font-family: var(--font-sans); font-size: 13px; line-height: 20px; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
 .mnote-tag { display: inline-block; margin-top: 8px; padding: 1px 6px; border: 1px solid var(--rule-strong); border-radius: 4px; color: var(--ink-faint); }
@@ -388,7 +402,8 @@ html.is-scrolled #topbar-scrim {
 .toc-inline a:hover { color: var(--ink-strong); text-decoration-color: var(--ink-dim); }
 
 /* ── FAQ: centred on the text column ── */
-.faq-section { max-width: var(--w-text); margin: 80px auto 0; scroll-margin-top: 96px; }
+.faq-section { max-width: var(--w-grid); margin: 80px auto 0; scroll-margin-top: 96px; }
+.faq-section > * { max-width: var(--w-text); }
 .faq-head { display: grid; justify-items: center; gap: 10px; text-align: center; margin-bottom: 22px; }
 .faq-kicker { color: var(--ink-faint); }
 .faq-heading { font-family: var(--font-head); font-weight: 400; font-size: var(--t-h2); line-height: 36px; letter-spacing: 0.8px; color: var(--ink-strong); }
@@ -429,13 +444,6 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 
 /* ── Narrow screens ── */
 @media (--bp-1100) {
-  .post-grid { grid-template-columns: minmax(0, var(--w-text)); padding-top: 40px; }
-  .article-col { grid-column: 1; grid-row: 2; }
-  /* phones and tablets: Vogue's "Save this story" pill, centred above the text */
-  .post-side { grid-column: 1; grid-row: 1; justify-self: center; margin-bottom: 32px; }
-  .post-share { width: auto; height: 44px; padding: 0 20px; border-radius: 999px; display: inline-flex; gap: 10px; }
-  .post-share svg { width: 16px; height: 16px; }
-  .post-share-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
   /* margin notes fold inline above their paragraph */
   .mnote { position: static; display: block; width: auto; text-align: left; margin: 0 0 8px; padding-left: 12px; border-left: 1px solid var(--rule-strong); }
   .mnote-day, .mnote-sub { display: inline; }
@@ -443,15 +451,28 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   .mnote-tag { margin: 0 0 0 10px; }
 }
 @media (--bp-900) {
-  .post-hero { padding: 120px 24px 0; }
-  .post-lead { width: 100%; } /* edge to edge, as on Vogue's phone pages */
-  .post-title { font-size: 36px; line-height: 43px; }
-  .heading-2, .faq-heading { font-size: 28px; line-height: 32px; }
   #site-identity { top: 12px; left: 20px; }
   .nav-name { font-size: 1.3rem; }
   #menu-trigger { top: 14px; right: 20px; }
   .container { padding: 0 24px; }
+  .post-credit { width: calc(100% - 48px); }
   .post-next-row { grid-template-columns: minmax(0, 1fr); }
+}
+/* phones: Vogue stacks the header, words first, then the picture 24px in
+   from the sides; the share button becomes its "Save this story" pill */
+@media (--bp-760) {
+  .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; }
+  .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
+  .post-hero-pic { padding: 24px 24px 0; }
+  .post-hero-pic img { width: 100%; height: auto; }
+  .post-title { font-size: 36px; line-height: 43px; }
+  .heading-2, .faq-heading { font-size: 28px; line-height: 32px; }
+  .post-grid { grid-template-columns: minmax(0, 1fr); padding-top: 32px; }
+  .article-col { grid-row: 2; }
+  .post-side { position: static; grid-column: 1; grid-row: 1; justify-self: center; margin-bottom: 32px; }
+  .post-share { width: auto; height: 44px; padding: 0 20px; border-radius: 999px; display: inline-flex; gap: 10px; }
+  .post-share svg { width: 16px; height: 16px; }
+  .post-share-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
 }
 @media (--bp-600) {
   #back-to-top { bottom: 20px; left: 16px; }

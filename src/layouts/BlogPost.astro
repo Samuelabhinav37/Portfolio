@@ -265,27 +265,29 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     <SkyBackground calm tone="bright" />
 
-    <!-- Header, after Vogue's article pages: centred. The topic
-         label, the headline, the series line where Vogue has its byline (no
-         author name: this is a single-author site and the wordmark already
-         names it), then the date and read time. -->
-    <header class="post-hero" id="hero">
-      <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
-      <h1 class="post-title">{d.title}</h1>
-      {series && <p class="post-series">{ownPart ? `${series} · ${partLabel(ownPart)}` : series}</p>}
-      <p class="post-date"><time datetime={pubIso}>{dateLabel}</time> · {readTime} {i18n.minRead.toLowerCase()}</p>
-      {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
+    <!-- Header, after Vogue's split-screen article header: the page split
+         in half, the picture in the left half (32px clear all round, a
+         portrait crop of its centre), and in the right half, centred in the
+         open space, the topic label, headline, the series line where Vogue
+         has its byline (no author name: this is a single-author site and
+         the wordmark already names it), then the date and read time. A
+         full-width hairline closes it, with the picture's credit under it.
+         On phones the words come first, then the picture. -->
+    <header class:list={['post-hero', !d.heroImage && 'no-pic']} id="hero">
+      {d.heroImage && (
+        <div class="post-hero-pic">
+          <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 760px) 100vw, 50vw" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
+        </div>
+      )}
+      <div class="post-hero-text">
+        <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
+        <h1 class="post-title">{d.title}</h1>
+        {series && <p class="post-series">{ownPart ? `${series} · ${partLabel(ownPart)}` : series}</p>}
+        <p class="post-date"><time datetime={pubIso}>{dateLabel}</time> · {readTime} {i18n.minRead.toLowerCase()}</p>
+        {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
+      </div>
     </header>
-
-    <!-- The lead picture in Vogue's frame: 40px under the date, 949px wide
-         (edge to edge on phones), at the picture's own shape with no border
-         or rounding, and its credit underneath when the post has one. -->
-    {d.heroImage && (
-      <figure class="post-lead">
-        <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 900px) 100vw, 949px" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
-        {d.heroCredit && <figcaption>{d.heroCredit}</figcaption>}
-      </figure>
-    )}
+    {d.heroCredit && <p class="post-credit">{d.heroCredit}</p>}
 
     <div class="container">
       <!-- Language notice — Cloudflare-blog-style: a plain, always-visible
@@ -301,9 +303,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         </a>
       )}
 
-      <!-- The text column between two 170px gutters. The left gutter holds
-           the share button (where Vogue keeps its bookmark) and margin notes
-           (.mnote); the right one stays empty so the column sits centred. -->
+      <!-- Vogue's body grid: a 640px text column set to the left of a
+           1088px grid, the open space to its right holding the margin notes
+           (.mnote). The share button sits at the screen's left edge, where
+           Vogue keeps its bookmark. -->
       <div class="post-grid">
         <div class="post-side">
           <!-- Single share affordance: navigator.share() (the native OS share
