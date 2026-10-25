@@ -99,7 +99,7 @@ body { min-height:100%; }
   width:auto; height:auto; margin:0; padding:8px 14px; clip:auto;
   z-index:100000; background:var(--c-bg); color:#d6e0f4;
   border:1px solid rgba(214,224,244,.4); border-radius:6px;
-  font:13px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.04em;
+  font:13px/1 'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.04em;
 }
 
 
@@ -153,13 +153,13 @@ body.intro-done #term-stage { opacity:1; }
   display:flex; align-items:center; justify-content:space-between; padding:0 16px; user-select:none;
 }
 #term-icons { display:flex; align-items:center; gap:11px; }
-#term-icons .ticon { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.82rem; color:rgba(var(--c-white),0.24); line-height:1; }
+#term-icons .ticon { font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.82rem; color:rgba(var(--c-white),0.24); line-height:1; }
 #term-title {
   position:absolute; left:50%; transform:translateX(-50%);
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.65rem; color:rgba(var(--c-white),0.22); text-transform:uppercase;
+  font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.65rem; color:rgba(var(--c-white),0.22); text-transform:uppercase;
   letter-spacing:0.10em; white-space:nowrap; pointer-events:none;
 }
-#term-status { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.52rem; color:rgba(var(--c-white),0.12); letter-spacing:0.14em; text-transform:uppercase; }
+#term-status { font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.52rem; color:rgba(var(--c-white),0.12); letter-spacing:0.14em; text-transform:uppercase; }
 #term-screen { position:relative; flex:1; background:transparent; overflow:hidden; }
 .tcorner { position:absolute; z-index:10; width:20px; height:20px; border-color:rgba(var(--c-white),0.10); border-style:solid; }
 .tcorner.tl { top:20px; left:20px;  border-width:1px 0 0 1px; }
@@ -173,7 +173,7 @@ body.intro-done #term-stage { opacity:1; }
 #hero-tagline { position:absolute; z-index:11; left:52px; right:52px; bottom:48px; max-width:760px;
   pointer-events:none; opacity:0; transition:opacity 1.1s cubic-bezier(0.22,1,0.36,1); transition-delay:.4s; }
 body.intro-done #hero-tagline { opacity:1; }
-#hero-tagline p { margin:0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500;
+#hero-tagline p { margin:0; font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500;
   font-size:clamp(28px,3.4vw,44px); line-height:1.15; letter-spacing:-0.005em;
   color:rgba(var(--c-white),0.92); text-shadow:0 4px 20px rgba(0,0,0,0.65); }
 #hero-tagline-cursor { display:inline-block; margin-left:1px; color:rgba(var(--c-white),0.65);
@@ -201,8 +201,8 @@ body.intro-done #hero-tagline { opacity:1; }
 #site-footer{
   --fbg:#070710; --fink:#eef0f6; --fdim:#717890; --fline:rgba(220,225,235,0.12);
   --faccent:#8fb8ff; --faccent-gray:#52565f;
-  --fserif:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fsans:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --fmono:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fspec:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fserif:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fsans:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fmono:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fspec:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
 }
 footer#site-footer{
@@ -251,9 +251,9 @@ footer#site-footer{
      shadow so it reads as the same physical object returning at page end. */
   /* Width matches the old 1500px content column minus its side padding. */
   .f-card{
-    position:relative; z-index:1; width:min(1340px, calc(100vw - clamp(48px,10vw,160px))); min-height:560px; margin:158px auto 0;
+    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); min-height:460px; margin:var(--sec-pad) auto 0;
     display:flex; align-items:center; justify-content:space-between; gap:56px;
-    padding:96px 64px; border-radius:20px; overflow:visible;
+    padding:72px 64px; border-radius:20px; overflow:visible;
     background:linear-gradient(155deg, rgba(15,17,27,0.94) 0%, rgba(7,7,14,0.90) 55%, rgba(3,3,8,0.94) 100%);
     border:1px solid rgba(var(--c-white),0.07);
     box-shadow:0 60px 130px -35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(var(--c-white),0.04);
@@ -366,8 +366,8 @@ footer#site-footer{
   @keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-1%,1%)}50%{transform:translate(1%,-1%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}}
 
   .f-eyebrow{
-    font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
-    color:#a6abba; margin:0 0 8px; display:flex; align-items:center; gap:6px;
+    font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:#9aa0ae; margin:0 0 8px; display:flex; align-items:center; gap:6px;
   }
   .f-eyebrow::before{
     content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.95);
@@ -415,7 +415,7 @@ footer#site-footer{
 
   /* footer navigation (after micro1): measured on micro1.ai, a ~1290px band;
      group labels 14px light at 40% white, links 16px medium at 80%, 36px apart */
-  .f-nav{ position:relative; z-index:1; width:min(1280px,92vw); margin:clamp(120px,14vw,200px) auto 0;
+  .f-nav{ position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:clamp(72px,9vw,120px) auto 0;
     display:grid; grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)); gap:32px; font-family:var(--fsans); }
   .f-brand-name{ font-family:'Cormorant Garamond', Georgia, serif; font-size:28px; font-weight:500; line-height:1; color:#fff; text-decoration:none; letter-spacing:-.01em; }
   .f-social{ display:flex; align-items:center; gap:22px; margin-top:26px; }
@@ -424,12 +424,12 @@ footer#site-footer{
   .f-social svg{ width:16px; height:16px; fill:currentColor; }
   .f-h1{ font:700 13px/1 var(--fsans); letter-spacing:-.04em; }
   .f-col{ display:flex; flex-direction:column; align-items:flex-start; }
-  .f-group{ margin:0 0 12px; font-size:14px; line-height:21px; font-weight:300; color:rgba(255,255,255,.4); }
+  .f-group{ margin:0 0 12px; font-size:14px; line-height:21px; font-weight:300; color:rgba(255,255,255,.6); }
   .f-col a + .f-group{ margin-top:40px; }
   .f-col a{ font-size:16px; line-height:24px; font-weight:500; color:rgba(255,255,255,.8); text-decoration:none; padding:6px 0; transition:color .2s; }
   .f-col a:hover{ color:#fff; }
   .f-bottom{
-    position:relative; z-index:1; width:min(1280px,92vw); margin:64px auto 0;
+    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:64px auto 0;
     display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
   }
   .f-copy{ font-family:var(--fsans); font-size:14px; color:rgba(255,255,255,.6); }
@@ -492,9 +492,9 @@ footer#site-footer{
      over the sky background; the CRT releases on scroll, so nothing overlaps. -->
 <style is:global id="ed-styles">
   :is(#editorial,#writing){ position:relative; z-index:300; background:transparent; color:#ededee;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
+    font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
   :is(#editorial,#writing) .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-    letter-spacing:2px; text-transform:uppercase; color:#87878d; }
+    letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 
   /* ── KEV live feed ── */
   :is(#editorial,#writing) .ed-kev{ max-width:1500px; margin:0 auto; }
@@ -536,7 +536,7 @@ footer#site-footer{
   :is(#editorial,#writing) .ed-statement{ margin:0; max-width:30ch; text-align:center; text-wrap:balance;
     font:400 clamp(1.5rem,2.8vw,2.8rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     letter-spacing:-.012em; }
-  :is(#editorial,#writing) .ed-tag{ position:absolute; padding:.28em .4em; font:400 clamp(13px,1.15vw,17px)/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  :is(#editorial,#writing) .ed-tag{ position:absolute; padding:.28em .4em; font:400 clamp(13px,1.15vw,17px)/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     color:#1c1c1c; white-space:nowrap; }
   :is(#editorial,#writing) .ed-beliefs__body{ position:relative; }
   :is(#editorial,#writing) .ed-tag--a{ bottom:calc(100% + clamp(48px,8vh,84px)); left:24%; background:#4caf50; }
@@ -553,7 +553,7 @@ footer#site-footer{
      overflow:clip, not hidden, so focusing a card can't scroll the box. */
   #writing .wr-reel{ overflow:clip; padding:8px 0 12px; cursor:grab; touch-action:pan-y; user-select:none; }
   #writing .wr-reel.is-drag{ cursor:grabbing; }
-  #writing .wr-track{ display:flex; gap:6px; align-items:flex-start; width:max-content; padding-left:var(--gut); will-change:transform; }
+  #writing .wr-track{ display:flex; gap:6px; align-items:flex-start; width:max-content; padding-left:calc(var(--gut) - 12px); will-change:transform; }
   #writing .wr-track .fn-tile{ flex:none; width:clamp(280px,30vw,440px); }
   #writing .wr-track img{ -webkit-user-drag:none; }
   @media (--bp-820){
@@ -599,7 +599,7 @@ footer#site-footer{
   margin:0 0 var(--head-gap); padding:0 var(--gut); }
 #signal .sec-head{ padding:0; }
 .sec-lbl{ grid-column:1 / -1; display:flex; align-items:center; gap:14px; margin:0 0 clamp(14px,2.4vh,24px);
-  font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.2em; text-transform:uppercase; color:#87878d; }
+  font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .sec-no{ color:#c9d6ff; }
 .sec-lbl::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(201,214,255,.28),rgba(201,214,255,0)); transform-origin:left; }
 .sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(52px,7.4vw,112px);
@@ -607,7 +607,7 @@ footer#site-footer{
 .sec-title em{ font-style:italic; color:#cdd9f7; }
 .sec-title sup{ font:500 .17em/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:0;
   vertical-align:top; position:relative; top:.4em; margin-left:.14em; color:#c9d6ff; }
-.sec-link{ font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.15em; text-transform:uppercase; color:#94949a;
+.sec-link{ font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae;
   text-decoration:none; transition:color .3s; padding-bottom:.6em; }
 .sec-link:hover{ color:#ededee; }
 /* Variant B: grotesk headline, the italic word stays serif */
@@ -621,17 +621,13 @@ footer#site-footer{
 :root[data-heads="c"] .sec-lbl::after{ display:none; }
 :root[data-heads="c"] .sec-title{ grid-column:2; }
 
-/* Film grain over the whole page, with a soft vignette under it. The tile is
-   160px of sparse light and dark specks; it jumps between offsets eight
-   times a second, so it reads as film rather than a sliding pattern. */
-.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; overflow:hidden; }
+/* Film grain over the whole page, with a soft vignette under it. Held
+   still and faint: none of the reference sites animate texture, and the sky
+   already supplies the motion. */
+.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
 .page-grain::before{ content:""; position:absolute; inset:0;
   background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
-.page-grain::after{ content:""; position:absolute; inset:-160px; background:url(/images/grain.webp) repeat;
-  opacity:.09; animation:grain 1s steps(8) infinite; }
-@keyframes grain{
-  0%{transform:translate(0,0)} 12.5%{transform:translate(-37px,61px)} 25%{transform:translate(83px,-24px)} 37.5%{transform:translate(-112px,-90px)}
-  50%{transform:translate(19px,128px)} 62.5%{transform:translate(140px,44px)} 75%{transform:translate(-66px,7px)} 87.5%{transform:translate(51px,-139px)} 100%{transform:translate(0,0)} }
+.page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.045; }
 
 /* Scroll-linked motion (CSS only; browsers without view timelines just show
    everything at rest). The label rule draws in, project frames open upward
@@ -646,7 +642,6 @@ footer#site-footer{
 @keyframes rule-draw{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
 @keyframes frame-open{ from{ clip-path:inset(18% 0 0 0); } to{ clip-path:inset(0 0 0 0); } }
 @keyframes frame-settle{ from{ transform:scale(1.12); } to{ transform:scale(1); } }
-@media (prefers-reduced-motion:reduce){ .page-grain::after{ animation:none; } }
 @media (--bp-760){
   .sec-head{ grid-template-columns:1fr; row-gap:16px; }
   .sec-link{ justify-self:start; }
@@ -671,12 +666,13 @@ footer#site-footer{
 .pw-tile:nth-child(6n+4) .pw-img{ aspect-ratio:4/3; }
 .pw-img > *{ transition:opacity .15s ease; }
 @media (hover:hover){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ opacity:.35; } }
-/* Moat and Cluster show their logo centred on the frame; Sentinel holds a
-   placeholder until it has a real screenshot. */
+/* Screenshots fill their frame; projects without one show a logo or a placeholder. */
+.pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
+.pw-img--shot img[src$=".svg"]{ object-fit:contain; } /* diagrams must not lose their edges */
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
-.pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.35); }
-.pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 12px;
+.pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
+.pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 var(--gut);
   font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
   /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
   text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
@@ -697,15 +693,15 @@ footer#site-footer{
     </header>
     <div class="pw-grid" data-reveal-group>
       <a class="pw-tile" id="sec-moat" href="/moat/">
-        <figure class="pw-img pw-img--logo"><img src="/images/projects/moat-logo.svg" alt="Moat logo" width="32" height="32" loading="lazy" decoding="async"></figure>
+        <figure class="pw-img pw-img--shot"><img src="/images/projects/moat-hero.webp" srcset="/images/projects/moat-hero.w800.webp 800w, /images/projects/moat-hero.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Moat's popup over a WIRED article, showing 14 ads and trackers blocked on the page." width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
       <a class="pw-tile" id="sec-sentinel" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">
-        <figure class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure class="pw-img pw-img--shot"><img src="/images/projects/sentinel-hero.svg" alt="Schematic of Sentinel's pipeline: an attack produces telemetry, Elastic detects it with Sigma rules, two AI models triage the alert, and Shuffle SOAR responds." width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
       <a class="pw-tile" id="sec-cluster" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">
-        <figure class="pw-img pw-img--logo"><img src="/images/projects/cluster-logo.svg" alt="Cluster logo" width="256" height="256" loading="lazy" decoding="async"></figure>
+        <figure class="pw-img pw-img--shot"><img src="/images/projects/cluster-hero.webp" srcset="/images/projects/cluster-hero.w800.webp 800w, /images/projects/cluster-hero.webp 1440w" sizes="(max-width: 760px) 100vw, 50vw" alt="Cluster's Phishing view flagging a fake Netflix sender that failed DMARC." width="1440" height="960" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
       </a>
       <a class="pw-tile" id="sec-athena" href="https://github.com/Samuelabhinav37/Athena" target="_blank" rel="noopener">
@@ -765,7 +761,7 @@ footer#site-footer{
 .sig-card, .ctf-strip{ background:#0d1222; border:1px solid rgba(190,205,240,.11); border-radius:14px;
   box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 22px 50px -26px rgba(0,0,0,.85), 0 6px 16px -8px rgba(0,0,0,.5); }
 .sig-card{ padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
-.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
+.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; margin:0 0 16px; display:flex; align-items:center; gap:9px; }
 .sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
 .news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
 .news-row:first-child{ border-top:0; }
@@ -774,9 +770,9 @@ footer#site-footer{
   transition:filter .5s cubic-bezier(.22,1,.36,1); }
 .news-row:hover .news-badge.has-img{ filter:grayscale(0) brightness(.92) contrast(1); }
 .news-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
-.news-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13.5px; line-height:1.32; color:#d8dced; transition:color .2s; }
+.news-title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13.5px; line-height:1.32; color:#d8dced; transition:color .2s; }
 .news-row:hover .news-title{ color:#fff; }
-.news-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.news-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .pod-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid rgba(var(--c-white),.06); }
 .pod-row:first-child{ border-top:0; }
 .pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(226,232,244,0.55);
@@ -788,26 +784,26 @@ footer#site-footer{
 .pod-art img{ width:100%; height:100%; object-fit:cover; display:block; }
 .pod-row:hover .pod-art{ filter:grayscale(0) brightness(.95) contrast(1); }
 .pod-body{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
-.pod-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:13.5px; color:#e8ebf4; }
+.pod-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:13.5px; color:#e8ebf4; }
 .pod-name a{ color:inherit; text-decoration:none; }
 .pod-name a:hover{ color:#fff; }
-.pod-why{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:11.5px; line-height:1.35; color:rgba(226,232,244,0.5); }
-.pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.42); letter-spacing:1px; flex:none; transition:color .3s ease; }
+.pod-why{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:11.5px; line-height:1.35; color:rgba(226,232,244,0.5); }
+.pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.6); letter-spacing:1px; flex:none; transition:color .3s ease; }
 .pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
 .ctf-strip{ margin-top:clamp(20px,2.5vw,36px); padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
-.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .ctf-item{ display:grid; grid-template-columns:30px auto; column-gap:10px; row-gap:2px; align-items:center; }
 .ctf-item > :not(.ctf-logo){ grid-column:2; }
 .ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
 .ctf-logo img{ width:100%; height:100%; object-fit:cover; display:block; background:#fff; }
 .ctf-item:hover .ctf-logo{ filter:none; }
-.ctf-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
-.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
-.ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(226,232,244,0.6); background:none; border:none; cursor:pointer; padding:0; }
+.ctf-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
+.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
+.ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; }
 .ctf-more:hover{ color:#fff; }
 
 .sig-card__head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-.sig-more{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.5); background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
+.sig-more{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
 .sig-more:hover{ color:#fff; }
 
 .sig-dialog{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px;
@@ -826,12 +822,12 @@ footer#site-footer{
   color:#dfe4f0; font-size:16px; line-height:1; cursor:pointer; }
 .sig-dialog__close::before{ content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
 .sig-dialog__close:hover{ background:rgba(var(--c-white),0.12); }
-.sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); margin:0 0 6px; }
-.sig-dialog__title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }
+.sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; margin:0 0 6px; }
+.sig-dialog__title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }
 .sig-dialog__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
 .sig-dialog__list li{ display:flex; gap:12px; align-items:flex-start; }
 .sig-dialog__list img{ width:20px; height:20px; border-radius:4px; margin-top:2px; flex:none; background:rgba(var(--c-white),0.06); }
-.sig-dialog__list a{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
+.sig-dialog__list a{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
 .sig-dialog__list a:hover{ text-decoration:underline; }
 .sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
 @media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } .sig-dialog, .sig-dialog__panel{ transition:none; } }
