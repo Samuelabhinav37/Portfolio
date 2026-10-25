@@ -87,5 +87,30 @@
   } else {
     load();
   }
+
+  /* Scrolling pushes the ticker along: it speeds up with the page (or runs
+     back when you scroll up), then eases back to its own pace, a touch
+     from award-winning sites' marquees. Only the CSS animation's
+     playbackRate changes, so it keeps running on the compositor, and the
+     frame loop stops once the push has died away. */
+  if(!ED_REDUCE && track.getAnimations){
+    var lastY=scrollY, lastT=performance.now(), rate=1, push=1, raf=0;
+    function settle(){
+      push += (1 - push) * 0.06;
+      rate += (push - rate) * 0.18;
+      var a=track.getAnimations()[0];
+      var done=Math.abs(rate - 1) < 0.01 && Math.abs(push - 1) < 0.01;
+      if(done) rate=push=1;
+      if(a) a.playbackRate=rate;
+      raf=done ? 0 : requestAnimationFrame(settle);
+    }
+    addEventListener('scroll', function(){
+      var now=performance.now(), v=(scrollY - lastY) / Math.max(16, now - lastT); // px per ms
+      lastY=scrollY; lastT=now;
+      var want=Math.max(-6, Math.min(8, 1 + v * 5));
+      if(Math.abs(want - 1) > Math.abs(push - 1)) push=want;
+      if(!raf) raf=requestAnimationFrame(settle);
+    }, {passive:true});
+  }
 })();
 

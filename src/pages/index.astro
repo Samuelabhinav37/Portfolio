@@ -184,7 +184,8 @@ body.intro-done #hero-tagline { opacity:1; }
 #hero-tagline-cursor { display:inline-block; margin-left:1px; color:rgba(var(--c-white),0.65);
   animation:heroCursorBlink .95s step-start infinite; }
 @keyframes heroCursorBlink { 50%{ opacity:0; } }
-@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:34px; } }
+/* phones/tablets: clear Kai's corner button and its "Ask Kai" bubble (~135px tall) */
+@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:150px; } }
 @media (prefers-reduced-motion: reduce) { #hero-tagline-cursor { animation:none; } }
 
 </style>
@@ -222,7 +223,7 @@ footer#site-footer{
   #site-footer .crt, #site-footer .f-eyebrow, #site-footer .f-tagline,
   #site-footer .f-cta, #site-footer .f-copy, #site-footer .f-links{
     opacity:0; transform:translateY(24px) scale(0.965);
-    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1);
   }
   /* exit stagger (scroll up): reverse order — links leave first, CRT last */
   #site-footer .f-links{transition-delay:0s}
@@ -411,7 +412,7 @@ footer#site-footer{
     font-family:var(--fsans); font-weight:500; font-size:14px; letter-spacing:0; text-transform:none;
     color:rgba(238,241,247,0.94); text-decoration:none; background:rgba(var(--c-white),0.06); border-radius:6px;
     border:1px solid rgba(226,232,244,0.14);
-    padding:11px 19px; white-space:nowrap; transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .5s ease, background .5s ease, box-shadow .5s ease;
+    padding:11px 19px; white-space:nowrap; transition:transform .5s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1), border-color .5s ease, background .5s ease, box-shadow .5s ease;
     display:inline-flex; align-items:center; gap:5px; position:relative; align-self:flex-start;
   }
   .f-cta .arrow{display:inline-block; transition:transform .5s cubic-bezier(.16,1,.3,1)}
@@ -802,6 +803,14 @@ footer#site-footer{
 .sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
 .news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
 .news-row:first-child{ border-top:0; }
+/* Row hover after minhpham.design's lists: a faint band opens from the
+   row's middle line outward (clip-path inset 50% -> 0, 0.4s). */
+.news-row, .pod-row{ position:relative; }
+.news-row > *, .pod-row > *{ position:relative; }
+.news-row::before, .pod-row::before{ content:""; position:absolute; inset:0 -12px; border-radius:8px; pointer-events:none;
+  background:rgba(var(--c-white),.045); clip-path:inset(50% 0); transition:clip-path .4s var(--ease-out); }
+.news-row:hover::before, .news-row:focus-visible::before, .pod-row:hover::before{ clip-path:inset(0); }
+@media (prefers-reduced-motion: reduce){ .news-row::before, .pod-row::before{ transition:none; } }
 .news-badge{ width:52px; height:40px; flex:none; border-radius:3px; background:rgba(var(--c-white),.05) center/cover no-repeat; border:1px solid rgba(var(--c-white),.08); }
 .news-badge.has-img{ background-color:#05060b; filter:grayscale(1) brightness(.72) contrast(.95);
   transition:filter .5s cubic-bezier(.22,1,.36,1); }
@@ -945,7 +954,7 @@ footer#site-footer{
         <p class="f-eyebrow">Open to work</p>
         <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
       </div>
-      <a class="f-cta" href="/contact/" data-roll>Get in touch <span class="arrow">→</span></a>
+      <a class="f-cta" href="/contact/" data-roll data-magnet>Get in touch <span class="arrow">→</span></a>
     </div>
 
     <div class="crt">
