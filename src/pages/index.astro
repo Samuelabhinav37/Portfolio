@@ -668,7 +668,6 @@ footer#site-footer{
 @media (hover:hover){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ opacity:.35; } }
 /* Screenshots fill their frame; projects without one show a logo or a placeholder. */
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
-.pw-img--shot img[src$=".svg"]{ object-fit:contain; } /* diagrams must not lose their edges */
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
 .pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
@@ -697,7 +696,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
       <a class="pw-tile" id="sec-sentinel" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">
-        <figure class="pw-img pw-img--shot"><img src="/images/projects/sentinel-hero.svg" alt="Schematic of Sentinel's pipeline: an attack produces telemetry, Elastic detects it with Sigma rules, two AI models triage the alert, and Shuffle SOAR responds." width="1500" height="1000" loading="lazy" decoding="async"></figure>
+        <figure class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
       <a class="pw-tile" id="sec-cluster" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">
