@@ -67,7 +67,7 @@
   reel.addEventListener('pointerleave', function(e){ if(e.pointerType === 'mouse') target = 1; });
   reel.addEventListener('focusin', function(e){
     target = 0;
-    var card = e.target.closest('.ed-card');
+    var card = e.target.closest('.fn-tile');
     if(!card) return;
     var r = card.getBoundingClientRect(), box = reel.getBoundingClientRect();
     if(r.left < box.left || r.right > box.right){
@@ -100,6 +100,8 @@
   }
   addEventListener('pointerup', endDrag);
   addEventListener('pointercancel', endDrag);
+  // Links and images would start a native drag and cancel ours
+  reel.addEventListener('dragstart', function(e){ e.preventDefault(); });
   // A drag that ends over a card must not open it
   reel.addEventListener('click', function(e){
     if(moved){ e.preventDefault(); e.stopPropagation(); moved = false; }
