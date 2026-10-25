@@ -602,35 +602,37 @@ footer#site-footer{
   letter-spacing:2px; text-transform:uppercase; color:#87878d; }
 #projects-section .ps-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
   font-size:clamp(1.6rem,2.4vw,2.2rem); letter-spacing:-0.3px; color:#eef3ff; margin:0; }
-/* Work tiles, after Pentagram's and Instrument's work pages: each project is
-   a big tile (8 of 12 columns) on its own row, switching sides down the page
-   so the empty space beside it alternates. Under each image: the name, one sentence and
-   dim tags. The grid runs nearly to the screen edges. */
-#projects-section .ps-inner{ max-width:none; padding:0 clamp(16px,3.2vw,48px); }
-.pw-grid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:clamp(64px,12vh,140px) clamp(16px,1.8vw,26px); align-items:start; }
-.pw-tile{ display:block; color:inherit; text-decoration:none; }
-.pw-tile--big{ grid-column:span 8; }
-.pw-tile--alone{ grid-column:5 / span 8; }
-.pw-img{ margin:0; position:relative; overflow:hidden; background:#0a0c14; border-radius:clamp(8px,.9vw,14px); }
-.pw-tile--big .pw-img{ aspect-ratio:4/3.1; }
-.pw-img img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
-  transition:transform 1.2s var(--ease-out); }
-.pw-tile:hover .pw-img img, .pw-tile:focus-visible .pw-img img{ transform:scale(1.025); }
-/* Moat and Cluster show their logo centred on the tile; Sentinel holds a
+/* Work tiles, after Bodeyco's journal: two equal columns running edge to
+   edge with a 6px gutter, frames in their own shapes so rows go ragged, no
+   corners or borders. Under each frame a two-half caption in one small
+   grotesk: the name over dim tags on the left, the sentence (dim) on the
+   right. Hover fades the picture. */
+#projects-section .ps-inner{ max-width:none; padding:0; }
+#projects-section .ps-head{ padding:0 clamp(16px,3.2vw,48px); }
+.pw-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:60px 6px; align-items:start; }
+.pw-tile{ display:flex; flex-direction:column; gap:12px; color:inherit; text-decoration:none; }
+.pw-img{ margin:0; position:relative; overflow:hidden; background:#0a0c14; aspect-ratio:3/2; }
+.pw-tile:nth-child(even) .pw-img{ aspect-ratio:5/4; }
+.pw-img > *{ transition:opacity .15s ease; }
+@media (hover:hover){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ opacity:.35; } }
+/* Moat and Cluster show their logo centred on the frame; Sentinel holds a
    placeholder until it has a real screenshot. */
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
-.pw-img--logo img{ position:static; width:clamp(64px,13%,150px); height:auto; }
-.pw-img--todo span{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(226,232,244,.35); }
-.pw-cap{ margin-top:clamp(14px,1.6vw,22px); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-.pw-name{ display:block; font-size:clamp(15px,1.15vw,18px); color:rgba(226,232,244,.7); margin-bottom:6px; }
-.pw-line{ display:block; max-width:44ch; font-size:clamp(18px,1.6vw,24px); line-height:1.25; letter-spacing:-.01em; color:#f3f5fb; text-wrap:pretty; }
-.pw-tags{ display:block; margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:rgba(226,232,244,.42); }
-@media (--bp-900){
+.pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
+.pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.35); }
+.pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 12px;
+  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
+  /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
+  text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
+.pw-name{ grid-column:1; grid-row:1; padding-right:24px; }
+.pw-tags{ grid-column:1; grid-row:2; padding-right:24px; color:rgba(233,236,247,.62); }
+.pw-line{ grid-column:2; grid-row:1 / span 2; padding-right:24px; color:rgba(233,236,247,.62); text-wrap:pretty; }
+@media (--bp-760){
   #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
-  .pw-grid{ grid-template-columns:1fr; row-gap:56px; }
-  .pw-tile--big, .pw-tile--alone{ grid-column:auto; }
+  .pw-grid{ grid-template-columns:1fr; }
+  .pw-name, .pw-tags, .pw-line{ padding-right:0; }
 }
-@media (prefers-reduced-motion: reduce){ .pw-img img{ transition:none; } }
+@media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
 </style>
 <section id="projects-section" aria-labelledby="ps-title">
   <div class="ps-inner">
@@ -641,15 +643,15 @@ footer#site-footer{
       </div>
     </div>
     <div class="pw-grid" data-reveal-group>
-      <a class="pw-tile pw-tile--big" id="sec-moat" href="/moat/">
+      <a class="pw-tile" id="sec-moat" href="/moat/">
         <figure class="pw-img pw-img--logo"><img src="/images/projects/moat-logo.svg" alt="Moat logo" width="32" height="32" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
-      <a class="pw-tile pw-tile--big pw-tile--alone" id="sec-sentinel" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">
+      <a class="pw-tile" id="sec-sentinel" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">
         <figure class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
-      <a class="pw-tile pw-tile--big" id="sec-cluster" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">
+      <a class="pw-tile" id="sec-cluster" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">
         <figure class="pw-img pw-img--logo"><img src="/images/projects/cluster-logo.svg" alt="Cluster logo" width="256" height="256" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
       </a>
