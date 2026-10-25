@@ -612,14 +612,10 @@ footer#site-footer{
 :root{ --gut:clamp(16px,3.2vw,48px); --sec-pad:clamp(110px,18vh,200px); --head-gap:clamp(40px,7vh,80px); }
 
 /* Section headings: a smaller sibling of the blog's "Field Notes (N)" title.
-   A numbered mono label over a large serif line with one italic word. */
+   A large serif line with one italic word. */
 .sec-head{ position:relative; display:grid; grid-template-columns:1fr auto; align-items:end; column-gap:24px;
   margin:0 0 var(--head-gap); padding:0 var(--gut); }
 #signal .sec-head{ padding:0; }
-.sec-lbl{ grid-column:1 / -1; display:flex; align-items:center; gap:14px; margin:0 0 clamp(14px,2.4vh,24px);
-  font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
-.sec-no{ color:#c9d6ff; }
-.sec-lbl::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(201,214,255,.28),rgba(201,214,255,0)); transform-origin:left; }
 .sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(52px,7.4vw,112px);
   line-height:.92; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
 .sec-title em{ font-style:italic; color:#cdd9f7; }
@@ -635,9 +631,7 @@ footer#site-footer{
 /* Variant C: editorial bar, label in a narrow left column, title in the right */
 :root[data-heads="c"] .sec-head{ grid-template-columns:minmax(140px,22%) 1fr auto; border-top:1px solid rgba(201,214,255,.16); padding-top:18px; }
 :root[data-heads="c"] #signal .sec-head{ padding-top:18px; }
-:root[data-heads="c"] .sec-lbl{ grid-column:1; align-self:start; margin:0; padding-top:.5em; }
-:root[data-heads="c"] .sec-lbl::after{ display:none; }
-:root[data-heads="c"] .sec-title{ grid-column:2; }
+:root[data-heads="c"] :root[data-heads="c"] :root[data-heads="c"] .sec-title{ grid-column:2; }
 
 /* Page rail (same shape as the blog post's .etoc strip) */
 .hrail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:140; }
@@ -665,25 +659,22 @@ footer#site-footer{
 .page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.045; }
 
 /* Scroll-linked motion (CSS only; browsers without view timelines just show
-   everything at rest). The label rule draws in, project frames open upward
+   everything at rest). Project frames open upward
    and their picture settles from a slight zoom. */
 @supports (animation-timeline:view()){
   @media (prefers-reduced-motion:no-preference){
-    .sec-lbl::after{ animation:rule-draw linear both; animation-timeline:view(); animation-range:entry 10% cover 35%; }
-    .pw-img{ animation:frame-open linear both; animation-timeline:view(); animation-range:entry 0% cover 30%; }
+        .pw-img{ animation:frame-open linear both; animation-timeline:view(); animation-range:entry 0% cover 30%; }
     .pw-img > *{ animation:frame-settle linear both; animation-timeline:view(); animation-range:entry 0% cover 45%; }
   }
 }
-@keyframes rule-draw{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
 @keyframes frame-open{ from{ clip-path:inset(18% 0 0 0); } to{ clip-path:inset(0 0 0 0); } }
 @keyframes frame-settle{ from{ transform:scale(1.12); } to{ transform:scale(1); } }
 @media (--bp-760){
   .sec-head{ grid-template-columns:1fr; row-gap:16px; }
   .sec-link{ justify-self:start; }
   :root[data-heads="c"] .sec-head{ grid-template-columns:1fr; }
-  :root[data-heads="c"] .sec-lbl, :root[data-heads="c"] .sec-title{ grid-column:1; }
-  :root[data-heads="c"] .sec-lbl{ margin-bottom:14px; }
-}
+  :root[data-heads="c"] .sec-title{ grid-column:1; }
+  :root[data-heads="c"] }
 #projects-section{ position:relative; z-index:3; width:100%; box-sizing:border-box; background:transparent; padding:var(--sec-pad) 0 0; }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
    edge with a 6px gutter, frames in their own shapes so rows go ragged, no
@@ -725,7 +716,6 @@ footer#site-footer{
 <section id="projects-section" aria-labelledby="ps-title">
   <div class="ps-inner">
     <header class="sec-head">
-      <p class="sec-lbl"><span class="sec-no">01</span>Projects</p>
       <h2 class="sec-title" id="ps-title" data-reveal="lines">Selected <em>work</em><sup aria-hidden="true">(06)</sup></h2>
     </header>
     <div class="pw-grid" data-reveal-group>
@@ -761,7 +751,6 @@ footer#site-footer{
   <!-- Research log -->
   <section class="ed-log" aria-label="From the research log">
     <header class="sec-head">
-      <p class="sec-lbl"><span class="sec-no">02</span>Research log</p>
       <h2 class="sec-title" data-reveal="lines">Recent <em>writing</em><sup aria-hidden="true">({String(writingCards.length).padStart(2, '0')})</sup></h2>
       <a class="sec-link" href="/blog/" data-roll>Read the blog →</a>
     </header>
@@ -881,7 +870,6 @@ footer#site-footer{
 <section id="signal" aria-label="Signal: news, podcasts and CTFs">
   <div class="sig-inner">
     <header class="sec-head">
-      <p class="sec-lbl"><span class="sec-no">03</span>Signal</p>
       <h2 class="sec-title" data-reveal="lines">On my <em>radar</em></h2>
     </header>
     <div class="sig-grid" data-reveal-group>
