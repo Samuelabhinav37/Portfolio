@@ -15,6 +15,7 @@
  *   data-reveal="media"    image eases in from a slight zoom
  *   data-reveal-group      each child fades up in turn
  *   data-scroll-lit        words brighten one by one as you scroll past
+ *   data-roll              on hover the letters roll up one after another
  */
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -137,7 +138,35 @@ function scrollLit(el) {
   });
 }
 
+/* ── hover roll ───────────────────────────────────────────────────── */
+// After carterogunsola.com's links and Vantra's buttons: each letter slides
+// up out of a one-line window while its copy (a text-shadow one line
+// below, so nothing is duplicated in the page) rises into place, letters
+// a few ms apart. Only the element's own text rolls; child elements such
+// as an arrow keep their own hover. The link keeps its name as one word
+// for screen readers via aria-label, since the letters become spans.
+function roll(el) {
+  if (el.dataset.rolled) return;
+  el.dataset.rolled = '1';
+  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+  let i = 0;
+  [...el.childNodes].forEach((n) => {
+    if (n.nodeType !== 3 || !n.textContent.trim()) return;
+    const box = document.createElement('span');
+    box.className = 'roll';
+    box.setAttribute('aria-hidden', 'true');
+    for (const ch of n.textContent) {
+      const s = document.createElement('span');
+      s.textContent = ch;
+      s.style.setProperty('--i', i++);
+      box.appendChild(s);
+    }
+    n.replaceWith(box);
+  });
+}
+
 function init() {
+  if (finePointer && !reduce) document.querySelectorAll('[data-roll]').forEach(roll);
   const lit = document.querySelectorAll('[data-scroll-lit]');
   if (reduce) {
     lit.forEach((el) => el.classList.add('is-static'));

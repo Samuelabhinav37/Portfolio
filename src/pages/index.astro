@@ -64,7 +64,12 @@ window.SITE=window.SITE||{};
 <meta property="og:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <meta property="og:site_name" content="Samuel · Security Engineer">
 <meta property="og:url" content="https://samuelabhinav.com/">
+<meta property="og:image" content="https://samuelabhinav.com/images/og-home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A night sky with a whale, mantas and jellyfish drawn in digits, over the words: Everything is connected. Everything must be protected.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://samuelabhinav.com/images/og-home.jpg">
 <meta name="twitter:title" content="Samuel Abhinav — Security Engineer, Detection &amp; Response">
 <meta name="twitter:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <script type="application/ld+json" set:html={personJsonLd} />
@@ -520,13 +525,13 @@ footer#site-footer{
   :is(#editorial,#writing) .ed-ticker:hover .ed-track{ animation-play-state:paused; }
   @keyframes edscroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
   :is(#editorial,#writing) .ed-kv{ display:inline-flex; align-items:baseline; gap:12px; padding:16px 34px;
-    font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.3px;
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.3px;
     text-decoration:none; cursor:pointer; transition:background .2s; }
   :is(#editorial,#writing) .ed-kv:hover{ background:rgba(var(--c-white),.05); }
   :is(#editorial,#writing) .ed-kv .ed-cve{ color:#ededee; font-weight:500; }
   :is(#editorial,#writing) .ed-kv .ed-vp{ color:#94949a; }
   :is(#editorial,#writing) .ed-kv .ed-date{ color:#87878d; }
-  :is(#editorial,#writing) .ed-kv .ed-ransom{ color:#e5b8b8; font-size:10px; letter-spacing:1px;
+  :is(#editorial,#writing) .ed-kv .ed-ransom{ color:#e5b8b8; font-size:11px; letter-spacing:1px;
     border:1px solid rgba(229,184,184,.3); border-radius:3px; padding:1px 6px; }
   :is(#editorial,#writing) .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
 
@@ -537,15 +542,15 @@ footer#site-footer{
      padding for breathing room, so shrinking that without adding gap back
      is what read as "no spacing" once the paddings came down). */
   @media (--bp-760){
-    :is(#editorial,#writing) .ed-kv{ padding:11px 16px; gap:8px; font-size:10.5px; }
-    :is(#editorial,#writing) .ed-kv .ed-ransom{ font-size:8.5px; padding:1px 5px; }
+    :is(#editorial,#writing) .ed-kv{ padding:11px 16px; gap:8px; font-size:11px; }
+    :is(#editorial,#writing) .ed-kv .ed-ransom{ font-size:11px; padding:1px 5px; }
   }
 
   /* ── Beliefs: one statement alone on a full screen over the sky, with a few
         coloured tags placed around it ── */
   :is(#editorial,#writing) .ed-beliefs{ position:relative; min-height:100vh; min-height:100svh; display:grid; place-items:center;
     padding:clamp(80px,14vh,160px) clamp(20px,6vw,96px); color:#eef1f8; overflow:hidden; }
-  :is(#editorial,#writing) .ed-statement{ margin:0; max-width:30ch; text-align:center; text-wrap:balance;
+  :is(#editorial,#writing) .ed-statement{ --lit-off:rgba(238,241,248,.2); --lit-on:#eef1f8; margin:0; max-width:30ch; text-align:center; text-wrap:balance;
     font:400 clamp(1.5rem,2.8vw,2.8rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     letter-spacing:-.012em; }
   :is(#editorial,#writing) .ed-tag{ position:absolute; padding:.28em .4em; font:400 clamp(13px,1.15vw,17px)/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -589,7 +594,7 @@ footer#site-footer{
       <span class="ed-tag ed-tag--a" aria-hidden="true">Architecture</span>
       <span class="ed-tag ed-tag--b" aria-hidden="true">Behaviour</span>
       <span class="ed-tag ed-tag--c" aria-hidden="true">Earned trust</span>
-      <p class="ed-statement">Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
+      <p class="ed-statement" data-scroll-lit>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
     </div>
   </section>
 
@@ -644,7 +649,7 @@ footer#site-footer{
   opacity:0; pointer-events:none; transform:translate(8px,-50%); transition:opacity .18s ease, transform .18s ease; }
 .hrail.is-open .hrail-card, .hrail:focus-within .hrail-card{ opacity:1; pointer-events:auto; transform:translate(0,-50%); }
 .hrail-card ol{ list-style:none; margin:0; padding:0; display:grid; gap:1px; }
-.hrail-card a{ display:block; padding:7px 10px; border-radius:6px; font:400 13px/1.35 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:rgba(226,232,244,.7); text-decoration:none; }
+.hrail-card a{ display:block; padding:7px 10px; border-radius:6px; font:400 14px/1.35 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:rgba(226,232,244,.7); text-decoration:none; }
 .hrail-card a:hover{ background:rgba(255,255,255,.05); color:#fff; }
 .hrail-card a.is-active{ color:#fff; background:rgba(200,206,218,.08); box-shadow:inset 2px 0 0 #c8ceda; }
 @media (max-width:1099px){ .hrail{ display:none; } }
@@ -693,8 +698,11 @@ footer#site-footer{
 .pw-tile:nth-child(6n+2) .pw-img, .pw-tile:nth-child(6n+5) .pw-img{ aspect-ratio:5/4; }
 .pw-tile:nth-child(6n+3) .pw-img, .pw-tile:nth-child(6n) .pw-img{ aspect-ratio:16/9; }
 .pw-tile:nth-child(6n+4) .pw-img{ aspect-ratio:4/3; }
-.pw-img > *{ transition:opacity .15s ease; }
+/* Hover: the picture fades and drifts in a little (Vantra zooms 1.05). `scale`
+   rather than transform, so it adds to the scroll-in settle animation. */
+.pw-img > *{ transition:opacity .15s ease, scale .9s var(--ease-out); }
 @media (hover:hover){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ opacity:.35; } }
+@media (hover:hover) and (prefers-reduced-motion:no-preference){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ scale:1.04; } }
 /* Screenshots fill their frame; projects without one show a logo or a placeholder. */
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
@@ -754,7 +762,7 @@ footer#site-footer{
     <header class="sec-head">
       <p class="sec-lbl"><span class="sec-no">02</span>Research log</p>
       <h2 class="sec-title" data-reveal="lines">Recent <em>writing</em><sup aria-hidden="true">({String(writingCards.length).padStart(2, '0')})</sup></h2>
-      <a class="sec-link" href="/blog/">Read the blog →</a>
+      <a class="sec-link" href="/blog/" data-roll>Read the blog →</a>
     </header>
     <div class="wr-reel fn-vars" data-reveal>
       <div class="wr-track">
@@ -778,9 +786,9 @@ footer#site-footer{
   .news-badge{ width:40px; height:32px; }
   .pod-art{ width:36px; height:36px; font-size:11px; }
   .news-title, .pod-name{ font-size:12px; }
-  .pod-why{ font-size:10.5px; }
-  .news-meta, .ctf-meta{ font-size:8px; }
-  .pod-stars{ font-size:9.5px; }
+  .pod-why{ font-size:11px; }
+  .news-meta, .ctf-meta{ font-size:11px; }
+  .pod-stars{ font-size:11px; }
   /* Not enough room for the full list on a phone — cap both to 3 rows;
      the rest are still reachable through each card's own "See more" dialog. */
   #news-list .news-row:nth-child(n+4){ display:none; }
@@ -799,12 +807,12 @@ footer#site-footer{
   transition:filter .5s cubic-bezier(.22,1,.36,1); }
 .news-row:hover .news-badge.has-img{ filter:grayscale(0) brightness(.92) contrast(1); }
 .news-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
-.news-title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13.5px; line-height:1.32; color:#d8dced; transition:color .2s; }
+.news-title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:14px; line-height:1.32; color:#d8dced; transition:color .2s; }
 .news-row:hover .news-title{ color:#fff; }
 .news-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .pod-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid rgba(var(--c-white),.06); }
 .pod-row:first-child{ border-top:0; }
-.pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(226,232,244,0.55);
+.pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:14px; color:rgba(226,232,244,0.55);
   filter:grayscale(1) brightness(.75) contrast(.95); transition:filter .5s cubic-bezier(.22,1,.36,1); }
 /* Cover art is self-hosted under /images/podcasts/. It used to be looked up
    live through an iTunes proxy, but Apple's search API returns nothing to
@@ -813,20 +821,20 @@ footer#site-footer{
 .pod-art img{ width:100%; height:100%; object-fit:cover; display:block; }
 .pod-row:hover .pod-art{ filter:grayscale(0) brightness(.95) contrast(1); }
 .pod-body{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
-.pod-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:13.5px; color:#e8ebf4; }
+.pod-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:14px; color:#e8ebf4; }
 .pod-name a{ color:inherit; text-decoration:none; }
 .pod-name a:hover{ color:#fff; }
-.pod-why{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:11.5px; line-height:1.35; color:rgba(226,232,244,0.5); }
+.pod-why{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:12px; line-height:1.35; color:rgba(226,232,244,0.5); }
 .pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.6); letter-spacing:1px; flex:none; transition:color .3s ease; }
 .pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
 .ctf-strip{ margin-top:clamp(20px,2.5vw,36px); padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
 .ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .ctf-item{ display:grid; grid-template-columns:30px auto; column-gap:10px; row-gap:2px; align-items:center; }
 .ctf-item > :not(.ctf-logo){ grid-column:2; }
-.ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
+.ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
 .ctf-logo img{ width:100%; height:100%; object-fit:cover; display:block; background:#fff; }
 .ctf-item:hover .ctf-logo{ filter:none; }
-.ctf-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
+.ctf-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:14px; color:#dfe4f0; }
 .ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; }
 .ctf-more:hover{ color:#fff; }
@@ -858,7 +866,7 @@ footer#site-footer{
 .sig-dialog__list img{ width:20px; height:20px; border-radius:4px; margin-top:2px; flex:none; background:rgba(var(--c-white),0.06); }
 .sig-dialog__list a{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
 .sig-dialog__list a:hover{ text-decoration:underline; }
-.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
+.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
 @media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } .sig-dialog, .sig-dialog__panel{ transition:none; } }
 </style>
 <section id="signal" aria-label="Signal: news, podcasts and CTFs">
@@ -869,11 +877,11 @@ footer#site-footer{
     </header>
     <div class="sig-grid" data-reveal-group>
       <div class="sig-card">
-        <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news">See more &rarr;</button></div>
+        <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news" data-roll>See more &rarr;</button></div>
         <div id="news-list"><div class="news-row"><span class="news-badge"></span><span class="news-body"><span class="news-title">Loading latest&hellip;</span><span class="news-meta">feed</span></span></div></div>
       </div>
       <div class="sig-card">
-        <div class="sig-card__head"><p class="sig-card__lbl">Security podcasts</p><button type="button" class="sig-more" data-more="podcasts">See more &rarr;</button></div>
+        <div class="sig-card__head"><p class="sig-card__lbl">Security podcasts</p><button type="button" class="sig-more" data-more="podcasts" data-roll>See more &rarr;</button></div>
         <div class="pod-shelf">
           <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/darknet-diaries.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://darknetdiaries.com" target="_blank" rel="noopener">Darknet Diaries</a></div><div class="pod-why">True stories from the dark side of the internet.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
           <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/malicious-life.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://malicious.life" target="_blank" rel="noopener">Malicious Life</a></div><div class="pod-why">The history behind the threats we face.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
@@ -889,7 +897,7 @@ footer#site-footer{
         <div class="ctf-item"><span class="ctf-name">picoCTF</span><span class="ctf-meta">loading&hellip;</span></div>
         <div class="ctf-item"><span class="ctf-name">HTB Business CTF</span><span class="ctf-meta">loading&hellip;</span></div>
       </span>
-      <button type="button" class="ctf-more" data-more="ctfs">See more &rarr;</button>
+      <button type="button" class="ctf-more" data-more="ctfs" data-roll>See more &rarr;</button>
     </div>
   </div>
 </section>
@@ -937,7 +945,7 @@ footer#site-footer{
         <p class="f-eyebrow">Open to work</p>
         <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
       </div>
-      <a class="f-cta" href="/contact/">Get in touch <span class="arrow">→</span></a>
+      <a class="f-cta" href="/contact/" data-roll>Get in touch <span class="arrow">→</span></a>
     </div>
 
     <div class="crt">
@@ -968,35 +976,35 @@ footer#site-footer{
     </div>
     <div class="f-col">
       <p class="f-group">Work</p>
-      <a href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">Sentinel</a>
-      <a href="/moat/">Moat</a>
-      <a href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">Cluster</a>
-      <a href="https://github.com/Samuelabhinav37/Athena" target="_blank" rel="noopener">Athena</a>
-      <a href="https://github.com/Samuelabhinav37/blue-streak" target="_blank" rel="noopener">Blue Streak</a>
-      <a href="https://github.com/Samuelabhinav37/Knot" target="_blank" rel="noopener">Knot</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">Sentinel</a>
+      <a data-roll href="/moat/">Moat</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">Cluster</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/Athena" target="_blank" rel="noopener">Athena</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/blue-streak" target="_blank" rel="noopener">Blue Streak</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/Knot" target="_blank" rel="noopener">Knot</a>
       <p class="f-group">Elsewhere</p>
-      <a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
-      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a>
+      <a data-roll href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
+      <a data-roll href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a>
     </div>
     <div class="f-col">
       <p class="f-group">Writing</p>
-      <a href="/blog/">Field Notes</a>
-      <a href="/rss.xml">RSS feed</a>
+      <a data-roll href="/blog/">Field Notes</a>
+      <a data-roll href="/rss.xml">RSS feed</a>
     </div>
     <div class="f-col">
       <p class="f-group">Connect</p>
-      <a href="/about/">About</a>
-      <a href="/contact/">Contact</a>
-      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a>
+      <a data-roll href="/about/">About</a>
+      <a data-roll href="/contact/">Contact</a>
+      <a data-roll href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a>
     </div>
   </nav>
 
   <div class="f-bottom">
     <div class="f-copy">© 2026 Samuel Abhinav</div>
     <div class="f-links">
-      <a href="/sitemap.xml">Sitemap</a>
-      <a href="/rss.xml">RSS</a>
-      <a href="/contact/">Contact</a>
+      <a data-roll href="/sitemap.xml">Sitemap</a>
+      <a data-roll href="/rss.xml">RSS</a>
+      <a data-roll href="/contact/">Contact</a>
     </div>
   </div>
 
