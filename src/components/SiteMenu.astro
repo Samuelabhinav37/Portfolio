@@ -11,7 +11,7 @@
  * ids so its direct `.style.opacity` writes still find them).
  */
 interface Props {
-  currentPath: '/' | '/about' | '/blog' | '/contact';
+  currentPath: '/' | '/about' | '/blog' | '/contact' | '/work';
   hasIntro?: boolean;
 }
 const { currentPath, hasIntro = false } = Astro.props;

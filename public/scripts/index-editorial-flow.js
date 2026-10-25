@@ -43,7 +43,7 @@
      animation). Recomputing the duration from the track's actual width
      after every paint keeps the visual speed constant regardless of how
      many items are currently in it. */
-  var ED_PX_PER_SEC = 20; // matches the original 80s pace at the fallback list's width
+  var ED_PX_PER_SEC = 48; // 20 read as standing still
   var ED_REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function retune(){
     /* Reduced-motion turns the ticker off entirely via a CSS

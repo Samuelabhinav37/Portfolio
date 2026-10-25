@@ -27,6 +27,7 @@ export const CSP_SCRIPT_HASHES = [
   "'sha256-jfF1vjUNCIt8zT72ltiLfhozZ92IZRjoikaGtZjZ1ws='",
   "'sha256-kwEzoMhMrFcwfxo+ghFzR8hgA541Ue2awxQH5TG2uZk='",
   "'sha256-l/uMZBoHq1ExqYjvi3gismy+QnAXJRr2FCNi6qTKLs8='",
+  "'sha256-liKBie2jAHd6U0glJcR6OGFEmX5SkifmiUsa9UEV1n4='",
   "'sha256-lk8hq1LX9gvRwkwXm7RYJ3VbYUR4EY+wcIttceqwh9A='",
   "'sha256-m6CP8Rmz04ggp+ef+o2MX5nJLgkBiaLzYEQDz+C7l74='",
   "'sha256-mU9IQ//h3/3xvI4UYRNru6TC/H/hhXGZ7aO9I8NOaM8='",

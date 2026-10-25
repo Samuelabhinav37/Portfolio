@@ -20,6 +20,8 @@ const PAGES = [
   '/blog/_blueprint',
   '/blog/_template',
   '/tools/new-post',
+  '/work/moat',
+  '/work/athena',
 ];
 
 // Errors known to be expected right now, not regressions to catch.
