@@ -9,7 +9,6 @@ const { c, i } = Astro.props;
 ---
 <a class="fn-tile" href={c.href} style={`--r:${RATIOS[i % RATIOS.length]}`}>
   <div class="fn-pic">
-    {c.img && <img class="art" src={c.img} alt="" loading="lazy" decoding="async" />}
     <div class="fn-peek" aria-hidden="true">
       <div class="top">
         {c.level ? <span class="lvl"><span class="bars" data-n={c.levelN}><i></i><i></i><i></i></span>{c.level}</span> : <span></span>}

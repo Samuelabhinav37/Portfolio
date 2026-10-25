@@ -6,10 +6,8 @@ level: "Basics"
 pubDate: 2026-09-25
 tags: ["Analog Dawn", "Network Security", "Cryptography"]
 cats: ["network", "crypto"]
-heroImage: /images/tls-handshake-hero.webp
-heroImageAlt: "Two glowing green wireframe hands built from binary code, clasped in a handshake with a small key standing between them, set against a dark blue background covered in a real TLS 1.3 packet capture: the client and server hello messages, cipher suites, key material, master secret, and connection metrics."
-cardImage: /images/tls-handshake-card.webp
-cardImageAlt: "Two glowing green wireframe hands built from binary code, clasped in a handshake with a small key between them, centered against a dark blue background of a TLS packet capture readout."
+ogImage: /images/tls-handshake-hero.og.jpg
+ogImageAlt: "Two glowing green wireframe hands built from binary code, clasped in a handshake with a small key standing between them, set against a dark blue background covered in a real TLS 1.3 packet capture: the client and server hello messages, cipher suites, key material, master secret, and connection metrics."
 faqs:
   - q: "What problem does the TLS handshake actually solve?"
     a: "Two machines that have never met need to agree on a shared encryption key across a network full of eavesdroppers, without ever sending that key where an eavesdropper could grab it. TLS solves that with asymmetric key exchange math, then layers identity verification on top so the client knows it's actually talking to the server it meant to reach, not an attacker sitting in the middle."

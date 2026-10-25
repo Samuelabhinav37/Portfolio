@@ -169,7 +169,6 @@ html.is-scrolled #topbar-scrim {
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
   --w-text: 800px;
-  --w-pic: 820px; /* the header picture's width: the one setting for its size */
   --w-wide-fig: 1040px; /* figures, tables and code reach past the text, as on Surface */
   --w-wide: 1312px;
 }
@@ -197,10 +196,6 @@ html.is-scrolled #topbar-scrim {
   min-height: calc(100vh - 56px); min-height: calc(100svh - 56px);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
-/* 64px of open space above and below the picture, 32px at the sides */
-/* extra room on the right sets the picture a little in from the edge */
-.post-hero-pic { order: 2; padding: 64px 96px 64px 32px; display: flex; justify-content: flex-start; }
-.post-hero-pic img { display: block; width: min(var(--w-pic), 60vw); height: auto; }
 .post-hero-text {
   /* the words are centred on the picture's middle at every width (the
      same 64px above and below as the picture) */
@@ -215,11 +210,6 @@ html.is-scrolled #topbar-scrim {
 }
 .post-series { color: var(--ink-strong); margin: 0; }
 .post-date { font-family: var(--font-sans); font-weight: 500; font-size: 13px; line-height: 16px; letter-spacing: -0.1px; color: var(--ink-dim); margin: 8px 0 0; }
-/* the credit sits under the hairline, lined up with the text column */
-.post-credit {
-  position: relative; z-index: 1; width: min(var(--w-text), calc(100% - 96px)); margin: 0 auto; padding-top: 8px;
-  font-family: var(--font-sans); font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-dim);
-}
 /* ── Listen bar: between the header and the body, on the text column ── */
 .post-audio {
   position: relative; z-index: 1; width: min(var(--w-text), calc(100% - 96px)); margin: 40px auto 0;
@@ -543,15 +533,12 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   .nav-name { font-size: 1.3rem; }
   #menu-trigger { top: 14px; right: 20px; }
   .container { padding: 0 24px; }
-  .post-credit { width: calc(100% - 48px); }
 }
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
-  .post-hero-pic { padding: 24px 24px 32px; }
-  .post-hero-pic img { width: 100%; height: auto; }
   .post-audio { width: calc(100% - 48px); margin-top: 24px; gap: 12px; }
   .post-figure, .code-wrap, .article-col > table { width: 100%; margin: 40px 0; translate: none; }
   .plate-in { padding: 20px 16px; }
@@ -775,13 +762,6 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 
 a.social-icon { text-decoration: none; color: inherit; }
 
-/* Placeholder art when a post has no cardImage yet */
-.story-image-ph {
-  width: 100%; height: 100%; min-height: 120px;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(var(--c-white),0.06), transparent 60%),
-    linear-gradient(145deg, rgba(20,20,28,1), rgba(10,10,16,1));
-}
 
 
 /* ── Tap targets (WCAG 2.5.8: at least 24x24 CSS px). Hit box grows with

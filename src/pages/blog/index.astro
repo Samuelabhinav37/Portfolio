@@ -24,8 +24,8 @@ const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.
 const year = new Date().getFullYear();
 
 /* Field Notes: a featured post, then every other post as a tile in an
-   edge-to-edge grid. No dates are shown. A post's frame shows its tileImage
-   when it has one, and is a black placeholder until then. */
+   edge-to-edge grid. No dates are shown. Frames are empty: posts carry
+   no pictures. */
 const cards = fieldCards(posts);
 /* the filter menu: levels in their own order, then topics, then concepts */
 const levels = levelsOf(cards);
@@ -279,10 +279,10 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
   </section>
 
   <!-- The featured post: the newest, or in reading order the first. Frames
-       show a post's tileImage, or stay a black placeholder until it has one. -->
+       are empty: posts carry no pictures. -->
   {featured && (
     <a class="fn-feat" id="fn-feat" href={featured.href} data-reveal>
-      <div class="fn-pic" style="--r:16/9">{featured.img && <img class="art" src={featured.img} alt="" decoding="async" fetchpriority="high" />}</div>
+      <div class="fn-pic" style="--r:16/9"></div>
       <div class="fn-feat-txt">
         <div class="top">
           <span class="fn-flag">Featured</span>

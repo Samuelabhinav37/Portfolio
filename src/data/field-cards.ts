@@ -38,8 +38,6 @@ export function fieldCards(posts: Post[]) {
       mins: p.data.readTime || Math.max(1, Math.round(words / WPM)),
       desc: p.data.description,
       date: p.data.pubDate.toISOString(),
-      // one picture per post: its tile picture if it has one, else the header picture
-      img: p.data.tileImage || p.data.heroImage || null,
       href: '/blog/' + p.id + '/',
     };
   });

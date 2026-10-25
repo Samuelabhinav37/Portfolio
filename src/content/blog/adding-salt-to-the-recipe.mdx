@@ -6,10 +6,8 @@ level: "Basics"
 pubDate: 2026-09-18
 tags: ["Analog Dawn", "Cryptography", "Password Security"]
 cats: ["auth", "crypto"]
-heroImage: /images/salting-hero.webp
-heroImageAlt: "A glowing padlock built from binary code, standing beneath a wide beam of falling random characters, letters, digits, and symbols, that scatters and breaks apart two red rainbow-table segments of precomputed hash-to-password lookups on either side, set against a dark blue background covered in salt-generation code and cryptographic notation."
-cardImage: /images/salting-card.webp
-cardImageAlt: "A glowing padlock built from binary code beneath a beam of falling random characters that scatters two red rainbow-table lookup segments on either side, centered against a dark blue background of faint cryptographic code."
+ogImage: /images/salting-hero.og.jpg
+ogImageAlt: "A glowing padlock built from binary code, standing beneath a wide beam of falling random characters, letters, digits, and symbols, that scatters and breaks apart two red rainbow-table segments of precomputed hash-to-password lookups on either side, set against a dark blue background covered in salt-generation code and cryptographic notation."
 faqs:
   - q: "What is a cryptographic salt?"
     a: "A random value generated uniquely for each user at registration and mixed into their password before it gets hashed. It doesn't need to stay secret and typically sits right next to the hash in the database, in plain text. Its entire job is to guarantee that two people who pick the identical password end up with completely different stored hashes."

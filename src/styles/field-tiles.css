@@ -9,12 +9,11 @@
   --e:cubic-bezier(.2,.8,.2,1);
   font:600 12px/1.2 var(--grot);letter-spacing:-.02em;
 }
-/* ── picture frames: a post's tileImage, or a black placeholder ── */
+/* ── frames: empty, posts carry no pictures ── */
 .fn-pic{position:relative;overflow:hidden;aspect-ratio:var(--r,16/9);
   background:#0a0d18;border:1px solid rgba(200,215,245,.1);
   transition:background .4s,border-color .4s}
 a:hover .fn-pic{background:#0e1220;border-color:rgba(200,215,245,.2)}
-.fn-pic .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 
 /* ── shared pieces: the level, concept pills, the Read link ── */
 .lvl{display:inline-flex;align-items:center;gap:7px;color:var(--lvl)}
