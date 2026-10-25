@@ -6,6 +6,7 @@ import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import SkyBackground from '../components/SkyBackground.astro';
+import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
 import { SITE } from '../config';
 import '../styles/tokens.css';
@@ -121,7 +122,7 @@ body { min-height:100%; }
 
 /* ════════════════ Terminal window — floating CRT, Beat 1 expands to fullscreen ════════════════ */
 #term-stage {
-  position:relative; z-index:1;
+  position:relative; z-index:3;
   width:100%; min-height:100vh; min-height:100svh;
   display:flex; align-items:center; justify-content:center;
   pointer-events:none;
@@ -205,7 +206,7 @@ body.intro-done #hero-tagline { opacity:1; }
   --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
 }
 footer#site-footer{
-    position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:transparent;
+    position:relative; z-index:3; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:transparent;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0;
     opacity:1; pointer-events:auto;   /* no panel: the sky shows through; ::before bloom sits on top */
   }
@@ -457,6 +458,8 @@ footer#site-footer{
 
 
 <SkyBackground />
+<!-- the blog's sky cast: jellyfish, whale, mantas, turtle, fish, between the sky and the page -->
+<SkyLife cast />
 
 
 
@@ -466,8 +469,8 @@ footer#site-footer{
 <Glitches />
 
 <!-- ════ Terminal window — floating CRT feed; Beat 1 expands it to fullscreen ════
-     Sits in a fixed, centered stage at z-index 500: above the sky
-     background (#sky), below Luna (999) and the chrome (1000+), so the navbar
+     Sits at z-index 3: above the sky background (#sky) and its sea
+     creatures, below Luna (999) and the chrome (1000+), so the navbar
      and Luna ride on top throughout. Revealed at body.intro-done (Beat 0). -->
 <div id="term-stage">
   <div id="term-window" style="width:100%;height:100vh;height:100svh;border-radius:0;">
@@ -593,7 +596,7 @@ footer#site-footer{
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
-#projects-section{ position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
+#projects-section{ position:relative; z-index:3; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
   background:transparent; display:flex; align-items:center;
   padding:clamp(50px,7vh,100px) 0; }
 #projects-section .ps-inner{ width:100%; max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
@@ -680,7 +683,7 @@ footer#site-footer{
 
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
-#signal{ position:relative; z-index:1; background:transparent;
+#signal{ position:relative; z-index:3; background:transparent;
   padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); }
 #signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
 #signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
@@ -809,9 +812,9 @@ footer#site-footer{
 </section>
 
 <!-- Deliberately NOT nested inside #signal: that section is its own stacking
-     context (position:relative + z-index:1), which would trap this dialog's
+     context (position:relative + z-index:3), which would trap this dialog's
      z-index:2000 so it only outranks things inside #signal — #site-footer is
-     a later sibling at the same z-index:1 and would paint over it once
+     a later sibling at the same z-index:3 and would paint over it once
      scrolled into view. Living as a top-level sibling keeps z-index:2000
      meaningful against the whole page. -->
 <div id="signal-dialog" class="sig-dialog" aria-hidden="true">
