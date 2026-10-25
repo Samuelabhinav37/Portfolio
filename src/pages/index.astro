@@ -448,6 +448,7 @@ footer#site-footer{
 <ClarityAnalytics />
 </head>
 <body>
+<div class="page-grain" aria-hidden="true"></div>
 
 <SiteMenu currentPath="/" hasIntro={true} />
 <h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
@@ -547,23 +548,15 @@ footer#site-footer{
     :is(#editorial,#writing) .ed-tag--c{ left:4%; }
   }
   /* ── Research log — Work-grammar cards ── */
-  :is(#editorial,#writing) .ed-log{ padding:clamp(60px,10vh,120px) 0 clamp(90px,16vh,180px); }
-  :is(#editorial,#writing) .ed-log__head{ display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
-    max-width:1500px; margin:0 auto clamp(34px,6vh,54px); padding:0 clamp(24px,5vw,80px); box-sizing:border-box; flex-wrap:wrap; }
-  :is(#editorial,#writing) .ed-log__head .ed-lbl{ display:block; margin-bottom:14px; }
-  :is(#editorial,#writing) .ed-log__head h2{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; }
-  :is(#editorial,#writing) .ed-log__head a{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-    letter-spacing:1.5px; text-transform:uppercase; color:#94949a; text-decoration:none; transition:color .3s; }
-  :is(#editorial,#writing) .ed-log__head a:hover{ color:#ededee; }
+  :is(#editorial,#writing) .ed-log{ padding:var(--sec-pad) 0 0; }
   /* Edge-to-edge strip that drifts left; index-writing-reel.js moves it.
      overflow:clip, not hidden, so focusing a card can't scroll the box. */
   #writing .wr-reel{ overflow:clip; padding:8px 0 12px; cursor:grab; touch-action:pan-y; user-select:none; }
   #writing .wr-reel.is-drag{ cursor:grabbing; }
-  #writing .wr-track{ display:flex; gap:6px; align-items:flex-start; width:max-content; padding-left:clamp(24px,5vw,80px); will-change:transform; }
+  #writing .wr-track{ display:flex; gap:6px; align-items:flex-start; width:max-content; padding-left:var(--gut); will-change:transform; }
   #writing .wr-track .fn-tile{ flex:none; width:clamp(280px,30vw,440px); }
   #writing .wr-track img{ -webkit-user-drag:none; }
   @media (--bp-820){
-    :is(#editorial,#writing) .ed-log__head h2{ font-size:1.3rem; }
     #writing .wr-track .fn-tile{ width:min(78vw,360px); }
   }
   @media (prefers-reduced-motion:reduce){
@@ -596,22 +589,78 @@ footer#site-footer{
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
-#projects-section{ position:relative; z-index:3; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
-  background:transparent; display:flex; align-items:center;
-  padding:clamp(50px,7vh,100px) 0; }
-#projects-section .ps-inner{ width:100%; max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#projects-section .ps-head{ margin:0 0 clamp(28px,5vh,56px); display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
-#projects-section .ps-lbl{ display:block; margin-bottom:14px; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-  letter-spacing:2px; text-transform:uppercase; color:#87878d; }
-#projects-section .ps-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
-  font-size:clamp(1.6rem,2.4vw,2.2rem); letter-spacing:-0.3px; color:#eef3ff; margin:0; }
+/* One rhythm for every section: the same left edge as the project captions,
+   the same breath above each heading, the same gap from heading to content. */
+:root{ --gut:clamp(16px,3.2vw,48px); --sec-pad:clamp(110px,18vh,200px); --head-gap:clamp(40px,7vh,80px); }
+
+/* Section headings: a smaller sibling of the blog's "Field Notes (N)" title.
+   A numbered mono label over a large serif line with one italic word. */
+.sec-head{ position:relative; display:grid; grid-template-columns:1fr auto; align-items:end; column-gap:24px;
+  margin:0 0 var(--head-gap); padding:0 var(--gut); }
+#signal .sec-head{ padding:0; }
+.sec-lbl{ grid-column:1 / -1; display:flex; align-items:center; gap:14px; margin:0 0 clamp(14px,2.4vh,24px);
+  font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.2em; text-transform:uppercase; color:#87878d; }
+.sec-no{ color:#c9d6ff; }
+.sec-lbl::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(201,214,255,.28),rgba(201,214,255,0)); transform-origin:left; }
+.sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(52px,7.4vw,112px);
+  line-height:.92; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
+.sec-title em{ font-style:italic; color:#cdd9f7; }
+.sec-title sup{ font:500 .17em/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:0;
+  vertical-align:top; position:relative; top:.4em; margin-left:.14em; color:#c9d6ff; }
+.sec-link{ font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.15em; text-transform:uppercase; color:#94949a;
+  text-decoration:none; transition:color .3s; padding-bottom:.6em; }
+.sec-link:hover{ color:#ededee; }
+/* Variant B: grotesk headline, the italic word stays serif */
+:root[data-heads="b"] .sec-title{ font-family:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-weight:500;
+  font-size:clamp(46px,6.4vw,96px); letter-spacing:-.055em; }
+:root[data-heads="b"] .sec-title em{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; letter-spacing:-.02em; padding-right:.04em; }
+/* Variant C: editorial bar, label in a narrow left column, title in the right */
+:root[data-heads="c"] .sec-head{ grid-template-columns:minmax(140px,22%) 1fr auto; border-top:1px solid rgba(201,214,255,.16); padding-top:18px; }
+:root[data-heads="c"] #signal .sec-head{ padding-top:18px; }
+:root[data-heads="c"] .sec-lbl{ grid-column:1; align-self:start; margin:0; padding-top:.5em; }
+:root[data-heads="c"] .sec-lbl::after{ display:none; }
+:root[data-heads="c"] .sec-title{ grid-column:2; }
+
+/* Film grain over the whole page, with a soft vignette under it. The tile is
+   160px of sparse light and dark specks; it jumps between offsets eight
+   times a second, so it reads as film rather than a sliding pattern. */
+.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; overflow:hidden; }
+.page-grain::before{ content:""; position:absolute; inset:0;
+  background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
+.page-grain::after{ content:""; position:absolute; inset:-160px; background:url(/images/grain.webp) repeat;
+  opacity:.09; animation:grain 1s steps(8) infinite; }
+@keyframes grain{
+  0%{transform:translate(0,0)} 12.5%{transform:translate(-37px,61px)} 25%{transform:translate(83px,-24px)} 37.5%{transform:translate(-112px,-90px)}
+  50%{transform:translate(19px,128px)} 62.5%{transform:translate(140px,44px)} 75%{transform:translate(-66px,7px)} 87.5%{transform:translate(51px,-139px)} 100%{transform:translate(0,0)} }
+
+/* Scroll-linked motion (CSS only; browsers without view timelines just show
+   everything at rest). The label rule draws in, project frames open upward
+   and their picture settles from a slight zoom. */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+    .sec-lbl::after{ animation:rule-draw linear both; animation-timeline:view(); animation-range:entry 10% cover 35%; }
+    .pw-img{ animation:frame-open linear both; animation-timeline:view(); animation-range:entry 0% cover 30%; }
+    .pw-img > *{ animation:frame-settle linear both; animation-timeline:view(); animation-range:entry 0% cover 45%; }
+  }
+}
+@keyframes rule-draw{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+@keyframes frame-open{ from{ clip-path:inset(18% 0 0 0); } to{ clip-path:inset(0 0 0 0); } }
+@keyframes frame-settle{ from{ transform:scale(1.12); } to{ transform:scale(1); } }
+@media (prefers-reduced-motion:reduce){ .page-grain::after{ animation:none; } }
+@media (--bp-760){
+  .sec-head{ grid-template-columns:1fr; row-gap:16px; }
+  .sec-link{ justify-self:start; }
+  :root[data-heads="c"] .sec-head{ grid-template-columns:1fr; }
+  :root[data-heads="c"] .sec-lbl, :root[data-heads="c"] .sec-title{ grid-column:1; }
+  :root[data-heads="c"] .sec-lbl{ margin-bottom:14px; }
+}
+#projects-section{ position:relative; z-index:3; width:100%; box-sizing:border-box; background:transparent; padding:var(--sec-pad) 0 0; }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
    edge with a 6px gutter, frames in their own shapes so rows go ragged, no
    corners or borders. Under each frame a two-half caption in one small
    grotesk: the name over dim tags on the left, the sentence (dim) on the
    right. Hover fades the picture. */
-#projects-section .ps-inner{ max-width:none; padding:0; }
-#projects-section .ps-head{ padding:0 clamp(16px,3.2vw,48px); }
+#projects-section .ps-inner{ width:100%; }
 .pw-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:60px 6px; align-items:start; }
 .pw-tile{ display:flex; flex-direction:column; gap:12px; color:inherit; text-decoration:none; }
 .pw-img{ margin:0; position:relative; overflow:hidden; background:#0a0c14; aspect-ratio:3/2; }
@@ -635,7 +684,6 @@ footer#site-footer{
 .pw-tags{ grid-column:1; grid-row:2; padding-right:24px; color:rgba(233,236,247,.62); }
 .pw-line{ grid-column:2; grid-row:1 / span 2; padding-right:24px; color:rgba(233,236,247,.62); text-wrap:pretty; }
 @media (--bp-760){
-  #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
   .pw-grid{ grid-template-columns:1fr; }
   .pw-name, .pw-tags, .pw-line{ padding-right:0; }
 }
@@ -643,12 +691,10 @@ footer#site-footer{
 </style>
 <section id="projects-section" aria-labelledby="ps-title">
   <div class="ps-inner">
-    <div class="ps-head">
-      <div>
-        <span class="ps-lbl">Selected work</span>
-        <h2 class="ps-title" id="ps-title" data-reveal="lines">Projects</h2>
-      </div>
-    </div>
+    <header class="sec-head">
+      <p class="sec-lbl"><span class="sec-no">01</span>Projects</p>
+      <h2 class="sec-title" id="ps-title" data-reveal="lines">Selected <em>work</em><sup aria-hidden="true">(06)</sup></h2>
+    </header>
     <div class="pw-grid" data-reveal-group>
       <a class="pw-tile" id="sec-moat" href="/moat/">
         <figure class="pw-img pw-img--logo"><img src="/images/projects/moat-logo.svg" alt="Moat logo" width="32" height="32" loading="lazy" decoding="async"></figure>
@@ -681,13 +727,11 @@ footer#site-footer{
 <div id="writing">
   <!-- Research log -->
   <section class="ed-log" aria-label="From the research log">
-    <div class="ed-log__head">
-      <div>
-        <span class="ed-lbl">Research log</span>
-        <h2 data-reveal="lines">Recent writing.</h2>
-      </div>
-      <a href="/blog/">Read the blog →</a>
-    </div>
+    <header class="sec-head">
+      <p class="sec-lbl"><span class="sec-no">02</span>Research log</p>
+      <h2 class="sec-title" data-reveal="lines">Recent <em>writing</em><sup aria-hidden="true">({String(writingCards.length).padStart(2, '0')})</sup></h2>
+      <a class="sec-link" href="/blog/">Read the blog →</a>
+    </header>
     <div class="wr-reel fn-vars" data-reveal>
       <div class="wr-track">
       {writingCards.map((c, i) => <FieldTile c={c} i={i} />)}
@@ -699,15 +743,11 @@ footer#site-footer{
 
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
-#signal{ position:relative; z-index:3; background:transparent;
-  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); }
-#signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
-#signal .sig-head{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
+#signal{ position:relative; z-index:3; background:transparent; padding:var(--sec-pad) 0; }
+#signal .sig-inner{ padding:0 var(--gut); box-sizing:border-box; }
 #signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
 @media (--bp-820){
   #signal .sig-grid{ grid-template-columns:1fr; }
-  #signal .sig-head{ font-size:1.3rem; }
   .sig-card{ padding:18px; }
   .news-row, .pod-row{ padding:10px 0; gap:10px; }
   .news-badge{ width:40px; height:32px; }
@@ -798,8 +838,10 @@ footer#site-footer{
 </style>
 <section id="signal" aria-label="Signal: news, podcasts and CTFs">
   <div class="sig-inner">
-    <p class="sig-lbl">Signal</p>
-    <h2 class="sig-head" data-reveal="lines">On my radar.</h2>
+    <header class="sec-head">
+      <p class="sec-lbl"><span class="sec-no">03</span>Signal</p>
+      <h2 class="sec-title" data-reveal="lines">On my <em>radar</em></h2>
+    </header>
     <div class="sig-grid" data-reveal-group>
       <div class="sig-card">
         <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news">See more &rarr;</button></div>
