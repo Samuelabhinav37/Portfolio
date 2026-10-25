@@ -37,6 +37,6 @@
 /* icon-only links (X) need width too */
 :root .f-links a[aria-label] { padding-inline: 8px; margin-inline: -8px; }
 :root .pv-view,
-:root #editorial .ed-log__head a { padding-block: 7px; margin-block: -7px; }
+:root :is(#editorial,#writing) .ed-log__head a { padding-block: 7px; margin-block: -7px; }
 :root .wire-item { min-height: 24px; }
 :root .tab { padding-block: 5px; margin-block: -5px; }
