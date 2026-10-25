@@ -449,6 +449,18 @@ footer#site-footer{
 </head>
 <body>
 <div class="page-grain" aria-hidden="true"></div>
+<!-- Page rail, after the blog post's "On this page" strip: one dash per
+     section, the ones already passed lit and the rest dim, so it shows how
+     much of the page is left. Hover or focus opens the section list.
+     Wired in index-rail.js; hidden under 1100px. -->
+<nav class="hrail" id="hrail" aria-label="On this page">
+  <ol class="hrail-dashes" aria-hidden="true">
+    {['term-stage','beliefs','projects-section','writing','signal','site-footer'].map((id) => <li><span data-sec={id}></span></li>)}
+  </ol>
+  <div class="hrail-card">
+    <ol>{[['term-stage','Intro'],['beliefs','What I believe'],['projects-section','Selected work'],['writing','Recent writing'],['signal','On my radar'],['site-footer','Get in touch']].map(([id, label]) => <li><a href={'#' + id} data-sec={id}>{label}</a></li>)}</ol>
+  </div>
+</nav>
 
 <SiteMenu currentPath="/" hasIntro={true} />
 <h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
@@ -572,7 +584,7 @@ footer#site-footer{
   </section>
 
   <!-- Beliefs: one statement that lights up word by word as you scroll -->
-  <section class="ed-beliefs" aria-label="What I believe">
+  <section class="ed-beliefs" id="beliefs" aria-label="What I believe">
     <div class="ed-beliefs__body">
       <span class="ed-tag ed-tag--a" aria-hidden="true">Architecture</span>
       <span class="ed-tag ed-tag--b" aria-hidden="true">Behaviour</span>
@@ -620,6 +632,23 @@ footer#site-footer{
 :root[data-heads="c"] .sec-lbl{ grid-column:1; align-self:start; margin:0; padding-top:.5em; }
 :root[data-heads="c"] .sec-lbl::after{ display:none; }
 :root[data-heads="c"] .sec-title{ grid-column:2; }
+
+/* Page rail (same shape as the blog post's .etoc strip) */
+.hrail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:140; }
+.hrail-dashes{ list-style:none; margin:0; padding:12px 6px 12px 28px; display:grid; gap:12px; justify-items:end; }
+.hrail-dashes span{ display:block; width:22px; height:2px; border-radius:2px; background:rgba(226,232,244,.22); transition:width .25s, background .25s; }
+.hrail-dashes span.is-past{ background:rgba(226,232,244,.62); }
+.hrail-dashes span.is-active{ width:32px; background:rgba(238,241,248,.95); }
+.hrail-card{ position:absolute; right:calc(100% - 20px); top:50%; width:220px; padding:10px; border:1px solid rgba(226,232,244,.14); border-radius:10px;
+  background:rgba(12,13,19,.97); box-shadow:0 18px 50px rgba(0,0,0,.6);
+  opacity:0; pointer-events:none; transform:translate(8px,-50%); transition:opacity .18s ease, transform .18s ease; }
+.hrail.is-open .hrail-card, .hrail:focus-within .hrail-card{ opacity:1; pointer-events:auto; transform:translate(0,-50%); }
+.hrail-card ol{ list-style:none; margin:0; padding:0; display:grid; gap:1px; }
+.hrail-card a{ display:block; padding:7px 10px; border-radius:6px; font:400 13px/1.35 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:rgba(226,232,244,.7); text-decoration:none; }
+.hrail-card a:hover{ background:rgba(255,255,255,.05); color:#fff; }
+.hrail-card a.is-active{ color:#fff; background:rgba(200,206,218,.08); box-shadow:inset 2px 0 0 #c8ceda; }
+@media (max-width:1099px){ .hrail{ display:none; } }
+@media (prefers-reduced-motion:reduce){ .hrail-dashes span, .hrail-card{ transition:none; } }
 
 /* Film grain over the whole page, with a soft vignette under it. Held
    still and faint: none of the reference sites animate texture, and the sky
@@ -735,6 +764,7 @@ footer#site-footer{
   </section>
 </div>
 <script is:inline defer src="/scripts/index-writing-reel.js"></script>
+<script is:inline defer src="/scripts/index-rail.js"></script>
 
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
