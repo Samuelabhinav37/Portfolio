@@ -7,14 +7,21 @@
   var dashes = [].slice.call(rail.querySelectorAll('.hrail-dashes span'));
   var links = [].slice.call(rail.querySelectorAll('.hrail-card a'));
   var secs = dashes.map(function(d){ return document.getElementById(d.dataset.sec); });
-  var current = -1, ticking = false, openT, closeT;
+  var current = -1, ticking = false, openT, closeT, y = scrollY, tops = [], pageH = 0, viewH = 0;
 
+  // Section positions are measured only when the page changes size, so
+  // scrolling never forces a layout (that cost ~15% of each scroll frame).
+  function measure(){
+    tops = secs.map(function(s){ return s ? s.getBoundingClientRect().top + scrollY : Infinity; });
+    pageH = document.documentElement.scrollHeight; viewH = innerHeight; y = scrollY;
+    current = -1; update();
+  }
   function update(){
     ticking = false;
-    var line = innerHeight * 0.45, idx = 0;
+    var idx = 0;
     // at the very bottom the footer is current even if it never reaches the line
-    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) idx = secs.length - 1;
-    else secs.forEach(function(s, i){ if (s && s.getBoundingClientRect().top <= line) idx = i; });
+    if (viewH + y >= pageH - 4) idx = secs.length - 1;
+    else tops.forEach(function(t, i){ if (t - y <= viewH * 0.45) idx = i; });
     if (idx === current) return;
     current = idx;
     dashes.forEach(function(d, i){ d.classList.toggle('is-active', i === idx); d.classList.toggle('is-past', i < idx); });
@@ -25,9 +32,11 @@
   }
   function close(){ clearTimeout(openT); clearTimeout(closeT); rail.classList.remove('is-open'); }
 
-  addEventListener('scroll', function(){ if (!ticking){ ticking = true; requestAnimationFrame(update); } }, { passive:true });
-  addEventListener('resize', update);
-  update();
+  addEventListener('scroll', function(){ y = scrollY; if (!ticking){ ticking = true; requestAnimationFrame(update); } }, { passive:true });
+  // the page grows as fonts, images and the live feeds arrive
+  if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
+  else { addEventListener('resize', measure); addEventListener('load', measure); }
+  measure();
   rail.addEventListener('mouseenter', function(){ clearTimeout(closeT); openT = setTimeout(function(){ rail.classList.add('is-open'); }, 60); });
   rail.addEventListener('mouseleave', function(){ clearTimeout(openT); closeT = setTimeout(function(){ rail.classList.remove('is-open'); }, 200); });
   rail.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ close(); if (document.activeElement) document.activeElement.blur(); } });
