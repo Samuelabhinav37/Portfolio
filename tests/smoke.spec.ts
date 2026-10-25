@@ -131,3 +131,15 @@ for (const path of PAGES) {
     expect(violations, `CSP violations on ${path}:\n${violations.join('\n')}`).toEqual([]);
   });
 }
+
+test('writing reel loops and drifts left', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'load' });
+  const reel = page.locator('#writing .wr-reel');
+  await reel.scrollIntoViewIfNeeded();
+  await expect(page.locator('#writing .wr-track [data-clone]').first()).toBeAttached();
+  const x = () => page.locator('#writing .wr-track').evaluate((t) => new DOMMatrix(getComputedStyle(t).transform).m41);
+  const a = await x();
+  await page.waitForTimeout(1200);
+  // the loop wraps, so only assert that it moved
+  expect(await x()).not.toBe(a);
+});
