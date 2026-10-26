@@ -566,6 +566,34 @@ footer#site-footer{
     :is(#editorial,#writing) .ed-tag--b{ left:auto; right:4%; }
     :is(#editorial,#writing) .ed-tag--c{ left:4%; }
   }
+  /* ── The beliefs as a white hologram, like the contact card (tone
+        'holo-mono'): a red/blue fringe and a soft glow on the letters,
+        scanlines and a slow rolling band over them, a faint flicker. The
+        tags become projected labels. index-beliefs-glitch.js adds the
+        decoding words and the signal drops. ── */
+  :is(#editorial,#writing) .ed-beliefs .ed-statement{ position:relative; --lit-off:rgba(238,241,248,.16); --lit-on:#f4f6fa;
+    filter:drop-shadow(1px 0 0 rgba(255,80,220,.32)) drop-shadow(-1px 0 0 rgba(80,180,255,.38)) drop-shadow(0 0 12px rgba(255,255,255,.24));
+    /* scanlines and the rolling band as a mask, so they sit in the letters only, never as a box over the sky */
+    -webkit-mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
+      linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
+    -webkit-mask-composite:source-in;
+    mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
+      linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
+    mask-composite:intersect;
+    animation:holo-flicker 18s steps(1) infinite, holo-roll 16s linear infinite; }
+  :is(#editorial,#writing) .ed-beliefs .ed-tag{ background:repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
+    color:#f2f4f8; border:1px solid rgba(255,255,255,.45); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(255,255,255,.08);
+    text-shadow:0 0 8px rgba(255,255,255,.55), 1px 0 0 rgba(255,80,220,.35), -1px 0 0 rgba(80,180,255,.4);
+    animation:holo-flicker 18s steps(1) infinite; }
+  :is(#editorial,#writing) .ed-tag--b{ animation-delay:-6s; }
+  :is(#editorial,#writing) .ed-tag--c{ animation-delay:-11s; }
+  /* the signal drop: copies of the statement, slipped and split */
+  .ed-ghost{ pointer-events:none; filter:none !important; animation:none !important; }
+  @keyframes holo-roll{ from{ -webkit-mask-position:0 0, 0 0; mask-position:0 0, 0 0; } to{ -webkit-mask-position:0 0, 0 -150%; mask-position:0 0, 0 -150%; } }
+  @keyframes holo-flicker{ 0%,100%{ opacity:.94; } 41%{ opacity:.8; } 41.6%{ opacity:.96; } 78%{ opacity:.86; } 78.6%{ opacity:.94; } }
+  @media (prefers-reduced-motion:reduce){
+    :is(#editorial,#writing) .ed-beliefs :is(.ed-statement,.ed-tag){ animation:none; }
+  }
   /* ── Research log — Work-grammar cards ── */
   :is(#editorial,#writing) .ed-log{ padding:var(--sec-pad) 0 0; }
   /* Edge-to-edge strip that drifts left; index-writing-reel.js moves it.
@@ -604,6 +632,7 @@ footer#site-footer{
 </div>
 
 <script is:inline defer src="/scripts/index-editorial-flow.js"></script>
+<script is:inline defer src="/scripts/index-beliefs-glitch.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
@@ -740,7 +769,9 @@ footer#site-footer{
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
-.pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
+/* empty frames get the contact page's broken-screen roll (index-beliefs-glitch.js plays it while on screen) */
+.pw-wreck{ position:absolute; inset:0; width:100%; height:100%; object-fit:fill; mix-blend-mode:screen; opacity:.28; pointer-events:none; }
+.pw-img--todo span{ position:relative;  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
 .pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 23px;
   font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
   /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
@@ -771,7 +802,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
       <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/">
-        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
       <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
@@ -779,7 +810,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
       </a>
       <a class="pw-tile" id="sec-athena" href="/work/athena/">
-        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-line">Shows who has access, why they have it, and when it stops making sense.</span><span class="pw-tags">Identity governance · Policy as code</span></div>
       </a>
       <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/">
@@ -787,7 +818,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-line">A Windows disk analyzer that reads the drive once, then finds duplicates, junk and lost space.</span><span class="pw-tags">Desktop app · Rust &amp; Tauri</span></div>
       </a>
       <a class="pw-tile" id="sec-knot" href="/work/knot/">
-        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-line">An Android app for building habits, with AI help and on-device storage.</span><span class="pw-tags">Android app · In development</span></div>
       </a>
     </div>
