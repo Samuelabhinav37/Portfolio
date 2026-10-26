@@ -107,8 +107,8 @@
     bubbles.push({ t:t, x:x, y:y, life:0, dur:rnd(3, 4.5), drift:rnd(-5, 5) });
   }
 
-  /* the stars stay put; their clips do the twinkling */
-  for(var i = 0; i < (narrow ? 3 : 9); i++){
+  /* the stars stay put; their clips do the twinkling (none where the page brings its own: data-no-stars) */
+  for(var i = 0; i < (layer.hasAttribute('data-no-stars') ? 0 : narrow ? 3 : 9); i++){
     var star = clip('star', 'life-star', rnd(11, 19), rnd(0, 3));
     star.style.left = rnd(3, 97).toFixed(1) + '%';
     star.style.top = rnd(5, 95).toFixed(1) + '%';
