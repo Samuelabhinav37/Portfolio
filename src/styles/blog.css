@@ -15,7 +15,7 @@ body {
      own font-family, so this was invisible in practice, but anything that
      didn't (or doesn't yet) would silently fall back to the browser's
      serif default (Times New Roman) instead of the site's actual font. */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 a { color: rgba(var(--c-white),0.78); text-decoration: none; transition: color 0.3s; }
@@ -102,7 +102,7 @@ html.is-scrolled #topbar-scrim {
 /* ── Collapsed menu — plain-text trigger + black floating card ── */
 #menu-trigger {
   position: fixed; top: 16px; right: 28px; z-index: 10001;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;
   color: rgba(var(--c-white),0.85); background: none; border: none; cursor: pointer;
   padding: 4px 2px; letter-spacing: 0.01em;
   transition: color 0.3s ease;
@@ -124,7 +124,7 @@ html.is-scrolled #topbar-scrim {
 #menu-list li { overflow: hidden; margin-bottom: 11px; }
 #menu-list a {
   display: inline-block; text-decoration: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 1.2rem;
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 1.2rem;
   letter-spacing: 0.01em; color: rgba(var(--c-white),0.5);
   transition: color 0.3s ease;
 }
@@ -169,7 +169,6 @@ html.is-scrolled #topbar-scrim {
   --rule-strong: rgba(200,206,218,0.3);
   --flaw: #e2a55a;
   --w-text: 800px;
-  --w-pic: 820px; /* the header picture's width: the one setting for its size */
   --w-wide-fig: 1040px; /* figures, tables and code reach past the text, as on Surface */
   --w-wide: 1312px;
 }
@@ -197,10 +196,6 @@ html.is-scrolled #topbar-scrim {
   min-height: calc(100vh - 56px); min-height: calc(100svh - 56px);
 }
 .post-hero.no-pic { grid-template-columns: minmax(0, 1fr); padding: 64px 0; }
-/* 64px of open space above and below the picture, 32px at the sides */
-/* extra room on the right sets the picture a little in from the edge */
-.post-hero-pic { order: 2; padding: 64px 96px 64px 32px; display: flex; justify-content: flex-start; }
-.post-hero-pic img { display: block; width: min(var(--w-pic), 60vw); height: auto; }
 .post-hero-text {
   /* the words are centred on the picture's middle at every width (the
      same 64px above and below as the picture) */
@@ -215,11 +210,6 @@ html.is-scrolled #topbar-scrim {
 }
 .post-series { color: var(--ink-strong); margin: 0; }
 .post-date { font-family: var(--font-sans); font-weight: 500; font-size: 13px; line-height: 16px; letter-spacing: -0.1px; color: var(--ink-dim); margin: 8px 0 0; }
-/* the credit sits under the hairline, lined up with the text column */
-.post-credit {
-  position: relative; z-index: 1; width: min(var(--w-text), calc(100% - 96px)); margin: 0 auto; padding-top: 8px;
-  font-family: var(--font-sans); font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-dim);
-}
 /* ── Listen bar: between the header and the body, on the text column ── */
 .post-audio {
   position: relative; z-index: 1; width: min(var(--w-text), calc(100% - 96px)); margin: 40px auto 0;
@@ -543,15 +533,12 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   .nav-name { font-size: 1.3rem; }
   #menu-trigger { top: 14px; right: 20px; }
   .container { padding: 0 24px; }
-  .post-credit { width: calc(100% - 48px); }
 }
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
-  .post-hero-pic { padding: 24px 24px 32px; }
-  .post-hero-pic img { width: 100%; height: auto; }
   .post-audio { width: calc(100% - 48px); margin-top: 24px; gap: 12px; }
   .post-figure, .code-wrap, .article-col > table { width: 100%; margin: 40px 0; translate: none; }
   .plate-in { padding: 20px 16px; }
@@ -689,12 +676,12 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   width: 44px; height: 44px; transform: translate(-50%, -50%);
 }
 .flt-dialog__close:hover { background: rgba(var(--c-white),.12); }
-.flt-dialog__title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 24px; color: #fff; margin-bottom: 6px; }
+.flt-dialog__title { font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 24px; color: #fff; margin-bottom: 6px; }
 .flt-dialog__sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .05em; color: rgba(var(--c-white),.35); margin-bottom: 22px; }
 .flt-dialog__apply {
   display: block; width: 100%; text-align: center; margin-top: 20px;
   background: #fff; color: #0a0a0f; border: none; border-radius: 999px;
-  padding: 13px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .05em;
+  padding: 13px 24px; font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .05em;
   text-decoration: none; cursor: pointer; transition: transform .2s;
 }
 .flt-dialog__apply:hover { transform: translateY(-1px); }
@@ -716,11 +703,11 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 .share-card__img--ph { background: linear-gradient(135deg,#1a1a1f,#0f0f13); }
 .share-card__body { padding: 12px 14px; }
 .share-card__title {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 600; font-size: 14.5px; line-height: 1.35;
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 600; font-size: 14.5px; line-height: 1.35;
   color: rgba(var(--c-white),.92);
 }
 .share-card__desc {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; line-height: 1.5;
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; line-height: 1.5;
   color: rgba(var(--c-white),.50); margin-top: 6px;
 }
 .share-card__domain {
@@ -735,7 +722,7 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 }
 .share-copy-btn {
   flex: 0 0 auto; background: rgba(var(--c-white),.08); border: 1px solid rgba(var(--c-white),.14); border-radius: 8px;
-  padding: 0 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600;
+  padding: 0 18px; font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600;
   color: rgba(var(--c-white),.85); cursor: pointer; transition: background .2s, border-color .2s, color .2s;
 }
 .share-copy-btn:hover { background: rgba(var(--c-white),.14); }
@@ -775,13 +762,6 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 
 a.social-icon { text-decoration: none; color: inherit; }
 
-/* Placeholder art when a post has no cardImage yet */
-.story-image-ph {
-  width: 100%; height: 100%; min-height: 120px;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(var(--c-white),0.06), transparent 60%),
-    linear-gradient(145deg, rgba(20,20,28,1), rgba(10,10,16,1));
-}
 
 
 /* ── Tap targets (WCAG 2.5.8: at least 24x24 CSS px). Hit box grows with

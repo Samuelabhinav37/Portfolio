@@ -65,38 +65,14 @@ cats: ["threatintel", "malware"]
 # every real post sets it explicitly so it lands under the tab a reader
 # would actually filter by.
 
-# ── Images — READ THIS: the site now uses a "two crop" convention ──────────
-# One photo/illustration, cropped twice:
-#   • a WIDE crop (roughly 16:9, e.g. 2192×1152) → the big hero banner
-#   • a TALL crop (roughly 4:5, e.g. 1408×1760)  → BOTH the small thumbnail
-#     card on the blog index page AND the image shown when this post gets
-#     shared on iMessage/Slack/Twitter/LinkedIn
-# You only need to produce two image files per post, never three.
-heroImage: /images/supply-chain-hero.webp
-heroImageAlt: "Engineering-blueprint diagram of a broken steel chain link, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
-# heroImageAlt is REQUIRED the moment heroImage is set — the build will
-# refuse to compile without it (screen readers get nothing otherwise).
-# Describe what's actually IN the image, not just "chain" — a screen-reader
-# user should get the same picture in their head that a sighted visitor gets.
-heroCredit: "Generated illustration · Meta AI"
-# Optional small credit tag overlaid on the hero image. Omit if there's
-# nothing to credit.
-
-cardImage: /images/supply-chain-card.webp
-cardImageAlt: "Engineering-blueprint diagram of a broken steel chain link on graph paper, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
-# Same rule: cardImageAlt is REQUIRED once cardImage is set.
-#
-# Don't set `ogImage` by hand — leave it out entirely. The site automatically
-# uses cardImage (the tall crop) as the share-preview image, falling back to
-# heroImage if there's no cardImage, so one pair of files covers card +
-# thumbnail + share preview with zero extra work. Only add an explicit
-# `ogImage:` line if you want the share preview to be a genuinely different
-# image from the card thumbnail.
-#
-# No images ready yet? Just delete/comment out all four lines above. The
-# post still builds fine — it gets a plain gradient placeholder instead of a
-# photo, and no share-image tag gets written at all (no broken-image risk
-# either way). Add the real images later whenever they're ready.
+# ── Share image ─────────────────────────────────────────────────────────────
+# Posts show no pictures on the site. The only image is the link preview
+# shown when the post is shared (iMessage, Slack, X, LinkedIn): a 1200×630
+# JPEG under 300KB so WhatsApp shows it too.
+ogImage: /images/supply-chain-hero.og.jpg
+ogImageAlt: "Engineering-blueprint diagram of a broken steel chain link, annotated with fracture measurements and 'PKG: CORRUPT' / 'CHK: FAIL' error callouts, labeled Supply Chain Attack"
+# Describe what's actually IN the image for people using screen readers.
+# No image ready? Leave both lines out and no share-image tag is written.
 
 # ── FAQs — powers BOTH the visible accordion AND the FAQPage rich-result ───
 faqs:

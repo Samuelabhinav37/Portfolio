@@ -11,7 +11,7 @@
  * ids so its direct `.style.opacity` writes still find them).
  */
 interface Props {
-  currentPath: '/' | '/about' | '/blog' | '/contact';
+  currentPath: '/' | '/about' | '/blog' | '/contact' | '/work';
   hasIntro?: boolean;
 }
 const { currentPath, hasIntro = false } = Astro.props;
@@ -58,7 +58,7 @@ const links = [
     width: auto; height: auto; margin: 0; padding: 8px 14px; clip: auto;
     z-index: 100000; background: var(--c-bg); color: #d6e0f4;
     border: 1px solid rgba(214,224,244,.4); border-radius: 6px;
-    font: 13px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing: .04em;
+    font: 13px/1 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing: .04em;
   }
 
   /* #site-identity/#menu-trigger are fixed, transparent text with nothing
@@ -115,7 +115,7 @@ const links = [
 
   #menu-trigger {
     position: fixed; top: 16px; right: 28px; z-index: 10001;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;
+    font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;
     color: rgba(var(--c-white),0.85); background: none; border: none; cursor: pointer;
     padding: 4px 2px; letter-spacing: 0.01em;
     transition: color 0.3s ease;
@@ -141,7 +141,7 @@ const links = [
   #menu-list li { overflow: hidden; margin-bottom: 11px; }
   #menu-list a {
     display: inline-block; text-decoration: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 1.2rem;
+    font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 1.2rem;
     letter-spacing: 0.01em; color: rgba(var(--c-white),0.5);
     transition: color 0.3s ease;
   }

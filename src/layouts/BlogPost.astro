@@ -13,7 +13,6 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
-import { ogVariant, srcsetWith, variant, webpDims } from '../image-variant';
 import FieldTile from '../components/FieldTile.astro';
 import { fieldCards } from '../data/field-cards';
 import '../styles/field-tiles.css';
@@ -36,8 +35,6 @@ interface Props {
 
 const { post, headings, words, lang = 'en', altHref = null } = Astro.props;
 const d = post.data;
-
-const heroDims = d.heroImage ? webpDims(d.heroImage) : null;
 
 const i18n = BLOG_STRINGS[lang];
 const otherLang: BlogLocale = lang === 'en' ? 'es' : 'en';
@@ -91,22 +88,11 @@ const toc = [
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 // x-default should always resolve to the English (default) version.
 const xDefaultUrl = lang === 'en' ? canonicalUrl : altUrl;
-/* Share image: explicit ogImage, else the card crop (also used as the "More
-   stories" thumbnail), else the hero crop. No hardcoded /og/ path — that
-   folder was never populated, so it silently broke every share preview. */
-const ogImageSrc = d.ogImage ?? ogVariant(d.heroImage) ?? d.cardImage ?? d.heroImage;
-const ogIsPreview = !d.ogImage && ogImageSrc === ogVariant(d.heroImage);
-const ogImage = ogImageSrc ? new URL(ogImageSrc, Astro.site).href : undefined;
-// Share dialog preview always shows the post's own hero image (what the
-// reader actually saw at the top of the article), independent of the
-// og:image fallback chain above. Deliberately left relative (unlike
-// ogImage/canonicalUrl, which need an absolute Astro.site URL for meta
-// tags read by off-site crawlers) — this one is only ever used as an
-// in-page <img src>, and forcing it through the production origin broke
-// the preview under any other origin (local dev, *.pages.dev previews,
-// this repo's own Playwright run) via the site's own
-// Cross-Origin-Resource-Policy: same-origin header.
-const shareImage = d.heroImage ?? ogImageSrc;
+/* Share image: the post's ogImage, if it has one. The share dialog's
+   preview uses the same file, left relative so it loads under any origin. */
+const shareImage = d.ogImage;
+const ogImage = shareImage ? new URL(shareImage, Astro.site).href : undefined;
+const ogIsPreview = !!shareImage?.endsWith('.og.jpg');
 const readTime = d.readTime ?? Math.max(1, Math.round(words / 220));
 const pubIso = d.pubDate.toISOString().slice(0, 10);
 const modIso = (d.updatedDate ?? d.pubDate).toISOString().slice(0, 10);
@@ -196,7 +182,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     {ogImage && ogIsPreview && <meta property="og:image:width" content="1200" />}
     {ogImage && ogIsPreview && <meta property="og:image:height" content="630" />}
     {ogImage && ogIsPreview && <meta property="og:image:type" content="image/jpeg" />}
-    {ogImage && d.heroImageAlt && <meta property="og:image:alt" content={d.heroImageAlt} />}
+    {ogImage && d.ogImageAlt && <meta property="og:image:alt" content={d.ogImageAlt} />}
     <meta property="og:locale" content={lang === 'es' ? 'es_ES' : 'en_US'} />
     <meta property="article:published_time" content={pubIso} />
     <meta property="article:modified_time" content={modIso} />
@@ -205,7 +191,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <meta name="twitter:title" content={d.title} />
     <meta name="twitter:description" content={d.description} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
-    {ogImage && d.heroImageAlt && <meta name="twitter:image:alt" content={d.heroImageAlt} />}
+    {ogImage && d.ogImageAlt && <meta name="twitter:image:alt" content={d.ogImageAlt} />}
     <link rel="canonical" href={canonicalUrl} />
     {altUrl && (
       <>
@@ -284,21 +270,10 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </ul>
     </nav>
 
-    <!-- Header, after Vogue's split-screen article header: the page split
-         in half, the picture in the right half (32px clear all round, set
-         against the middle of the page), and in the left half, centred in
-         the open space, the topic label, headline, the series line where Vogue
-         has its byline (no author name: this is a single-author site and
-         the wordmark already names it), then the date and read time. The
-         picture keeps its own wide shape. A full-width hairline closes the
-         header, with the picture's credit under it.
-         On phones the words come first, then the picture. -->
-    <header class:list={['post-hero', !d.heroImage && 'no-pic']} id="hero">
-      {d.heroImage && (
-        <div class="post-hero-pic">
-          <img src={d.heroImage} srcset={srcsetWith(d.heroImage, 800, heroDims?.width ?? 1600)} sizes="(max-width: 760px) 100vw, 50vw" alt={d.heroImageAlt ?? ''} width={heroDims?.width} height={heroDims?.height} decoding="async" fetchpriority="high" />
-        </div>
-      )}
+    <!-- Header: the topic label, headline, the series line (no author name:
+         this is a single-author site), then the date and read time. Posts
+         carry no pictures. -->
+    <header class="post-hero no-pic" id="hero">
       <div class="post-hero-text">
         <a class="post-cat" href={SITE.links.blogIndex}>{d.category}</a>
         <h1 class="post-title">{d.title}</h1>
@@ -307,7 +282,6 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         {d.mitre.length > 0 && <div class="post-mitre">{d.mitre.map((t) => <Mitre id={t} />)}</div>}
       </div>
     </header>
-    {d.heroCredit && <p class="post-credit">{d.heroCredit}</p>}
 
     <!-- Listen: reads the post aloud with the browser's own voice, a
          sentence at a time (blog-client.js). Laid out like the audio players
@@ -464,7 +438,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div class="share-card share-card--x">
             <div class="share-card__img-wrap">
               {shareImage
-                ? <img src={variant(shareImage, 800)} alt="" class="share-card__img" loading="lazy" decoding="async" />
+                ? <img src={shareImage} alt="" class="share-card__img" loading="lazy" decoding="async" />
                 : <div class="share-card__img share-card__img--ph" aria-hidden="true"></div>}
             </div>
             <div class="share-card__body">
@@ -478,7 +452,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <div class="share-card share-card--linkedin">
             <div class="share-card__img-wrap">
               {shareImage
-                ? <img src={variant(shareImage, 800)} alt="" class="share-card__img" loading="lazy" decoding="async" />
+                ? <img src={shareImage} alt="" class="share-card__img" loading="lazy" decoding="async" />
                 : <div class="share-card__img share-card__img--ph" aria-hidden="true"></div>}
             </div>
             <div class="share-card__body">

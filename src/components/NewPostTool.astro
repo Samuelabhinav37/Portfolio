@@ -167,18 +167,11 @@ const { categories, relatedOptions, primaryCats, primaryCatLabels, secondaryCats
       ))}
     </div>
 
-    <h2>Images <span class="hint" style="display:inline; text-transform:none; letter-spacing:0;">— one wide crop for the hero, one tall crop reused as the card thumbnail + share image. Leave blank for the gradient placeholder.</span></h2>
-    <label for="f-hero">Hero image path <span class="hint" style="display:inline;">(wide crop, e.g. /images/my-post-hero.jpg)</span></label>
-    <input type="text" id="f-hero" placeholder="/images/my-post-hero.jpg" />
-    <label for="f-hero-alt">Hero image alt text <span class="hint" style="display:inline;">— required if hero image is set</span></label>
-    <input type="text" id="f-hero-alt" placeholder="Describe what's actually in the image" />
-    <label for="f-hero-credit">Hero credit <span class="hint" style="display:inline;">— optional</span></label>
-    <input type="text" id="f-hero-credit" placeholder="Photo credit or generator name" />
-
-    <label for="f-card">Card image path <span class="hint" style="display:inline;">(tall crop, e.g. /images/my-post-card.jpg)</span></label>
-    <input type="text" id="f-card" placeholder="/images/my-post-card.jpg" />
-    <label for="f-card-alt">Card image alt text <span class="hint" style="display:inline;">— required if card image is set</span></label>
-    <input type="text" id="f-card-alt" placeholder="Describe what's actually in the image" />
+    <h2>Share image <span class="hint" style="display:inline; text-transform:none; letter-spacing:0;">— only shown in link previews; posts carry no pictures. Leave blank for none.</span></h2>
+    <label for="f-og">Share image path <span class="hint" style="display:inline;">(1200×630 JPEG, e.g. /images/my-post.og.jpg)</span></label>
+    <input type="text" id="f-og" placeholder="/images/my-post.og.jpg" />
+    <label for="f-og-alt">Share image alt text <span class="hint" style="display:inline;">— required if share image is set</span></label>
+    <input type="text" id="f-og-alt" placeholder="Describe what's actually in the image" />
 
     <h2>FAQs <span class="hint" style="display:inline; text-transform:none; letter-spacing:0;">— powers the visible accordion and the FAQPage rich result</span></h2>
     <div id="faq-container"></div>
@@ -455,19 +448,10 @@ const { categories, relatedOptions, primaryCats, primaryCatLabels, secondaryCats
       const cats = Array.from(document.querySelectorAll('.cats-checkbox:checked')).map((c) => c.value);
       if (cats.length) lines.push('cats: ' + JSON.stringify(cats));
 
-      const hero = document.getElementById('f-hero').value.trim();
-      const heroAlt = document.getElementById('f-hero-alt').value.trim();
-      const heroCredit = document.getElementById('f-hero-credit').value.trim();
-      if (hero) {
-        lines.push('heroImage: ' + hero);
-        lines.push('heroImageAlt: ' + esc(heroAlt));
-        if (heroCredit) lines.push('heroCredit: ' + esc(heroCredit));
-      }
-      const card = document.getElementById('f-card').value.trim();
-      const cardAlt = document.getElementById('f-card-alt').value.trim();
-      if (card) {
-        lines.push('cardImage: ' + card);
-        lines.push('cardImageAlt: ' + esc(cardAlt));
+      const og = document.getElementById('f-og').value.trim();
+      if (og) {
+        lines.push('ogImage: ' + og);
+        lines.push('ogImageAlt: ' + esc(document.getElementById('f-og-alt').value.trim()));
       }
 
       const related = Array.from(document.querySelectorAll('.related-checkbox:checked')).map((c) => c.value);
@@ -515,10 +499,8 @@ const { categories, relatedOptions, primaryCats, primaryCatLabels, secondaryCats
       if (!document.getElementById('f-desc').value.trim()) errs.push('Description is required.');
       if (!document.getElementById('f-pubdate').value) errs.push('Publish date is required.');
       if (!currentSlug()) errs.push('Could not derive a URL slug from the title.');
-      const hero = document.getElementById('f-hero').value.trim();
-      if (hero && !document.getElementById('f-hero-alt').value.trim()) errs.push('Hero image alt text is required once a hero image is set.');
-      const card = document.getElementById('f-card').value.trim();
-      if (card && !document.getElementById('f-card-alt').value.trim()) errs.push('Card image alt text is required once a card image is set.');
+      const og = document.getElementById('f-og').value.trim();
+      if (og && !document.getElementById('f-og-alt').value.trim()) errs.push('Share image alt text is required once a share image is set.');
       return errs;
     }
 

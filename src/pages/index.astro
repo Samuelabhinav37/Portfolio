@@ -1,17 +1,19 @@
 ---
 import Motion from '../components/Motion.astro';
 import Glitches from '../components/Glitches.astro';
-import fs from 'node:fs';
 import { getCollection } from 'astro:content';
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import SkyBackground from '../components/SkyBackground.astro';
+import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
 import { SITE } from '../config';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
-import { variant, srcsetWith } from '../image-variant';
+import FieldTile from '../components/FieldTile.astro';
+import { fieldCards } from '../data/field-cards';
+import '../styles/field-tiles.css';
 
 // Person schema — the only structured data on the site scoped to Samuel
 // himself rather than a specific post; blog posts already carry their own
@@ -29,22 +31,11 @@ const personJsonLd = JSON.stringify({
   sameAs: [SITE.links.linkedin, SITE.links.github, SITE.links.x, SITE.links.hackerone],
 }).replace(/</g, '\\u003c');
 
-const recentPosts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/')))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3)
-  .map((p) => {
-    const localCard = `/images/blog/${p.id}-card.jpg`;
-    const hasLocalCard = fs.existsSync(`public${localCard}`);
-    return {
-    href: '/blog/' + p.id + '/',
-    img: variant(p.data.cardImage, 480) || p.data.heroImage || (hasLocalCard ? localCard : `https://picsum.photos/seed/${p.id}/600/750?grayscale`),
-    srcset: srcsetWith(p.data.cardImage, 480, 800),
-    cat: p.data.category,
-    date: p.data.pubDate.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
-    title: p.data.title,
-    desc: p.data.description,
-  };
-  });
+// Same tiles as the blog index (FieldTile), newest first
+const writingCards = fieldCards(
+  (await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/')))
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+);
 ---
 
 <!DOCTYPE html>
@@ -73,7 +64,12 @@ window.SITE=window.SITE||{};
 <meta property="og:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <meta property="og:site_name" content="Samuel · Security Engineer">
 <meta property="og:url" content="https://samuelabhinav.com/">
+<meta property="og:image" content="https://samuelabhinav.com/images/og-home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A night sky with a whale, mantas and jellyfish drawn in digits, over the words: Everything is connected. Everything must be protected.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://samuelabhinav.com/images/og-home.jpg">
 <meta name="twitter:title" content="Samuel Abhinav — Security Engineer, Detection &amp; Response">
 <meta name="twitter:description" content="SOC engineering, OT/ICS anomaly detection, adaptive auth, and bug bounty — built, broken, and written up.">
 <script type="application/ld+json" set:html={personJsonLd} />
@@ -108,52 +104,9 @@ body { min-height:100%; }
   width:auto; height:auto; margin:0; padding:8px 14px; clip:auto;
   z-index:100000; background:var(--c-bg); color:#d6e0f4;
   border:1px solid rgba(214,224,244,.4); border-radius:6px;
-  font:13px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.04em;
+  font:13px/1 'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.04em;
 }
 
-/* ── Intro ── */
-/* (intro-vignette removed — wordmark sits over the live boot, no dark veil) */
-
-#intro-logo {
-  position: fixed; top: 50%; left: 50%;
-  transform: translate(-50%, -50%) translateY(10px);
-  z-index: 9001; pointer-events: none;
-  display: flex; align-items: baseline; gap: 0.55rem;
-  opacity: 0;
-  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1),
-              transform 0.6s cubic-bezier(0.22,1,0.36,1);
-}
-#intro-logo.in { opacity: 1; transform: translate(-50%, -50%) translateY(0px); }
-#intro-logo h1 {
-  font-family: 'Cormorant Garamond', serif;
-  /* fixed 2.80rem (44.8px) had no mobile fallback — "Samuel " + italic
-     "Abhinav" side by side at that size runs close to or past the edges of
-     a ~320-360px phone viewport and silently clips (page uses overflow-x:clip,
-     so no scrollbar to reveal it, just a cut-off wordmark). */
-  font-size: clamp(1.9rem, 9vw, 2.80rem); font-weight: 400;
-  color: rgba(var(--c-white),0.92); letter-spacing: 0.01em;
-}
-#intro-logo .port {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(1.9rem, 9vw, 2.80rem); font-weight: 400;
-  font-style: italic; color: rgba(var(--c-white),0.6);
-}
-
-/* ── intro idle glitch: monochrome char-scramble + split (HELLO DRIBBBLE style) ── */
-#intro-logo .gtxt { position:relative; }
-#intro-logo .gtxt::before, #intro-logo .gtxt::after {
-  content:attr(data-text); position:absolute; top:0; left:0; width:100%;
-  overflow:hidden; opacity:0; pointer-events:none;
-}
-#intro-logo .gtxt::before { color:rgba(var(--c-white),0.95); }   /* white ghost, shifts left */
-#intro-logo .gtxt::after  { color:rgba(150,150,150,0.9); }    /* gray ghost, shifts right */
-#intro-logo .port .gtxt::before { color:rgba(var(--c-white),0.55); }
-#intro-logo .port .gtxt::after  { color:rgba(150,150,150,0.5); }
-#intro-logo.glitch-flick .gtxt::before { opacity:.55; transform:translate(-1.5px,0); }
-#intro-logo.glitch-flick .gtxt::after  { opacity:.5;  transform:translate(1.5px,0); }
-@media (prefers-reduced-motion: reduce){
-  #intro-logo.glitch-flick .gtxt::before, #intro-logo.glitch-flick .gtxt::after { opacity:0 !important; transform:none !important; }
-}
 
 /* ── chrome dampening — soft dark pools that keep the UI legible over the
       brightened canvas; sits above the canvas, below the chrome; fades in
@@ -174,7 +127,7 @@ body { min-height:100%; }
 
 /* ════════════════ Terminal window — floating CRT, Beat 1 expands to fullscreen ════════════════ */
 #term-stage {
-  position:relative; z-index:1;
+  position:relative; z-index:3;
   width:100%; min-height:100vh; min-height:100svh;
   display:flex; align-items:center; justify-content:center;
   pointer-events:none;
@@ -205,13 +158,13 @@ body.intro-done #term-stage { opacity:1; }
   display:flex; align-items:center; justify-content:space-between; padding:0 16px; user-select:none;
 }
 #term-icons { display:flex; align-items:center; gap:11px; }
-#term-icons .ticon { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.82rem; color:rgba(var(--c-white),0.24); line-height:1; }
+#term-icons .ticon { font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.82rem; color:rgba(var(--c-white),0.24); line-height:1; }
 #term-title {
   position:absolute; left:50%; transform:translateX(-50%);
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.65rem; color:rgba(var(--c-white),0.22); text-transform:uppercase;
+  font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.65rem; color:rgba(var(--c-white),0.22); text-transform:uppercase;
   letter-spacing:0.10em; white-space:nowrap; pointer-events:none;
 }
-#term-status { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.52rem; color:rgba(var(--c-white),0.12); letter-spacing:0.14em; text-transform:uppercase; }
+#term-status { font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:0.52rem; color:rgba(var(--c-white),0.12); letter-spacing:0.14em; text-transform:uppercase; }
 #term-screen { position:relative; flex:1; background:transparent; overflow:hidden; }
 .tcorner { position:absolute; z-index:10; width:20px; height:20px; border-color:rgba(var(--c-white),0.10); border-style:solid; }
 .tcorner.tl { top:20px; left:20px;  border-width:1px 0 0 1px; }
@@ -225,13 +178,14 @@ body.intro-done #term-stage { opacity:1; }
 #hero-tagline { position:absolute; z-index:11; left:52px; right:52px; bottom:48px; max-width:760px;
   pointer-events:none; opacity:0; transition:opacity 1.1s cubic-bezier(0.22,1,0.36,1); transition-delay:.4s; }
 body.intro-done #hero-tagline { opacity:1; }
-#hero-tagline p { margin:0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500;
+#hero-tagline p { margin:0; font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500;
   font-size:clamp(28px,3.4vw,44px); line-height:1.15; letter-spacing:-0.005em;
   color:rgba(var(--c-white),0.92); text-shadow:0 4px 20px rgba(0,0,0,0.65); }
 #hero-tagline-cursor { display:inline-block; margin-left:1px; color:rgba(var(--c-white),0.65);
   animation:heroCursorBlink .95s step-start infinite; }
 @keyframes heroCursorBlink { 50%{ opacity:0; } }
-@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:34px; } }
+/* phones/tablets: clear Kai's corner button and its "Ask Kai" bubble (~135px tall) */
+@media (--bp-820) { #hero-tagline { left:28px; right:28px; bottom:150px; } }
 @media (prefers-reduced-motion: reduce) { #hero-tagline-cursor { animation:none; } }
 
 </style>
@@ -253,12 +207,12 @@ body.intro-done #hero-tagline { opacity:1; }
 #site-footer{
   --fbg:#070710; --fink:#eef0f6; --fdim:#717890; --fline:rgba(220,225,235,0.12);
   --faccent:#8fb8ff; --faccent-gray:#52565f;
-  --fserif:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fsans:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --fmono:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fspec:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fserif:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fsans:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fmono:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; --fspec:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
 }
 footer#site-footer{
-    position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:transparent;
+    position:relative; z-index:3; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:transparent;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0;
     opacity:1; pointer-events:auto;   /* no panel: the sky shows through; ::before bloom sits on top */
   }
@@ -269,7 +223,7 @@ footer#site-footer{
   #site-footer .crt, #site-footer .f-eyebrow, #site-footer .f-tagline,
   #site-footer .f-cta, #site-footer .f-copy, #site-footer .f-links{
     opacity:0; transform:translateY(24px) scale(0.965);
-    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1);
   }
   /* exit stagger (scroll up): reverse order — links leave first, CRT last */
   #site-footer .f-links{transition-delay:0s}
@@ -301,13 +255,11 @@ footer#site-footer{
      titlebar (icons / mono title / status), screen below with the video as a
      faint feed, corner brackets inside. 10px radius + the hero's triple glow
      shadow so it reads as the same physical object returning at page end. */
-  /* Sized to match #signal's "Security news" + "On rotation" cards combined —
-     same width formula as .sig-inner (max 1500px minus its clamp(24-80px)
-     side padding, twice) and the same measured rendered height of that grid. */
+  /* Width matches the old 1500px content column minus its side padding. */
   .f-card{
-    position:relative; z-index:1; width:min(1340px, calc(100vw - clamp(48px,10vw,160px))); min-height:560px; margin:158px auto 0;
+    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); min-height:460px; margin:var(--sec-pad) auto 0;
     display:flex; align-items:center; justify-content:space-between; gap:56px;
-    padding:96px 64px; border-radius:20px; overflow:visible;
+    padding:72px 64px; border-radius:20px; overflow:visible;
     background:linear-gradient(155deg, rgba(15,17,27,0.94) 0%, rgba(7,7,14,0.90) 55%, rgba(3,3,8,0.94) 100%);
     border:1px solid rgba(var(--c-white),0.07);
     box-shadow:0 60px 130px -35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(var(--c-white),0.04);
@@ -420,8 +372,8 @@ footer#site-footer{
   @keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-1%,1%)}50%{transform:translate(1%,-1%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}}
 
   .f-eyebrow{
-    font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
-    color:#a6abba; margin:0 0 8px; display:flex; align-items:center; gap:6px;
+    font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:#9aa0ae; margin:0 0 8px; display:flex; align-items:center; gap:6px;
   }
   .f-eyebrow::before{
     content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.95);
@@ -460,7 +412,7 @@ footer#site-footer{
     font-family:var(--fsans); font-weight:500; font-size:14px; letter-spacing:0; text-transform:none;
     color:rgba(238,241,247,0.94); text-decoration:none; background:rgba(var(--c-white),0.06); border-radius:6px;
     border:1px solid rgba(226,232,244,0.14);
-    padding:11px 19px; white-space:nowrap; transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .5s ease, background .5s ease, box-shadow .5s ease;
+    padding:11px 19px; white-space:nowrap; transition:transform .5s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1), border-color .5s ease, background .5s ease, box-shadow .5s ease;
     display:inline-flex; align-items:center; gap:5px; position:relative; align-self:flex-start;
   }
   .f-cta .arrow{display:inline-block; transition:transform .5s cubic-bezier(.16,1,.3,1)}
@@ -469,7 +421,7 @@ footer#site-footer{
 
   /* footer navigation (after micro1): measured on micro1.ai, a ~1290px band;
      group labels 14px light at 40% white, links 16px medium at 80%, 36px apart */
-  .f-nav{ position:relative; z-index:1; width:min(1280px,92vw); margin:clamp(120px,14vw,200px) auto 0;
+  .f-nav{ position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:clamp(72px,9vw,120px) auto 0;
     display:grid; grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)); gap:32px; font-family:var(--fsans); }
   .f-brand-name{ font-family:'Cormorant Garamond', Georgia, serif; font-size:28px; font-weight:500; line-height:1; color:#fff; text-decoration:none; letter-spacing:-.01em; }
   .f-social{ display:flex; align-items:center; gap:22px; margin-top:26px; }
@@ -478,12 +430,12 @@ footer#site-footer{
   .f-social svg{ width:16px; height:16px; fill:currentColor; }
   .f-h1{ font:700 13px/1 var(--fsans); letter-spacing:-.04em; }
   .f-col{ display:flex; flex-direction:column; align-items:flex-start; }
-  .f-group{ margin:0 0 12px; font-size:14px; line-height:21px; font-weight:300; color:rgba(255,255,255,.4); }
+  .f-group{ margin:0 0 12px; font-size:14px; line-height:21px; font-weight:300; color:rgba(255,255,255,.6); }
   .f-col a + .f-group{ margin-top:40px; }
   .f-col a{ font-size:16px; line-height:24px; font-weight:500; color:rgba(255,255,255,.8); text-decoration:none; padding:6px 0; transition:color .2s; }
   .f-col a:hover{ color:#fff; }
   .f-bottom{
-    position:relative; z-index:1; width:min(1280px,92vw); margin:64px auto 0;
+    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:64px auto 0;
     display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
   }
   .f-copy{ font-family:var(--fsans); font-size:14px; color:rgba(255,255,255,.6); }
@@ -502,19 +454,31 @@ footer#site-footer{
 <ClarityAnalytics />
 </head>
 <body>
+<div class="page-grain" aria-hidden="true"></div>
+<!-- Page rail, after the blog post's "On this page" strip: one dash per
+     section, the ones already passed lit and the rest dim, so it shows how
+     much of the page is left. Hover or focus opens the section list.
+     Wired in index-rail.js; hidden under 1100px. -->
+<nav class="hrail" id="hrail" aria-label="On this page">
+  <ol class="hrail-dashes" aria-hidden="true">
+    {['term-stage','beliefs','projects-section','writing','signal','site-footer'].map((id) => <li><span data-sec={id}></span></li>)}
+  </ol>
+  <div class="hrail-card">
+    <ol>{[['term-stage','Intro'],['beliefs','What I believe'],['projects-section','Selected work'],['writing','Recent writing'],['signal','On my radar'],['site-footer','Get in touch']].map(([id, label]) => <li><a href={'#' + id} data-sec={id}>{label}</a></li>)}</ol>
+  </div>
+</nav>
 
 <SiteMenu currentPath="/" hasIntro={true} />
 <h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
 
-<div id="intro-logo" aria-hidden="true">
-  <h1><span class="gtxt" data-text="Samuel&nbsp;">Samuel&nbsp;</span><span class="port"><span class="gtxt" data-text="Abhinav">Abhinav</span></span></h1>
-</div>
 
 
 
 
 
 <SkyBackground />
+<!-- the blog's sky cast: jellyfish, whale, mantas, turtle, fish, between the sky and the page -->
+<SkyLife cast />
 
 
 
@@ -524,8 +488,8 @@ footer#site-footer{
 <Glitches />
 
 <!-- ════ Terminal window — floating CRT feed; Beat 1 expands it to fullscreen ════
-     Sits in a fixed, centered stage at z-index 500: above the sky
-     background (#sky), below Luna (999) and the chrome (1000+), so the navbar
+     Sits at z-index 3: above the sky background (#sky) and its sea
+     creatures, below Luna (999) and the chrome (1000+), so the navbar
      and Luna ride on top throughout. Revealed at body.intro-done (Beat 0). -->
 <div id="term-stage">
   <div id="term-window" style="width:100%;height:100vh;height:100svh;border-radius:0;">
@@ -541,53 +505,36 @@ footer#site-footer{
 
 <!-- Beat 1 scroll distance: scrubs the expand floating &rarr; fullscreen -->
 <!-- beat1 removed: CRT is now a normal-flow section that scrolls away -->
-<!-- ═══════════════ EDITORIAL FLOW: KEV feed → beliefs → research log ═══════════════
+<!-- ═══════════════ EDITORIAL FLOW: KEV feed → beliefs (research log lives in #writing, after projects) ═══════════════
      Normal-flow content between the CRT and the projects. Sits at z-index 300
      over the sky background; the CRT releases on scroll, so nothing overlaps. -->
 <style is:global id="ed-styles">
-  #editorial{ position:relative; z-index:300; background:transparent; color:#ededee;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
-  #editorial .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-    letter-spacing:2px; text-transform:uppercase; color:#87878d; }
+  :is(#editorial,#writing){ position:relative; z-index:300; background:transparent; color:#ededee;
+    font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
+  :is(#editorial,#writing) .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
+    letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 
   /* ── KEV live feed ── */
-  #editorial .ed-kev{ padding:clamp(70px,13vh,150px) 0; max-width:1500px; margin:0 auto; }
-  #editorial .ed-kev__head{ padding:0 clamp(24px,5vw,80px); margin-bottom:clamp(30px,5vh,48px);
-    display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
-  #editorial .ed-kev__head .ed-lbl{ display:block; margin-bottom:14px; }
-  #editorial .ed-kev__head h2{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; }
-  #editorial .ed-kev__head h2 em{ font-style:normal; color:#94949a; }
-  /* One plain-language line so a non-security visitor knows this is a real,
-     live feed and what it is, not decoration. */
-  #editorial .ed-explain{ margin-top:10px; max-width:68ch; font-weight:300;
-    font-size:13px; line-height:1.55; color:#94949a; }
-  #editorial .ed-kev__status{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.5px;
-    color:#87878d; display:flex; align-items:center; gap:8px; }
-  #editorial .ed-kev__status .ed-dot{ width:6px; height:6px; border-radius:50%; background:#87878d; }
-  #editorial .ed-kev__status.ed-live .ed-dot{ background:rgba(120,225,170,.9);
-    box-shadow:0 0 6px rgba(120,225,170,.7); animation:edpulse 2.2s infinite; }
+  :is(#editorial,#writing) .ed-kev{ max-width:1500px; margin:0 auto; }
   @keyframes edpulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
-  #editorial .ed-ticker{ position:relative; border-top:1px solid rgba(var(--c-white),.1);
+  :is(#editorial,#writing) .ed-ticker{ position:relative; border-top:1px solid rgba(var(--c-white),.1);
     border-bottom:1px solid rgba(var(--c-white),.1); overflow:hidden;
     -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
             mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
-  #editorial .ed-track{ display:inline-flex; white-space:nowrap; will-change:transform;
+  :is(#editorial,#writing) .ed-track{ display:inline-flex; white-space:nowrap; will-change:transform;
     animation:edscroll 80s linear infinite; }
-  #editorial .ed-ticker:hover .ed-track{ animation-play-state:paused; }
+  :is(#editorial,#writing) .ed-ticker:hover .ed-track{ animation-play-state:paused; }
   @keyframes edscroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  #editorial .ed-kv{ display:inline-flex; align-items:baseline; gap:12px; padding:16px 34px;
-    font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.3px;
+  :is(#editorial,#writing) .ed-kv{ display:inline-flex; align-items:baseline; gap:12px; padding:16px 34px;
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.3px;
     text-decoration:none; cursor:pointer; transition:background .2s; }
-  #editorial .ed-kv:hover{ background:rgba(var(--c-white),.05); }
-  #editorial .ed-kv .ed-cve{ color:#ededee; font-weight:500; }
-  #editorial .ed-kv .ed-vp{ color:#94949a; }
-  #editorial .ed-kv .ed-date{ color:#87878d; }
-  #editorial .ed-kv .ed-ransom{ color:#e5b8b8; font-size:10px; letter-spacing:1px;
+  :is(#editorial,#writing) .ed-kv:hover{ background:rgba(var(--c-white),.05); }
+  :is(#editorial,#writing) .ed-kv .ed-cve{ color:#ededee; font-weight:500; }
+  :is(#editorial,#writing) .ed-kv .ed-vp{ color:#94949a; }
+  :is(#editorial,#writing) .ed-kv .ed-date{ color:#87878d; }
+  :is(#editorial,#writing) .ed-kv .ed-ransom{ color:#e5b8b8; font-size:11px; letter-spacing:1px;
     border:1px solid rgba(229,184,184,.3); border-radius:3px; padding:1px 6px; }
-  #editorial .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
-  #editorial .ed-kev__foot{ padding:18px clamp(24px,5vw,80px) 0; }
-  #editorial .ed-kev__foot span{ font-family:'JetBrains Mono',monospace; font-size:10.5px;
-    letter-spacing:.5px; color:#87878d; }
+  :is(#editorial,#writing) .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
 
   /* ── KEV feed, mobile: this section had no phone-specific sizing at all —
      desktop's 24-32px heading and 34px-padded ticker pills just ran at full
@@ -596,277 +543,63 @@ footer#site-footer{
      padding for breathing room, so shrinking that without adding gap back
      is what read as "no spacing" once the paddings came down). */
   @media (--bp-760){
-    #editorial .ed-kev{ padding:clamp(40px,8vh,80px) 0; }
-    #editorial .ed-kev__head{ padding:0 20px; margin-bottom:22px; gap:10px 16px; }
-    #editorial .ed-kev__head .ed-lbl{ margin-bottom:10px; }
-    #editorial .ed-kev__head h2{ font-size:1.3rem; }
-    #editorial .ed-kev__status{ font-size:9.5px; gap:7px; }
-    #editorial .ed-kv{ padding:11px 16px; gap:8px; font-size:10.5px; }
-    #editorial .ed-kv .ed-ransom{ font-size:8.5px; padding:1px 5px; }
-    #editorial .ed-kev__foot{ padding:14px 20px 0; }
-    #editorial .ed-kev__foot span{ font-size:9.5px; }
+    :is(#editorial,#writing) .ed-kv{ padding:11px 16px; gap:8px; font-size:11px; }
+    :is(#editorial,#writing) .ed-kv .ed-ransom{ font-size:11px; padding:1px 5px; }
   }
 
-  /* ── Beliefs: the scroll-lit statement ── */
-  #editorial .ed-beliefs{ padding:clamp(90px,16vh,190px) clamp(24px,5vw,80px) clamp(70px,12vh,150px);
-    max-width:1500px; margin:0 auto; }
-  #editorial .ed-beliefs .ed-lbl{ display:block; margin-bottom:clamp(22px,4vh,40px); }
-  #editorial .ed-statement{ --lit-off:#383b47; --lit-on:#f3f5fb;
-    font:600 clamp(1.7rem,3.6vw,3rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    letter-spacing:-.03em; max-width:24ch; color:#e9ecf5; text-wrap:pretty; }
-  #editorial .ed-proof{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(18px,3vw,40px);
-    margin:clamp(60px,10vh,110px) 0 0; padding-top:28px; border-top:1px solid rgba(var(--c-white),.1); }
-  #editorial .ed-proof dt{ font:600 clamp(1.5rem,2.4vw,2.1rem)/1 'Inter Tight',-apple-system,BlinkMacSystemFont,sans-serif;
-    letter-spacing:-.03em; color:#f3f5fb; margin-bottom:10px; font-variant-numeric:tabular-nums; }
-  #editorial .ed-proof dd{ margin:0; font-weight:300; font-size:13px; line-height:1.5; color:#94949a; max-width:24ch; }
-  @media (--bp-820){ #editorial .ed-proof{ grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:28px; } }
-  #snapshot .ed-beliefs__imgs{ display:grid; grid-template-columns:repeat(12,1fr); align-items:start;
-    row-gap:clamp(40px,9vh,120px); }
-  #snapshot .ed-frame{ position:relative; overflow:hidden; background:#101012; }
-  #snapshot .ed-frame img{ width:100%; height:100%; object-fit:cover; display:block;
-    filter:grayscale(1) brightness(.8);
-    transition:filter 1.1s cubic-bezier(.22,1,.36,1), transform 1.3s cubic-bezier(.22,1,.36,1); }
-  #snapshot .ed-frame:hover img{ filter:grayscale(0) brightness(.95); transform:scale(1.04); }
-  #snapshot .ed-frame--a{ grid-column:1 / 7; aspect-ratio:16/12.5; margin-top:clamp(40px,9vh,120px); }
-  /* No aspect-ratio (unlike ed-frame--a): sizes to the arcade canvas's own
-     height instead of being forced to match its neighbor. .ed-beliefs__imgs
-     already has align-items:start, so the grid row doesn't stretch it either. */
-  #snapshot .ed-frame--b{ grid-column:9 / 13; }
-
-  /* ── Beliefs — bento (replaces the landscape frame) ── */
-  #snapshot .ed-bento{ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
-    gap:1px; background:rgba(var(--c-white),.08); }
-  #snapshot .ed-bento__cell{ background:#101012; padding:clamp(14px,1.6vw,20px); display:flex; flex-direction:column;
-    gap:10px; position:relative; overflow:hidden; transition:background .4s ease; }
-  #snapshot .ed-bento__cell:hover{ background:#151517; }
-  #snapshot .ed-bento__lbl{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500;
-    letter-spacing:1.3px; text-transform:uppercase; color:#87878d; position:relative; z-index:2; }
-
-  /* Threat intel — terminal/log feel: colored left-rule per source, hairline-divided rows.
-     Spans the whole top row (the decorative Signal canvas that shared it is gone), so the
-     feed runs as a 2x2 grid of four reports with 2-line titles, rather than three rows
-     stretched across a wide empty cell. */
-  #snapshot .ed-bento__intel{ grid-column:1 / -1; }
-  #snapshot .ed-bento__intel .ed-bento__lbl{ display:flex; align-items:center; gap:7px; }
-  #snapshot .ed-intel__dot{ width:5px; height:5px; border-radius:50%; background:rgba(226,232,244,.85);
-    box-shadow:0 0 6px rgba(226,232,244,.55); animation:edpulse 2.2s infinite; }
-  #snapshot .ed-intel__list{ display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; align-content:center;
-    gap:14px clamp(18px,2.4vw,32px); overflow:hidden; flex:1; min-height:0; font-family:'JetBrains Mono',monospace; }
-  #snapshot .ed-intel__row{ display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit;
-    padding:1px 0 13px 12px; border-left:2px solid transparent; border-bottom:1px solid rgba(var(--c-white),.06);
-    transition:border-color .25s, background .25s; }
-  #snapshot .ed-intel__row:nth-last-child(-n+2){ border-bottom:none; padding-bottom:0; }
-  #snapshot .ed-intel__row.otx{ border-left-color:rgba(226,232,244,.38); }
-  #snapshot .ed-intel__row.misp{ border-left-color:rgba(226,232,244,.20); }
-  #snapshot .ed-intel__row:hover{ background:rgba(var(--c-white),.04); }
-  #snapshot .ed-intel__meta{ display:flex; gap:8px; align-items:center; font-size:9.5px; letter-spacing:.6px; text-transform:uppercase; }
-  #snapshot .ed-intel__meta .src{ font-weight:700; padding:2px 6px; border-radius:3px; line-height:1; }
-  #snapshot .ed-intel__meta .src.otx{ color:#dcdce0; background:rgba(226,232,244,.10); }
-  #snapshot .ed-intel__meta .src.misp{ color:#9c9ca2; background:rgba(226,232,244,.06); }
-  #snapshot .ed-intel__meta .org{ color:#8a8a92; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform:none; letter-spacing:0; }
-  #snapshot .ed-intel__title{ font-size:12px; font-weight:400; color:#c9c9cc; line-height:1.4;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-    overflow:hidden; }
-  #snapshot .ed-intel__row:hover .ed-intel__title{ color:#fff; }
-
-  /* Cert badges marquee — real vendor-issued badge art, not icon chips */
-  #snapshot .ed-badges__wrap{ position:relative; flex:1; display:flex; align-items:center; overflow:hidden;
-    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
-            mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); }
-  #snapshot .ed-badges__track{ display:inline-flex; gap:22px; white-space:nowrap; will-change:transform;
-    animation:edscroll 34s linear infinite; }
-  #snapshot .ed-badges__wrap:hover .ed-badges__track{ animation-play-state:paused; }
-  #snapshot .ed-badge{ display:inline-flex; flex-direction:column; align-items:center; gap:9px; width:92px; }
-  #snapshot .ed-badge img{ width:60px; height:60px; object-fit:contain; box-sizing:content-box;
-    transition:transform .3s ease; }
-  #snapshot .ed-badge:hover img{ transform:translateY(-2px) scale(1.05); }
-  /* Only CompTIA's badge art ships an opaque white square baked into the PNG — everything
-     else (ISC2/AWS/Azure/HTB) is already transparent and needs no backing at all. */
-  #snapshot .ed-badge--framed img{ background:#f2f1ee; border-radius:11px; padding:6px;
-    box-shadow:0 3px 14px rgba(0,0,0,.4); }
-  #snapshot .ed-badge span{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.3px;
-    color:#94949a; white-space:normal; text-align:center; line-height:1.2; }
-
-  /* ATT&CK spotlight — rotating technique card, deliberately distinct from the intel log.
-     #ed-attck-mount is the flex container that actually fills the cell; the card content
-     sits at the top and the dots are pinned as a footer via justify-content:space-between,
-     so extra cell height (from taller viewports) becomes a deliberate gap, not dead space.
-     Tactic/ID live inside .ed-attck__text, after the description, so they read as a caption
-     under the copy instead of a stray row wedged under the icon. */
-  #snapshot .ed-bento__attck{ gap:26px; }
-  #snapshot .ed-bento__attck > div{ flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0; }
-  #snapshot .ed-attck{ display:flex; flex-direction:column; gap:12px; text-decoration:none; color:inherit; }
-  #snapshot .ed-attck__top{ display:flex; align-items:flex-start; gap:12px; }
-  #snapshot .ed-attck__icon{ flex:none; width:32px; height:32px; border-radius:9px;
-    background:rgba(226,232,244,.08); display:flex; align-items:center; justify-content:center;
-    color:#c9c9cc; transition:background .25s; }
-  #snapshot .ed-attck:hover .ed-attck__icon{ background:rgba(226,232,244,.14); }
-  #snapshot .ed-attck__icon svg{ width:16px; height:16px; }
-  #snapshot .ed-attck__text{ display:flex; flex-direction:column; gap:7px; min-width:0; }
-  #snapshot .ed-attck__name{ font-weight:400; font-size:clamp(.86rem,1.05vw,.96rem); color:#ededee;
-    line-height:1.3; letter-spacing:-.1px; transition:color .25s; }
-  #snapshot .ed-attck:hover .ed-attck__name{ color:#fff; }
-  #snapshot .ed-attck__desc{ font-weight:300; font-size:11.5px; color:#94949a; line-height:1.55; max-width:42ch;
-    display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; }
-  #snapshot .ed-attck__meta{ display:flex; align-items:center; gap:9px; margin-top:2px; }
-  #snapshot .ed-attck__tactic{ font-family:'JetBrains Mono',monospace; font-size:9.5px;
-    font-weight:600; letter-spacing:.8px; text-transform:uppercase; color:#dcdce0;
-    background:rgba(226,232,244,.10); border-radius:2px; padding:3px 7px; }
-  #snapshot .ed-attck__id{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#87878d; letter-spacing:.5px; }
-  #snapshot .ed-attck__dots{ display:flex; align-items:center; gap:0; padding-top:4px; margin-left:-10px;
-    border-top:1px solid rgba(var(--c-white),.07); }
-  /* Each button is a real 24x24 target (WCAG 2.5.8) with the 4px dot drawn
-     in its center. The old version kept 4px buttons with a 24px ::before
-     hit area, but dots 9px apart meant neighbouring hit areas overlapped.
-     margin-left:-10px keeps the first dot aligned with the text above. */
-  #snapshot .ed-attck__dots button{ position:relative; width:24px; height:24px; background:none;
-    cursor:pointer; border:0; padding:0; appearance:none; }
-  #snapshot .ed-attck__dots button::after{ content:''; position:absolute; left:10px; top:10px; width:4px; height:4px;
-    border-radius:50%; background:rgba(var(--c-white),.18); transition:background .3s; }
-  #snapshot .ed-attck__dots button:focus-visible{ outline:1px solid #ededee; outline-offset:-6px; border-radius:50%; }
-  #snapshot .ed-attck__dots button.active::after{ background:#ededee; }
-
-  /* DDoS targets: ranked share bars. Same dark/mono bento language as the
-     cells above; bar fill is the one accent, no per-industry colors. */
-  #snapshot .ed-ddos{ padding:clamp(16px,1.8vw,22px); box-sizing:border-box;
-    display:flex; flex-direction:column; gap:14px; justify-content:space-between; }
-  #snapshot .ed-ddos__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px; }
-  #snapshot .ed-ddos__row{ display:grid; grid-template-columns:14px 1fr auto; column-gap:10px; row-gap:5px; align-items:baseline;
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:13px; color:#dfe4f0; }
-  #snapshot .ed-ddos__rank{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:rgba(226,232,244,.45); }
-  #snapshot .ed-ddos__name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #snapshot .ed-ddos__pct{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,.8); font-variant-numeric:tabular-nums; }
-  #snapshot .ed-ddos__bar{ grid-column:2 / 4; height:3px; border-radius:2px; background:rgba(var(--c-white),.07); overflow:hidden; }
-  #snapshot .ed-ddos__bar > i{ display:block; height:100%; width:0; background:rgba(226,232,244,.7); transition:width .9s cubic-bezier(.22,1,.36,1); }
-  #snapshot .ed-ddos__row.is-skel{ height:26px; border-radius:3px; background:rgba(var(--c-white),.04); }
-  #snapshot .ed-ddos__empty{ font-size:12.5px; line-height:1.55; color:rgba(226,232,244,.6); }
-  #snapshot .ed-ddos__src{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,.5); }
-  #snapshot .ed-ddos__src a{ color:inherit; }
-  #snapshot .ed-ddos__src a:hover{ color:#fff; }
-  @media (prefers-reduced-motion: reduce){ #snapshot .ed-ddos__bar > i{ transition:none; } }
-
+  /* ── Beliefs: one statement alone on a full screen over the sky, with a few
+        coloured tags placed around it ── */
+  :is(#editorial,#writing) .ed-beliefs{ position:relative; min-height:100vh; min-height:100svh; display:grid; place-items:center;
+    /* one screen of its own; Selected work starts just below it */
+    padding:clamp(80px,14vh,160px) clamp(20px,6vw,96px); color:#eef1f8; overflow:hidden; }
+  :is(#editorial,#writing) .ed-statement{ --lit-off:rgba(238,241,248,.2); --lit-on:#eef1f8; margin:0; max-width:30ch; text-align:center; text-wrap:balance;
+    font:400 clamp(1.5rem,2.8vw,2.8rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    letter-spacing:-.012em; }
+  :is(#editorial,#writing) .ed-tag{ position:absolute; padding:.28em .4em; font:400 clamp(13px,1.15vw,17px)/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color:#1c1c1c; white-space:nowrap; }
+  :is(#editorial,#writing) .ed-beliefs__body{ position:relative; }
+  :is(#editorial,#writing) .ed-tag--a{ bottom:calc(100% + clamp(48px,8vh,84px)); left:24%; background:#4caf50; }
+  :is(#editorial,#writing) .ed-tag--b{ bottom:calc(100% + clamp(30px,5.5vh,62px)); left:56%; background:#f3fbd9; }
+  :is(#editorial,#writing) .ed-tag--c{ top:calc(100% + clamp(60px,11vh,120px)); left:-8%; background:#cbc0de; }
   @media (--bp-600){
-    /* The whole bento (threat intel, certifications, ATT&CK) and the DDoS
-       tile are cut on phones rather than shrunk: too dense to read at this
-       width, and the same content lives elsewhere on the page. */
-    #snapshot .ed-bento{ display:none; }
-    #snapshot .ed-frame--b.ed-ddos{ display:none; }
+    :is(#editorial,#writing) .ed-tag--a{ left:4%; }
+    :is(#editorial,#writing) .ed-tag--b{ left:auto; right:4%; }
+    :is(#editorial,#writing) .ed-tag--c{ left:4%; }
   }
-
   /* ── Research log — Work-grammar cards ── */
-  #editorial .ed-log{ padding:clamp(60px,10vh,120px) clamp(24px,5vw,80px) clamp(90px,16vh,180px);
-    max-width:1500px; margin:0 auto; }
-  #editorial .ed-log__head{ display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
-    margin-bottom:clamp(34px,6vh,54px); flex-wrap:wrap; }
-  #editorial .ed-log__head .ed-lbl{ display:block; margin-bottom:14px; }
-  #editorial .ed-log__head h2{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; }
-  #editorial .ed-log__head a{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-    letter-spacing:1.5px; text-transform:uppercase; color:#94949a; text-decoration:none; transition:color .3s; }
-  #editorial .ed-log__head a:hover{ color:#ededee; }
-  #editorial .ed-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-  #editorial .ed-card{ display:block; text-decoration:none; color:inherit; cursor:pointer;
-    background:#0d1222; border:1px solid rgba(190,205,240,.11); border-radius:14px; overflow:hidden; padding-bottom:22px;
-    box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 22px 50px -26px rgba(0,0,0,.85), 0 6px 16px -8px rgba(0,0,0,.5);
-    transition:transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
-  #editorial .ed-card:hover{ transform:translateY(-4px); border-color:rgba(143,179,255,.26);
-    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 34px 70px -28px rgba(0,0,0,.9), 0 10px 22px -10px rgba(0,0,0,.55); }
-  #editorial .ed-card .ed-cmeta, #editorial .ed-card h3, #editorial .ed-card p{ margin-left:20px; margin-right:20px; }
-  #editorial .ed-card .ed-ph{ position:relative; aspect-ratio:16/10; overflow:hidden; background:#101012; }
-  #editorial .ed-card .ed-ph img{ width:100%; height:100%; object-fit:cover; display:block;
-    filter:grayscale(1) brightness(.78); transform:scale(1.03);
-    transition:filter .7s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1); }
-  #editorial .ed-card .ed-ph::after{ content:""; position:absolute; inset:0;
-    background:linear-gradient(180deg,rgba(8,8,20,.05),rgba(8,8,20,.5)); }
-  #editorial .ed-card:hover .ed-ph img{ filter:grayscale(0) brightness(.94); transform:scale(1.09); }
-  #editorial .ed-card .ed-num{ position:absolute; top:13px; left:15px; z-index:2; color:#fff; opacity:.55;
-    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:2px; transition:opacity .4s; }
-  #editorial .ed-card:hover .ed-num{ opacity:1; }
-  #editorial .ed-card .ed-cmeta{ display:flex; justify-content:space-between; color:#87878d; margin:15px 20px 8px;
-    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; }
-  #editorial .ed-card h3{ font-weight:400; font-size:clamp(18px,1.5vw,21px); line-height:1.18;
-    letter-spacing:-.2px; color:#ededee; position:relative; display:inline-block; }
-  #editorial .ed-card h3::after{ content:""; position:absolute; left:0; bottom:-3px; width:0; height:1px;
-    background:#fff; transition:width .5s cubic-bezier(.22,1,.36,1); }
-  #editorial .ed-card:hover h3{ color:#fff; } #editorial .ed-card:hover h3::after{ width:100%; }
-  #editorial .ed-card p{ margin-top:9px; font-weight:300; font-size:13px; line-height:1.55; color:#94949a; max-width:34ch; }
-
-  /* .ed-frame--a squeezed to half-width (grid-column:1/7) still has to hold
-     the full 4-cell .ed-bento inside it — and .ed-bento's OWN mobile collapse
-     only triggers below 600px of VIEWPORT width, not container width, so on
-     a tablet (768-1024px) the bento renders its multi-column desktop layout
-     squeezed into a ~350-400px half-width column: a cramped, doubly-squeezed
-     mess neither breakpoint below was written to catch. Give both frames the
-     full width well before that container-squeeze can happen, independent
-     of the narrower breakpoint below (which still handles the beliefs text
-     column and the research-log card grid). */
-  @media (--bp-1100){
-    #snapshot .ed-frame--a{ grid-column:1 / 13; margin-top:0; }
-    #snapshot .ed-frame--b{ grid-column:1 / 13; }
-  }
+  :is(#editorial,#writing) .ed-log{ padding:var(--sec-pad) 0 0; }
+  /* Edge-to-edge strip that drifts left; index-writing-reel.js moves it.
+     overflow:clip, not hidden, so focusing a card can't scroll the box. */
+  #writing .wr-reel{ overflow:clip; padding:8px 0 12px; cursor:grab; touch-action:pan-y; user-select:none; }
+  #writing .wr-reel.is-drag{ cursor:grabbing; }
+  #writing .wr-track{ display:flex; gap:6px; align-items:flex-start; width:max-content; padding-left:calc(var(--gut) - 12px); will-change:transform; }
+  #writing .wr-track .fn-tile{ flex:none; width:clamp(280px,30vw,440px); }
+  #writing .wr-track img{ -webkit-user-drag:none; }
   @media (--bp-820){
-    /* "Recent writing" cards: the 4:5 portrait photo + full desktop type
-       scale is the same "too big/bulky" pattern already fixed on the blog
-       index's card grid — same fix here. */
-    #editorial .ed-log__head h2{ font-size:1.3rem; }
-    #editorial .ed-grid{ grid-template-columns:1fr; gap:18px; }
-    #editorial .ed-card .ed-ph{ aspect-ratio:3/2; }
-    #editorial .ed-card .ed-num{ font-size:9px; top:10px; left:11px; }
-    #editorial .ed-card .ed-cmeta{ font-size:9px; margin:12px 16px 5px; }
-    #editorial .ed-card h3{ font-size:15px; }
-    #editorial .ed-card p{ font-size:11px; margin-top:5px; }
+    #writing .wr-track .fn-tile{ width:min(78vw,360px); }
   }
   @media (prefers-reduced-motion:reduce){
-    #editorial .ed-track{ animation:none; } #editorial .ed-ticker{ overflow-x:auto; }
+    :is(#editorial,#writing) .ed-track{ animation:none; } :is(#editorial,#writing) .ed-ticker{ overflow-x:auto; }
   }
 </style>
 
 <div id="editorial">
 
-  <!-- KEV feed -->
+  <!-- KEV feed: the moving row of exploited CVEs, right under the hero -->
   <section class="ed-kev" aria-label="Live threat feed from the CISA KEV catalog">
-    <div class="ed-kev__head">
-      <div>
-        <h2 data-reveal="lines">Exploited in the <em>wild.</em></h2>
-        <p class="ed-explain">Software flaws attackers are exploiting right now, live from CISA.</p>
-      </div>
-      <div class="ed-kev__status" id="ed-status"><span class="ed-dot"></span><span id="ed-status-text">connecting…</span></div>
-    </div>
     <div class="ed-ticker"><div class="ed-track" id="ed-track"></div></div>
-    <div class="ed-kev__foot"><span id="ed-foot">Source: CISA KEV</span></div>
   </section>
 
   <!-- Beliefs: one statement that lights up word by word as you scroll -->
-  <section class="ed-beliefs" aria-labelledby="ed-beliefs-lbl">
-    <span class="ed-lbl" id="ed-beliefs-lbl">What I optimize for</span>
-    <p class="ed-statement" data-scroll-lit>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
-    <dl class="ed-proof" data-reveal-group>
-      <div><dt>18</dt><dd>Sigma rules, each caught firing on a real command</dd></div>
-      <div><dt>45&ndash;151s</dt><dd>measured attack-to-alert in Sentinel</dd></div>
-      <div><dt>~72k</dt><dd>compiled block rules shipping in Moat</dd></div>
-      <div><dt>0</dt><dd>email bodies read by Cluster</dd></div>
-    </dl>
+  <section class="ed-beliefs" id="beliefs" aria-label="What I believe">
+    <div class="ed-beliefs__body">
+      <span class="ed-tag ed-tag--a" aria-hidden="true">Architecture</span>
+      <span class="ed-tag ed-tag--b" aria-hidden="true">Behaviour</span>
+      <span class="ed-tag ed-tag--c" aria-hidden="true">Earned trust</span>
+      <p class="ed-statement" data-scroll-lit>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
+    </div>
   </section>
 
-  <!-- Research log -->
-  <section class="ed-log" aria-label="From the research log">
-    <div class="ed-log__head">
-      <div>
-        <span class="ed-lbl">Research log</span>
-        <h2 data-reveal="lines">Recent writing.</h2>
-      </div>
-      <a href="/blog/">Read the blog →</a>
-    </div>
-    <div class="ed-grid" data-reveal-group>
-      {recentPosts.map((p, i) => (
-        <a class="ed-card" href={p.href}>
-          <div class="ed-ph"><span class="ed-num">{String(i + 1).padStart(2, '0')}</span><img loading="lazy" decoding="async" src={p.img} srcset={p.srcset} sizes="(max-width: 760px) 92vw, 30vw" alt={p.title}></div>
-          <div class="ed-cmeta"><span>{p.cat}</span><span>{p.date}</span></div>
-          <h3>{p.title}</h3>
-          <p>{p.desc}</p>
-        </a>
-      ))}
-    </div>
-  </section>
 
 </div>
 
@@ -875,218 +608,232 @@ footer#site-footer{
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
-#projects-section{ position:relative; z-index:1; width:100%; min-height:100vh; min-height:100svh; box-sizing:border-box;
-  background:transparent; display:flex; align-items:center;
-  padding:clamp(50px,7vh,100px) 0; }
-#projects-section .ps-inner{ width:100%; max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#projects-section .ps-head{ margin:0 0 clamp(28px,5vh,56px); display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
-#projects-section .ps-lbl{ display:block; margin-bottom:14px; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
-  letter-spacing:2px; text-transform:uppercase; color:#87878d; }
-#projects-section .ps-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300;
-  font-size:clamp(1.6rem,2.4vw,2.2rem); letter-spacing:-0.3px; color:#eef3ff; margin:0; }
-#projects-section .ps-hint{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:#6f7280; }
+/* One rhythm for every section: the same left edge as the project captions,
+   the same breath above each heading, the same gap from heading to content. */
+:root{ --gut:clamp(16px,3.2vw,48px); --sec-pad:clamp(150px,26vh,300px); --head-gap:clamp(40px,7vh,80px); }
 
-/* Project rows: big names on hairlines. Hovering (or tapping) a row opens
-   it: the name takes the accent, a Role / Timeline / Focus / Status line
-   and the details unfold, the screenshot grows in on the right, and the
-   other rows step back. "Jump to project" goes straight to the repo. */
-.prows{ --accent:#a9c3ff; border-top:1px solid rgba(226,232,244,.12);
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-.prow{ border-bottom:1px solid rgba(226,232,244,.12); }
-.prow-top{ display:flex; align-items:center; gap:clamp(12px,2vw,28px); }
-.prow-h{ flex:1; min-width:0; margin:0; font:inherit; }
-.prow-head{ width:100%; display:flex; align-items:baseline; gap:clamp(14px,2.4vw,34px); padding:clamp(18px,3vh,30px) 0;
-  background:none; border:0; color:inherit; text-align:left; cursor:pointer; }
-.prow-num{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; color:rgba(226,232,244,.5);
-  width:24px; flex:none; transition:color var(--dur-base) var(--ease-out); }
-.prow-name{ font:600 clamp(2.1rem,5.4vw,4.6rem)/.95 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  letter-spacing:-.035em; color:#eef1f8; text-transform:uppercase;
-  transition:color var(--dur-base) var(--ease-out), transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-out); }
-.prow-kind{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
-  color:rgba(226,232,244,.5); white-space:nowrap; transition:opacity var(--dur-base) var(--ease-out); }
-.prow-jump{ flex:none; display:inline-flex; align-items:center; gap:8px; padding:11px 16px; border-radius:999px;
-  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; text-decoration:none;
-  color:#e9ecf5; background:#121726; border:1px solid rgba(226,232,244,.14);
-  transition:background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
-.prow-jump .ar{ display:inline-block; transition:transform var(--dur-base) var(--ease-out); }
-.prow-jump:hover{ background:var(--accent); color:#0a1230; border-color:var(--accent); }
-.prow-jump:hover .ar{ transform:translate(2px,-2px); }
+/* Section headings: a smaller sibling of the blog's "Field Notes (N)" title.
+   A large serif line with one italic word. */
+.sec-head{ position:relative; display:grid; grid-template-columns:1fr auto; align-items:end; column-gap:24px;
+  margin:0 0 var(--head-gap); padding:0 var(--gut); }
+#signal .sec-head{ padding:0; }
+.sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(46px,6.4vw,96px);
+  line-height:.92; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
+.sec-title em{ font-style:italic; color:#cdd9f7; }
+.sec-title sup{ font:500 .17em/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:0;
+  vertical-align:top; position:relative; top:.4em; margin-left:.14em; color:#c9d6ff; }
+.sec-link{ font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae;
+  text-decoration:none; transition:color .3s; padding-bottom:.6em; }
+.sec-link:hover{ color:#ededee; }
+/* Variant B: grotesk headline, the italic word stays serif */
+:root[data-heads="b"] .sec-title{ font-family:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-weight:500;
+  font-size:clamp(46px,6.4vw,96px); letter-spacing:-.055em; }
+:root[data-heads="b"] .sec-title em{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; letter-spacing:-.02em; padding-right:.04em; }
+/* Variant C: editorial bar, label in a narrow left column, title in the right */
+:root[data-heads="c"] .sec-head{ grid-template-columns:minmax(140px,22%) 1fr auto; border-top:1px solid rgba(201,214,255,.16); padding-top:18px; }
+:root[data-heads="c"] #signal .sec-head{ padding-top:18px; }
+:root[data-heads="c"] .sec-title{ grid-column:2; }
 
-.prows.has-open .prow:not(.is-open) .prow-name{ color:rgba(226,232,244,.32); }
-.prows.has-open .prow:not(.is-open) .prow-kind{ opacity:.5; }
-.prow:not(.is-open) .prow-head:hover .prow-name{ color:rgba(238,241,248,.85); }
-.prow.is-open .prow-name{ color:var(--accent); transform:translateX(clamp(6px,1vw,14px)); }
-.prow.is-open .prow-num{ color:var(--accent); }
+/* Page rail (same shape as the blog post's .etoc strip) */
+.hrail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:140; }
+.hrail-dashes{ list-style:none; margin:0; padding:12px 6px 12px 28px; display:grid; gap:12px; justify-items:end; }
+.hrail-dashes span{ display:block; width:22px; height:2px; border-radius:2px; background:rgba(226,232,244,.22); transition:width .25s, background .25s; }
+.hrail-dashes span.is-past{ background:rgba(226,232,244,.62); }
+.hrail-dashes span.is-active{ width:32px; background:rgba(238,241,248,.95); }
+.hrail-card{ position:absolute; right:calc(100% - 20px); top:50%; width:220px; padding:10px; border:1px solid rgba(226,232,244,.14); border-radius:10px;
+  background:rgba(12,13,19,.97); box-shadow:0 18px 50px rgba(0,0,0,.6);
+  opacity:0; pointer-events:none; transform:translate(8px,-50%); transition:opacity .18s ease, transform .18s ease; }
+.hrail.is-open .hrail-card, .hrail:focus-within .hrail-card{ opacity:1; pointer-events:auto; transform:translate(0,-50%); }
+.hrail-card ol{ list-style:none; margin:0; padding:0; display:grid; gap:1px; }
+.hrail-card a{ display:block; padding:7px 10px; border-radius:6px; font:400 14px/1.35 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:rgba(226,232,244,.7); text-decoration:none; }
+.hrail-card a:hover{ background:rgba(255,255,255,.05); color:#fff; }
+.hrail-card a.is-active{ color:#fff; background:rgba(200,206,218,.08); box-shadow:inset 2px 0 0 #c8ceda; }
+@media (max-width:1099px){ .hrail{ display:none; } }
+@media (prefers-reduced-motion:reduce){ .hrail-dashes span, .hrail-card{ transition:none; } }
 
-.prow-body{ display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--dur-slow) var(--ease-out); }
-.prow.is-open .prow-body{ grid-template-rows:1fr; }
-.prow-inner{ overflow:hidden; min-height:0; }
-.prow-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:clamp(24px,4vw,64px);
-  padding:0 0 clamp(26px,4vh,40px) calc(24px + clamp(14px,2.4vw,34px)); }
-/* contents arrive just after the row has started to open, and leave
-   quickly (no delay) when it closes */
-.prow-text, .prow-shot{ opacity:0; transform:translateY(14px);
-  transition:opacity var(--dur-fast) var(--ease-in), transform var(--dur-fast) var(--ease-in); }
-.prow.is-open .prow-text, .prow.is-open .prow-shot{ opacity:1; transform:none;
-  transition:opacity 520ms var(--ease-out) 140ms, transform 720ms var(--ease-out) 140ms; }
-.prow.is-open .prow-shot{ transition-delay:220ms; }
-.prow-meta{ display:grid; grid-template-columns:repeat(4,minmax(0,auto)); gap:10px 26px; margin:0 0 22px; justify-content:start; }
-.prow-meta dt{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(226,232,244,.45); margin-bottom:5px; }
-.prow-meta dd{ margin:0; font-size:13px; color:#dfe4f0; }
-.prow-desc{ font-weight:300; font-size:15px; line-height:1.6; color:rgba(226,232,244,.72); margin:0 0 20px; max-width:52ch; }
-.prow .acc-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
-.acc-chip{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.02em;
-  color:rgba(226,232,244,0.7); background:#111523; border:1px solid rgba(226,232,244,0.12);
-  border-radius:4px; padding:4px 9px; }
-.acc-results{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
-.acc-results li{ font-weight:300; font-size:13px; line-height:1.5; color:rgba(226,232,244,0.65); position:relative; padding-left:16px; }
-.acc-results li::before{ content:''; position:absolute; left:0; top:.6em; width:6px; height:1px; background:var(--accent); }
-.acc-link{ display:inline-block; margin-top:18px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
-  color:rgba(226,232,244,0.85); text-decoration:none; padding:6px 0; border-bottom:1px solid rgba(226,232,244,0.25); transition:color .2s, border-color .2s; }
-.acc-link::after{ content:' →'; }
-.acc-link:hover{ color:#fff; border-color:rgba(226,232,244,0.7); }
-.prow-shot{ margin:0; position:relative; aspect-ratio:16/10; border-radius:10px; overflow:hidden; background:#0a0c14;
-  border:1px solid rgba(226,232,244,.1); box-shadow:0 30px 70px -30px rgba(0,0,0,.75); align-self:start; }
-.prow-shot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 0; display:block;
-  transform:scale(1.06); transition:transform 1.1s var(--ease-out); }
-.prow.is-open .prow-shot img{ transform:scale(1); }
+/* Film grain over the whole page, with a soft vignette under it. Held
+   still and faint: none of the reference sites animate texture, and the sky
+   already supplies the motion. */
+.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
+.page-grain::before{ content:""; position:absolute; inset:0;
+  background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
+.page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.045; }
 
-@media (--bp-900){
-  #projects-section{ min-height:auto; padding-top:12vh; padding-bottom:12vh; }
-  #projects-section .ps-hint{ display:none; }
-  .prow-kind{ display:none; }
-  .prow-jump{ padding:9px 12px; font-size:9.5px; }
-  .prow-jump .lbl{ display:none; }
-  .prow-grid{ grid-template-columns:1fr; padding-left:0; }
-  .prow-shot{ order:-1; }
-  .prow-meta{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+/* Scroll-linked motion (CSS only; browsers without view timelines just show
+   everything at rest). Project frames open upward
+   and their picture settles from a slight zoom. */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+        .pw-img{ animation:frame-open linear both; animation-timeline:view(); animation-range:entry 0% cover 30%; }
+    .pw-img > *{ animation:frame-settle linear both; animation-timeline:view(); animation-range:entry 0% cover 45%; }
+  }
 }
-@media (prefers-reduced-motion: reduce){
-  .prow-body, .prow-text, .prow-shot, .prow-shot img, .prow-name{ transition:none !important; }
+@keyframes frame-open{ from{ clip-path:inset(18% 0 0 0); } to{ clip-path:inset(0 0 0 0); } }
+@keyframes frame-settle{ from{ transform:scale(1.12); } to{ transform:scale(1); } }
+@media (--bp-760){
+  .sec-head{ grid-template-columns:1fr; row-gap:16px; }
+  .sec-link{ justify-self:start; }
+  :root[data-heads="c"] .sec-head{ grid-template-columns:1fr; }
+  :root[data-heads="c"] .sec-title{ grid-column:1; }
 }
+#projects-section{ position:relative; z-index:301; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 clamp(240px,36vh,360px); }
+/* After zainabkabira.com: the work arrives as a painted sheet that slides up
+   over the beliefs. A night watercolour wash with a few brushed swells and
+   the sky cast painted into it (mantas and a fish by the heading, coral
+   trees on rock shelves down both sides, sea stars and fish scattered, a
+   turtle and coral on the sea floor below the last row, clouds and stars
+   throughout), cut by a dry-brush edge
+   top and bottom. All generated once as images from the creatures' own
+   shapes in sky-cast.js, so scrolling costs nothing extra. */
+#projects-section::before{ content:""; position:absolute; z-index:-1; left:0; right:0; top:-130px; bottom:-60px; pointer-events:none;
+  background:url(/images/paint/creatures-top.webp) center -60px / 1600px auto no-repeat,
+    url(/images/paint/creatures-bottom.webp) center bottom 100px / 1600px auto no-repeat,
+    url(/images/paint/side-l.webp) left 0 top 160px / 300px auto repeat-y,
+    url(/images/paint/side-r.webp) right 0 top 460px / 300px auto repeat-y,
+    url(/images/paint/scatter-tile.webp) 0 300px / 1400px auto,
+    url(/images/paint/rays.webp) center top / 1600px auto no-repeat,
+    url(/images/paint/clouds-tile.webp) 0 0 / 1024px,
+    url(/images/paint/stars-tile.webp) 0 0 / 1024px,
+    url(/images/paint/waves-tile.webp) 0 140px / 1024px,
+    url(/images/paint/wash-tile.webp) 0 0 / 1024px; opacity:.96;
+  -webkit-mask:url(/images/paint/wash-edge.webp) top / 100% 280px no-repeat,
+    linear-gradient(#000,#000) 0 278px / 100% calc(100% - 556px) no-repeat,
+    url(/images/paint/wash-edge-b.webp) bottom / 100% 280px no-repeat;
+          mask:url(/images/paint/wash-edge.webp) top / 100% 280px no-repeat,
+    linear-gradient(#000,#000) 0 278px / 100% calc(100% - 556px) no-repeat,
+    url(/images/paint/wash-edge-b.webp) bottom / 100% 280px no-repeat; }
+/* ...and the beliefs sink back under it: they drift down with the page
+   (so they seem to stay put), shrink a little and dim, like her hero. */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+    #beliefs{ view-timeline:--beliefs; }
+    #beliefs > *{ animation:beliefs-sink linear both; animation-timeline:--beliefs; animation-range:exit 0% exit 100%; transform-origin:50% 30%; }
+  }
+}
+@media (--bp-760){
+  #projects-section::before{ background-size:1000px auto, 1000px auto, 110px auto, 110px auto, 900px auto, 1000px auto, 700px, 1024px, 700px, 1024px; background-position:center -30px, center bottom 90px, left 0 top 160px, right 0 top 460px, 0 300px, center top, 0 0, 0 0, 0 140px, 0 0; }
+}
+@keyframes beliefs-sink{ to{ transform:translateY(70vh) scale(.88); opacity:.2; } }
+/* Work tiles, after Bodeyco's journal: two equal columns running edge to
+   edge with a 6px gutter, frames in their own shapes so rows go ragged, no
+   corners or borders. Under each frame a two-half caption in one small
+   grotesk: the name over dim tags on the left, the sentence (dim) on the
+   right. Hover fades the picture. */
+#projects-section .ps-inner{ width:100%; }
+/* Sizes picked in the projects tuner (public/_projects-tune.html); the
+   heading lines up with the grid's left edge. */
+.pw-grid{ display:grid; width:87%; margin:0 auto; grid-template-columns:repeat(2,minmax(0,1fr)); gap:60px 13px; align-items:start; }
+#projects-section .sec-head{ width:87%; margin-inline:auto; padding-inline:0; }
+.pw-tile{ display:flex; flex-direction:column; gap:15px; color:inherit; text-decoration:none; }
+.pw-img{ margin:0; position:relative; overflow:hidden; background:#0a0c14; aspect-ratio:3/2; }
+/* Ratio cycle after Bodeyco's journal (3:2, 5:4, 16:9, 4:3): the taller
+   frame switches sides between rows so the grid never settles into a pattern. */
+.pw-tile:nth-child(6n+2) .pw-img, .pw-tile:nth-child(6n+5) .pw-img{ aspect-ratio:5/4; }
+.pw-tile:nth-child(6n+3) .pw-img, .pw-tile:nth-child(6n) .pw-img{ aspect-ratio:16/9; }
+.pw-tile:nth-child(6n+4) .pw-img{ aspect-ratio:4/3; }
+/* Hover: the picture fades and drifts in a little (Vantra zooms 1.05). `scale`
+   rather than transform, so it adds to the scroll-in settle animation. */
+.pw-img > *{ transition:opacity .15s ease, scale .9s var(--ease-out); }
+@media (hover:hover){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ opacity:.35; } }
+@media (hover:hover) and (prefers-reduced-motion:no-preference){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ scale:1.04; } }
+/* Screenshots fill their frame; projects without one show a logo or a placeholder. */
+.pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
+.pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
+.pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
+.pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
+.pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 23px;
+  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
+  /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
+  text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
+.pw-name{ grid-column:1; grid-row:1; padding-right:24px; }
+.pw-tags{ grid-column:1; grid-row:2; padding-right:24px; color:rgba(233,236,247,.62); }
+.pw-line{ grid-column:2; grid-row:1 / span 2; padding-right:24px; color:rgba(233,236,247,.62); text-wrap:pretty; }
+@media (--bp-760){
+  .pw-grid{ width:79%; grid-template-columns:1fr; gap:50px 6px; }
+  #projects-section .sec-head{ width:79%; }
+  .pw-tile{ gap:14px; }
+  /* narrow tiles: name, tags and pitch stack instead of sharing a row */
+  .pw-cap{ padding:0 16px; grid-template-columns:1fr; }
+  .pw-name, .pw-tags, .pw-line{ grid-column:1; grid-row:auto; }
+  .pw-line{ margin-top:6px; }
+  .pw-name, .pw-tags, .pw-line{ padding-right:0; }
+}
+@media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
 </style>
 <section id="projects-section" aria-labelledby="ps-title">
   <div class="ps-inner">
-    <div class="ps-head">
-      <div>
-        <span class="ps-lbl">Selected work</span>
-        <h2 class="ps-title" id="ps-title" data-reveal="lines">Projects</h2>
-      </div>
-      <span class="ps-hint" aria-hidden="true">Hover a project to open it</span>
-    </div>
-    <div class="prows" data-reveal-group>
-      <article class="prow is-open" id="sec-sentinel" data-idx="0">
-        <div class="prow-top">
-          <h3 class="prow-h"><button type="button" class="prow-head" aria-expanded="true" aria-controls="prow-b0">
-            <span class="prow-num">01</span><span class="prow-name">Sentinel</span><span class="prow-kind">Detection engineering</span>
-          </button></h3>
-          <a class="prow-jump" href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener" aria-label="Sentinel on GitHub"><span class="lbl">Jump to project</span><span class="ar" aria-hidden="true">↗</span></a>
-        </div>
-        <div class="prow-body" id="prow-b0"><div class="prow-inner"><div class="prow-grid">
-          <div class="prow-text">
-            <dl class="prow-meta">
-              <div><dt>Role</dt><dd>Sole builder</dd></div>
-              <div><dt>Timeline</dt><dd>Feb – Aug 2026</dd></div>
-              <div><dt>Focus</dt><dd>SOC automation</dd></div>
-              <div><dt>Status</dt><dd>Lab, live-fire tested</dd></div>
-            </dl>
-            <p class="prow-desc">A code-driven SOC lab. Every detection is a Sigma rule in Git, validated in CI and then fired against Elastic with a real attacker technique. Two AI models triage each alert in parallel, and Shuffle SOAR acts only when both agree.</p>
-            <div class="acc-chips"><span class="acc-chip">Sigma</span><span class="acc-chip">Elastic</span><span class="acc-chip">Wazuh</span><span class="acc-chip">n8n</span><span class="acc-chip">Ollama + Claude</span><span class="acc-chip">Shuffle</span></div>
-            <ul class="acc-results">
-              <li>18 rules, each caught firing on a real command</li>
-              <li>Measured attack-to-alert times of 45 to 151 seconds</li>
-            </ul>
-          </div>
-          <figure class="prow-shot"><img src="/images/projects/sentinel-hero.svg" alt="Schematic of Sentinel's pipeline: an attack produces telemetry, Elastic detects it with Sigma rules, two AI models triage the alert, and Shuffle SOAR responds only when both agree." loading="lazy" decoding="async"></figure>
-        </div></div></div>
-      </article>
-      <article class="prow" id="sec-moat" data-idx="1">
-        <div class="prow-top">
-          <h3 class="prow-h"><button type="button" class="prow-head" aria-expanded="false" aria-controls="prow-b1">
-            <span class="prow-num">02</span><span class="prow-name">Moat</span><span class="prow-kind">Browser security</span>
-          </button></h3>
-          <a class="prow-jump" href="https://github.com/Samuelabhinav37/moat" target="_blank" rel="noopener" aria-label="Moat on GitHub"><span class="lbl">Jump to project</span><span class="ar" aria-hidden="true">↗</span></a>
-        </div>
-        <div class="prow-body" id="prow-b1"><div class="prow-inner"><div class="prow-grid">
-          <div class="prow-text">
-            <dl class="prow-meta">
-              <div><dt>Role</dt><dd>Sole developer</dd></div>
-              <div><dt>Timeline</dt><dd>Aug 2026 – now</dd></div>
-              <div><dt>Focus</dt><dd>Ad and tracker blocking</dd></div>
-              <div><dt>Status</dt><dd>v0.11, Chrome + Firefox</dd></div>
-            </dl>
-            <p class="prow-desc">A free, open-source ad blocker for Chrome and Firefox that runs entirely inside the browser. It blocks ads, trackers, cookie banners and scam pop-ups using the browser's own blocking engine. No server, no account, no telemetry.</p>
-            <div class="acc-chips"><span class="acc-chip">TypeScript</span><span class="acc-chip">Manifest V3</span><span class="acc-chip">declarativeNetRequest</span><span class="acc-chip">AdGuard lists</span></div>
-            <ul class="acc-results">
-              <li>About 314,000 filter entries compiled into 72,000 browser rules</li>
-              <li>Cosmetic rules per page cut from 5.8 MB to about 700 KB</li>
-            </ul>
-            <a class="acc-link" href="/moat/">Get Moat</a>
-          </div>
-          <figure class="prow-shot"><img src="/images/projects/moat-hero.webp" srcset="/images/projects/moat-hero.w800.webp 800w, /images/projects/moat-hero.webp 1500w" sizes="(max-width: 900px) 92vw, 46vw" alt="A WIRED article with Moat's popup open beside it, reporting 14 things blocked on the page." loading="lazy" decoding="async"></figure>
-        </div></div></div>
-      </article>
-      <article class="prow" id="sec-cluster" data-idx="2">
-        <div class="prow-top">
-          <h3 class="prow-h"><button type="button" class="prow-head" aria-expanded="false" aria-controls="prow-b2">
-            <span class="prow-num">03</span><span class="prow-name">Cluster</span><span class="prow-kind">Email security</span>
-          </button></h3>
-          <a class="prow-jump" href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener" aria-label="Cluster on GitHub"><span class="lbl">Jump to project</span><span class="ar" aria-hidden="true">↗</span></a>
-        </div>
-        <div class="prow-body" id="prow-b2"><div class="prow-inner"><div class="prow-grid">
-          <div class="prow-text">
-            <dl class="prow-meta">
-              <div><dt>Role</dt><dd>Sole developer</dd></div>
-              <div><dt>Timeline</dt><dd>Aug 2026 – now</dd></div>
-              <div><dt>Focus</dt><dd>Phishing detection</dd></div>
-              <div><dt>Status</dt><dd>Pre-release 0.1</dd></div>
-            </dl>
-            <p class="prow-desc">A Chrome extension that cleans up Gmail and Outlook and flags impersonation, reading only message metadata. Lookalike domains, failed DMARC and Reply-To tricks are caught from headers alone, with no server and no message bodies.</p>
-            <div class="acc-chips"><span class="acc-chip">TypeScript</span><span class="acc-chip">Gmail API</span><span class="acc-chip">Microsoft Graph</span><span class="acc-chip">OAuth 2.0</span></div>
-            <ul class="acc-results">
-              <li>Six header-only phishing signals, scored per sender</li>
-              <li>Every destructive action confirmed, with Undo where the provider allows</li>
-            </ul>
-          </div>
-          <figure class="prow-shot"><img src="/images/projects/cluster-hero.webp" srcset="/images/projects/cluster-hero.w800.webp 800w, /images/projects/cluster-hero.webp 1500w" sizes="(max-width: 900px) 92vw, 46vw" alt="Cluster's Phishing screen flagging a sender that calls itself Netflix but sends from a lookalike domain, with DKIM and DMARC failing." loading="lazy" decoding="async"></figure>
-        </div></div></div>
-      </article>
+    <header class="sec-head">
+      <h2 class="sec-title" id="ps-title" data-reveal="lines">Selected <em>work</em><sup aria-hidden="true">(06)</sup></h2>
+    </header>
+    <div class="pw-grid" data-reveal-group>
+      <a class="pw-tile" id="sec-moat" href="/work/moat/">
+        <figure style="view-transition-name:work-moat" class="pw-img pw-img--shot"><img src="/images/projects/moat-tile.webp" srcset="/images/projects/moat-tile.w800.webp 800w, /images/projects/moat-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Moat logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
+        <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
+      </a>
+      <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/">
+        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
+      </a>
+      <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
+        <figure style="view-transition-name:work-cluster" class="pw-img pw-img--shot"><img src="/images/projects/cluster-tile.webp" srcset="/images/projects/cluster-tile.w800.webp 800w, /images/projects/cluster-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Cluster logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
+        <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
+      </a>
+      <a class="pw-tile" id="sec-athena" href="/work/athena/">
+        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-line">Shows who has access, why they have it, and when it stops making sense.</span><span class="pw-tags">Identity governance · Policy as code</span></div>
+      </a>
+      <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/">
+        <figure style="view-transition-name:work-blue-streak" class="pw-img pw-img--shot"><img src="/images/projects/blue-streak-tile.webp" srcset="/images/projects/blue-streak-tile.w800.webp 800w, /images/projects/blue-streak-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Blue Streak logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
+        <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-line">A Windows disk analyzer that reads the drive once, then finds duplicates, junk and lost space.</span><span class="pw-tags">Desktop app · Rust &amp; Tauri</span></div>
+      </a>
+      <a class="pw-tile" id="sec-knot" href="/work/knot/">
+        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-line">An Android app for building habits, with AI help and on-device storage.</span><span class="pw-tags">Android app · In development</span></div>
+      </a>
     </div>
   </div>
 </section>
 
+<div id="writing">
+  <!-- Research log -->
+  <section class="ed-log" aria-label="From the research log">
+    <header class="sec-head">
+      <h2 class="sec-title" data-reveal="lines">Recent <em>writing</em><sup aria-hidden="true">({String(writingCards.length).padStart(2, '0')})</sup></h2>
+      <a class="sec-link" href="/blog/" data-roll>Read the blog →</a>
+    </header>
+    <div class="wr-reel fn-vars" data-reveal>
+      <div class="wr-track">
+      {writingCards.map((c, i) => <FieldTile c={c} i={i} />)}
+      </div>
+    </div>
+  </section>
+</div>
+<script is:inline defer src="/scripts/index-writing-reel.js"></script>
+<script is:inline defer src="/scripts/index-rail.js"></script>
+<script is:inline defer src="/scripts/index-thread.js"></script>
+
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
-#signal{ position:relative; z-index:1; background:transparent;
-  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); }
-#signal .sig-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#signal .sig-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
-#signal .sig-head{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
-#signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,2.5vw,36px); }
-/* Snapshot: same section chrome as Signal. The grid/tile rules inside are the
-   former "#editorial .ed-*" ones, re-scoped to #snapshot unchanged. */
-#snapshot{ position:relative; z-index:1; background:transparent; color:#ededee;
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  padding:clamp(60px,10vh,120px) 0 clamp(80px,14vh,160px); }
-#snapshot .snap-inner{ max-width:1500px; margin:0 auto; padding:0 clamp(24px,5vw,80px); box-sizing:border-box; }
-#snapshot .snap-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#87878d; margin:0 0 14px; }
-#snapshot .snap-head{ font-weight:300; font-size:clamp(1.5rem,2.2vw,2rem); letter-spacing:-.3px; color:#ededee; margin:0 0 clamp(30px,5vh,52px); }
-/* Phones: the grid and DDoS tile were already hidden there, so the whole
-   section goes too rather than leaving a heading over nothing. */
-@media (--bp-600){
-  #snapshot{ display:none; }
-}
+#signal{ position:relative; z-index:3; background:transparent; padding:var(--sec-pad) 0; }
+/* the same fine grain the sky uses, inside the cards, so they read as a material */
+.sig-card, .pw-img{ isolation:isolate; }
+.sig-card{ position:relative; }
+.sig-card::after, .pw-img::after{ content:""; position:absolute; inset:0; z-index:1; border-radius:inherit; pointer-events:none; opacity:.08;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* same width and gap as the project grid above */
+#signal .sig-inner{ width:87%; margin:0 auto; box-sizing:border-box; }
+#signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+@media (--bp-760){ #signal .sig-inner{ width:79%; } }
 @media (--bp-820){
   #signal .sig-grid{ grid-template-columns:1fr; }
-  #signal .sig-head{ font-size:1.3rem; }
   .sig-card{ padding:18px; }
   .news-row, .pod-row{ padding:10px 0; gap:10px; }
   .news-badge{ width:40px; height:32px; }
   .pod-art{ width:36px; height:36px; font-size:11px; }
   .news-title, .pod-name{ font-size:12px; }
-  .pod-why{ font-size:10.5px; }
-  .news-meta, .ctf-meta{ font-size:8px; }
-  .pod-stars{ font-size:9.5px; }
+  .pod-why{ font-size:11px; }
+  .news-meta, .ctf-meta{ font-size:11px; }
+  .pod-stars{ font-size:11px; }
   /* Not enough room for the full list on a phone — cap both to 3 rows;
      the rest are still reachable through each card's own "See more" dialog. */
   #news-list .news-row:nth-child(n+4){ display:none; }
@@ -1096,21 +843,29 @@ footer#site-footer{
 .sig-card, .ctf-strip{ background:#0d1222; border:1px solid rgba(190,205,240,.11); border-radius:14px;
   box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 22px 50px -26px rgba(0,0,0,.85), 0 6px 16px -8px rgba(0,0,0,.5); }
 .sig-card{ padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
-.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); margin:0 0 16px; display:flex; align-items:center; gap:9px; }
+.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; margin:0 0 16px; display:flex; align-items:center; gap:9px; }
 .sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
 .news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
 .news-row:first-child{ border-top:0; }
+/* Row hover after minhpham.design's lists: a faint band opens from the
+   row's middle line outward (clip-path inset 50% -> 0, 0.4s). */
+.news-row, .pod-row{ position:relative; }
+.news-row > *, .pod-row > *{ position:relative; }
+.news-row::before, .pod-row::before{ content:""; position:absolute; inset:0 -12px; border-radius:8px; pointer-events:none;
+  background:rgba(var(--c-white),.045); clip-path:inset(50% 0); transition:clip-path .4s var(--ease-out); }
+.news-row:hover::before, .news-row:focus-visible::before, .pod-row:hover::before{ clip-path:inset(0); }
+@media (prefers-reduced-motion: reduce){ .news-row::before, .pod-row::before{ transition:none; } }
 .news-badge{ width:52px; height:40px; flex:none; border-radius:3px; background:rgba(var(--c-white),.05) center/cover no-repeat; border:1px solid rgba(var(--c-white),.08); }
 .news-badge.has-img{ background-color:#05060b; filter:grayscale(1) brightness(.72) contrast(.95);
   transition:filter .5s cubic-bezier(.22,1,.36,1); }
 .news-row:hover .news-badge.has-img{ filter:grayscale(0) brightness(.92) contrast(1); }
 .news-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
-.news-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13.5px; line-height:1.32; color:#d8dced; transition:color .2s; }
+.news-title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:14px; line-height:1.32; color:#d8dced; transition:color .2s; }
 .news-row:hover .news-title{ color:#fff; }
-.news-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.news-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .pod-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid rgba(var(--c-white),.06); }
 .pod-row:first-child{ border-top:0; }
-.pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; color:rgba(226,232,244,0.55);
+.pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:14px; color:rgba(226,232,244,0.55);
   filter:grayscale(1) brightness(.75) contrast(.95); transition:filter .5s cubic-bezier(.22,1,.36,1); }
 /* Cover art is self-hosted under /images/podcasts/. It used to be looked up
    live through an iTunes proxy, but Apple's search API returns nothing to
@@ -1119,26 +874,26 @@ footer#site-footer{
 .pod-art img{ width:100%; height:100%; object-fit:cover; display:block; }
 .pod-row:hover .pod-art{ filter:grayscale(0) brightness(.95) contrast(1); }
 .pod-body{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
-.pod-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:13.5px; color:#e8ebf4; }
+.pod-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:14px; color:#e8ebf4; }
 .pod-name a{ color:inherit; text-decoration:none; }
 .pod-name a:hover{ color:#fff; }
-.pod-why{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:11.5px; line-height:1.35; color:rgba(226,232,244,0.5); }
-.pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.42); letter-spacing:1px; flex:none; transition:color .3s ease; }
+.pod-why{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:12px; line-height:1.35; color:rgba(226,232,244,0.5); }
+.pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.6); letter-spacing:1px; flex:none; transition:color .3s ease; }
 .pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
 .ctf-strip{ margin-top:clamp(20px,2.5vw,36px); padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
-.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
+.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 .ctf-item{ display:grid; grid-template-columns:30px auto; column-gap:10px; row-gap:2px; align-items:center; }
 .ctf-item > :not(.ctf-logo){ grid-column:2; }
-.ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
+.ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
 .ctf-logo img{ width:100%; height:100%; object-fit:cover; display:block; background:#fff; }
 .ctf-item:hover .ctf-logo{ filter:none; }
-.ctf-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:13px; color:#dfe4f0; }
-.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.6); }
-.ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(226,232,244,0.6); background:none; border:none; cursor:pointer; padding:0; }
+.ctf-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:14px; color:#dfe4f0; }
+.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
+.ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; }
 .ctf-more:hover{ color:#fff; }
 
 .sig-card__head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-.sig-more{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:rgba(226,232,244,0.5); background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
+.sig-more{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
 .sig-more:hover{ color:#fff; }
 
 .sig-dialog{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px;
@@ -1157,27 +912,28 @@ footer#site-footer{
   color:#dfe4f0; font-size:16px; line-height:1; cursor:pointer; }
 .sig-dialog__close::before{ content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
 .sig-dialog__close:hover{ background:rgba(var(--c-white),0.12); }
-.sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(226,232,244,0.42); margin:0 0 6px; }
-.sig-dialog__title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }
+.sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; margin:0 0 6px; }
+.sig-dialog__title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }
 .sig-dialog__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
 .sig-dialog__list li{ display:flex; gap:12px; align-items:flex-start; }
 .sig-dialog__list img{ width:20px; height:20px; border-radius:4px; margin-top:2px; flex:none; background:rgba(var(--c-white),0.06); }
-.sig-dialog__list a{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
+.sig-dialog__list a{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
 .sig-dialog__list a:hover{ text-decoration:underline; }
-.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
+.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
 @media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } .sig-dialog, .sig-dialog__panel{ transition:none; } }
 </style>
 <section id="signal" aria-label="Signal: news, podcasts and CTFs">
   <div class="sig-inner">
-    <p class="sig-lbl">Signal</p>
-    <h2 class="sig-head" data-reveal="lines">On my radar.</h2>
+    <header class="sec-head">
+      <h2 class="sec-title" data-reveal="lines">On my <em>radar</em></h2>
+    </header>
     <div class="sig-grid" data-reveal-group>
       <div class="sig-card">
-        <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news">See more &rarr;</button></div>
+        <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news" data-roll>See more &rarr;</button></div>
         <div id="news-list"><div class="news-row"><span class="news-badge"></span><span class="news-body"><span class="news-title">Loading latest&hellip;</span><span class="news-meta">feed</span></span></div></div>
       </div>
       <div class="sig-card">
-        <div class="sig-card__head"><p class="sig-card__lbl">Security podcasts</p><button type="button" class="sig-more" data-more="podcasts">See more &rarr;</button></div>
+        <div class="sig-card__head"><p class="sig-card__lbl">Security podcasts</p><button type="button" class="sig-more" data-more="podcasts" data-roll>See more &rarr;</button></div>
         <div class="pod-shelf">
           <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/darknet-diaries.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://darknetdiaries.com" target="_blank" rel="noopener">Darknet Diaries</a></div><div class="pod-why">True stories from the dark side of the internet.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
           <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/malicious-life.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://malicious.life" target="_blank" rel="noopener">Malicious Life</a></div><div class="pod-why">The history behind the threats we face.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
@@ -1193,15 +949,15 @@ footer#site-footer{
         <div class="ctf-item"><span class="ctf-name">picoCTF</span><span class="ctf-meta">loading&hellip;</span></div>
         <div class="ctf-item"><span class="ctf-name">HTB Business CTF</span><span class="ctf-meta">loading&hellip;</span></div>
       </span>
-      <button type="button" class="ctf-more" data-more="ctfs">See more &rarr;</button>
+      <button type="button" class="ctf-more" data-more="ctfs" data-roll>See more &rarr;</button>
     </div>
   </div>
 </section>
 
 <!-- Deliberately NOT nested inside #signal: that section is its own stacking
-     context (position:relative + z-index:1), which would trap this dialog's
+     context (position:relative + z-index:3), which would trap this dialog's
      z-index:2000 so it only outranks things inside #signal — #site-footer is
-     a later sibling at the same z-index:1 and would paint over it once
+     a later sibling at the same z-index:3 and would paint over it once
      scrolled into view. Living as a top-level sibling keeps z-index:2000
      meaningful against the whole page. -->
 <div id="signal-dialog" class="sig-dialog" aria-hidden="true">
@@ -1219,10 +975,10 @@ footer#site-footer{
 
 
 
+
 <script is:inline defer src="/scripts/index-intro-sequence.js"></script>
 
 
-<script is:inline defer src="/scripts/index-logo-glitch.js"></script>
 <script is:inline defer src="/scripts/index-hero-tagline.js"></script>
 
 
@@ -1233,47 +989,6 @@ footer#site-footer{
      footer's reveal (same pattern as #beat-tour driving the project cards). The footer
      itself is position:fixed and animates in place; you scroll through this spacer. -->
 <!-- beat-footer removed: footer is now a normal-flow section -->
-<!-- ═══════════════ SNAPSHOT — live threat intel, certifications, ATT&CK, DDoS ═══════════════
-     Moved down from beside the Beliefs copy to sit just before the footer's
-     "Open to work" card; the grid and DDoS tile keep their exact layout.
-     Hidden on phones, same as before (see the --bp-600 rule). -->
-<section id="snapshot" aria-label="Snapshot: live security feeds">
-  <div class="snap-inner">
-    <p class="snap-lbl">Snapshot</p>
-    <h2 class="snap-head" data-reveal="lines">Live security feed.</h2>
-    <div class="ed-beliefs__imgs" data-reveal>
-      <div class="ed-frame ed-frame--a ed-bento" role="group" aria-label="Cybersecurity snapshot: live threat intelligence from OTX and CIRCL MISP, six security certifications, and a rotating MITRE ATT&amp;CK technique spotlight">
-        <div class="ed-bento__cell ed-bento__intel">
-          <span class="ed-bento__lbl" title="Fresh threat reports shared by two open security-research communities, OTX and MISP."><span class="ed-intel__dot"></span>Threat intel · OTX + MISP</span>
-          <div class="ed-intel__list" id="ed-intel-list"></div>
-        </div>
-        <div class="ed-bento__cell ed-bento__certs">
-          <span class="ed-bento__lbl" title="Six industry certifications, verified on Credly.">Certifications&#8202;·&#8202;6</span>
-          <div class="ed-badges__wrap">
-            <div class="ed-badges__track" id="ed-badges-track"></div>
-          </div>
-        </div>
-        <div class="ed-bento__cell ed-bento__attck">
-          <span class="ed-bento__lbl" title="Real attacker techniques from MITRE ATT&CK, the standard catalog of how intrusions happen. A new one every few seconds; click a dot to pick.">MITRE ATT&amp;CK · techniques</span>
-          <div id="ed-attck-mount"></div>
-        </div>
-      </div>
-      <!-- DDoS targets: the five industries taking the largest share of
-           Layer 3 DDoS attacks over the last 7 days, from Cloudflare Radar via
-           /api/radar-industries. A ranked bar list, not a canvas chart: at
-           this tile size five thin lines were unreadable. Render logic in
-           public/scripts/index-editorial-flow.js. -->
-      <figure class="ed-frame ed-frame--b ed-ddos" aria-labelledby="ed-ddos-lbl">
-        <span class="ed-bento__lbl" id="ed-ddos-lbl">DDoS targets · by industry, 7d</span>
-        <ol class="ed-ddos__list" id="ed-ddos-list" aria-live="polite">
-          <li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li><li class="ed-ddos__row is-skel"></li>
-        </ol>
-        <figcaption class="ed-ddos__src" id="ed-ddos-src">Share of Layer 3 DDoS attacks · <a href="https://radar.cloudflare.com/security/network-layer" target="_blank" rel="noopener">Cloudflare Radar</a></figcaption>
-      </figure>
-    </div>
-  </div>
-</section>
-
 <footer id="site-footer">
   <div class="f-card">
     <div class="f-card-tex" aria-hidden="true"></div>
@@ -1282,7 +997,7 @@ footer#site-footer{
         <p class="f-eyebrow">Open to work</p>
         <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
       </div>
-      <a class="f-cta" href="/contact/">Get in touch <span class="arrow">→</span></a>
+      <a class="f-cta" href="/contact/" data-roll data-magnet>Get in touch <span class="arrow">→</span></a>
     </div>
 
     <div class="crt">
@@ -1313,32 +1028,35 @@ footer#site-footer{
     </div>
     <div class="f-col">
       <p class="f-group">Work</p>
-      <a href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">Sentinel</a>
-      <a href="/moat/">Moat</a>
-      <a href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">Cluster</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/Sentinel" target="_blank" rel="noopener">Sentinel</a>
+      <a data-roll href="/moat/">Moat</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/cluster" target="_blank" rel="noopener">Cluster</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/Athena" target="_blank" rel="noopener">Athena</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/blue-streak" target="_blank" rel="noopener">Blue Streak</a>
+      <a data-roll href="https://github.com/Samuelabhinav37/Knot" target="_blank" rel="noopener">Knot</a>
       <p class="f-group">Elsewhere</p>
-      <a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
-      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a>
+      <a data-roll href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
+      <a data-roll href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a>
     </div>
     <div class="f-col">
       <p class="f-group">Writing</p>
-      <a href="/blog/">Field Notes</a>
-      <a href="/rss.xml">RSS feed</a>
+      <a data-roll href="/blog/">Field Notes</a>
+      <a data-roll href="/rss.xml">RSS feed</a>
     </div>
     <div class="f-col">
       <p class="f-group">Connect</p>
-      <a href="/about/">About</a>
-      <a href="/contact/">Contact</a>
-      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a>
+      <a data-roll href="/about/">About</a>
+      <a data-roll href="/contact/">Contact</a>
+      <a data-roll href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a>
     </div>
   </nav>
 
   <div class="f-bottom">
     <div class="f-copy">© 2026 Samuel Abhinav</div>
     <div class="f-links">
-      <a href="/sitemap.xml">Sitemap</a>
-      <a href="/rss.xml">RSS</a>
-      <a href="/contact/">Contact</a>
+      <a data-roll href="/sitemap.xml">Sitemap</a>
+      <a data-roll href="/rss.xml">RSS</a>
+      <a data-roll href="/contact/">Contact</a>
     </div>
   </div>
 
@@ -1356,7 +1074,6 @@ footer#site-footer{
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
 <script is:inline defer src="/scripts/index-ascii-footer.js"></script>
-<script is:inline defer src="/scripts/index-projects-rows.js"></script>
 <script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
 </body>
 </html>

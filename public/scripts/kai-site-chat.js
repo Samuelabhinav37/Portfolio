@@ -17,7 +17,8 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   var GUESS_IDS = options.guesses || ['sentinel', 'moat', 'bounty', 'about'];
   var RELATED = options.related || {
     sentinel: ['moat', 'skills', 'labs'], moat: ['cluster', 'sentinel', 'skills'],
-    cluster: ['moat', 'skills', 'about'], bounty: ['labs', 'blog', 'about'],
+    cluster: ['moat', 'skills', 'about'], athena: ['sentinel', 'skills'],
+    'blue-streak': ['knot', 'moat'], knot: ['blue-streak', 'about'], bounty: ['labs', 'blog', 'about'],
     labs: ['bounty', 'blog', 'sentinel'], blog: ['bounty', 'labs', 'about'],
     skills: ['sentinel', 'moat', 'about'], about: ['bounty', 'skills', 'contact'],
     contact: ['about', 'blog', 'bounty'], greeting: ['sentinel', 'bounty', 'about']
@@ -148,7 +149,7 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   // a project you hover on the homepage: Kai looks (the brain does that) and perks up
   var curiousAt = 0;
   document.addEventListener('pointerover', function (e) {
-    var card = e.target.closest && e.target.closest('#projects-section .acc-head');
+    var card = e.target.closest && e.target.closest('#projects-section .pw-tile');
     if (!card || chat.root.contains(card) || Date.now() - curiousAt < 2500) return;
     curiousAt = Date.now();
     kai.setMood('curious', 1400);

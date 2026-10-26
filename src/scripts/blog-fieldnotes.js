@@ -4,8 +4,7 @@
    The page ships every post already rendered (src/pages/blog/index.astro);
    this re-renders the featured card and the grid from the same card data
    (window.__FIELD_NOTES__) whenever any of those change, building the same
-   markup as the page. A frame shows the post's tileImage, or stays a black
-   placeholder. */
+   markup as the page. Frames are empty: posts carry no pictures. */
 
 const cards = window.__FIELD_NOTES__ || [];
 const PER_PAGE = 12;
@@ -36,9 +35,6 @@ const chips = (c) => c.concepts.length
   ? `<ul class="chips">${c.concepts.slice(0, 3).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`
   : '';
 const go = '<span class="go">Read<span aria-hidden="true">›</span></span>';
-const art = (c, lazy) => c.img
-  ? `<img class="art" src="${esc(c.img)}" alt=""${lazy ? ' loading="lazy"' : ''} decoding="async">`
-  : '';
 
 // the hover card inside a tile's frame
 function peek(c) {
@@ -50,14 +46,14 @@ function peek(c) {
 
 function tile(c, i) {
   return `<a class="fn-tile${animate ? ' fn-in' : ''}" style="--r:${RATIOS[i % RATIOS.length]};--i:${i}" href="${esc(c.href)}">` +
-    `<div class="fn-pic">${art(c, true)}${peek(c)}</div>` +
+    `<div class="fn-pic">${peek(c)}</div>` +
     `<div class="fn-cap"><h3>${esc(c.title)}</h3><span>${esc(caption(c))}</span></div></a>`;
 }
 
 // the featured card's contents: "Featured" for the newest, "Start here" in reading order
 function featured(c, flag) {
   feat.href = c.href;
-  feat.innerHTML = `<div class="fn-pic" style="--r:16/9">${art(c, false)}</div>` +
+  feat.innerHTML = `<div class="fn-pic" style="--r:16/9"></div>` +
     '<div class="fn-feat-txt">' +
     `<div class="top"><span class="fn-flag">${flag}</span>${lvl(c)}</div>` +
     `<h2>${esc(c.title)}</h2><p class="desc">${esc(c.desc)}</p>` +

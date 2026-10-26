@@ -64,13 +64,18 @@
   }
 
   /* ── sprites: one small canvas per creature, moved by the compositor ── */
+  // While the page scrolls the creatures keep gliding (a transform the GPU
+  // does for free) but hold their last bend: redrawing hundreds of strips
+  // stalls on a GPU that is busy scrolling the page. sprite.g draws nothing then.
+  let frozen = false;
+  const NOOP = { clearRect() {}, drawImage() {}, save() {}, restore() {}, translate() {}, scale() {}, rotate() {} };
   function sprite(w, h, ox = w / 2, oy = h / 2) {
     const c = document.createElement('canvas');
     c.width = Math.ceil(w * DPR); c.height = Math.ceil(h * DPR);
     c.style.cssText = `position:absolute;left:0;top:0;width:${w}px;height:${h}px;opacity:0;transform-origin:${ox}px ${oy}px;will-change:transform,opacity`;
     layer.appendChild(c);
     const g = c.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
-    return { c, g, w, h, ox, oy, born: null };
+    return { c, ctx: g, get g() { return frozen ? NOOP : this.ctx; }, w, h, ox, oy, born: null };
   }
   function place(sp, x, y, rot, sx, sy, t) {
     if (sp.born === null) sp.born = t;
@@ -291,8 +296,8 @@
       const my = 0.2 * ws, g = sp.g, sh = shimmer(t, 0);
       g.clearRect(0, 0, sp.w, sp.h);
       const dy = (x) => disp((x - b.cx) / ws);
-      strips(g, b, b.frames[sh[0]], 0, my, 2, dy, 1 - sh[2], 'source-over');
-      if (sh[2] > 0) strips(g, b, b.frames[sh[1]], 0, my, 2, dy, sh[2], 'lighter');
+      strips(g, b, b.frames[sh[0]], 0, my, 3, dy, 1 - sh[2], 'source-over');
+      if (sh[2] > 0) strips(g, b, b.frames[sh[1]], 0, my, 3, dy, sh[2], 'lighter');
       // the flipper turns at the shoulder, sculling in time with the beat
       const fx = -0.45, fy = 0.03 * -0.45 + 0.2, px = fb.cx + fx * ws, py = fb.cy + fy * ws;
       turned(g, fb, sh, px, py, b.cx + fx * ws, my + b.cy + fy * ws + disp(fx), 0.16 * Math.sin(w + 1), false);
@@ -315,8 +320,8 @@
         const surge = 4 * Math.sin(ph - 1.2); // each downstroke carries it a little further
         g.clearRect(0, 0, sp.w, sp.h);
         const dy = (x) => { const u = Math.abs(x - b.cx) / 29; return 0.14 * u ** 1.5 * Math.sin(ph - 1.8 * u) * 29; };
-        strips(g, b, b.frames[sh[0]], 0, 11, 1, dy, 1 - sh[2], 'source-over');
-        if (sh[2] > 0) strips(g, b, b.frames[sh[1]], 0, 11, 1, dy, sh[2], 'lighter');
+        strips(g, b, b.frames[sh[0]], 0, 11, 2, dy, 1 - sh[2], 'source-over');
+        if (sh[2] > 0) strips(g, b, b.frames[sh[1]], 0, 11, 2, dy, sh[2], 'lighter');
         const s = size / 58;
         place(sp, x0 + Math.cos(h) * surge, yb + side + 3 * Math.sin(t * 0.25 + lag) + Math.sin(h) * surge, h + Math.PI / 2, s, s, t);
       });
@@ -334,8 +339,8 @@
         const sp = S.fish[i], g = sp.g, sh = shimmer(t, i * 0.5 + 3), ph = t * 7 * sc + ph0;
         g.clearRect(0, 0, sp.w, sp.h);
         const dy = (x) => { const u = (x - b.cx) / 13; return u > -0.1 ? 0.16 * ((u + 0.1) / 1.1) ** 2 * Math.sin(ph - 1.5 * u) * 13 : 0; };
-        strips(g, b, b.frames[sh[0]], 0, 4, 1, dy, 1 - sh[2], 'source-over');
-        if (sh[2] > 0) strips(g, b, b.frames[sh[1]], 0, 4, 1, dy, sh[2], 'lighter');
+        strips(g, b, b.frames[sh[0]], 0, 4, 2, dy, 1 - sh[2], 'source-over');
+        if (sh[2] > 0) strips(g, b, b.frames[sh[1]], 0, 4, 2, dy, sh[2], 'lighter');
         const fx = sw.x + dir * ox + 3 * Math.sin(t * 0.6 * sc + ph0), fy = y + oy + 2.5 * Math.sin(t * 0.8 * sc + ph0 * 2);
         place(sp, fx, fy, 0.05 * Math.sin(t * 0.8 * sc + ph0 * 2 + 1), -dir * sc, sc, t); // the picture faces left, so mirror it to swim right
       });
@@ -407,10 +412,18 @@
     document.addEventListener('visibilitychange', () => {
       jel.forEach((j) => { if (document.hidden) j.v.pause(); else if (!still) j.v.play().catch(() => {}); });
     });
+    // The cast drifts a few pixels a second, so 30 frames a second looks the
+    // same as the screen's full rate; on a 120-240Hz screen that is 4-8x less
+    // redrawing (each frame draws hundreds of strips).
+    const FRAME_MS = 1000 / 30;
+    let scrolledAt = -1e9;
+    addEventListener('scroll', () => { scrolledAt = performance.now(); }, { passive: true });
     let last = 0, clock = 0, drawn = false;
     const frame = (ms) => {
+      if (!still && last && ms - last < FRAME_MS - 2) { requestAnimationFrame(frame); return; }
       const dt = last ? Math.min(0.05, (ms - last) / 1000) : 0;
       last = ms; clock += dt;
+      frozen = !still && ms - scrolledAt < 250;
       if (still) { // hold still: draw everyone once, as soon as their pictures are ready
         step(0, 0);
         if (!drawn && P && ready(P.whaleBody, P.whaleFlip, P.manta, P.turtleBody, P.turtleFlip, P.star, P.fish)) { drawn = true; return; }

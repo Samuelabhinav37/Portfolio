@@ -36,12 +36,11 @@
 :root .f-links a { padding-block: 8px; margin-block: -8px; }
 /* icon-only links (X) need width too */
 :root .f-links a[aria-label] { padding-inline: 8px; margin-inline: -8px; }
-:root #snapshot .ed-ddos__src a { display: inline-block; padding-block: 6px; margin-block: -6px; }
 :root .sig-more,
 :root .ctf-more,
 :root .ctf-item > a,
 :root .pv-view,
-:root #editorial .ed-log__head a { padding-block: 7px; margin-block: -7px; }
+:root .sec-link { padding-block: 7px; margin-block: -7px; }
 :root .pod-name a { padding-block: 3px; }
 :root .wire-item { min-height: 24px; }
 :root .tab { padding-block: 5px; margin-block: -5px; }

@@ -1,0 +1,144 @@
+---
+/* Project overview, one page per project (src/data/projects.ts). After
+   matthieugivelet.com's project pages: the name, year, tags, a short
+   description and links stay pinned on the left while the images scroll
+   past on the right. Phones get one column. */
+import Motion from '../../components/Motion.astro';
+import SiteMenu from '../../components/SiteMenu.astro';
+import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
+import ErrorReporter from '../../components/ErrorReporter.astro';
+import SkyBackground from '../../components/SkyBackground.astro';
+import Fonts from '../../components/Fonts.astro';
+import '../../styles/tokens.css';
+import { PROJECTS } from '../../data/projects';
+
+export function getStaticPaths() {
+  return PROJECTS.map((p, i) => ({ params: { slug: p.slug }, props: { i } }));
+}
+const { i } = Astro.props;
+const p = PROJECTS[i];
+const next = PROJECTS[(i + 1) % PROJECTS.length];
+const no = (n: number) => String(n + 1).padStart(2, '0');
+const url = `https://samuelabhinav.com/work/${p.slug}/`;
+const title = `Samuel Abhinav — ${p.name}`;
+const og = 'https://samuelabhinav.com/images/og-home.jpg';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script is:inline>
+window.SITE=window.SITE||{};
+window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="darkreader-lock">
+<title>{title}</title>
+<meta name="description" content={p.line}>
+<link rel="canonical" href={url}>
+<meta property="og:type" content="website">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={p.line}>
+<meta property="og:site_name" content="Samuel · Security Engineer">
+<meta property="og:url" content={url}>
+<meta property="og:image" content={og}>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={title}>
+<meta name="twitter:description" content={p.line}>
+<meta name="twitter:image" content={og}>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<Fonts />
+<Motion />
+<ErrorReporter />
+<ClarityAnalytics />
+</head>
+<body>
+<SkyBackground calm />
+<SiteMenu currentPath="/work" />
+
+<main class="wk" id="main-content">
+  <aside class="wk-side">
+    <p class="wk-no"><span>{no(i)}</span> / {no(PROJECTS.length - 1)}</p>
+    <h1 class="wk-name" data-reveal="lines">{p.name}</h1>
+    <div class="wk-facts" data-reveal-group>
+      <p class="wk-year">[ {p.year} ]</p>
+      <ul class="wk-tags">{p.tags.map((t) => <li>{t}</li>)}</ul>
+      <div class="wk-about">{p.about.map((t) => <p>{t}</p>)}</div>
+      <ul class="wk-links">
+        {p.links.map((l) => {
+          const out = l.href.startsWith('http');
+          return <li><a href={l.href} target={out ? '_blank' : undefined} rel={out ? 'noopener' : undefined} aria-label={l.label} data-roll>{l.label}<span class="wk-arr" aria-hidden="true">↗</span></a></li>;
+        })}
+      </ul>
+    </div>
+    <nav class="wk-pager" aria-label="Projects">
+      <a href="/#projects-section" data-roll>All projects</a>
+      <a href={`/work/${next.slug}/`} class="wk-next" aria-label={`Next project: ${next.name}`} data-roll><span class="wk-arr" aria-hidden="true">→</span>Next: {next.name}</a>
+    </nav>
+  </aside>
+
+  <div class="wk-media">
+    {p.images.length
+      ? p.images.map((im, k) => (
+          <figure class="wk-img" data-reveal="media" style={k === 0 ? `view-transition-name:work-${p.slug}` : undefined}>
+            <img src={im.src} srcset={im.w800 ? `${im.w800} 800w, ${im.src} ${im.w}w` : undefined}
+              sizes="(max-width: 820px) 100vw, 56vw" alt={im.alt} width={im.w} height={im.h}
+              loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : undefined} decoding="async">
+          </figure>
+        ))
+      : <figure class="wk-img wk-img--todo" style={`view-transition-name:work-${p.slug}`}><span>Image coming soon</span></figure>}
+  </div>
+</main>
+
+<style is:global>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:var(--c-bg); color:#eef1f8; }
+body { font:400 16px/1.45 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.01em; }
+
+.wk{ position:relative; display:grid; grid-template-columns:minmax(0,40%) minmax(0,1fr); column-gap:clamp(24px,3vw,48px);
+  padding:0 28px; min-height:100vh; }
+/* the left column stays put while the images scroll */
+.wk-side{ position:sticky; top:0; height:100vh; display:flex; flex-direction:column; padding:clamp(88px,13vh,128px) 0 28px;
+  text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
+.wk-no{ font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:.16em; color:#9aa0ae; margin-bottom:18px; }
+.wk-no span{ color:#c9d6ff; }
+.wk-name{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(56px,7vw,112px);
+  line-height:.92; letter-spacing:-.03em; text-wrap:balance; }
+.wk-facts{ display:grid; grid-template-columns:minmax(80px,32%) 1fr; column-gap:16px; row-gap:24px; margin-top:clamp(32px,7vh,72px); }
+.wk-year{ font-size:16px; color:rgba(233,236,247,.62); }
+.wk-tags{ list-style:none; font-size:16px; line-height:1.3; }
+.wk-about, .wk-links{ grid-column:2; }
+.wk-about{ font-size:16px; color:rgba(233,236,247,.78); text-wrap:pretty; max-width:34em; }
+.wk-about p + p{ margin-top:.8em; }
+.wk-links{ list-style:none; display:flex; flex-wrap:wrap; gap:8px 24px; }
+.wk a{ color:#eef1f8; text-decoration:none; }
+.wk-links a, .wk-pager a{ display:inline-flex; align-items:center; gap:6px; font-size:16px; padding-block:4px; }
+.wk-arr{ display:inline-block; transition:translate .5s var(--ease-out); }
+.wk-links a:hover .wk-arr{ translate:2px -2px; }
+.wk-next:hover .wk-arr{ translate:4px 0; }
+.wk-pager{ margin-top:auto; padding-top:32px; display:flex; justify-content:space-between; gap:16px; }
+.wk-pager a:first-child{ color:rgba(233,236,247,.62); }
+.wk-pager a:first-child:hover{ color:#eef1f8; }
+
+.wk-media{ display:flex; flex-direction:column; gap:16px; padding:clamp(88px,13vh,128px) 0 28px; }
+.wk-img{ overflow:hidden; border-radius:4px; background:#0a0c14; }
+.wk-img img{ display:block; width:100%; height:auto; }
+.wk-img--todo{ display:grid; place-items:center; aspect-ratio:3/2; }
+.wk-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:rgba(226,232,244,.6); }
+
+/* short screens: the pinned column would cut off, so it scrolls with the page */
+@media (max-height:640px){ .wk-side{ position:relative; height:auto; } }
+@media (--bp-820){
+  .wk{ grid-template-columns:1fr; }
+  .wk-side{ position:relative; height:auto; padding-bottom:0; }
+  .wk-facts{ grid-template-columns:96px 1fr; }
+  .wk-media{ padding-top:32px; }
+}
+@media print{ .wk-side{ position:static; height:auto; } }
+</style>
+</body>
+</html>

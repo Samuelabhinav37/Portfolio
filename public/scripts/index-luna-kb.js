@@ -24,6 +24,24 @@
       detail:"It checks headers for brand impersonation, lookalike and punycode domains, failed DMARC, Reply-To mismatches and known-bad domains, then scores each sender. The full case study is at /projects/cluster/.",
       target:{type:'scroll', value:'#sec-cluster'} },
 
+    { id:'athena', title:'Athena',
+      keywords:['athena','identity','iam','access review','entitlement','entitlements','governance','opa','rego','policy as code','keycloak','aws iam','access drift','least privilege'],
+      reply:"Athena is Samuel's identity-governance platform. It shows who has access, why they have it, and when that access no longer makes sense.",
+      detail:"It pulls access data from Keycloak, GitHub and AWS IAM and traces where each permission came from. OPA policies make the decisions, and a human approves any removal. Every step leaves audit evidence. The code is on GitHub.",
+      target:{type:'scroll', value:'#sec-athena'} },
+
+    { id:'blue-streak', title:'Blue Streak',
+      keywords:['blue streak','bluestreak','disk','disk space','storage','duplicates','duplicate files','junk','cleaner','mft','ntfs','tauri','rust','treemap'],
+      reply:"Blue Streak is a Windows disk analyzer and file organizer built in Rust with Tauri. It finds junk, duplicates and the folders eating your space.",
+      detail:"With admin rights it reads the NTFS MFT directly, so a million files scan in seconds. The scan is kept in memory, so the disk map and duplicate checks open almost instantly. The code is on GitHub.",
+      target:{type:'scroll', value:'#sec-blue-streak'} },
+
+    { id:'knot', title:'Knot',
+      keywords:['knot','habit','habits','habit tracker','android','kotlin','jetpack compose','compose','mobile app'],
+      reply:"Knot is an Android app for building habits, written in Kotlin with Jetpack Compose. It's still in development.",
+      detail:"It stores data on the device with Room and uses Firebase for its AI features. The code is on GitHub.",
+      target:{type:'scroll', value:'#sec-knot'} },
+
     { id:'bounty', title:'Bug bounty',
       keywords:['bug bounty','bounty','hackerone','vulnerability','vuln','idor','s3','bucket','subdomain','takeover','subdomain takeover','cname','dangling','pii','disclosure','findings','hacking','recon'],
       reply:"The bug bounty work: accepted findings on HackerOne, including an S3 bucket leaking PII, an IDOR, and a dangling-CNAME subdomain takeover. Real disclosures, not lab targets.",

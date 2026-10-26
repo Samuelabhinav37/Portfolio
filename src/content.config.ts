@@ -21,32 +21,17 @@ const blog = defineCollection({
      *  list. Defaults to ['threatintel'] since every post on this blog
      *  qualifies for it. */
     cats: z.array(z.string()).default(['threatintel']),
-    /** Path under /public, e.g. /images/supply-chain-hero.jpg */
-    heroImage: z.string().optional(),
-    /** Required once heroImage is set — screen readers get nothing otherwise. */
-    heroImageAlt: z.string().optional(),
-    heroCredit: z.string().optional(),
-    /** Social card. Defaults to /og/<slug>.png */
+    /** Link-preview image for shares, e.g. /images/my-post.og.jpg. Posts show no pictures on the site. */
     ogImage: z.string().optional(),
-    /** Art for the post's frame on the blog index (decorative: the caption
-     *  beside it names the post). Leave unset and the frame stays a black
-     *  placeholder. */
-    tileImage: z.string().optional(),
-    /** Thumbnail used when this post appears in "More stories". */
-    cardImage: z.string().optional(),
-    /** Required once cardImage is set — screen readers get nothing otherwise. */
-    cardImageAlt: z.string().optional(),
+    /** Required once ogImage is set — screen readers get nothing otherwise. */
+    ogImageAlt: z.string().optional(),
     /** Single source for both the visible accordion and FAQPage JSON-LD. */
     faqs: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     draft: z.boolean().default(false),
   })
-    .refine((d) => !d.heroImage || !!d.heroImageAlt, {
-      message: 'heroImageAlt is required when heroImage is set',
-      path: ['heroImageAlt'],
-    })
-    .refine((d) => !d.cardImage || !!d.cardImageAlt, {
-      message: 'cardImageAlt is required when cardImage is set',
-      path: ['cardImageAlt'],
+    .refine((d) => !d.ogImage || !!d.ogImageAlt, {
+      message: 'ogImageAlt is required when ogImage is set',
+      path: ['ogImageAlt'],
     }),
 });
 

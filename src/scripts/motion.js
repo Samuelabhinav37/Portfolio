@@ -15,6 +15,10 @@
  *   data-reveal="media"    image eases in from a slight zoom
  *   data-reveal-group      each child fades up in turn
  *   data-scroll-lit        words brighten one by one as you scroll past
+ *   data-roll              on hover the letters roll up one after another
+ *   data-magnet            leans a few px toward a nearby mouse pointer
+ *                          (moves the `translate` property; give it a
+ *                          translate transition in CSS)
  */
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -137,7 +141,60 @@ function scrollLit(el) {
   });
 }
 
+/* ── hover roll ───────────────────────────────────────────────────── */
+// After carterogunsola.com's links and Vantra's buttons: each letter slides
+// up out of a one-line window while its copy (a text-shadow one line
+// below, so nothing is duplicated in the page) rises into place, letters
+// a few ms apart. Only the element's own text rolls; child elements such
+// as an arrow keep their own hover. The link keeps its name as one word
+// for screen readers via aria-label, since the letters become spans.
+function roll(el) {
+  if (el.dataset.rolled) return;
+  el.dataset.rolled = '1';
+  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+  let i = 0;
+  [...el.childNodes].forEach((n) => {
+    if (n.nodeType !== 3 || !n.textContent.trim()) return;
+    const box = document.createElement('span');
+    box.className = 'roll';
+    box.setAttribute('aria-hidden', 'true');
+    for (const ch of n.textContent) {
+      const s = document.createElement('span');
+      s.textContent = ch;
+      s.style.setProperty('--i', i++);
+      box.appendChild(s);
+    }
+    n.replaceWith(box);
+  });
+}
+
+/* ── magnet ───────────────────────────────────────────────────────── */
+// A button leans toward the pointer once it comes within ~60px, by a
+// fraction of the distance and never more than 10px, and springs back when it leaves (the CSS transition on
+// `translate` does the easing). Only measured while on screen and moving.
+function magnet(el) {
+  let on = false, raf = 0, px = 0, py = 0;
+  new IntersectionObserver(([e]) => { on = e.isIntersecting; if (!on) el.style.translate = ''; }).observe(el);
+  addEventListener('pointermove', (e) => {
+    if (!on || e.pointerType !== 'mouse') return;
+    px = e.clientX; py = e.clientY;
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const dx = px - (r.left + r.width / 2), dy = py - (r.top + r.height / 2);
+      const near = Math.abs(dx) < r.width / 2 + 60 && Math.abs(dy) < r.height / 2 + 60;
+      const lean = (d, k) => Math.max(-10, Math.min(10, d * k)).toFixed(1) + 'px';
+      el.style.translate = near ? `${lean(dx, 0.15)} ${lean(dy, 0.2)}` : '';
+    });
+  }, { passive: true });
+}
+
 function init() {
+  if (finePointer && !reduce) {
+    document.querySelectorAll('[data-roll]').forEach(roll);
+    document.querySelectorAll('[data-magnet]').forEach(magnet);
+  }
   const lit = document.querySelectorAll('[data-scroll-lit]');
   if (reduce) {
     lit.forEach((el) => el.classList.add('is-static'));
