@@ -609,14 +609,14 @@ footer#site-footer{
 <style is:global>
 /* One rhythm for every section: the same left edge as the project captions,
    the same breath above each heading, the same gap from heading to content. */
-:root{ --gut:clamp(16px,3.2vw,48px); --sec-pad:clamp(110px,18vh,200px); --head-gap:clamp(40px,7vh,80px); }
+:root{ --gut:clamp(16px,3.2vw,48px); --sec-pad:clamp(150px,26vh,300px); --head-gap:clamp(40px,7vh,80px); }
 
 /* Section headings: a smaller sibling of the blog's "Field Notes (N)" title.
    A large serif line with one italic word. */
 .sec-head{ position:relative; display:grid; grid-template-columns:1fr auto; align-items:end; column-gap:24px;
   margin:0 0 var(--head-gap); padding:0 var(--gut); }
 #signal .sec-head{ padding:0; }
-.sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(52px,7.4vw,112px);
+.sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(46px,6.4vw,96px);
   line-height:.92; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
 .sec-title em{ font-style:italic; color:#cdd9f7; }
 .sec-title sup{ font:500 .17em/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:0;
@@ -682,8 +682,11 @@ footer#site-footer{
    grotesk: the name over dim tags on the left, the sentence (dim) on the
    right. Hover fades the picture. */
 #projects-section .ps-inner{ width:100%; }
-.pw-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:60px 6px; align-items:start; }
-.pw-tile{ display:flex; flex-direction:column; gap:12px; color:inherit; text-decoration:none; }
+/* Sizes picked in the projects tuner (public/_projects-tune.html); the
+   heading lines up with the grid's left edge. */
+.pw-grid{ display:grid; width:87%; margin:0 auto; grid-template-columns:repeat(2,minmax(0,1fr)); gap:60px 13px; align-items:start; }
+#projects-section .sec-head{ width:87%; margin-inline:auto; padding-inline:0; }
+.pw-tile{ display:flex; flex-direction:column; gap:15px; color:inherit; text-decoration:none; }
 .pw-img{ margin:0; position:relative; overflow:hidden; background:#0a0c14; aspect-ratio:3/2; }
 /* Ratio cycle after Bodeyco's journal (3:2, 5:4, 16:9, 4:3): the taller
    frame switches sides between rows so the grid never settles into a pattern. */
@@ -700,7 +703,7 @@ footer#site-footer{
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
 .pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
-.pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 var(--gut);
+.pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 23px;
   font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
   /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
   text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
@@ -708,7 +711,10 @@ footer#site-footer{
 .pw-tags{ grid-column:1; grid-row:2; padding-right:24px; color:rgba(233,236,247,.62); }
 .pw-line{ grid-column:2; grid-row:1 / span 2; padding-right:24px; color:rgba(233,236,247,.62); text-wrap:pretty; }
 @media (--bp-760){
-  .pw-grid{ grid-template-columns:1fr; }
+  .pw-grid{ width:100%; grid-template-columns:1fr; gap:60px 6px; }
+  #projects-section .sec-head{ width:auto; padding-inline:var(--gut); }
+  .pw-tile{ gap:12px; }
+  .pw-cap{ padding:0 var(--gut); }
   .pw-name, .pw-tags, .pw-line{ padding-right:0; }
 }
 @media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
