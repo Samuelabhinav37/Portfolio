@@ -122,24 +122,43 @@ body{position:relative;background:#0f1730;color:var(--ink);font-family:var(--san
   overflow-x:hidden;-webkit-font-smoothing:antialiased}
 /* The painted backdrop from the homepage's projects sheet (scripts/paint):
    mantas and a fish up top, coral trees on rock shelves down both sides,
-   sea stars and fish scattered, the sea floor with a turtle just above
-   the footer (its dark ground carried on under the footer) (.fn's tall bottom padding keeps the last row clear of it), light rays, clouds and star dust over the watercolour wash. It
-   scrolls with the page; all static images, so it costs nothing per frame. */
-.fn-paint{position:absolute;inset:0;z-index:0;pointer-events:none;
+   clouds, star dust and the watercolour wash, and the sea floor with a
+   turtle just above the footer (its dark ground carried on under it; .fn's
+   tall bottom padding keeps the last row clear). It scrolls with the page.
+   The live parts are separate layers so they only fade, move or turn (cheap
+   for the browser): three twinkle tiles fading out of step, the light rays
+   swaying from the top, a few fish bobbing in place and sea stars turning. */
+.fn-paint{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
   background:url(/images/paint/creatures-top.webp) center 40px / 1600px auto no-repeat,
     url(/images/paint/creatures-bottom.webp) center bottom 100px / 1600px auto no-repeat,
     linear-gradient(rgba(10,16,36,.62),rgba(10,16,36,.62)) center bottom / 100% 101px no-repeat,
     url(/images/paint/side-l.webp) left 0 top 220px / 300px auto repeat-y,
     url(/images/paint/side-r.webp) right 0 top 520px / 300px auto repeat-y,
-    url(/images/paint/scatter-tile.webp) 0 300px / 1400px auto,
-    url(/images/paint/rays.webp) center top / 1600px auto no-repeat,
     url(/images/paint/clouds-tile.webp) 0 0 / 1024px,
     url(/images/paint/stars-tile.webp) 0 0 / 1024px,
     url(/images/paint/waves-tile.webp) 0 140px / 1024px,
     url(/images/paint/wash-tile.webp) 0 0 / 1024px}
+/* twinkles are fixed to the screen (small layers, a touch of parallax against the star dust) */
+.fn-tw{position:fixed;inset:0;background:url(/images/paint/twinkle-0.webp) 0 0 / 1024px;opacity:.2;animation:fnTw 3.4s ease-in-out infinite alternate}
+.fn-tw:nth-child(2){background-image:url(/images/paint/twinkle-1.webp);background-position:300px 180px;animation-duration:4.6s;animation-delay:-1.7s}
+.fn-tw:nth-child(3){background-image:url(/images/paint/twinkle-2.webp);background-position:620px 410px;animation-duration:5.9s;animation-delay:-3.2s}
+@keyframes fnTw{to{opacity:1}}
+.fn-rays{position:absolute;top:0;left:50%;width:1600px;aspect-ratio:1600/1500;translate:-50% 0;background:url(/images/paint/rays.webp) 0 0 / 100% auto no-repeat;
+  transform-origin:78% -20%;animation:fnRays 16s ease-in-out infinite alternate}
+@keyframes fnRays{from{rotate:-1.6deg;opacity:.7}to{rotate:1.6deg;opacity:1}}
+.fn-paint img{position:absolute;height:auto;animation:fnBob 7s ease-in-out infinite alternate}
+.fn-paint .fn-star{animation:fnStar 11s ease-in-out infinite alternate}
+@keyframes fnBob{0%{translate:0 0;rotate:-2deg}50%{translate:-14px -6px;rotate:1deg}100%{translate:6px 4px;rotate:-1deg}}
+@keyframes fnStar{from{rotate:-8deg;scale:1}to{rotate:10deg;scale:1.06}}
 @media (max-width:760px){
-  .fn-paint{background-size:1000px auto,1000px auto,100% 101px,110px auto,110px auto,900px auto,1000px auto,700px,1024px,700px,1024px;
-    background-position:center 60px,center bottom 100px,center bottom,left 0 top 220px,right 0 top 520px,0 300px,center top,0 0,0 0,0 140px,0 0}
+  .fn-paint{background-size:1000px auto,1000px auto,100% 101px,110px auto,110px auto,700px,1024px,700px,1024px;
+    background-position:center 60px,center bottom 100px,center bottom,left 0 top 220px,right 0 top 520px,0 0,0 0,0 140px,0 0}
+  .fn-rays{width:1000px}
+  .fn-paint img{scale:.7}
+}
+@media (prefers-reduced-motion:reduce){
+  .fn-tw,.fn-rays,.fn-paint img{animation:none}
+  .fn-tw{opacity:.6}
 }
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 
@@ -277,7 +296,21 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 <body>
 
 <!-- The homepage's painted night sea as the whole page's backdrop -->
-<div class="fn-paint" aria-hidden="true"></div>
+<div class="fn-paint" aria-hidden="true">
+  <div class="fn-tw"></div><div class="fn-tw"></div><div class="fn-tw"></div>
+  <div class="fn-rays"></div>
+  <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:5%;top:16%;width:96px" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-fish-1.webp" alt="" style="left:91%;top:23%;width:90px;animation-delay:-6s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-fish-2.webp" alt="" style="left:48%;top:31%;width:78px;animation-delay:-2s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:94%;top:44%;width:80px;animation-delay:-4s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-fish-1.webp" alt="" style="left:3%;top:52%;width:84px;animation-delay:-1s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-fish-2.webp" alt="" style="left:90%;top:67%;width:72px;animation-delay:-5s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:6%;top:79%;width:88px;animation-delay:-3s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-star-0.webp" alt="" class="fn-star" style="left:2%;top:38%;width:64px" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-star-1.webp" alt="" class="fn-star" style="left:95%;top:35%;width:54px;animation-delay:-4s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-star-0.webp" alt="" class="fn-star" style="left:96%;top:72%;width:58px;animation-delay:-7s" loading="lazy" decoding="async">
+  <img src="/images/paint/sprite-star-1.webp" alt="" class="fn-star" style="left:3%;top:66%;width:50px;animation-delay:-2s" loading="lazy" decoding="async">
+</div>
 
 <SiteMenu currentPath="/blog" />
 

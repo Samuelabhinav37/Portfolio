@@ -270,3 +270,29 @@ for i in range(6):
     over(sc, creature('fish', r.uniform(.24, .34), 110 + i, flip=r.random() < .5, spots=1.3, strength=.6), r.uniform(80, TW - 80), r.uniform(80, TH - 80))
 sc.save(f'{OUT}/scatter-tile.webp', quality=80, alpha_quality=75, method=6)
 print('ok')
+
+# ---- moving pieces, as separate images the page animates ----
+#   sprite-fish-0..2.webp  single fish (they bob in place)
+#   sprite-star-0..1.webp  single sea stars (they turn and breathe)
+#   twinkle-0..2.webp      seamless tiles of a few four-point sparkles each (they fade in and out out of step)
+for i, (s, sp) in enumerate([(.36, 1.3), (.3, 1.3), (.26, 1.4)]):
+    creature('fish', s, 200 + i, spots=sp, strength=.75).save(f'{OUT}/sprite-fish-{i}.webp', quality=82, alpha_quality=80, method=6)
+for i, s in enumerate([.3, .24]):
+    creature('star', s, 210 + i, spots=1.6, strength=.8).save(f'{OUT}/sprite-star-{i}.webp', quality=82, alpha_quality=80, method=6)
+def sparkle(s, a0):
+    sz = int(s * 7); yv, xv = np.mgrid[-sz:sz + 1, -sz:sz + 1].astype(float)
+    a = np.clip(np.exp(-(np.hypot(xv, yv) / (s * .6)) ** 2) +
+                (np.exp(-(np.abs(xv) / (s * .16)) ** 2) * np.exp(-(np.abs(yv) / (s * 2.2)) ** 2) +
+                 np.exp(-(np.abs(yv) / (s * .16)) ** 2) * np.exp(-(np.abs(xv) / (s * 2.2)) ** 2)) * .6, 0, 1) * a0
+    return rgba(SPOT, a), sz
+for t in range(3):
+    tw = Image.new('RGBA', (N, N)); rt = np.random.default_rng(300 + t)
+    for i in range(7):
+        im, sz = sparkle(rt.uniform(2.5, 5.5), rt.uniform(.5, .85))
+        cx, cy = rt.uniform(0, N, 2)
+        for ox in (-N, 0, N):
+            for oy in (-N, 0, N):
+                if -2 * sz < cx + ox < N + 2 * sz and -2 * sz < cy + oy < N + 2 * sz:
+                    tw.alpha_composite(im, (int(cx - sz + ox), int(cy - sz + oy)))
+    tw.save(f'{OUT}/twinkle-{t}.webp', quality=82, alpha_quality=80, method=6)
+print('sprites ok')
