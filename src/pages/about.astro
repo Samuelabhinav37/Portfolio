@@ -119,22 +119,13 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 .ab-index a{ font-size:13px; color:rgba(var(--c-white),0.42); text-decoration:none; transition:color var(--dur-fast); width:max-content; display:flex; gap:10px; }
 .ab-index a:hover, .ab-index a.on{ color:#f4f6fa; }
 .ix-n{ font-family:'JetBrains Mono', monospace; font-size:11px; opacity:.6; padding-top:1px; }
-/* a game HUD over the index (after the FPS-style tracker in Robin Navas' "Roots to Leaves"):
-   the section you are in, out of how many, and a ring for how far down the page you are */
-.ab-hud{ display:flex; align-items:center; gap:10px; margin-bottom:14px; font-family:'JetBrains Mono', monospace; }
-.ab-hud svg{ width:34px; height:34px; transform:rotate(-90deg); flex:none; }
-.ab-hud circle{ fill:none; stroke-width:2; }
-.hud-track{ stroke:rgba(var(--c-white),0.1); }
-.hud-fill{ stroke:#9cc0ff; stroke-dasharray:1; stroke-dashoffset:calc(1 - var(--p, 0)); stroke-linecap:round; }
-.hud-n{ font-size:18px; font-weight:500; color:#f4f6fa; font-variant-numeric:tabular-nums; }
-.hud-of{ font-size:11px; color:rgba(var(--c-white),0.42); }
 .ab-main{ grid-column:5 / 13; min-width:0; }
 .ab-lbl{ font-size:13px; font-weight:600; color:rgba(var(--c-white),0.85); }
 .card-hd .ab-lbl + .ab-lbl{ font-weight:400; color:rgba(var(--c-white),0.45); }
 
 .ab-sec{ scroll-margin-top:120px; }
 .ab-sec + .ab-sec{ margin-top:clamp(96px, 14vh, 150px); }
-.ab-h{ font-size:20px; font-weight:700; letter-spacing:-.005em; color:#f4f6fa; margin-bottom:16px; width:max-content; max-width:100%; transform-origin:0 50%; }
+.ab-h{ font-size:20px; font-weight:700; letter-spacing:-.005em; color:#f4f6fa; margin-bottom:16px; }
 
 /* intro: one long sentence across the whole column, as on fattah.me/info */
 .ab-kicker{ display:block; font-size:13px; font-weight:600; color:#f4f6fa; margin-bottom:22px; }
@@ -345,10 +336,6 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 <main class="ab">
   <div class="ab-label">Info</div>
   <nav class="ab-index" aria-label="On this page">
-    <div class="ab-hud" aria-hidden="true">
-      <svg viewBox="0 0 36 36"><circle class="hud-track" cx="18" cy="18" r="16" /><circle class="hud-fill" cx="18" cy="18" r="16" pathLength="1" /></svg>
-      <span class="hud-n">01</span><span class="hud-of">/ {String(sections.length).padStart(2, '0')}</span>
-    </div>
     {sections.map(([id, name], i) => <a href={`#${id}`} data-spy={id}><span class="ix-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>{name}</a>)}
   </nav>
 
@@ -356,8 +343,8 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     <section id="intro" class="ab-sec">
       <span class="ab-kicker">About Samuel</span>
       <h1 class="ab-intro" data-words>Hi, I'm <b>Samuel Abhinav.</b> I make networks harder to break. Most days.</h1>
-      <div class="ab-bio">
-        <p data-reveal="assemble">I got into security because finding the fracture points was the fun part. Now I am looking for a team that actually reads the logs.</p>
+      <div class="ab-bio" data-reveal>
+        <p>I got into security because finding the fracture points was the fun part. Now I am looking for a team that actually reads the logs.</p>
       </div>
       <figure class="ab-portrait" data-reveal="media">
         <span class="ab-lbl">Portrait coming soon</span>
@@ -365,7 +352,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </section>
 
     <section id="toolkit" class="ab-sec">
-      <h2 class="ab-h" data-words data-skew>Toolkit</h2>
+      <h2 class="ab-h" data-words>Toolkit</h2>
       <ul class="tk xm" data-reveal-group>
         {toolkit.map(([name, logo]) => (
           <li>
@@ -379,11 +366,11 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </section>
 
     <section id="snapshot" class="ab-sec">
-      <h2 class="ab-h" data-words data-skew>Snapshot</h2>
+      <h2 class="ab-h" data-words>Snapshot</h2>
       <div class="bento xm" data-reveal-group>
         <div class="card c-certs">
           <div class="card-hd"><span class="ab-lbl">Certifications</span><span class="ab-lbl">{certs.length}</span></div>
-          <div class="cb-wrap"><div class="cb-track" data-scroll-speed>
+          <div class="cb-wrap"><div class="cb-track">
             {[...certs, ...certs].map(([name, img, framed], i) => (
               <span class={framed ? 'cb cb--framed' : 'cb'} aria-hidden={i >= certs.length ? 'true' : undefined}>
                 <img src={`/images/certs/${img}.webp`} alt={i >= certs.length ? '' : `${name} certification badge`} width="60" height="60" loading="lazy" decoding="async"><span>{name}</span>
@@ -422,7 +409,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 
     <section id="arcade" class="ab-sec">
       <canvas class="ab-dots" aria-hidden="true"></canvas>
-      <h2 class="ab-h" data-words data-skew>Arcade</h2>
+      <h2 class="ab-h" data-words>Arcade</h2>
       <p class="ab-arcade-sub" data-reveal>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
       <div class="game-panel" data-reveal>
         <div class="game-hdr">
@@ -890,30 +877,16 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   els.forEach(function(el){ io.observe(el); });
 })();
 
-/* light the index entry for the section in view; the HUD shows its number and, on its ring,
-   how far through the page you are (offsets cached on resize, so a scroll frame reads no layout) */
+/* light the index entry for the section in view */
 (function(){
   var links = Array.prototype.slice.call(document.querySelectorAll('.ab-index [data-spy]'));
-  var hud = document.querySelector('.ab-hud'), num = hud && hud.querySelector('.hud-n'), ring = hud && hud.querySelector('.hud-fill');
   var io = new IntersectionObserver(function(es){
     es.forEach(function(e){
       if(!e.isIntersecting) return;
-      links.forEach(function(a, i){
-        var on = a.dataset.spy === e.target.id;
-        a.classList.toggle('on', on);
-        if(on && num) num.textContent = String(i + 1).padStart(2, '0');
-      });
+      links.forEach(function(a){ a.classList.toggle('on', a.dataset.spy === e.target.id); });
     });
   }, { rootMargin:'-35% 0px -60% 0px' });
   links.forEach(function(a){ var s = document.getElementById(a.dataset.spy); if(s) io.observe(s); });
-  if(!ring) return;
-  var main = document.querySelector('.ab-main'), top = 0, span = 1, raf = 0;
-  function measure(){ top = main.getBoundingClientRect().top + scrollY; span = Math.max(1, main.offsetHeight - innerHeight * .6); paint(); }
-  function paint(){ raf = 0; ring.style.setProperty('--p', Math.min(1, Math.max(0, (scrollY - top + innerHeight * .4) / span)).toFixed(3)); }
-  addEventListener('scroll', function(){ if(!raf) raf = requestAnimationFrame(paint); }, { passive:true });
-  addEventListener('resize', measure, { passive:true });
-  addEventListener('load', measure, { once:true });
-  measure();
 })();
 
 /* on the wire: the build-time rows type in on first sight. Shortly before that the page asks
