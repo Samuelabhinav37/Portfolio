@@ -773,10 +773,23 @@ footer#site-footer{
 </div>
 <script is:inline defer src="/scripts/index-writing-reel.js"></script>
 <script is:inline defer src="/scripts/index-rail.js"></script>
+<script is:inline defer src="/scripts/index-thread.js"></script>
 
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
 #signal{ position:relative; z-index:3; background:transparent; padding:var(--sec-pad) 0; }
+/* A scene of its own, after zainabkabira.com's section bands: deeper water
+   under the radar, with a soft cloud-bank top edge, fading back into the
+   open sky before the footer. Painted behind the section's content. */
+#signal::before{ content:""; position:absolute; z-index:-1; left:0; right:0; top:calc(var(--sec-pad) * .35); bottom:-12vh; pointer-events:none;
+  background:linear-gradient(180deg, rgba(4,7,18,.78) 0%, rgba(4,7,18,.7) 70%, rgba(4,7,18,0) 100%);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 140' preserveAspectRatio='none'%3E%3Cpath d='M0 92 C120 60 210 40 330 58 C450 76 520 120 660 104 C800 88 860 30 1000 34 C1140 38 1210 96 1320 92 C1380 90 1420 76 1440 70 V140 H0Z'/%3E%3C/svg%3E") top / 100% 140px no-repeat, linear-gradient(#000,#000) 0 139px / 100% calc(100% - 139px) no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 140' preserveAspectRatio='none'%3E%3Cpath d='M0 92 C120 60 210 40 330 58 C450 76 520 120 660 104 C800 88 860 30 1000 34 C1140 38 1210 96 1320 92 C1380 90 1420 76 1440 70 V140 H0Z'/%3E%3C/svg%3E") top / 100% 140px no-repeat, linear-gradient(#000,#000) 0 139px / 100% calc(100% - 139px) no-repeat; }
+/* the same fine grain the sky uses, inside the cards, so they read as a material */
+.sig-card, .pw-img{ isolation:isolate; }
+.sig-card{ position:relative; }
+.sig-card::after, .pw-img::after{ content:""; position:absolute; inset:0; z-index:1; border-radius:inherit; pointer-events:none; opacity:.08;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 /* same width and gap as the project grid above */
 #signal .sig-inner{ width:87%; margin:0 auto; box-sizing:border-box; }
 #signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:13px; }
