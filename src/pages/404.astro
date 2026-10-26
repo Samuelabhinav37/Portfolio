@@ -1,0 +1,136 @@
+---
+/* Served by Cloudflare Pages for any missing route. Kai is here too, lost. */
+import '../styles/kai.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>404 — Signal Lost · Samuel Abhinav</title>
+<link href="/fonts/fonts.css" rel="stylesheet">
+<style is:global>
+  /* Same fixed-corner wordmark as every other page (SiteMenu.astro). */
+  .wordmark{ position:fixed; top:14px; left:28px; z-index:10; font-family:'Cormorant Garamond',serif; font-weight:500; font-size:1.5rem; line-height:1; letter-spacing:.01em; color:rgba(255,255,255,.9); text-decoration:none; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background:#030307; color:rgba(205,214,226,0.92);
+    font-family:'JetBrains Mono', monospace;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:2rem;
+  }
+  /* the same night sky, grain and vignette as About */
+  .sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
+  .grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
+  .grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
+  .grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
+  .wrap{ position:relative; z-index:1; max-width:560px; width:100%; }
+  /* Kai, lost: looking around for the page, with one line to say about it */
+  .lost{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:1.6rem; }
+  .lost .kai{ --kai-w:84px; }
+  .lost-say{ position:relative; padding:.6rem .85rem; border:1px solid rgba(205,214,226,0.16); border-radius:12px;
+    background:rgba(10,12,20,0.6); font:400 0.85rem/1.4 'Inter Tight', -apple-system, 'Segoe UI', sans-serif; color:rgba(225,231,242,0.9); text-align:left; }
+  .lost-say::before{ content:""; position:absolute; left:-6px; top:50%; width:10px; height:10px; margin-top:-5px; transform:rotate(45deg);
+    background:inherit; border-left:inherit; border-bottom:inherit; }
+  /* "404" drawn in ASCII by the script below: the digits come from a character ramp
+     by how much of each cell they cover, and a band of interference rolls down them */
+  .code{ margin:0 auto; width:max-content; max-width:100%; overflow:hidden;
+    font:500 clamp(6px, 1.45vw, 10px)/1 'JetBrains Mono', monospace; letter-spacing:0; white-space:pre; text-align:left;
+    color:#eef2f8; text-shadow:0 0 12px rgba(140,165,210,0.35); }
+  .code-fallback{ font:500 clamp(5rem, 18vw, 9rem)/.9 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.02em; white-space:normal; }
+  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+  .status{ margin-top:1.25rem; font-size:0.78rem; letter-spacing:0.35em; text-transform:uppercase; color:rgba(160,172,190,0.75); }
+  .msg{ margin-top:0.9rem; font-size:0.9rem; color:rgba(180,190,206,0.68); }
+  .home{
+    display:inline-block; margin-top:1.6rem; padding:0.7rem 1.4rem;
+    font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; text-decoration:none;
+    color:rgba(220,228,240,0.9);
+    border:1px solid rgba(205,214,226,0.18); border-radius:2px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .home:hover{ border-color:rgba(205,214,226,0.4); background:rgba(205,214,226,0.05); }
+  .prompt{ margin-top:1.4rem; font-size:0.72rem; color:rgba(120,132,150,0.6); }
+  .prompt::before{ content:"$ "; color:rgba(150,180,235,0.7); }
+</style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <a class="wordmark" href="/">Samuel Abhinav</a>
+  <div class="wrap">
+    <h1 class="sr">404, page not found</h1>
+    <pre class="code code-fallback" id="code" aria-hidden="true">404</pre>
+    <div class="status">signal lost</div>
+    <p class="msg">This route returned no telemetry. The page may have moved, or never existed.</p>
+    <div class="lost">
+      <div id="lost-kai" aria-hidden="true"></div>
+      <p class="lost-say">That page isn't in my memory.</p>
+    </div>
+    <a class="home" href="/">return to base</a>
+    <div class="prompt">trace --route requested : no path found</div>
+  </div>
+
+<script is:inline>
+/* ASCII 404. The digits are drawn once into a small offscreen canvas; each
+   character cell takes a glyph from a density ramp by how much ink it covers.
+   At ~12fps a band of interference rolls down the screen: inside it cells
+   pick random glyphs and whole rows slip sideways, like a lost signal.
+   Still under reduced motion (one clean frame). */
+(function(){
+  var pre=document.getElementById('code');
+  if(!pre || !document.createElement('canvas').getContext) return;
+  var COLS=64, ROWS=17, RAMP=' .:-=+*#%@', NOISE='!<>/[]{}=+*#%01';
+  var c=document.createElement('canvas'); c.width=COLS; c.height=ROWS*2;
+  var x=c.getContext('2d');
+  x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle';
+  x.font='bold '+(ROWS*2.1)+'px Arial, Helvetica, sans-serif';
+  x.fillText('404', COLS/2, ROWS+1, COLS-2);
+  var px=x.getImageData(0,0,COLS,ROWS*2).data, ink=[];
+  for(var r=0;r<ROWS;r++){ ink[r]=[]; for(var k=0;k<COLS;k++){ var i=((r*2)*COLS+k)*4, j=((r*2+1)*COLS+k)*4; ink[r][k]=(px[i+3]+px[j+3])/510; } }
+  pre.classList.remove('code-fallback');
+  function frame(band){
+    var out='';
+    for(var r=0;r<ROWS;r++){
+      var near=Math.abs(r-band)<1.6, slip=near && Math.random()<.5 ? (Math.random()*4|0)-2 : 0, line='';
+      for(var k=0;k<COLS;k++){
+        var v=ink[r][Math.min(COLS-1,Math.max(0,k+slip))];
+        if(near && v>.05 && Math.random()<.35) line+=NOISE[Math.random()*NOISE.length|0];
+        else if(!near && v<.05 && Math.random()<.004) line+='.';
+        else line+=RAMP[Math.round(v*(RAMP.length-1))];
+      }
+      out+=line+'\n';
+    }
+    pre.textContent=out;
+  }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){ frame(-9); return; }
+  var band=-4, last=0;
+  (function tick(t){
+    requestAnimationFrame(tick);
+    if(document.hidden || t-last<83) return;
+    last=t; band+=.6; if(band>ROWS+8) band=-6-Math.random()*20;
+    frame(band);
+  })(0);
+})();
+</script>
+<script is:inline src="/scripts/kai-life.js"></script>
+<script is:inline>
+/* Kai is lost too: puzzled face, a look around, a word, then the usual brain
+   (it follows the pointer, and its idle scans read as searching here). */
+(function(){
+  var el=document.getElementById('lost-kai');
+  if(!el || !window.Kai) return;
+  var kai=window.Kai(el, { imgWidth:160, auto:true });
+  kai.setMood('curious');
+  setTimeout(function(){ kai.do('lookAround'); }, 500);
+  setTimeout(function(){ kai.talk(1300); kai.setMood('worried', 1400); }, 2300);
+  // "return to base": it perks up when you go for the way home
+  var home=document.querySelector('.home');
+  home.addEventListener('pointerenter', function(){ kai.setMood('happy', 1200); });
+})();
+</script>
+</body>
+</html>
