@@ -96,13 +96,6 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 .page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
 .page-grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
 .page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
-/* spotlight: around the cursor the sky lifts and the grain thickens (--sx/--sy set on this element, below) */
-.page-spot{ position:fixed; inset:0; z-index:2147482999; pointer-events:none; opacity:0; transition:opacity .6s;
-  background:radial-gradient(360px circle at var(--sx, -999px) var(--sy, -999px), rgba(150,180,255,.07), transparent 70%); }
-.page-spot::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.2;
-  -webkit-mask:radial-gradient(260px circle at var(--sx, -999px) var(--sy, -999px), #000, transparent 75%);
-  mask:radial-gradient(260px circle at var(--sx, -999px) var(--sy, -999px), #000, transparent 75%); }
-.page-spot.on{ opacity:1; }
 
 /* ── Layout after fattah.me/info: label | index | content on a 12-column grid ── */
 .ab{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(12, 1fr); column-gap:16px;
@@ -140,11 +133,7 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
 /* portrait: placeholder until the real photo arrives; a photo gets the grain and greyscale */
 .ab-portrait{ position:relative; margin-top:64px; aspect-ratio:16 / 10; border-radius:10px; overflow:hidden;
   background:#05070d; border:1px solid rgba(var(--c-white),0.1); display:grid; place-items:center; }
-/* the canvas holds a 1-bit dithered version (script below); the real photo shows only in a circle around the cursor */
-.ab-portrait canvas{ position:absolute; inset:0; width:100%; height:100%; }
-.ab-portrait img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05);
-  -webkit-mask:radial-gradient(150px circle at var(--px, -999px) var(--py, -999px), #000 50%, transparent 100%);
-  mask:radial-gradient(150px circle at var(--px, -999px) var(--py, -999px), #000 50%, transparent 100%); }
+.ab-portrait img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05); }
 .ab-portrait:has(img)::after{ content:''; position:absolute; inset:0; background:url(/images/grain.webp); opacity:.3; mix-blend-mode:overlay; }
 .ab-portrait .ab-lbl{ position:relative; color:rgba(var(--c-white),0.7); background:rgba(3,5,12,.8); padding:7px 12px; border-radius:999px; }
 .ab-portrait:has(img) .ab-lbl{ display:none; }
@@ -291,7 +280,6 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 <body>
 <div class="ab-sky" aria-hidden="true"></div>
 <div class="page-grain" aria-hidden="true"></div>
-<div class="page-spot" aria-hidden="true"></div>
 <SkyLife jellies />
 
 <SiteMenu currentPath="/about" />
@@ -324,7 +312,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
             {logo.endsWith('.svg')
               ? <span class="tk-logo" style={`--logo:url(/images/tools/${logo})`} aria-hidden="true"></span>
               : <span class="tk-mono" aria-hidden="true">{logo}</span>}
-            <span class="tk-name">{name}</span>
+            {name}
           </li>
         ))}
       </ul>
@@ -334,7 +322,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
       <h2 class="ab-h" data-words>Snapshot</h2>
       <div class="bento" data-reveal-group>
         <div class="card c-certs">
-          <div class="card-hd"><span class="ab-lbl">Certifications</span><span class="ab-lbl" data-count={certs.length}>{certs.length}</span></div>
+          <div class="card-hd"><span class="ab-lbl">Certifications</span><span class="ab-lbl">{certs.length}</span></div>
           <div class="cb-wrap"><div class="cb-track">
             {[...certs, ...certs].map(([name, img, framed], i) => (
               <span class={framed ? 'cb cb--framed' : 'cb'} aria-hidden={i >= certs.length ? 'true' : undefined}>
@@ -353,7 +341,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
         <a class="card c-gh" href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">
           <div class="card-hd"><span class="ab-lbl">GitHub</span><span class="ab-lbl">Last 26 weeks ↗</span></div>
           {ghWeeks.length > 0 && <>
-            <div class="gh-big"><span class="gh-num" data-count={ghActive}>{ghActive}</span><span class="gh-cap">active days this year</span></div>
+            <div class="gh-big"><span class="gh-num">{ghActive}</span><span class="gh-cap">active days this year</span></div>
             <div class="gh-map" aria-hidden="true">
               {ghWeeks.map((week, c) => week.map((l) => <i style={`--l:${l};--c:${c}`}></i>))}
             </div>
@@ -388,7 +376,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 &lt;title&gt;INFILTRATE // DEFEND&lt;/title&gt;
 &lt;link href=&quot;/fonts/fonts.css&quot; rel=&quot;stylesheet&quot;&gt;
 &lt;style&gt;
-:root{--cyan:#00e5ff;--green:#00ff88;--gold:#ffcc00;--red:#ff2244;--purple:#cc44ff;--orange:#ff8800;}
+:root{--c-white:255,255,255;--cyan:#00e5ff;--green:#00ff88;--gold:#ffcc00;--red:#ff2244;--purple:#cc44ff;--orange:#ff8800;}
 *{margin:0;padding:0;box-sizing:border-box;image-rendering:pixelated;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Press Start 2P',monospace;}
 body::before{content:'';position:fixed;inset:0;z-index:999;pointer-events:none;
@@ -547,6 +535,94 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   .vs{ flex-direction:row; gap:10px; }
   .vs-l{ width:50px; height:1px; background:linear-gradient(to right,transparent,rgba(var(--c-white),.20),transparent); }
 }
+
+/* ══ READABILITY ══════════════════════════════════════════
+   Press Start 2P is drawn on an 8px grid and only renders cleanly at 8px
+   multiples, so labels are 8px and headings 16px. Anything longer than a
+   label (descriptions, rules, hints) is set in JetBrains Mono, which stays
+   legible at 12-13px where a pixel font turns to mush. Dim text sits at
+   .55-.8 instead of .13-.45. */
+#prog{height:32px;padding:0 16px;gap:18px;border-bottom-color:rgba(255,255,255,.1);}
+.ps{font-size:8px;color:rgba(255,255,255,.4);gap:7px;}
+.ps.done{color:rgba(255,255,255,.65);}
+.ps .d{width:6px;height:6px;background:rgba(255,255,255,.25);}
+.ps.done .d{background:rgba(255,255,255,.6);}
+#p2{display:none;}
+#back{left:auto;right:16px;height:32px;font-size:8px;color:rgba(255,255,255,.6);}
+#back:hover{color:#fff;}
+#ticker-w{height:28px;border-top-color:rgba(255,255,255,.1);}
+#ticker{font-size:8px;padding-top:10px;color:rgba(255,255,255,.4);}
+
+.boot-sub{font-size:8px;color:rgba(255,255,255,.6);margin-top:16px;}
+.boot-stats{width:420px;border-color:rgba(255,255,255,.2);}
+.bs{font-size:8px;padding:9px 12px;border-bottom-color:rgba(255,255,255,.1);}
+.bs-l{color:rgba(255,255,255,.6);}
+.boot-press{font-size:16px;margin-top:24px;}
+
+.mode-prompt{font-size:16px;color:#fff;margin-bottom:12px;}
+.mode-keys{font-size:8px;color:rgba(255,255,255,.55);letter-spacing:.12em;margin-bottom:22px;}
+.mode-row{gap:18px;}
+.mcard{width:290px;border-color:rgba(255,255,255,.18);}
+.mcard-sp{height:110px;}
+.mcard-hd{padding:14px 16px 12px;border-bottom-color:rgba(255,255,255,.08);}
+.mc-role{font-size:8px;color:rgba(255,255,255,.55);margin-bottom:10px;}
+.mc-name{font-size:16px;}
+.mcard-bd{padding:12px 16px 0;}
+.mc-tag{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;color:rgba(255,255,255,.85);margin-bottom:8px;}
+.mc-obj{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;padding:6px 0;color:rgba(255,255,255,.65);border-bottom-color:rgba(255,255,255,.07);letter-spacing:0;}
+.mcard-btn{font-size:8px;padding:13px;margin:14px 14px 16px;color:#fff;border-color:rgba(255,255,255,.3);}
+.vs-t{font-size:16px;}
+.vs-l{background:linear-gradient(to bottom,transparent,rgba(255,255,255,.25),transparent);}
+
+.rules-w{width:720px;}
+.rules-hd{margin-bottom:16px;}
+.rules-badge{font-size:8px;}
+.rules-title{font-size:16px;}
+#mode-chosen{font-size:8px !important;}
+.rule-item{padding:12px 10px;gap:14px;border-bottom-color:rgba(255,255,255,.1);}
+.rule-item:first-child{border-top-color:rgba(255,255,255,.1);}
+.ri-icon{font-size:8px;width:32px;color:rgba(255,255,255,.7);}
+.ri-title{font-size:8px;margin-bottom:8px;}
+.ri-body{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;color:rgba(255,255,255,.72);letter-spacing:0;}
+.pu-row{gap:12px;margin:14px 0;}
+.pu-chip{padding:12px 14px;border-color:rgba(255,255,255,.15) !important;}
+.pu-ic{font-size:16px;margin-bottom:8px;}
+.pu-nm{font-size:8px;margin-bottom:8px;}
+.pu-dc{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;color:rgba(255,255,255,.65);letter-spacing:0;}
+
+.theme-w{width:780px;}
+.th-hed{font-size:16px;margin-bottom:10px;}
+.th-sub{font-size:8px;color:rgba(255,255,255,.55);margin-bottom:18px;}
+.mini-prev{height:72px;border-color:rgba(255,255,255,.15);margin-bottom:14px;}
+.mini-lbl{font-size:8px;color:rgba(255,255,255,.45);}
+.th-grid{gap:10px;margin-bottom:22px;}
+.th-tile{border-color:rgba(255,255,255,.15);transition:border-color .12s,box-shadow .2s,transform .2s;}
+.th-tile:hover{border-color:rgba(255,255,255,.45);transform:translateY(-2px);}
+.th-tile.sel{box-shadow:0 0 0 1px var(--tc),0 0 22px -6px var(--tc);}
+.ttsw{height:64px;}
+.ttnm{font-size:8px;padding:10px 10px 6px;}
+.ttsg{font-family:'JetBrains Mono',monospace;font-size:11px;padding:0 10px 10px;color:rgba(255,255,255,.6);letter-spacing:0;}
+.ttchk{display:none;}
+.launch-row{gap:18px;}
+.launch-btn{font-size:16px;padding:16px 28px;}
+.launch-btn[disabled]{opacity:.35;}
+.lsum{font-size:8px;line-height:2;color:rgba(255,255,255,.6);}
+.nav-row{gap:10px;margin-top:16px;}
+.nav-btn{font-size:8px;padding:12px 18px;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.25);}
+.nav-btn:hover{color:#fff;border-color:rgba(255,255,255,.55);}
+.nav-btn.pri{color:#fff;border-color:rgba(255,255,255,.45);}
+
+#game-hud{font-size:8px;padding:9px 10px;border-color:rgba(255,255,255,.12);}
+.hud-keys{color:rgba(255,255,255,.7);}
+.key-pip{width:10px;height:10px;border-color:rgba(255,255,255,.35);}
+.hud-mode{font-size:8px;}
+.hud-power{font-size:8px;color:rgba(255,255,255,.6);}
+#hud-hide{font-size:8px !important;}
+#game-msg .gm-title{font-size:16px;}
+#game-msg .gm-sub{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;color:rgba(255,255,255,.75);letter-spacing:0;}
+#game-bottom{padding:9px 10px;gap:24px;border-color:rgba(255,255,255,.12);}
+.gbot-hint{font-size:8px;color:rgba(255,255,255,.5);white-space:nowrap;}
+#mini-canvas{width:100%;height:100%;}
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -578,7 +654,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
 &lt;!-- ═════ S2 MODE ═════ --&gt;
 &lt;div class=&quot;screen&quot; id=&quot;s-mode&quot;&gt;
   &lt;div class=&quot;mode-prompt blink&quot;&gt;SELECT YOUR ROLE&lt;/div&gt;
-  &lt;div style=&quot;font-family:inherit;font-size:5px;color:rgba(var(--c-white),.22);letter-spacing:.12em;margin-bottom:10px;&quot;&gt;[A] HACKER &amp;nbsp;·&amp;nbsp; [D] SENTINEL&lt;/div&gt;
+  &lt;div class=&quot;mode-keys&quot;&gt;[A] HACKER &amp;nbsp;·&amp;nbsp; [D] SENTINEL&lt;/div&gt;
   &lt;div class=&quot;mode-row&quot;&gt;
     &lt;div class=&quot;mcard&quot; data-m=&quot;a&quot; data-mode=&quot;attacker&quot;&gt;
       &lt;div class=&quot;mcard-sp&quot;&gt;&lt;canvas id=&quot;sp-h&quot; width=&quot;80&quot; height=&quot;80&quot;&gt;&lt;/canvas&gt;&lt;/div&gt;
@@ -636,7 +712,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
       &lt;button class=&quot;launch-btn&quot; id=&quot;launch-btn&quot; data-act=&quot;launch&quot; disabled&gt;START MISSION&lt;/button&gt;
       &lt;div class=&quot;lsum&quot; id=&quot;lsum&quot;&gt;SELECT A MAP TO CONTINUE&lt;/div&gt;
     &lt;/div&gt;
-    &lt;div class=&quot;nav-row&quot;&gt;&lt;button class=&quot;nav-btn&quot; data-go=&quot;2&quot;&gt;◄ RULES&lt;/button&gt;&lt;/div&gt;
+    &lt;div class=&quot;nav-row&quot;&gt;&lt;button class=&quot;nav-btn&quot; data-go=&quot;1&quot;&gt;◄ ROLE&lt;/button&gt;&lt;button class=&quot;nav-btn&quot; data-go=&quot;2&quot;&gt;HOW TO PLAY&lt;/button&gt;&lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 
@@ -663,8 +739,8 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
       &lt;/div&gt;
     &lt;/div&gt;
     &lt;div id=&quot;game-bottom&quot;&gt;
-      &lt;div class=&quot;gbot-hint&quot;&gt;WASD / ARROWS — MOVE (HOLD TO RUN)&lt;/div&gt;&lt;div class=&quot;gbot-hint&quot;&gt;P — PAUSE&lt;/div&gt;
-      &lt;div class=&quot;gbot-hint&quot; id=&quot;gbot-space&quot;&gt;SPACE — USE POWER-UP&lt;/div&gt;
+      &lt;div class=&quot;gbot-hint&quot;&gt;ARROWS / WASD — MOVE&lt;/div&gt;&lt;div class=&quot;gbot-hint&quot;&gt;P — PAUSE&lt;/div&gt;
+      &lt;div class=&quot;gbot-hint&quot; id=&quot;gbot-space&quot;&gt;SPACE — POWER-UP&lt;/div&gt;
       &lt;div class=&quot;gbot-hint&quot; id=&quot;gbot-phantom&quot; style=&quot;display:none&quot;&gt;PHANTOM KEYS: &lt;span id=&quot;ph-keys&quot;&gt;0&lt;/span&gt;/3&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
@@ -774,10 +850,6 @@ function scramble(el){
   })(start);
 }
 
-/* hover scramble on the index links and the toolkit names */
-document.querySelectorAll('.ab-index a').forEach(function(a){ a.addEventListener('pointerenter', function(){ scramble(a); }); });
-document.querySelectorAll('.tk li').forEach(function(li){ var n = li.querySelector('.tk-name'); li.addEventListener('pointerenter', function(){ scramble(n); }); });
-
 /* building card: every few seconds the next project decodes in (text scramble) and its line swaps.
    Hovering a row picks it and holds; runs only while the card is on screen and the tab is visible. */
 (function(){
@@ -814,107 +886,12 @@ document.querySelectorAll('.tk li').forEach(function(li){ var n = li.querySelect
   io.observe(gh);
 })();
 
-/* numbers count up from zero the first time they come into view */
-(function(){
-  if(STILL) return;
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      if(!e.isIntersecting) return;
-      io.unobserve(e.target);
-      var el = e.target, to = +el.dataset.count, start = performance.now(), DUR = 1200;
-      (function tick(now){
-        var t = Math.min(1, Math.max(0, now - start) / DUR); // rAF time can precede start
-        el.textContent = Math.round(to * (1 - Math.pow(1 - t, 3)));
-        if(t < 1) requestAnimationFrame(tick);
-      })(start);
-    });
-  }, { rootMargin:'0px 0px -15% 0px' });
-  document.querySelectorAll('[data-count]').forEach(function(el){ io.observe(el); });
-})();
-
 /* arcade power-on once the screen is a quarter in view */
 (function(){
   var st = document.querySelector('.game-stage');
   if(!st) return;
   var io = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ st.classList.add('on'); io.disconnect(); } }, { threshold:.25 });
   io.observe(st);
-})();
-
-/* page spotlight: follows the pointer, one style write per frame, on its own element so nothing else restyles */
-(function(){
-  var spot = document.querySelector('.page-spot');
-  if(!spot || STILL || !matchMedia('(hover:hover)').matches) return;
-  var x = 0, y = 0, q = 0;
-  addEventListener('pointermove', function(e){
-    x = e.clientX; y = e.clientY;
-    if(q) return;
-    q = requestAnimationFrame(function(){ q = 0; spot.style.setProperty('--sx', x + 'px'); spot.style.setProperty('--sy', y + 'px'); spot.classList.add('on'); });
-  }, { passive:true });
-  document.documentElement.addEventListener('pointerleave', function(){ spot.classList.remove('on'); });
-})();
-
-/* dithered portrait: a 4x4 Bayer dither drawn as dots. Without a photo it is a drifting patch of
-   moonlight that leans toward the pointer; with an <img> it dithers the photo, and CSS shows the
-   real photo in a circle around the pointer (--px/--py). Draws only while on screen. */
-(function(){
-  var fig = document.querySelector('.ab-portrait');
-  if(!fig) return;
-  var img = fig.querySelector('img'), cv = document.createElement('canvas'), ctx = cv.getContext('2d');
-  var small = document.createElement('canvas'), sctx = small.getContext('2d', { willReadFrequently:true });
-  var BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5], CELL = 4;
-  var W = 0, H = 0, w = 0, h = 0, photoL = null, visible = false, last = 0;
-  var px = .5, py = .45, tx = .5, ty = .45, running = false;
-  fig.prepend(cv);
-  function kick(){ if(!running){ running = true; requestAnimationFrame(frame); } }
-  function size(){
-    W = fig.clientWidth; H = fig.clientHeight; w = Math.ceil(W / CELL); h = Math.ceil(H / CELL);
-    cv.width = W; cv.height = H; photoL = null;
-  }
-  function photoLum(){
-    small.width = w; small.height = h;
-    var s = Math.max(w / img.naturalWidth, h / img.naturalHeight), dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    sctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-    var d = sctx.getImageData(0, 0, w, h).data, L = new Float32Array(w * h);
-    for(var i = 0; i < w * h; i++) L[i] = (d[i*4] * .299 + d[i*4+1] * .587 + d[i*4+2] * .114) / 255;
-    return L;
-  }
-  function lightLum(t){
-    var L = new Float32Array(w * h), cx = (px + .06 * Math.sin(t * .0004)) * w, cy = (py + .05 * Math.cos(t * .0005)) * h, R = Math.min(w, h) * .6;
-    for(var y = 0; y < h; y++) for(var x = 0; x < w; x++){
-      var dx = (x - cx) / R, dy = (y - cy) / R;
-      L[y*w+x] = .78 * Math.exp(-(dx*dx + dy*dy) * 1.7) * (.8 + .2 * Math.sin(x * .09 + t * .0012) * Math.sin(y * .1 - t * .001));
-    }
-    return L;
-  }
-  function draw(L){
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = 'rgba(236,240,250,.6)';
-    ctx.beginPath();
-    for(var y = 0; y < h; y++) for(var x = 0; x < w; x++){
-      if(L[y*w+x] * 16 > BAYER[(y & 3) * 4 + (x & 3)] + .5) ctx.rect(x * CELL, y * CELL, CELL - 1.5, CELL - 1.5);
-    }
-    ctx.fill();
-  }
-  function frame(now){
-    if(!visible || document.hidden){ running = false; return; }
-    if(img){ if(!photoL && img.complete && img.naturalWidth) draw(photoL = photoLum()); running = false; return; }
-    requestAnimationFrame(frame);
-    if(now - last < 66) return; // ~15fps is plenty for a slow drift
-    last = now;
-    px += (tx - px) * .08; py += (ty - py) * .08;
-    draw(lightLum(STILL ? 0 : now));
-    if(STILL) visible = false; // one still frame
-  }
-  fig.addEventListener('pointermove', function(e){
-    var r = fig.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-    tx = x / r.width; ty = y / r.height;
-    fig.style.setProperty('--px', x + 'px'); fig.style.setProperty('--py', y + 'px');
-  });
-  fig.addEventListener('pointerleave', function(){ tx = .5; ty = .45; fig.style.removeProperty('--px'); fig.style.removeProperty('--py'); });
-  if(img) img.addEventListener('load', function(){ photoL = null; kick(); });
-  new ResizeObserver(function(){ size(); kick(); }).observe(fig);
-  new IntersectionObserver(function(es){ visible = es[0].isIntersecting; if(visible) kick(); }).observe(fig);
-  document.addEventListener('visibilitychange', kick);
 })();
 
 /* bento edge light: every card's border tracks the same pointer, so neighbours glow as it nears them */

@@ -86,16 +86,16 @@ requestAnimationFrame(sprLoop);
     row.style.opacity='1';
     let li=0,vi=0;
     function typeLabel(){
-      if(li<=label.length){lEl.textContent=label.slice(0,li)+(li<label.length?'█':'');li++;setTimeout(typeLabel,38);}
-      else{lEl.textContent=label;setTimeout(typeVal,60);}
+      if(li<=label.length){lEl.textContent=label.slice(0,li)+(li<label.length?'█':'');li++;setTimeout(typeLabel,16);}
+      else{lEl.textContent=label;setTimeout(typeVal,30);}
     }
     function typeVal(){
-      if(vi<=val.length){vEl.textContent=val.slice(0,vi)+(vi<val.length?'█':'');vi++;setTimeout(typeVal,42);}
-      else{vEl.textContent=val;setTimeout(()=>typeRow(rowIdx+1,cb),80);}
+      if(vi<=val.length){vEl.textContent=val.slice(0,vi)+(vi<val.length?'█':'');vi++;setTimeout(typeVal,18);}
+      else{vEl.textContent=val;setTimeout(()=>typeRow(rowIdx+1,cb),40);}
     }
     typeLabel();
   }
-  setTimeout(()=>{typeRow(0,()=>{pressEl.style.transition='opacity .4s';pressEl.style.opacity='1';});},400);
+  setTimeout(()=>{typeRow(0,()=>{pressEl.style.transition='opacity .4s';pressEl.style.opacity='1';});},200);
 })();
 
 // ═══════════════════════════════════════════════════════════
@@ -118,7 +118,9 @@ function goTo(i){
     if(CUR===4)startGame();
   });
 }
-function goBack(){if(CUR>0&&CUR<4)goTo(CUR-1);}
+// rules now open from the map screen, so BACK there returns to the map, and the map goes back to roles
+const BACK_TO={1:0,2:3,3:1};
+function goBack(){if(CUR in BACK_TO)goTo(BACK_TO[CUR]);}
 function ft(cb){
   const f=document.getElementById('flash');
   f.style.cssText='opacity:1;background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,229,255,.18) 2px,rgba(0,229,255,.18) 3px);transition:opacity .06s;';
@@ -139,6 +141,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='a'||e.key==='A'){e.preventDefault();selectMode('attacker');return;}
     if(e.key==='d'||e.key==='D'){e.preventDefault();selectMode('defender');return;}
   }
+  if(CUR===3&&e.key==='Enter'&&selMode&&selTheme){launchGame();return;}
   if(CUR===4){
     if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.status==='playing')setPaused(!paused);return;}
     if(paused){setPaused(false);return;}
@@ -165,7 +168,9 @@ function setPaused(on){
 addEventListener('blur',()=>setPaused(true));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)setPaused(true);});
 document.getElementById('s-boot').addEventListener('click',()=>{if(CUR===0)goTo(1);});
-function selectMode(m){selMode=m;goTo(2);}
+// Role goes straight to the map, with one already picked, so START is a single click.
+// The rules are optional now (HOW TO PLAY on the map screen).
+function selectMode(m){selMode=m;if(!selTheme)selTheme='server';goTo(3);}
 
 // ═══════════════════════════════════════════════════════════
 // RULES
@@ -764,7 +769,20 @@ function rebakeMaze(aT){
     else if(G.hideGrid[gy][gx])th.drawHide(ctx,px,py,TILE);
     else th.drawFloor(ctx,px,py,TILE,gx,gy);
   }
+  for(let gy=0;gy<ROWS;gy++)for(let gx=0;gx<COLS;gx++)if(G.maze[gy][gx]===1)wallEdges(ctx,th,gx,gy);
   mazeDirty=false;
+}
+// Outline each wall face that touches open floor: walls and floor are close in
+// colour on every theme, so the corridors need to read by shape too.
+function wallEdges(ctx,th,gx,gy){
+  const open=(x,y)=>y>=0&&y<ROWS&&x>=0&&x<COLS&&G.maze[y][x]===0;
+  const px=gx*TILE,py=gy*TILE,E=Math.max(1,Math.round(TILE/12));
+  ctx.fillStyle=th.col;ctx.globalAlpha=.5;
+  if(open(gx,gy-1))ctx.fillRect(px,py,TILE,E);
+  if(open(gx,gy+1))ctx.fillRect(px,py+TILE-E,TILE,E);
+  if(open(gx-1,gy))ctx.fillRect(px,py,E,TILE);
+  if(open(gx+1,gy))ctx.fillRect(px+TILE-E,py,E,TILE);
+  ctx.globalAlpha=1;
 }
 
 // Prop animation only needs to re-render wall tiles with animated props
@@ -779,6 +797,7 @@ function rerenderAnimatedProps(aT){
     if(pt&&ANIM_PROP_TYPES.has(pt)){
       const px=gx*TILE,py=gy*TILE;
       th.drawWall(ctx,px,py,TILE,aT,true,pt);
+      wallEdges(ctx,th,gx,gy);
     }
   }
 }
