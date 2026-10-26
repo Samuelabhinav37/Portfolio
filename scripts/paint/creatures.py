@@ -1,7 +1,8 @@
 # Paints the sky cast as watercolour for the homepage projects sheet.
-#   creatures-top.webp     whale (+ a manta) beside the "Selected work" heading
+#   creatures-top.webp     a fish and a manta beside the "Selected work" heading
 #   creatures-bottom.webp  turtle, sea star and fish on a painted sea floor under the last row
 #   stars-tile.webp        seamless sparse painted stars
+#   waves-tile.webp        seamless faint watercolour wave strokes
 # Shapes come from the site's own sky-cast.js fields (rendered by shapes.mjs),
 # so they match the creatures drifting in the background sky.
 import sys, json, numpy as np
@@ -61,6 +62,7 @@ def paint(name, scale, seed, rot=0, flip=False, digits=.5, tint=0.):
     da = Dn[..., 3] * digits
     out[..., :3] = out[..., :3] * (1 - da[..., None]) + CREAM * da[..., None]
     out[..., 3] = np.clip(out[..., 3] + da * (1 - out[..., 3]), 0, 1)
+    out[..., 3] *= 0.6                                    # quiet: a glaze, not a sticker
     im = Image.fromarray(np.clip(np.dstack([out[..., :3], out[..., 3:] * 255]), 0, 255).astype(np.uint8), 'RGBA')
     if flip: im = im.transpose(Image.FLIP_LEFT_RIGHT)
     if rot: im = im.rotate(rot, Image.BICUBIC, expand=True)
@@ -69,9 +71,8 @@ def paint(name, scale, seed, rot=0, flip=False, digits=.5, tint=0.):
 def over(canvas, im, x, y):
     canvas.alpha_composite(im, (int(x - im.width / 2), int(y - im.height / 2)))
 
-# ---- top: the whale beside the heading, a manta further out ----
+# ---- top: a fish beside the heading, a manta further out ----
 top = Image.new('RGBA', (1600, 560))
-over(top, paint('whale', .66, 11, rot=4), 1060, 300)
 over(top, paint('manta', .42, 21, rot=-12, digits=.45), 1470, 200)
 over(top, paint('fish', .55, 31, flip=True, digits=.5, tint=.3), 640, 390)
 top.save(f'{OUT}/creatures-top.webp', quality=78, alpha_quality=70, method=6)
@@ -105,7 +106,7 @@ for i in range(26):
     spikes = (np.exp(-(np.abs(xx) / (s * .18)) ** 2) * np.exp(-(np.abs(yy) / (s * 2.6)) ** 2) +
               np.exp(-(np.abs(yy) / (s * .18)) ** 2) * np.exp(-(np.abs(xx) / (s * 2.6)) ** 2)) * (s > 6)
     halo = np.exp(-(d / (s * 2.2)) ** 2) * .25
-    a = np.clip(core + spikes * .45 + halo, 0, 1) * r.uniform(.3, .65)
+    a = np.clip(core + spikes * .3 + halo, 0, 1) * r.uniform(.15, .38)
     tint = r.uniform(0, 1)
     rgb = np.ones(a.shape + (3,)) * (MOON * (1 - tint) + CREAM * tint)
     im = Image.fromarray(np.dstack([rgb, a * 255]).astype(np.uint8), 'RGBA')
@@ -113,4 +114,22 @@ for i in range(26):
         for oy in (-N, 0, N):
             st.alpha_composite(im, (int(cx - sz + ox), int(cy - sz + oy))) if -2 * sz < cx + ox < N + 2 * sz and -2 * sz < cy + oy < N + 2 * sz else None
 st.save(f'{OUT}/stars-tile.webp', quality=80, alpha_quality=70, method=6)
+
+# ---- waves: a few loose brush strokes of swell, seamless in both directions ----
+N = 1024
+yy, xx = np.mgrid[0:N, 0:N].astype(float)
+streak = fnoise(N, N // 8, 1.1, 81)
+streak = np.array(Image.fromarray((streak * 255).astype(np.uint8)).resize((N, N), Image.BILINEAR), float) / 255
+wa = np.zeros((N, N))
+r = np.random.default_rng(9)
+for k in range(5):
+    y0 = (k + r.uniform(.2, .8)) * N / 5
+    amp, per, ph = r.uniform(10, 22), N / r.choice([1, 2, 3]), r.uniform(0, 2 * np.pi)
+    cy = y0 + amp * np.sin(2 * np.pi * xx / per + ph)             # whole periods across, so it tiles sideways
+    d = np.minimum(np.abs(yy - cy), N - np.abs(yy - cy))           # and wraps top to bottom
+    width = 2.5 + 2 * (0.5 + 0.5 * np.sin(2 * np.pi * xx / per + ph + 1.3))   # thicker on the crests
+    stroke = np.exp(-(d / width) ** 2) * np.clip((streak - .35) * 3, 0, 1)      # dry brush breaks it up
+    wa = np.maximum(wa, stroke * r.uniform(.10, .18))
+rgb = np.ones((N, N, 3)) * MOON
+Image.fromarray(np.dstack([rgb, wa * 255]).astype(np.uint8), 'RGBA').save(f'{OUT}/waves-tile.webp', quality=80, alpha_quality=70, method=6)
 print('ok')

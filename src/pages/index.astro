@@ -678,15 +678,17 @@ footer#site-footer{
 }
 #projects-section{ position:relative; z-index:301; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 clamp(240px,36vh,360px); }
 /* After zainabkabira.com: the work arrives as a painted sheet that slides up
-   over the beliefs. A night watercolour wash with the sky cast painted into
-   it (the whale beside the heading, a turtle, fish and sea stars on the
-   sea floor below the last row, stars throughout), cut by a dry-brush edge
+   over the beliefs. A night watercolour wash with a few brushed swells and
+   the sky cast painted faintly into it (a fish and a manta by the heading,
+   a turtle, fish and sea stars on the sea floor below the last row, stars
+   throughout), cut by a dry-brush edge
    top and bottom. All generated once as images from the creatures' own
    shapes in sky-cast.js, so scrolling costs nothing extra. */
 #projects-section::before{ content:""; position:absolute; z-index:-1; left:0; right:0; top:-130px; bottom:-60px; pointer-events:none;
   background:url(/images/paint/creatures-top.webp) center -60px / 1600px auto no-repeat,
     url(/images/paint/creatures-bottom.webp) center bottom 100px / 1600px auto no-repeat,
     url(/images/paint/stars-tile.webp) 0 0 / 1024px,
+    url(/images/paint/waves-tile.webp) 0 140px / 1024px,
     url(/images/paint/wash-tile.webp) 0 0 / 1024px; opacity:.96;
   -webkit-mask:url(/images/paint/wash-edge.webp) top / 100% 280px no-repeat,
     linear-gradient(#000,#000) 0 278px / 100% calc(100% - 556px) no-repeat,
@@ -703,7 +705,7 @@ footer#site-footer{
   }
 }
 @media (--bp-760){
-  #projects-section::before{ background-size:1000px auto, 1000px auto, 1024px, 1024px; background-position:calc(50% + 230px) -70px, center bottom 90px, 0 0, 0 0; }
+  #projects-section::before{ background-size:1000px auto, 1000px auto, 1024px, 700px, 1024px; background-position:center -30px, center bottom 90px, 0 0, 0 140px, 0 0; }
 }
 @keyframes beliefs-sink{ to{ transform:translateY(70vh) scale(.88); opacity:.2; } }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
