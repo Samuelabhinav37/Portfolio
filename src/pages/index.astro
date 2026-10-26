@@ -632,7 +632,7 @@ footer#site-footer{
 /* Variant C: editorial bar, label in a narrow left column, title in the right */
 :root[data-heads="c"] .sec-head{ grid-template-columns:minmax(140px,22%) 1fr auto; border-top:1px solid rgba(201,214,255,.16); padding-top:18px; }
 :root[data-heads="c"] #signal .sec-head{ padding-top:18px; }
-:root[data-heads="c"] :root[data-heads="c"] :root[data-heads="c"] .sec-title{ grid-column:2; }
+:root[data-heads="c"] .sec-title{ grid-column:2; }
 
 /* Page rail (same shape as the blog post's .etoc strip) */
 .hrail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:140; }
@@ -675,7 +675,7 @@ footer#site-footer{
   .sec-link{ justify-self:start; }
   :root[data-heads="c"] .sec-head{ grid-template-columns:1fr; }
   :root[data-heads="c"] .sec-title{ grid-column:1; }
-  :root[data-heads="c"] }
+}
 #projects-section{ position:relative; z-index:3; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 0; }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
    edge with a 6px gutter, frames in their own shapes so rows go ragged, no
