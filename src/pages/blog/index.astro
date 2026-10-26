@@ -8,6 +8,7 @@ import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
 import KaiSite from '../../components/KaiSite.astro';
 import '../../styles/tokens.css';
+import '../../styles/bubbles.css';
 import Fonts from '../../components/Fonts.astro';
 import FieldTile from '../../components/FieldTile.astro';
 import { fieldCards, levelsOf, partLabel } from '../../data/field-cards';
@@ -149,21 +150,6 @@ body{position:relative;background:#0f1730;color:var(--ink);font-family:var(--san
   transform-origin:78% -20%;animation:fnRays 16s ease-in-out infinite alternate}
 @keyframes fnRays{from{rotate:-1.6deg;opacity:.7}to{rotate:1.6deg;opacity:1}}
 .fn-paint img{position:absolute;height:auto}
-/* little bubble streams, like the jellyfish's own: from the sea-floor corals
-   and the turtle, and in the open margins beside the title (the coral
-   shelves, a fish, a sea star). Mid-page spots would sit behind the
-   edge-to-edge grid.
-   Each stream is a few rings with a glint, rising and wobbling out of step. */
-.fn-bub{position:absolute;width:0;height:0}
-.fn-bub i{position:absolute;left:0;bottom:0;width:6px;aspect-ratio:1;border-radius:50%;opacity:0;
-  border:1px solid rgba(236,223,200,.75);background:radial-gradient(circle at 32% 30%,rgba(255,255,255,.95) 0 16%,transparent 24%);
-  animation:fnBub var(--d,5.5s) ease-in infinite}
-.fn-bub i:nth-child(2){width:4px;animation-delay:calc(var(--d,5.5s) * -.24)}
-.fn-bub i:nth-child(3){width:8px;animation-delay:calc(var(--d,5.5s) * -.5);animation-name:fnBub2}
-.fn-bub i:nth-child(4){width:5px;animation-delay:calc(var(--d,5.5s) * -.71)}
-.fn-bub i:nth-child(5){width:3px;animation-delay:calc(var(--d,5.5s) * -.88);animation-name:fnBub2}
-@keyframes fnBub{0%{opacity:0;translate:0 0;scale:.5}12%{opacity:.9}35%{translate:4px -40px}60%{translate:-3px -75px;scale:1}88%{opacity:.75}100%{opacity:0;translate:3px -120px}}
-@keyframes fnBub2{0%{opacity:0;translate:0 0;scale:.5}12%{opacity:.85}35%{translate:-4px -38px}60%{translate:3px -72px;scale:1}88%{opacity:.7}100%{opacity:0;translate:-2px -115px}}
 @media (max-width:760px){
   .fn-paint{background-size:1000px auto,1000px auto,100% 101px,110px auto,110px auto,700px,1024px,700px,1024px;
     background-position:center 60px,center bottom 100px,center bottom,left 0 top 220px,right 0 top 520px,0 0,0 0,0 140px,0 0}
@@ -172,7 +158,6 @@ body{position:relative;background:#0f1730;color:var(--ink);font-family:var(--san
 }
 @media (prefers-reduced-motion:reduce){
   .fn-tw,.fn-rays{animation:none}
-  .fn-bub{display:none}
   .fn-tw{opacity:.6}
 }
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
@@ -314,16 +299,16 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 <div class="fn-paint" aria-hidden="true">
   <div class="fn-tw"></div><div class="fn-tw"></div><div class="fn-tw"></div>
   <div class="fn-rays"></div>
-  <span class="fn-bub" style="left:calc(50% - 160px);bottom:165px;--d:5.2s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(50% + 210px);bottom:175px;--d:6.4s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(50% - 255px);bottom:330px;--d:4.6s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(50% - 700px);bottom:260px;--d:7s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(50% + 600px);bottom:240px;--d:5.8s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:75px;top:300px;--d:5.6s"><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(100% - 70px);top:60px;--d:6.6s"><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(100% - 85px);top:690px;--d:5s"><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(9% - 2px);top:168px;--d:4.8s"><i></i><i></i><i></i><i></i></span>
-  <span class="fn-bub" style="left:calc(100% - 175px);top:470px;--d:6.2s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% - 160px);bottom:165px;--d:5.2s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% + 210px);bottom:175px;--d:6.4s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% - 255px);bottom:330px;--d:4.6s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% - 700px);bottom:260px;--d:7s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% + 600px);bottom:240px;--d:5.8s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:75px;top:300px;--d:5.6s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(100% - 70px);top:60px;--d:6.6s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(100% - 85px);top:690px;--d:5s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(9% - 2px);top:168px;--d:4.8s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(100% - 175px);top:470px;--d:6.2s"><i></i><i></i><i></i><i></i></span>
   <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:9%;top:140px;width:96px" loading="lazy" decoding="async">
   <img src="/images/paint/sprite-fish-1.webp" alt="" style="left:91%;top:23%;width:90px" loading="lazy" decoding="async">
   <img src="/images/paint/sprite-fish-2.webp" alt="" style="left:48%;top:31%;width:78px" loading="lazy" decoding="async">

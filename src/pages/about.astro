@@ -4,9 +4,10 @@ import Glitches from '../components/Glitches.astro';
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import SkyBackground from '../components/SkyBackground.astro';
+import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
+import '../styles/bubbles.css';
 import Fonts from '../components/Fonts.astro';
 ---
 
@@ -64,6 +65,23 @@ html, body {
 
 
 
+/* The blog index's painted night sea, pared down: the watercolour wash and
+   star dust, coral trees with sea stars on rock shelves down both sides and
+   the sea floor's corals along the bottom (fish-free versions from
+   scripts/paint), with the contact page's jellyfish (SkyLife) and little
+   bubble streams from the coral tips. Fixed to the screen, since the desktop
+   layout is one screen. */
+.ab-paint{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:url(/images/paint/reef-floor.webp) center bottom -40px / 1600px auto no-repeat,
+    url(/images/paint/reef-l.webp) left 0 top 0 / 300px auto repeat-y,
+    url(/images/paint/reef-r.webp) right 0 top 0 / 300px auto repeat-y,
+    url(/images/paint/stars-tile.webp) 0 0 / 1024px,
+    url(/images/paint/wash-tile.webp) 0 0 / 1024px}
+@media (--bp-980){
+  .ab-paint{background-size:1000px auto,140px auto,140px auto,1024px,1024px}
+  .ab-paint .bub-side{display:none}
+}
+
 #about-main {
   position:relative;
   z-index:500;
@@ -96,7 +114,9 @@ html, body {
 .pg-footer{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
   gap:10px 20px; padding-top:12px; border-top:1px solid rgba(var(--c-white),0.08);
   font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em;
-  color:rgba(var(--c-white),0.55); }
+  color:rgba(var(--c-white),0.62);
+  /* it sits over the painted corals: a dark halo keeps it readable */
+  text-shadow:0 1px 2px rgba(3,6,16,.95),0 0 10px rgba(3,6,16,.9),0 0 18px rgba(3,6,16,.8); }
 .pg-footer .f-links{ display:flex; align-items:center; gap:14px; letter-spacing:.16em; text-transform:uppercase; }
 .pg-footer .f-links a{ color:rgba(var(--c-white),0.55); text-decoration:none; transition:color .25s;
   display:inline-flex; align-items:center; gap:5px; }
@@ -294,7 +314,17 @@ html, body {
 </head>
 <body>
 
-<SkyBackground />
+<div class="ab-paint" aria-hidden="true">
+  <span class="bub bub-side" style="left:48px;top:96px;--d:5.6s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub bub-side" style="left:62px;top:780px;--d:6.4s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub bub-side" style="left:calc(100% - 52px);top:198px;--d:5s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub bub-side" style="left:calc(100% - 64px);top:800px;--d:6.8s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% - 160px);bottom:24px;--d:5.2s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% + 210px);bottom:16px;--d:6.2s"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% - 500px);bottom:120px;--d:7s"><i></i><i></i><i></i><i></i></span>
+  <span class="bub" style="left:calc(50% + 600px);bottom:110px;--d:5.8s"><i></i><i></i><i></i><i></i></span>
+</div>
+<SkyLife jellies />
 
 <SiteMenu currentPath="/about" />
 

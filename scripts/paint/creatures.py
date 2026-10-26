@@ -6,6 +6,7 @@
 #   waves-tile.webp        seamless, barely-there brushed swells
 #   clouds-tile.webp       seamless soft cloud banks, lit along their tops
 #   side-l/-r.webp         vertical strips: small coral trees on rock shelves, sea stars, passing fish
+#   reef-l/-r.webp, reef-floor.webp  the about page's fish-free versions of the strips and the sea floor
 #   scatter-tile.webp      a few sea stars and fish for the gaps between rows
 # Creatures come from the site's own sky-cast.js shapes (rendered by shapes.mjs),
 # painted the way whale sharks and mantas look at night: dark bodies covered
@@ -171,6 +172,11 @@ for k in range(14):
     d.ellipse([bx - s, by - s, bx + s, by + s], outline=200, width=1)
 bot.alpha_composite(rgba(SPOT, np.array(bub, float) / 255 * .5))
 bot.save(f'{OUT}/creatures-bottom.webp', quality=80, alpha_quality=75, method=6)
+# the about page's sea floor: corals, weed and the two sea stars, no turtle, fish or painted bubbles
+reef = Image.new('RGBA', (W, H)); reef.alpha_composite(rgba(BODY * 1.1, fa)); reef.alpha_composite(plants(c, 7))
+over(reef, creature('star', .45, 61, rot=15, spots=1.6, strength=.8), 1120, 500)
+over(reef, creature('star', .3, 62, rot=-30, spots=1.6, strength=.7), 1215, 525)
+reef.save(f'{OUT}/reef-floor.webp', quality=80, alpha_quality=75, method=6)
 
 # ---- light shafts from above ----
 RW, RH = 1600, 1500
@@ -239,7 +245,7 @@ rgba(np.broadcast_to(MOON * .9 + CREAM * .1, (N, N, 3)), np.clip(ca, 0, .4)).sav
 # ---- sides: small coral trees on rock shelves down both edges, sea stars on the rocks, fish passing ----
 # Each strip repeats vertically, so nothing touches its top or bottom edge.
 SW, SHt = 300, 1800
-def side(seed):
+def side(seed, fish=True):
     r = np.random.default_rng(seed)
     s = Image.new('RGBA', (SW, SHt))
     shelves = [(220 + k * 600 + r.uniform(-60, 60), r.uniform(90, 150)) for k in range(3)]
@@ -255,11 +261,16 @@ def side(seed):
         over(s, creature('star', r.uniform(.24, .32), seed + 40 + i, rot=r.uniform(-40, 40), spots=1.6, strength=.85), r.uniform(25, ln * .7), y + 8)
         fy = y + r.uniform(200, 380)
         for f in range(r.integers(1, 4)):                              # a fish or a small school between shelves
-            over(s, creature('fish', r.uniform(.26, .36), seed + 60 + i * 5 + f, flip=r.random() < .5, spots=1.3, strength=.75),
-                 r.uniform(90, 230), fy + r.uniform(-30, 30) + f * 22)
+            # drawn either way, so the fish-free strip keeps the same corals and stars
+            sc, fl, x, y2 = r.uniform(.26, .36), r.random() < .5, r.uniform(90, 230), fy + r.uniform(-30, 30) + f * 22
+            if fish: over(s, creature('fish', sc, seed + 60 + i * 5 + f, flip=fl, spots=1.3, strength=.75), x, y2)
+    print('shelves', seed, [round(y) for y, _ in shelves])
     return s
 side(3).save(f'{OUT}/side-l.webp', quality=80, alpha_quality=75, method=6)
 side(4).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/side-r.webp', quality=80, alpha_quality=75, method=6)
+# the about page's reef: the same strips without fish
+side(3, fish=False).save(f'{OUT}/reef-l.webp', quality=80, alpha_quality=75, method=6)
+side(4, fish=False).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/reef-r.webp', quality=80, alpha_quality=75, method=6)
 
 # ---- scattered sea stars and fish for the gaps between rows ----
 TW, TH = 1400, 1300
