@@ -8,7 +8,7 @@ import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
-const sections = [['intro', 'About Samuel'], ['toolkit', 'Toolkit'], ['snapshot', 'Snapshot'], ['arcade', 'Arcade']];
+const sections = [['toolkit', 'Toolkit'], ['snapshot', 'Snapshot'], ['arcade', 'Arcade']];
 // [name, logo file in public/images/tools, or a monogram where no free logo exists]
 const toolkit = [
   ['Splunk', '>'], ['Microsoft Sentinel', 'microsoft-sentinel.svg'],
@@ -128,7 +128,6 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 .ab-h{ font-size:20px; font-weight:700; letter-spacing:-.005em; color:#f4f6fa; margin-bottom:16px; }
 
 /* intro: one long sentence across the whole column, as on fattah.me/info */
-.ab-kicker{ display:block; font-size:13px; font-weight:600; color:#f4f6fa; margin-bottom:22px; }
 .ab-intro{ font-size:clamp(22px, 1.8vw, 28px); font-weight:500; line-height:1.3; letter-spacing:-.01em; color:#f4f6fa; }
 .ab-intro b{ font-weight:700; }
 .ab-bio{ margin-top:30px; max-width:72ch; }
@@ -341,7 +340,6 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 
   <div class="ab-main">
     <section id="intro" class="ab-sec">
-      <span class="ab-kicker">About Samuel</span>
       <h1 class="ab-intro" data-words>Hi, I'm <b>Samuel Abhinav.</b> I make networks harder to break. Most days.</h1>
       <div class="ab-bio" data-reveal>
         <p>I got into security because finding the fracture points was the fun part. Now I am looking for a team that actually reads the logs.</p>

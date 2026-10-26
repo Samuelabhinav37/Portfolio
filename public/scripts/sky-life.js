@@ -1,6 +1,5 @@
 /* Jellyfish floating through the contact page's sky (SkyLife.astro), with a
-   few tiny glitching stars and the odd bubble, and the lilies' video in the
-   corner.
+   few tiny glitching stars and the odd bubble.
 
    Each jellyfish is the same short looping video (a jellyfish drawn in serif
    digits, pulsing once every PULSE seconds), started at a different point in
