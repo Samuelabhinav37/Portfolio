@@ -10,8 +10,6 @@
  * itself, untouched — it just needs these elements to exist with these
  * ids so its direct `.style.opacity` writes still find them).
  */
-import Logo from './Logo.astro';
-
 interface Props {
   currentPath: '/' | '/about' | '/blog' | '/contact' | '/work';
   hasIntro?: boolean;
@@ -30,7 +28,9 @@ const links = [
 <div id="topbar-scrim" aria-hidden="true"></div>
 
 <header id="site-identity">
-  <Logo href={currentPath === '/' ? undefined : '/'} />
+  {currentPath === '/'
+    ? <div class="name">Samuel Abhinav</div>
+    : <a href="/" class="name">Samuel Abhinav</a>}
 </header>
 
 <button id="menu-trigger" aria-label="Open menu" aria-expanded="false">Menu</button>
@@ -92,12 +92,27 @@ const links = [
 
   #site-identity {
     position: fixed;
-    top: 18px; left: 28px;
+    top: 14px; left: 28px;
     z-index: 1002;
-    line-height: 1;
+    line-height: 1.3;
     transition: left 0.55s cubic-bezier(0.22,1,0.36,1),
                 top  0.55s cubic-bezier(0.22,1,0.36,1);
   }
+  /* .name is this component's own markup (see the template above), so plain
+     scoped selection reaches it — no :global() needed. Using :global() here
+     also made lightningcss's minify pass warn on every build
+     ("'global' is not recognized as a valid pseudo-class"). */
+  #site-identity .name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: rgba(var(--c-white),0.90);
+    letter-spacing: 0.01em;
+    line-height: 1;
+    user-select: none;
+    text-decoration: none;
+  }
+
   #menu-trigger {
     position: fixed; top: 16px; right: 28px; z-index: 10001;
     font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;

@@ -13,7 +13,6 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
-import Logo from '../components/Logo.astro';
 import FieldTile from '../components/FieldTile.astro';
 import { fieldCards } from '../data/field-cards';
 import '../styles/field-tiles.css';
@@ -248,9 +247,9 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     </button>
 
     <div id="topbar-scrim" aria-hidden="true"></div>
-    <!-- Site identity (fixed corner logo) -->
+    <!-- Site identity (fixed corner wordmark) -->
     <div id="site-identity">
-      <Logo href={SITE.links.portfolio} />
+      <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
     </div>
 
     <button
