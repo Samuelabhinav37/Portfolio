@@ -176,7 +176,7 @@
     var playW = function(){
       wrecks.forEach(function(v){
         if(!v.getClientRects().length){ if(!v.paused) v.pause(); return; }
-        var q = v.play(); if(q && q.catch) q.catch(function(){});
+        var q = window.playClip ? playClip(v) : v.play(); if(q && q.catch) q.catch(function(){}); // one download for all three (shared-clip.js)
       });
     };
     if(document.readyState === 'complete') playW(); else addEventListener('load', playW, { once:true });

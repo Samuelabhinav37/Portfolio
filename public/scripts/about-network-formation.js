@@ -1,5 +1,5 @@
 /* About page network-formation diagram (#sig-canvas) — an unrelated widget
-   that used to live bundled inside about-ascii-converter.js under a
+   that used to live bundled inside the old about-ascii-converter.js under a
    misleading filename; split out here for clarity and independent
    cacheability. Extracted verbatim, no behavior change. */
 (function(){

@@ -12,7 +12,7 @@
       es.forEach(function(e){
         var v = e.target;
         v.dataset.on = e.isIntersecting ? '1' : '';
-        if(e.isIntersecting && !document.hidden){ var q = v.play(); if(q && q.catch) q.catch(function(){}); }
+        if(e.isIntersecting && !document.hidden){ var q = window.playClip ? playClip(v) : v.play(); if(q && q.catch) q.catch(function(){}); }
         else v.pause();
       });
     }, { rootMargin:'100px' });
@@ -22,7 +22,7 @@
       io.observe(v);
     });
     document.addEventListener('visibilitychange', function(){ vids.forEach(function(v){
-        if(document.hidden) v.pause(); else if(v.dataset.on){ var q = v.play(); if(q && q.catch) q.catch(function(){}); }
+        if(document.hidden) v.pause(); else if(v.dataset.on){ var q = window.playClip ? playClip(v) : v.play(); if(q && q.catch) q.catch(function(){}); }
       });
     });
   }

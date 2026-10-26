@@ -36,6 +36,7 @@ const { cast, jellies } = Astro.props;
 {cast ? (
   <>
     <div class="sky-life" aria-hidden="true"></div>
+    <script is:inline defer src="/scripts/shared-clip.js"></script>
     <script is:inline defer src="/scripts/sky-cast-life.js"></script>
   </>
 ) : jellies ? (
@@ -44,6 +45,7 @@ const { cast, jellies } = Astro.props;
       <div id="life-jellies" data-no-stars></div>
       <svg id="life-sky"></svg>
     </div>
+    <script is:inline defer src="/scripts/shared-clip.js"></script>
     <script is:inline defer src="/scripts/sky-life.js"></script>
   </>
 ) : (
@@ -57,6 +59,7 @@ const { cast, jellies } = Astro.props;
       <div id="life-jellies"></div>
       <svg id="life-sky"></svg>
     </div>
+    <script is:inline defer src="/scripts/shared-clip.js"></script>
     <script is:inline defer src="/scripts/sky-life.js"></script>
   </>
 )}

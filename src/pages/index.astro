@@ -324,7 +324,7 @@ footer#site-footer{
   @media (--bp-980){
     /* The CRT (live ascii.cam video render) is the heaviest thing in the
        footer — dropped entirely on phone/tablet rather than shrunk, same
-       call as the globe. index-ascii-footer.js skips booting it under
+       call as the globe. ascii-cam.js skips booting it under
        LOW_POWER so the video/canvas loop never runs either.
        footer#site-footer itself is min-height:100vh so the CRT panel (the
        thing that actually fills that height on desktop) has room — with
@@ -785,7 +785,7 @@ footer#site-footer{
 }
 @media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
 </style>
-<section id="projects-section" aria-labelledby="ps-title">
+<section id="projects-section" aria-labelledby="ps-title" data-covers-sky="150 220">
   <div class="ps-inner">
     <header class="sec-head">
       <h2 class="sec-title" id="ps-title" data-reveal="lines">Selected <em>work</em><sup aria-hidden="true">(06)</sup></h2>
@@ -1098,7 +1098,7 @@ footer#site-footer{
 <KaiSite hasIntro={true} />
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
-<script is:inline defer src="/scripts/index-ascii-footer.js"></script>
+<script is:inline defer src="/scripts/ascii-cam.js"></script>
 <script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
 </body>
 </html>

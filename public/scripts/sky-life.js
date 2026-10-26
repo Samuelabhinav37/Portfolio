@@ -163,7 +163,7 @@
   function playAll(){
     videos.forEach(function(v){
       if(!v.getClientRects().length) return;
-      var p = v.play(); if(p && p.catch) p.catch(function(){});
+      var p = window.playClip ? playClip(v) : v.play(); if(p && p.catch) p.catch(function(){}); // one download per clip (shared-clip.js)
     });
   }
   function pauseAll(){ videos.forEach(function(v){ v.pause(); }); }
