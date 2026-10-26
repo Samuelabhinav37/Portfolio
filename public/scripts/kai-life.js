@@ -140,6 +140,23 @@
                 var lift = bump(p, 0, .3), h = hold(p, .2, .78);
                 return { dy: -.02 * lift, sy: 1 + .03 * lift, rot: 7 * h, gx: 34 * h, gy: -26 * h, ant: -24 * h, mood: 'curious' };
               } },
+    // Idle activities (the brain picks these now and then, like fidgets).
+    // A radar sweep: the eyes pan left to right and back, the antenna follows and lights up.
+    scan:     { dur: 2600, light: true, fn: function (p) {
+                var g = p < .45 ? lerp(-1, 1, ease(p / .45)) : p < .62 ? 1 : lerp(1, 0, ease((p - .62) / .38));
+                if (p < .12) g = lerp(0, -1, ease(p / .12));
+                return { gx: 70 * g, ant: 22 * g, top: .22 * hold(p, .1, .9), mood: 'focused' };
+              } },
+    // a quiet tune: a slow sway, eyes smiling, a note drifting up
+    hum:      { dur: 2600, emote: '♪', emoteSmall: true, fn: function (p) {
+                var h = hold(p, .12, .85), s = Math.sin(p * PI * 4);
+                return { rot: 2.5 * s * h, dy: -.006 * Math.abs(s) * h, ant: -10 * s * h, mood: 'happy' };
+              } },
+    // wipes its screen: eyes squeeze shut, the face rubs side to side, then a clean sparkle
+    polish:   { dur: 1700, fn: function (p) {
+                var h = hold(p, .12, .78);
+                return { gx: 34 * Math.sin(p * PI * 7) * h, top: .62 * h, bottom: .3 * h, rot: 1.5 * Math.sin(p * PI * 7) * h, mood: p > .8 ? 'happy' : 'neutral' };
+              } },
     // dips out of sight a little and pops back up, pleased
     peek:     { dur: 1150, kick: 10, fn: function (p) {
                 var down = hold(p, .25, .45), pop = bump(p, .45, .8);
@@ -306,8 +323,10 @@
     if (this.action && this.action.name !== 'blink') { if (this.queue.length < 2) this.queue.push(name); return; }
     this.action = { name: name, A: A, t0: performance.now() };
     if (A.kick) this.antV += A.kick;
-    if (A.emote) this.emote(A.emote);
+    if (A.emote) this.emote(A.emote, A.emoteSmall);
+    if (A.light) this.lightAntenna(A.dur);
     var self = this;
+    if (name === 'polish') setTimeout(function () { self.emote('✧', true); }, A.dur * .8);
     (A.burst || []).forEach(function (at, i) { setTimeout(function () { self.confetti(i % 2 ? -1 : 1); }, A.dur * at); });
     this.start();
   };
@@ -339,6 +358,13 @@
     this.start();
   };
   Kai.prototype.lookAt = function (target) { this.gazeTarget = target; this.start(); };
+  /* Keep looking at something (an element or {x, y}) until watch(null): the
+     brain stops following the pointer meanwhile. Watching counts as you being
+     active, so Kai never dozes off while, say, you play the arcade. */
+  Kai.prototype.watch = function (target) {
+    this.watching = target || null;
+    this.lookAt(target || null);
+  };
   /* Glance at an element (or {x, y}) and lean the antenna toward it, as a
      wind-up before something happens there ("Show me"). */
   Kai.prototype.pointAt = function (target) {
@@ -555,7 +581,7 @@
       if (near && dir && lastDir && dir !== lastDir) { reversals.push(now); reversals = reversals.filter(function (x) { return now - x < 600; }); if (reversals.length >= 6) { reversals = []; kai.setMood('scared', 1600); kai.do('startle'); } }
       if (dir) lastDir = dir;
       lastMove = now;
-      if (!self.focusEl) kai.lookAt(pointer);
+      if (!self.focusEl && !kai.watching) kai.lookAt(pointer);
       wake();
     }, { passive: true });
     addEventListener('pointerdown', wake, { passive: true });
@@ -576,11 +602,11 @@
     // look at what you hover (links, buttons, anything marked data-kai-look)
     document.addEventListener('pointerover', function (e) {
       var t = e.target.closest && e.target.closest('a, button, [data-kai-look]');
-      if (!t || root.contains(t)) return;
+      if (!t || root.contains(t) || kai.watching) return;
       self.focusEl = t; kai.lookAt(t);
     });
     document.addEventListener('pointerout', function (e) {
-      if (self.focusEl && (!e.relatedTarget || !self.focusEl.contains(e.relatedTarget))) { self.focusEl = null; if (pointer) kai.lookAt(pointer); }
+      if (self.focusEl && (!e.relatedTarget || !self.focusEl.contains(e.relatedTarget))) { self.focusEl = null; if (pointer) kai.lookAt(kai.watching || pointer); }
     });
     // typing in Kai's chat: focus, and never fidget meanwhile
     document.addEventListener('focusin', function (e) {
@@ -614,15 +640,17 @@
     var nextFidget = performance.now() + rand(16000, 30000);
     setInterval(function () {
       if (document.hidden || !kai.visible || REDUCED) return;
+      if (kai.watching) self.lastInput = performance.now();
       var now = performance.now(), idle = now - self.lastInput, sleepAt = night() ? self.sleepAfter * .5 : self.sleepAfter;
       if (now > nextBlink && kai.base !== 'asleep') { kai.blink(Math.random() < .22); nextBlink = now + rand(2000, 6000); }
       if (self.dozing && kai.base === 'sleepy' && idle > sleepAt * 1.35) { kai.setMood('asleep'); }
       else if (kai.base === 'neutral' && idle > sleepAt) { self.dozing = true; kai.setMood('sleepy'); kai.do('yawn'); }
       if (kai.base === 'asleep' && Math.random() < .12) kai.emote('z', true);
       // the pointer has been still a while: look back at the visitor
-      if (pointer && now - lastMove > 3500 && !self.focusEl && kai.gazeTarget) { kai.lookAt(null); if (Math.random() < .5) kai.blink(); }
+      if (pointer && now - lastMove > 3500 && !self.focusEl && !kai.watching && kai.gazeTarget) { kai.lookAt(null); if (Math.random() < .5) kai.blink(); }
       if (now > nextFidget && !self.typing && !kai.action && kai.base === 'neutral' && !kai.thinking && now >= kai.talkUntil) {
-        kai.do(pick(['lookAround', 'tilt', 'wiggle', 'stretch', 'lookAround', 'blink']));
+        // mostly small fidgets; now and then one of the idle activities
+        kai.do(pick(['lookAround', 'tilt', 'wiggle', 'stretch', 'lookAround', 'blink', 'scan', 'hum', 'polish']));
         nextFidget = now + rand(20000, 40000);
       }
     }, 250);

@@ -380,7 +380,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
         </div>
         <div class="card c-wire">
           <div class="card-hd"><span class="ab-lbl">On the wire</span><a class="ab-lbl wr-src" href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">CISA KEV ↗</a></div>
-          <ol class="wr-list" aria-label="Newest actively exploited vulnerabilities">
+          <ol class="wr-list" data-kai-mood="suspicious" aria-label="Newest actively exploited vulnerabilities">
             {wire.map((w, i) => (
               <li><span class="wr-t wr-cve" style={`--n:${w.cve.length};--d:${wireSched[i].cveAt}ms`}>{w.cve}</span><span class="wr-t wr-what" style={`--n:${w.what.length};--d:${wireSched[i].whatAt}ms`}>{w.what}</span></li>
             ))}

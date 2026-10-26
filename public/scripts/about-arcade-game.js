@@ -134,7 +134,7 @@ function goTo(i){
     document.getElementById(SCREENS[CUR]).classList.add('on');
     updateProg();
     document.getElementById('back').classList.toggle('on',CUR>0&&CUR<4);
-    if(CUR<4){bgActive=true;bgC.style.display='';drawBg();gameRunning=false;setPaused(false);}
+    if(CUR<4){if(gameRunning)postKai({event:'stop'});bgActive=true;bgC.style.display='';drawBg();gameRunning=false;setPaused(false);}
     if(CUR===1)requestAnimationFrame(sprLoop);
     if(CUR===2)buildRules();
     if(CUR===3)buildThemeSel();
@@ -1097,6 +1097,7 @@ function checkCollisions(){
   G.keys.forEach((k)=>{
     if(!k.got&&k.x===G.px&&k.y===G.py){
       k.got=true;G.keysGot++;
+      postKai({event:'key'});
       spawnParticles(ppx,ppy,'#ccaa00',14);
       G.pickupFlash=1;G.pickupColor='#ccaa00';
       updateHUD();
@@ -1125,6 +1126,7 @@ function checkCollisions(){
       }
     });
     if(G.keysGot>=3&&G.px===G.exit.x&&G.py===G.exit.y)endGame(true,'MISSION COMPLETE','you escaped with all 3 keys');
+    checkDanger();
   }
   // defender
   if(G.mode==='defender'&&G.phantom){
@@ -1158,13 +1160,23 @@ function bestTime(t){
   try{b=+localStorage.getItem(k)||Infinity;if(t<b)localStorage.setItem(k,t.toFixed(1));}catch(e){}
   return Math.min(b,t);
 }
-// Kai, outside this sandboxed frame, cheers or gasps: post only the result,
-// and only to the page that embeds the game.
-function tellKai(win){
+// Kai, outside this sandboxed frame, watches and reacts: post only the result
+// or a play event (start, key, danger, stop), and only to the page that embeds
+// the game.
+function postKai(msg){
   try{
     var to=(location.ancestorOrigins&&location.ancestorOrigins[0])||(document.referrer?new URL(document.referrer).origin:'');
-    if(to&&to!=='null')parent.postMessage({kai:'arcade',result:win?'win':'lose'},to);
+    if(to&&to!=='null')parent.postMessage(Object.assign({kai:'arcade'},msg),to);
   }catch(e){}
+}
+function tellKai(win){postKai({result:win?'win':'lose'});}
+// a warden two steps away or closer, at most once every 3s
+let lastDanger=0;
+function checkDanger(){
+  if(G.mode!=='attacker'||G.status!=='playing'||G.puActive)return;
+  const now=performance.now();
+  if(now-lastDanger<3000)return;
+  if(G.guards.some(g=>g.x>=0&&Math.abs(g.x-G.px)+Math.abs(g.y-G.py)<=2)){lastDanger=now;postKai({event:'danger'});}
 }
 let hudKey='';
 function updateHUD(){
@@ -1248,6 +1260,7 @@ function runLoop(){
 // ═══════════════════════════════════════════════════════════
 function startGame(){
   bgActive=false;bgC.style.display='none';
+  postKai({event:'start'});
   const maxSide=Math.min(innerWidth*.96,innerHeight*.82,640);
   TILE=Math.max(16,Math.floor(maxSide/28));
   GC.width=TC.width=TILE*COLS;GC.height=TC.height=TILE*ROWS;
