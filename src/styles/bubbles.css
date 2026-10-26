@@ -1,0 +1,16 @@
+/* Little bubble streams for the painted sea backdrops (blog index, about),
+   like the jellyfish's own bubbles. A page places each stream as
+   <span class="bub" style="left:..;top|bottom:..;--d:5s"><i></i>x3-5</span>
+   where something would breathe them out: a coral tip, a fish, a sea star.
+   Each stream is a few rings with a glint, rising and wobbling out of step. */
+.bub{position:absolute;width:0;height:0}
+.bub i{position:absolute;left:0;bottom:0;width:6px;aspect-ratio:1;border-radius:50%;opacity:0;
+  border:1px solid rgba(236,223,200,.75);background:radial-gradient(circle at 32% 30%,rgba(255,255,255,.95) 0 16%,transparent 24%);
+  animation:bubRise var(--d,5.5s) ease-in infinite}
+.bub i:nth-child(2){width:4px;animation-delay:calc(var(--d,5.5s) * -.24)}
+.bub i:nth-child(3){width:8px;animation-delay:calc(var(--d,5.5s) * -.5);animation-name:bubRise2}
+.bub i:nth-child(4){width:5px;animation-delay:calc(var(--d,5.5s) * -.71)}
+.bub i:nth-child(5){width:3px;animation-delay:calc(var(--d,5.5s) * -.88);animation-name:bubRise2}
+@keyframes bubRise{0%{opacity:0;translate:0 0;scale:.5}12%{opacity:.9}35%{translate:4px -40px}60%{translate:-3px -75px;scale:1}88%{opacity:.75}100%{opacity:0;translate:3px -120px}}
+@keyframes bubRise2{0%{opacity:0;translate:0 0;scale:.5}12%{opacity:.85}35%{translate:-4px -38px}60%{translate:3px -72px;scale:1}88%{opacity:.7}100%{opacity:0;translate:-2px -115px}}
+@media (prefers-reduced-motion:reduce){ .bub{ display:none; } }

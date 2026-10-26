@@ -1,23 +1,28 @@
-/* ascii.cam widget for the footer (live luminance-ramp ASCII renderer). Extracted from an inline <script> block, unmodified. */
-/* ascii.cam widget (footer) — same live luminance-ramp ASCII renderer used on
-   the About page's skills card, ported in place of the old CRT recon map. */
+/* ascii.cam: a video drawn as live luminance-ramp ASCII, on the homepage
+   footer (the About card plays a recording of it, below). Where WebGL is available the
+   whole render runs on the graphics card (see glAscii); the text renderer
+   stays as the fallback. Each widget is booted by cam() below with its own
+   element ids, the colour behind it, and when to skip it entirely. */
 (function(){
-  var card=document.getElementById('footerAsciiCard'); if(!card)return;
-  /* .crt (this widget's container) is display:none on phone/tablet
-     (<=980px, see index.astro) — the live video decode + per-frame
-     getImageData sampling is real CPU/GPU cost that shouldn't run behind a
-     hidden element. Static at load: orientation changes on a phone don't
-     cross the tablet boundary, so no resize listener is needed here. */
-  if(matchMedia('(max-width:980px)').matches) return;
-  var out=document.getElementById('footerAsciiOut'), stage=document.getElementById('footerAsciiStage'),
-      vid=document.getElementById('footerAsciiVid'), samp=document.getElementById('footerAsciiSamp');
+function cam(o){
+  var card=document.getElementById(o.card); if(!card||o.skip)return;
+  var out=document.getElementById(o.out), stage=document.getElementById(o.stage),
+      vid=document.getElementById(o.vid), samp=document.getElementById(o.samp);
   var sctx=samp.getContext('2d',{willReadFrequently:true});
   var cols=(window.SITE&&window.SITE.LOW_POWER)?100:200, contrast=1.70, brightness=0, RAMP=' .:oO@', L=RAMP.length;
   var media=null, isVideo=false, visible=true, lastT=0, lastRows=0;
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Nothing (the WebGL context, the video) starts until the card first comes
+     near the screen: the footer's widget is a long way down the homepage,
+     and setting it up at load cost the page its first second. While it's
+     away again the clip pauses, so it isn't decoded for nothing. */
+  var started=false;
   if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){ visible=es[0].isIntersecting; }, {threshold:0});
-    io.observe(card);
+    new IntersectionObserver(function(es){
+      visible=es[0].isIntersecting;
+      if(visible && !started){ started=true; start(); }
+      else if(started){ if(visible){ var q=vid.play(); if(q&&q.catch) q.catch(function(){}); } else vid.pause(); }
+    }, {rootMargin:'300px'}).observe(card);
   }
 
   function fit(rows){
@@ -73,7 +78,7 @@
       gl.activeTexture(gl.TEXTURE1); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,at);
     }
     var VS='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
-    var BG='vec3(.0196,.0196,.0235)'; // .ascii-stage #050506
+    var BG='vec3('+o.bg+')'; // the colour behind the widget
     var FS='precision mediump float;varying vec2 v;uniform sampler2D vid,glyph;uniform vec2 grid;uniform vec4 box;uniform float con;'+
       'void main(){vec2 q=(vec2(v.x,1.-v.y)-box.xy)/box.zw;'+
       'if(q.x<0.||q.y<0.||q.x>=1.||q.y>=1.){gl_FragColor=vec4('+BG+',1.);return;}'+
@@ -119,6 +124,7 @@
       resize:function(){ sized=false; }
     };
   }
+  function start(){
   var glr=glAscii();
   if(glr) addEventListener('resize', function(){ glr.resize(); }, {passive:true});
   function loop(ts){
@@ -139,7 +145,7 @@
   function refit(){ if(lastRows) fit(lastRows); }
   addEventListener('resize', function(){ clearTimeout(_fitT); _fitT=setTimeout(refit,120); }, {passive:true});
   addEventListener('orientationchange', refit);
-  /* default clip — same baked-in flowers loop used on the About page widget */
+  /* default clip: the baked-in flowers loop, 240px grayscale h264 @13fps (matches the 75ms tick) */
   var DEFAULT_CLIP='/videos/ascii-default-clip.mp4';
   isVideo=true; media=vid;
   vid.addEventListener('loadeddata', function(){ lastRows=0; if(glr) glr.draw(); else render(); }, {once:true});
@@ -149,4 +155,21 @@
     var resume=function(){ vid.play().catch(function(){}); document.removeEventListener('pointerdown', resume); };
     document.addEventListener('pointerdown', resume);
   });
+  }
+  if(!('IntersectionObserver' in window)) start();
+}
+/* the footer's widget is hidden on phone/tablet (<=980px, index.astro); the
+   About card is skipped in low-power mode. Both checked once at load. */
+cam({ card:'footerAsciiCard', out:'footerAsciiOut', stage:'footerAsciiStage', vid:'footerAsciiVid', samp:'footerAsciiSamp',
+  skip:matchMedia('(max-width:980px)').matches, bg:'.0196,.0196,.0235' }); // .ascii-stage #050506
+/* the About card plays a recording of this renderer instead
+   (scripts/bake-ascii-cam.mjs): only while on screen, never in low-power mode */
+(function(){
+  var v=document.querySelector('#asciiCard .ascii-rec');
+  if(!v || (window.SITE && window.SITE.LOW_POWER) || matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+  var seen=false;
+  function go(){ if(seen && !document.hidden){ var q=v.play(); if(q&&q.catch) q.catch(function(){}); } else v.pause(); }
+  new IntersectionObserver(function(es){ seen=es[0].isIntersecting; go(); }).observe(v);
+  document.addEventListener('visibilitychange', go);
+})();
 })();

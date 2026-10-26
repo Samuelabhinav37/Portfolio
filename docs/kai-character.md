@@ -83,6 +83,17 @@ Never:
 | Cluster | Something undone | `nodSmall` | "Undone." |
 | Portfolio | Hovering a project card | look + `curious` | (none) |
 | Portfolio | Contact message sent | `celebrate` | "Sent. Samuel reads every one." |
+| Portfolio | Hovering anything marked `data-kai-mood` (About's exploit wire) | that mood | (none) |
+| Portfolio | An arcade round starts | `watch` the screen + `focused` | (none) |
+| Portfolio | Arcade: a key picked up | `nodSmall` + antenna | (none) |
+| Portfolio | Arcade: a guard two steps away | `worried` | (none) |
+| Portfolio | Arcade won / lost | `celebrate` / `startle` then `sad` | "Nice. You beat it." / "Oof. One more go?" |
+| Portfolio | Text copied | `nodSmall` + antenna | (none) |
+| Portfolio | Text selected | looks at it + `curious` | (none) |
+| Portfolio | Konami code (once a visit) | `celebrate` | "Cheat code accepted." |
+| Portfolio | The 404 page | `curious`, `lookAround`, `worried` | "That page isn't in my memory." |
+
+Idle activities: now and then, in place of a fidget, the brain picks `scan` (a radar sweep with the antenna lit), `hum` (a slow sway and a small note) or `polish` (wipes its screen). They follow the same rules as fidgets: rare, small, never while you type.
 
 The playground at `/prototype/kai` (dev only) plays every move and moment.
 

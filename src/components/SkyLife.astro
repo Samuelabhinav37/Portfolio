@@ -6,11 +6,7 @@
  *   drawn in serif digits (bright parts are bigger, brighter numbers), moved
  *   around the sky by /scripts/sky-life.js, which also scatters a few tiny
  *   glitching stars (the same digit style, each a 3s loop that breathes and
- *   twice splits into red and cyan) and lets out the odd rising bubble;
- * - a spray of lilies in the bottom-left corner, a looping video in the same
- *   digit style, swaying a little as a slow light passes over the petals;
- * - on the right, in the open sky beside the card, lilies like an X-ray: a
- *   photo inverted so the petals glow through each other on black.
+ *   twice splits into red and cyan) and lets out the odd rising bubble.
  *
  * Why video: the drawing has thousands of glyphs per frame. Rendered ahead
  * of time (scratchpad digits.py) it costs the browser a hardware video
@@ -23,30 +19,38 @@
  *
  * `cast` swaps all of this for the blog's sky cast (/scripts/sky-cast-life.js):
  * jellyfish, a whale, mantas, a turtle, fish and sea stars in the same digit
- * style, with soft stars and bubbles, and no lilies.
+ * style, with soft stars and bubbles.
  */
 interface Props {
   cast?: boolean;
+  /** only the jellyfish and their bubbles (no stars), for a page with its own backdrop */
+  jellies?: boolean;
 }
-const { cast } = Astro.props;
+const { cast, jellies } = Astro.props;
 ---
 
 {cast ? (
   <>
     <div class="sky-life" aria-hidden="true"></div>
+    <script is:inline defer src="/scripts/shared-clip.js"></script>
     <script is:inline defer src="/scripts/sky-cast-life.js"></script>
+  </>
+) : jellies ? (
+  <>
+    <div class="sky-life" aria-hidden="true">
+      <div id="life-jellies" data-no-stars></div>
+      <svg id="life-sky"></svg>
+    </div>
+    <script is:inline defer src="/scripts/shared-clip.js"></script>
+    <script is:inline defer src="/scripts/sky-life.js"></script>
   </>
 ) : (
   <>
     <div class="sky-life" aria-hidden="true">
-      <img class="life-xray" src="/images/contact-lilies-xray.webp" alt="" width="738" height="1000" decoding="async" loading="lazy" />
-      <video class="life-lilies" muted loop playsinline preload="none" poster="/images/contact-lilies-poster.webp" data-sky-video>
-        <source src="/videos/contact-lilies.webm" type="video/webm" />
-        <source src="/videos/contact-lilies.mp4" type="video/mp4" />
-      </video>
       <div id="life-jellies"></div>
       <svg id="life-sky"></svg>
     </div>
+    <script is:inline defer src="/scripts/shared-clip.js"></script>
     <script is:inline defer src="/scripts/sky-life.js"></script>
   </>
 )}
@@ -56,37 +60,9 @@ const { cast } = Astro.props;
   #life-sky{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; opacity:0.75;
     font-family:'Times New Roman', Times, serif; white-space:pre; }
 
-  /* the lilies, grown out of the corner: they fade toward the top and right */
-  .life-lilies{ position:absolute; left:0; bottom:0; width:190px; height:auto; aspect-ratio:400 / 614;
-    opacity:0.8; background:#000;
-    -webkit-mask:radial-gradient(130% 115% at 0% 100%, #000 62%, transparent 100%);
-    mask:radial-gradient(130% 115% at 0% 100%, #000 62%, transparent 100%); }
-  /* phones keep the sky simple: no corner lilies */
-  @media (max-width:900px){ .life-lilies{ display:none; } }
-
-  /* every clip here is drawn on black. The layer as a whole is screened onto
-     the sky, and each piece is screened onto the others too, so a jellyfish
-     drifting over the lilies doesn't show its black box */
-  .life-xray, .life-lilies, :global(.life-jelly), :global(.life-star){ mix-blend-mode:screen; }
-
-  /* the X-ray lilies, peeking in from the right edge: most of the spray is
-     off-screen. Black drops out in the screen blend, and their left and lower
-     edges fade so they grow out of the side of the sky. They sway from the
-     stems, slowly, as if the sky were drifting past them. */
-  .life-xray{ position:absolute; right:0; top:50%; height:min(64vh, 580px); width:auto;
-    transform:translate(36%, -50%); transform-origin:100% 80%; opacity:0.5;
-    animation:xray-sway 11s ease-in-out infinite alternate;
-    -webkit-mask:linear-gradient(90deg, transparent 0%, #000 40%), linear-gradient(0deg, transparent 0%, #000 22%);
-    mask:linear-gradient(90deg, transparent 0%, #000 40%), linear-gradient(0deg, transparent 0%, #000 22%);
-    -webkit-mask-composite:source-in; mask-composite:intersect; }
-  @keyframes xray-sway{
-    0%{ transform:translate(36%, -50%) rotate(-1.4deg) skewX(0.6deg); }
-    50%{ transform:translate(36%, -50.4%) rotate(0.4deg) skewX(-0.3deg); }
-    100%{ transform:translate(36%, -49.8%) rotate(1.2deg) skewX(0.5deg); }
-  }
-  @media (prefers-reduced-motion: reduce){ .life-xray{ animation:none; } }
-  /* only where there's open sky beside the card */
-  @media (max-width:1180px){ .life-xray{ display:none; } }
+  /* every clip here is drawn on black and screened onto the sky, so a
+     jellyfish drifting over another doesn't show its black box */
+  :global(.life-jelly), :global(.life-star){ mix-blend-mode:screen; }
 
   #life-jellies{ position:absolute; inset:0; }
   :global(.life-jelly){ position:absolute; left:0; top:0; display:block; height:auto; aspect-ratio:240 / 420;

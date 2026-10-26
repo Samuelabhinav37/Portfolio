@@ -29,7 +29,9 @@
   }
 
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
-  function greet(){ send(size()); send({ type:'running', on:!document.hidden }); }
+  var covered = false;
+  function running(){ send({ type:'running', on:!document.hidden && !covered }); }
+  function greet(){ send(size()); running(); }
 
   function runInline(){
     var c = canvases();
@@ -76,5 +78,26 @@
     if(queued) return; queued = true;
     requestAnimationFrame(function(){ queued = false; send(size()); });
   }, { passive:true });
-  document.addEventListener('visibilitychange', function(){ send({ type:'running', on:!document.hidden }); });
+  document.addEventListener('visibilitychange', running);
+
+  /* While an opaque part of the page fills the whole screen (marked
+     data-covers-sky: the homepage's painted projects sheet), nobody can see
+     the sky, so it stops drawing; the 'sky:covered' event tells the sky
+     cast (sky-cast-life.js) to hold too. data-covers-sky="top bottom" gives
+     the px at each end where the sky still shows through (a soft edge). */
+  var covers = document.querySelectorAll('[data-covers-sky]');
+  if(covers.length && 'IntersectionObserver' in window){
+    var state = new Map(), th = [];
+    for(var i = 0; i <= 200; i++) th.push(i / 200);
+    covers.forEach(function(el){
+      var e = (el.getAttribute('data-covers-sky') || '0 0').split(' ').map(Number);
+      new IntersectionObserver(function(es){
+        es.forEach(function(x){ state.set(x.target, !!x.rootBounds && x.intersectionRect.height >= x.rootBounds.height - 2); });
+        var now = false; state.forEach(function(v){ now = now || v; });
+        if(now === covered) return;
+        covered = now; running();
+        document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered }));
+      }, { threshold:th, rootMargin:(e[0] || 0) + 'px 0px ' + (e[1] || 0) + 'px 0px' }).observe(el);
+    });
+  }
 })();

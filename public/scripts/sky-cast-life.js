@@ -29,6 +29,7 @@
   if (!sky) return;
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const TAU = Math.PI * 2;
+  const play = (v) => (window.playClip ? playClip(v) : v.play()).catch(() => {}); // one download for all the jellyfish (shared-clip.js)
   const rnd = (a, b) => a + Math.random() * (b - a);
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const DPR = Math.min(2, devicePixelRatio || 1);
@@ -149,7 +150,7 @@
       const start = rnd(0, PULSE);
       v.addEventListener('loadedmetadata', () => { v.currentTime = start; }, { once: true });
       layer.appendChild(v);
-      if (!still) v.play().catch(() => {});
+      if (!still) play(v);
       const dir = (Math.random() < 0.5 ? -1 : 1) * rnd(0.45, 0.95);
       return { v, w, x: jellyX(), y: rnd(0.3, 1) * H, ph: rnd(0, 1), seed: rnd(0, 100), dir, aim: dir, lean: dir, fade: still ? 1 : 0, leaving: false, nextBubble: rnd(2, 6), planIn: 0 };
     });
@@ -410,7 +411,7 @@
       clearTimeout(resizeTimer); resizeTimer = setTimeout(setup, 300);
     });
     document.addEventListener('visibilitychange', () => {
-      jel.forEach((j) => { if (document.hidden) j.v.pause(); else if (!still) j.v.play().catch(() => {}); });
+      jel.forEach((j) => { if (document.hidden) j.v.pause(); else if (!still && !covered) play(j.v); });
     });
     // The cast drifts a few pixels a second, so 30 frames a second looks the
     // same as the screen's full rate; on a 120-240Hz screen that is 4-8x less
@@ -418,8 +419,16 @@
     const FRAME_MS = 1000 / 30;
     let scrolledAt = -1e9;
     addEventListener('scroll', () => { scrolledAt = performance.now(); }, { passive: true });
+    // while the page covers the whole sky (sky.js sends 'sky:covered') nobody
+    // can see the cast: it holds where it is and the jellyfish clips pause
+    let covered = false;
+    document.addEventListener('sky:covered', (e) => {
+      covered = e.detail;
+      jel.forEach((j) => { if (covered) j.v.pause(); else if (!still && !document.hidden) play(j.v); });
+    });
     let last = 0, clock = 0, drawn = false;
     const frame = (ms) => {
+      if (covered && !still) { last = ms; requestAnimationFrame(frame); return; }
       if (!still && last && ms - last < FRAME_MS - 2) { requestAnimationFrame(frame); return; }
       const dt = last ? Math.min(0.05, (ms - last) / 1000) : 0;
       last = ms; clock += dt;

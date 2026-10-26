@@ -130,7 +130,9 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   var MOMENTS = {
     sent: function () { kai.do('celebrate'); chat.say('Sent. Samuel reads every one.'); },
     arcadeWin: function () { kai.do('celebrate'); chat.say('Nice. You beat it.'); },
-    arcadeLose: function () { kai.do('startle'); setTimeout(function () { kai.setMood('sad', 1600); }, 700); chat.say('Oof. One more go?'); }
+    arcadeLose: function () { kai.do('startle'); setTimeout(function () { kai.setMood('sad', 1600); }, 700); chat.say('Oof. One more go?'); },
+    copied: function () { kai.do('nodSmall'); kai.lightAntenna(700); },
+    konami: function () { kai.do('celebrate'); chat.say('Cheat code accepted.'); }
   };
   window.SITE.kaiMoment = function (name) {
     var m = MOMENTS[name], t = Date.now();
@@ -139,20 +141,58 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
     m();
   };
   // The About page's arcade runs in a sandboxed frame and posts only
-  // { kai: 'arcade', result: 'win' | 'lose' }; trust nothing else.
+  // { kai: 'arcade', result: 'win' | 'lose' } or { kai: 'arcade', event: ... }; trust nothing else.
+  // While a round runs Kai watches the screen, perks up at a key and worries near a guard.
   addEventListener('message', function (e) {
     var game = document.getElementById('game-iframe');
     if (!game || e.source !== game.contentWindow || !e.data || e.data.kai !== 'arcade') return;
-    if (e.data.result === 'win') window.SITE.kaiMoment('arcadeWin');
-    else if (e.data.result === 'lose') window.SITE.kaiMoment('arcadeLose');
+    var d = e.data;
+    if (d.result === 'win' || d.result === 'lose' || d.event === 'stop') { kai.watch(null); kai.setMood('neutral'); }
+    if (d.result === 'win') window.SITE.kaiMoment('arcadeWin');
+    else if (d.result === 'lose') window.SITE.kaiMoment('arcadeLose');
+    else if (d.event === 'start') { kai.watch(game); kai.setMood('focused', 1500); }
+    else if (d.event === 'key') { kai.do('nodSmall'); kai.lightAntenna(900); }
+    else if (d.event === 'danger') kai.setMood('worried', 900);
+  });
+  // You copy something: a small nod.
+  document.addEventListener('copy', function () { window.SITE.kaiMoment('copied'); });
+  // You select text on the page: Kai reads along, then lets go when the selection clears.
+  var selT = 0, reading = false;
+  document.addEventListener('selectionchange', function () {
+    clearTimeout(selT);
+    selT = setTimeout(function () {
+      if (kai.watching) return;
+      var sel = getSelection(), node = sel && sel.anchorNode, el = node && (node.nodeType === 1 ? node : node.parentElement);
+      var ok = sel && !sel.isCollapsed && el && !chat.root.contains(el) && !el.closest('input, textarea, [contenteditable]');
+      if (ok) {
+        var r = sel.getRangeAt(0).getBoundingClientRect();
+        kai.lookAt({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        if (!reading) kai.setMood('curious', 1400);
+        reading = true;
+      } else if (reading) { reading = false; kai.lookAt(null); }
+    }, 250);
+  });
+  // The Konami code, once per visit.
+  var KONAMI = 'ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a', keys = [];
+  document.addEventListener('keydown', function (e) {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    keys.push(e.key.length === 1 ? e.key.toLowerCase() : e.key);
+    keys = keys.slice(-10);
+    if (keys.join(' ') !== KONAMI) return;
+    keys = [];
+    try { if (sessionStorage.getItem('kai-konami')) return; sessionStorage.setItem('kai-konami', '1'); } catch (err) {}
+    lastMoment = 0;
+    window.SITE.kaiMoment('konami');
   });
   // a project you hover on the homepage: Kai looks (the brain does that) and perks up
   var curiousAt = 0;
   document.addEventListener('pointerover', function (e) {
-    var card = e.target.closest && e.target.closest('#projects-section .pw-tile');
-    if (!card || chat.root.contains(card) || Date.now() - curiousAt < 2500) return;
+    // also anything marked data-kai-mood="<mood>" (the About page's exploit wire is "suspicious")
+    var marked = e.target.closest && e.target.closest('[data-kai-mood]');
+    var card = marked || (e.target.closest && e.target.closest('#projects-section .pw-tile'));
+    if (!card || chat.root.contains(card) || kai.watching || Date.now() - curiousAt < 2500) return;
     curiousAt = Date.now();
-    kai.setMood('curious', 1400);
+    kai.setMood(marked ? marked.getAttribute('data-kai-mood') : 'curious', 1400);
   });
   // The site menu closes the chat when it opens (SiteMenu.astro, blog-client.js).
   window.SITE.LunaChat = { open: chat.open, close: function () { chat.close(true); }, isOpen: chat.isOpen };

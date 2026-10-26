@@ -257,9 +257,9 @@ footer#site-footer{
      shadow so it reads as the same physical object returning at page end. */
   /* Width matches the old 1500px content column minus its side padding. */
   .f-card{
-    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); min-height:460px; margin:var(--sec-pad) auto 0;
+    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:var(--sec-pad) auto 0;
     display:flex; align-items:center; justify-content:space-between; gap:56px;
-    padding:72px 64px; border-radius:20px; overflow:visible;
+    padding:40px 48px 40px 64px; border-radius:20px; overflow:visible;
     background:linear-gradient(155deg, rgba(15,17,27,0.94) 0%, rgba(7,7,14,0.90) 55%, rgba(3,3,8,0.94) 100%);
     border:1px solid rgba(var(--c-white),0.07);
     box-shadow:0 60px 130px -35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(var(--c-white),0.04);
@@ -324,7 +324,7 @@ footer#site-footer{
   @media (--bp-980){
     /* The CRT (live ascii.cam video render) is the heaviest thing in the
        footer — dropped entirely on phone/tablet rather than shrunk, same
-       call as the globe. index-ascii-footer.js skips booting it under
+       call as the globe. ascii-cam.js skips booting it under
        LOW_POWER so the video/canvas loop never runs either.
        footer#site-footer itself is min-height:100vh so the CRT panel (the
        thing that actually fills that height on desktop) has room — with
@@ -455,18 +455,6 @@ footer#site-footer{
 </head>
 <body>
 <div class="page-grain" aria-hidden="true"></div>
-<!-- Page rail, after the blog post's "On this page" strip: one dash per
-     section, the ones already passed lit and the rest dim, so it shows how
-     much of the page is left. Hover or focus opens the section list.
-     Wired in index-rail.js; hidden under 1100px. -->
-<nav class="hrail" id="hrail" aria-label="On this page">
-  <ol class="hrail-dashes" aria-hidden="true">
-    {['term-stage','beliefs','projects-section','writing','signal','site-footer'].map((id) => <li><span data-sec={id}></span></li>)}
-  </ol>
-  <div class="hrail-card">
-    <ol>{[['term-stage','Intro'],['beliefs','What I believe'],['projects-section','Selected work'],['writing','Recent writing'],['signal','On my radar'],['site-footer','Get in touch']].map(([id, label]) => <li><a href={'#' + id} data-sec={id}>{label}</a></li>)}</ol>
-  </div>
-</nav>
 
 <SiteMenu currentPath="/" hasIntro={true} />
 <h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
@@ -566,6 +554,27 @@ footer#site-footer{
     :is(#editorial,#writing) .ed-tag--b{ left:auto; right:4%; }
     :is(#editorial,#writing) .ed-tag--c{ left:4%; }
   }
+  /* ── The beliefs as a white hologram, like the contact card (tone
+        'holo-mono'): a red/blue fringe and a soft glow on the letters,
+        scanlines and a slow rolling band over them. The tags become
+        projected labels. holo-glitch.js adds the signal drops. ── */
+  :is(#editorial,#writing) .ed-beliefs .ed-statement{ position:relative; --lit-off:rgba(238,241,248,.16); --lit-on:#f4f6fa;
+    filter:drop-shadow(1px 0 0 rgba(255,80,220,.32)) drop-shadow(-1px 0 0 rgba(80,180,255,.38)) drop-shadow(0 0 12px rgba(255,255,255,.24));
+    /* scanlines and the rolling band as a mask, so they sit in the letters only, never as a box over the sky */
+    -webkit-mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
+      linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
+    -webkit-mask-composite:source-in;
+    mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
+      linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
+    mask-composite:intersect;
+    animation:holo-roll 16s linear infinite; }
+  :is(#editorial,#writing) .ed-beliefs .ed-tag{ background:repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
+    color:#f2f4f8; border:1px solid rgba(255,255,255,.45); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(255,255,255,.08);
+    text-shadow:0 0 8px rgba(255,255,255,.55), 1px 0 0 rgba(255,80,220,.35), -1px 0 0 rgba(80,180,255,.4); }
+  @keyframes holo-roll{ from{ -webkit-mask-position:0 0, 0 0; mask-position:0 0, 0 0; } to{ -webkit-mask-position:0 0, 0 -150%; mask-position:0 0, 0 -150%; } }
+  @media (prefers-reduced-motion:reduce){
+    :is(#editorial,#writing) .ed-beliefs .ed-statement{ animation:none; }
+  }
   /* ── Research log — Work-grammar cards ── */
   :is(#editorial,#writing) .ed-log{ padding:var(--sec-pad) 0 0; }
   /* Edge-to-edge strip that drifts left; index-writing-reel.js moves it.
@@ -596,7 +605,7 @@ footer#site-footer{
       <span class="ed-tag ed-tag--a" aria-hidden="true">Architecture</span>
       <span class="ed-tag ed-tag--b" aria-hidden="true">Behaviour</span>
       <span class="ed-tag ed-tag--c" aria-hidden="true">Earned trust</span>
-      <p class="ed-statement" data-scroll-lit>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
+      <p class="ed-statement" data-scroll-lit data-holo-glitch>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
     </div>
   </section>
 
@@ -604,6 +613,8 @@ footer#site-footer{
 </div>
 
 <script is:inline defer src="/scripts/index-editorial-flow.js"></script>
+<script is:inline defer src="/scripts/index-wreck-frames.js"></script>
+<script is:inline defer src="/scripts/holo-glitch.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
@@ -634,22 +645,6 @@ footer#site-footer{
 :root[data-heads="c"] #signal .sec-head{ padding-top:18px; }
 :root[data-heads="c"] .sec-title{ grid-column:2; }
 
-/* Page rail (same shape as the blog post's .etoc strip) */
-.hrail{ position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:140; }
-.hrail-dashes{ list-style:none; margin:0; padding:12px 6px 12px 28px; display:grid; gap:12px; justify-items:end; }
-.hrail-dashes span{ display:block; width:22px; height:2px; border-radius:2px; background:rgba(226,232,244,.22); transition:width .25s, background .25s; }
-.hrail-dashes span.is-past{ background:rgba(226,232,244,.62); }
-.hrail-dashes span.is-active{ width:32px; background:rgba(238,241,248,.95); }
-.hrail-card{ position:absolute; right:calc(100% - 20px); top:50%; width:220px; padding:10px; border:1px solid rgba(226,232,244,.14); border-radius:10px;
-  background:rgba(12,13,19,.97); box-shadow:0 18px 50px rgba(0,0,0,.6);
-  opacity:0; pointer-events:none; transform:translate(8px,-50%); transition:opacity .18s ease, transform .18s ease; }
-.hrail.is-open .hrail-card, .hrail:focus-within .hrail-card{ opacity:1; pointer-events:auto; transform:translate(0,-50%); }
-.hrail-card ol{ list-style:none; margin:0; padding:0; display:grid; gap:1px; }
-.hrail-card a{ display:block; padding:7px 10px; border-radius:6px; font:400 14px/1.35 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:rgba(226,232,244,.7); text-decoration:none; }
-.hrail-card a:hover{ background:rgba(255,255,255,.05); color:#fff; }
-.hrail-card a.is-active{ color:#fff; background:rgba(200,206,218,.08); box-shadow:inset 2px 0 0 #c8ceda; }
-@media (max-width:1099px){ .hrail{ display:none; } }
-@media (prefers-reduced-motion:reduce){ .hrail-dashes span, .hrail-card{ transition:none; } }
 
 /* Film grain over the whole page, with a soft vignette under it. Held
    still and faint: none of the reference sites animate texture, and the sky
@@ -740,7 +735,9 @@ footer#site-footer{
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
-.pw-img--todo span{ font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
+/* empty frames get the contact page's broken-screen roll (index-wreck-frames.js plays it while on screen) */
+.pw-wreck{ position:absolute; inset:0; width:100%; height:100%; object-fit:fill; mix-blend-mode:screen; opacity:.28; pointer-events:none; }
+.pw-img--todo span{ position:relative;  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
 .pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 23px;
   font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
   /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
@@ -760,7 +757,7 @@ footer#site-footer{
 }
 @media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
 </style>
-<section id="projects-section" aria-labelledby="ps-title">
+<section id="projects-section" aria-labelledby="ps-title" data-covers-sky="150 220">
   <div class="ps-inner">
     <header class="sec-head">
       <h2 class="sec-title" id="ps-title" data-reveal="lines">Selected <em>work</em><sup aria-hidden="true">(06)</sup></h2>
@@ -771,7 +768,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
       <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/">
-        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
       <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
@@ -779,7 +776,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
       </a>
       <a class="pw-tile" id="sec-athena" href="/work/athena/">
-        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-line">Shows who has access, why they have it, and when it stops making sense.</span><span class="pw-tags">Identity governance · Policy as code</span></div>
       </a>
       <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/">
@@ -787,7 +784,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-line">A Windows disk analyzer that reads the drive once, then finds duplicates, junk and lost space.</span><span class="pw-tags">Desktop app · Rust &amp; Tauri</span></div>
       </a>
       <a class="pw-tile" id="sec-knot" href="/work/knot/">
-        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-line">An Android app for building habits, with AI help and on-device storage.</span><span class="pw-tags">Android app · In development</span></div>
       </a>
     </div>
@@ -809,7 +806,6 @@ footer#site-footer{
   </section>
 </div>
 <script is:inline defer src="/scripts/index-writing-reel.js"></script>
-<script is:inline defer src="/scripts/index-rail.js"></script>
 <script is:inline defer src="/scripts/index-thread.js"></script>
 
 <!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
@@ -1073,7 +1069,7 @@ footer#site-footer{
 <KaiSite hasIntro={true} />
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
-<script is:inline defer src="/scripts/index-ascii-footer.js"></script>
+<script is:inline defer src="/scripts/ascii-cam.js"></script>
 <script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
 </body>
 </html>

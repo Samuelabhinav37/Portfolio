@@ -239,7 +239,7 @@ rgba(np.broadcast_to(MOON * .9 + CREAM * .1, (N, N, 3)), np.clip(ca, 0, .4)).sav
 # ---- sides: small coral trees on rock shelves down both edges, sea stars on the rocks, fish passing ----
 # Each strip repeats vertically, so nothing touches its top or bottom edge.
 SW, SHt = 300, 1800
-def side(seed):
+def side(seed, fish=True):
     r = np.random.default_rng(seed)
     s = Image.new('RGBA', (SW, SHt))
     shelves = [(220 + k * 600 + r.uniform(-60, 60), r.uniform(90, 150)) for k in range(3)]
@@ -255,8 +255,10 @@ def side(seed):
         over(s, creature('star', r.uniform(.24, .32), seed + 40 + i, rot=r.uniform(-40, 40), spots=1.6, strength=.85), r.uniform(25, ln * .7), y + 8)
         fy = y + r.uniform(200, 380)
         for f in range(r.integers(1, 4)):                              # a fish or a small school between shelves
-            over(s, creature('fish', r.uniform(.26, .36), seed + 60 + i * 5 + f, flip=r.random() < .5, spots=1.3, strength=.75),
-                 r.uniform(90, 230), fy + r.uniform(-30, 30) + f * 22)
+            # drawn either way, so the fish-free strip keeps the same corals and stars
+            sc, fl, x, y2 = r.uniform(.26, .36), r.random() < .5, r.uniform(90, 230), fy + r.uniform(-30, 30) + f * 22
+            if fish: over(s, creature('fish', sc, seed + 60 + i * 5 + f, flip=fl, spots=1.3, strength=.75), x, y2)
+    print('shelves', seed, [round(y) for y, _ in shelves])
     return s
 side(3).save(f'{OUT}/side-l.webp', quality=80, alpha_quality=75, method=6)
 side(4).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/side-r.webp', quality=80, alpha_quality=75, method=6)
@@ -270,3 +272,29 @@ for i in range(6):
     over(sc, creature('fish', r.uniform(.24, .34), 110 + i, flip=r.random() < .5, spots=1.3, strength=.6), r.uniform(80, TW - 80), r.uniform(80, TH - 80))
 sc.save(f'{OUT}/scatter-tile.webp', quality=80, alpha_quality=75, method=6)
 print('ok')
+
+# ---- moving pieces, as separate images the page animates ----
+#   sprite-fish-0..2.webp  single fish (they bob in place)
+#   sprite-star-0..1.webp  single sea stars (they turn and breathe)
+#   twinkle-0..2.webp      seamless tiles of a few four-point sparkles each (they fade in and out out of step)
+for i, (s, sp) in enumerate([(.36, 1.3), (.3, 1.3), (.26, 1.4)]):
+    creature('fish', s, 200 + i, spots=sp, strength=.75).save(f'{OUT}/sprite-fish-{i}.webp', quality=82, alpha_quality=80, method=6)
+for i, s in enumerate([.3, .24]):
+    creature('star', s, 210 + i, spots=1.6, strength=.8).save(f'{OUT}/sprite-star-{i}.webp', quality=82, alpha_quality=80, method=6)
+def sparkle(s, a0):
+    sz = int(s * 7); yv, xv = np.mgrid[-sz:sz + 1, -sz:sz + 1].astype(float)
+    a = np.clip(np.exp(-(np.hypot(xv, yv) / (s * .6)) ** 2) +
+                (np.exp(-(np.abs(xv) / (s * .16)) ** 2) * np.exp(-(np.abs(yv) / (s * 2.2)) ** 2) +
+                 np.exp(-(np.abs(yv) / (s * .16)) ** 2) * np.exp(-(np.abs(xv) / (s * 2.2)) ** 2)) * .6, 0, 1) * a0
+    return rgba(SPOT, a), sz
+for t in range(3):
+    tw = Image.new('RGBA', (N, N)); rt = np.random.default_rng(300 + t)
+    for i in range(7):
+        im, sz = sparkle(rt.uniform(2.5, 5.5), rt.uniform(.5, .85))
+        cx, cy = rt.uniform(0, N, 2)
+        for ox in (-N, 0, N):
+            for oy in (-N, 0, N):
+                if -2 * sz < cx + ox < N + 2 * sz and -2 * sz < cy + oy < N + 2 * sz:
+                    tw.alpha_composite(im, (int(cx - sz + ox), int(cy - sz + oy)))
+    tw.save(f'{OUT}/twinkle-{t}.webp', quality=82, alpha_quality=80, method=6)
+print('sprites ok')

@@ -1,6 +1,5 @@
 /* Jellyfish floating through the contact page's sky (SkyLife.astro), with a
-   few tiny glitching stars and the odd bubble, and the lilies' video in the
-   corner.
+   few tiny glitching stars and the odd bubble.
 
    Each jellyfish is the same short looping video (a jellyfish drawn in serif
    digits, pulsing once every PULSE seconds), started at a different point in
@@ -107,8 +106,8 @@
     bubbles.push({ t:t, x:x, y:y, life:0, dur:rnd(3, 4.5), drift:rnd(-5, 5) });
   }
 
-  /* the stars stay put; their clips do the twinkling */
-  for(var i = 0; i < (narrow ? 3 : 9); i++){
+  /* the stars stay put; their clips do the twinkling (none where the page brings its own: data-no-stars) */
+  for(var i = 0; i < (layer.hasAttribute('data-no-stars') ? 0 : narrow ? 3 : 9); i++){
     var star = clip('star', 'life-star', rnd(11, 19), rnd(0, 3));
     star.style.left = rnd(3, 97).toFixed(1) + '%';
     star.style.top = rnd(5, 95).toFixed(1) + '%';
@@ -163,7 +162,7 @@
   function playAll(){
     videos.forEach(function(v){
       if(!v.getClientRects().length) return;
-      var p = v.play(); if(p && p.catch) p.catch(function(){});
+      var p = window.playClip ? playClip(v) : v.play(); if(p && p.catch) p.catch(function(){}); // one download per clip (shared-clip.js)
     });
   }
   function pauseAll(){ videos.forEach(function(v){ v.pause(); }); }

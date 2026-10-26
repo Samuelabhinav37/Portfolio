@@ -72,3 +72,11 @@
 @media (prefers-reduced-motion: reduce) {
   .kai-ant, .kai-face, .kai-face .blush { transition: none; }
 }
+/* confetti bits from Kai.prototype.confetti (kai-life.js) */
+.kai-bit {
+  position: absolute;
+  left: 50%; top: 34cqw;
+  width: max(4px, 2.8cqw); height: max(4px, 2.8cqw);
+  pointer-events: none;
+  will-change: transform, opacity;
+}

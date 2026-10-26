@@ -36,6 +36,15 @@
   // 0 -> 1 -> 0 over the action, with an eased hold in the middle
   var hold = function (p, inEnd, outStart) { return p < inEnd ? ease(p / inEnd) : p > outStart ? 1 - ease((p - outStart) / (1 - outStart)) : 1; };
   var bump = function (p, a, b) { return p <= a || p >= b ? 0 : Math.sin((p - a) / (b - a) * PI); };
+  // a jump arc over a..b: rises fast and eases into the top (sine out) by `up`, can hang
+  // there for `hang`, then falls slow-then-fast (cubic in), like gravity. Fractions of a..b.
+  var fall = function (p, a, b, up, hang) {
+    if (p <= a || p >= b) return 0;
+    var q = (p - a) / (b - a);
+    if (q < up) return Math.sin(q / up * PI / 2);
+    if (q < up + hang) return 1;
+    return 1 - Math.pow((q - up - hang) / (1 - up - hang), 3);
+  };
 
   // Face geometry in SVG units: the head image is 1000 wide, 968.6 tall.
   var EYE = { w: 191, h: 189, r: 54, cy: 443, cx: [343, 655] };
@@ -73,9 +82,11 @@
   var ACTIONS = {
     blink:    { dur: 160, fn: function (p) { return { blink: bump(p, 0, 1) }; } },
     wink:     { dur: 520, fn: function (p) { return { winkR: hold(p, .25, .7), rot: 4 * hold(p, .25, .7), mood: 'happy' }; } },
-    hop:      { dur: 640, kick: 14, fn: function (p) {
-                var crouch = bump(p, 0, .22), air = bump(p, .18, .78), land = bump(p, .72, 1);
-                return { dy: .02 * crouch - .13 * air + .015 * land, sx: 1 + .07 * crouch - .03 * air + .06 * land, sy: 1 - .09 * crouch + .05 * air - .07 * land };
+    // a wind-up crouch, a quick rise and a heavier fall (fall() below), a squash on landing,
+    // then one small rebound so it doesn't land dead
+    hop:      { dur: 700, kick: 14, fn: function (p) {
+                var crouch = bump(p, 0, .2), air = fall(p, .16, .72, .42, 0), land = bump(p, .7, .86), reb = bump(p, .86, 1);
+                return { dy: .025 * crouch - .13 * air + .015 * land - .012 * reb, sx: 1 + .08 * crouch - .03 * air + .07 * land, sy: 1 - .1 * crouch + .05 * air - .08 * land + .02 * reb };
               } },
     nod:      { dur: 760, fn: function (p) {
                 var d = Math.sin(p * PI * 2) * (1 - p * .3);
@@ -97,9 +108,15 @@
                 var j = bump(p, 0, .5);
                 return { dy: -.09 * j, sy: 1 + .06 * j, sx: 1 - .04 * j, mood: 'surprised' };
               } },
-    celebrate:{ dur: 1500, kick: 18, emote: '✦', fn: function (p) {
-                var a = bump(p, 0, .42), b = bump(p, .45, .85);
-                return { dy: -.12 * a - .08 * b, sx: 1 - .03 * (a + b), sy: 1 + .05 * (a + b), ant: 20 * Math.sin(p * PI * 6) * (1 - p), mood: 'joyful' };
+    // crouch, a big jump that hangs at the top while the first confetti fires, land, a
+    // smaller second jump with the second burst, settle. `burst` is when each fires (0..1).
+    celebrate:{ dur: 1800, kick: 18, emote: '✦', burst: [.27, .7], fn: function (p) {
+                var crouch = bump(p, 0, .12), a = fall(p, .1, .5, .35, .2), land = bump(p, .48, .6);
+                var b = fall(p, .6, .84, .4, 0), land2 = bump(p, .82, .94);
+                return { dy: .02 * crouch - .14 * a + .016 * land - .065 * b + .008 * land2,
+                         sx: 1 + .07 * crouch - .03 * (a + b) + .07 * land + .03 * land2,
+                         sy: 1 - .09 * crouch + .05 * (a + b) - .08 * land - .03 * land2,
+                         ant: 20 * Math.sin(p * PI * 6) * (1 - p), mood: 'joyful' };
               } },
     lookAround:{ dur: 2600, fn: function (p) {
                 var g = p < .4 ? -ease(p / .15) : p < .8 ? lerp(-1, 1, ease((p - .4) / .2)) : 1 - ease((p - .8) / .2);
@@ -122,6 +139,23 @@
     shrug:    { dur: 1400, fn: function (p) {
                 var lift = bump(p, 0, .3), h = hold(p, .2, .78);
                 return { dy: -.02 * lift, sy: 1 + .03 * lift, rot: 7 * h, gx: 34 * h, gy: -26 * h, ant: -24 * h, mood: 'curious' };
+              } },
+    // Idle activities (the brain picks these now and then, like fidgets).
+    // A radar sweep: the eyes pan left to right and back, the antenna follows and lights up.
+    scan:     { dur: 2600, light: true, fn: function (p) {
+                var g = p < .45 ? lerp(-1, 1, ease(p / .45)) : p < .62 ? 1 : lerp(1, 0, ease((p - .62) / .38));
+                if (p < .12) g = lerp(0, -1, ease(p / .12));
+                return { gx: 70 * g, ant: 22 * g, top: .22 * hold(p, .1, .9), mood: 'focused' };
+              } },
+    // a quiet tune: a slow sway, eyes smiling, a note drifting up
+    hum:      { dur: 2600, emote: '♪', emoteSmall: true, fn: function (p) {
+                var h = hold(p, .12, .85), s = Math.sin(p * PI * 4);
+                return { rot: 2.5 * s * h, dy: -.006 * Math.abs(s) * h, ant: -10 * s * h, mood: 'happy' };
+              } },
+    // wipes its screen: eyes squeeze shut, the face rubs side to side, then a clean sparkle
+    polish:   { dur: 1700, fn: function (p) {
+                var h = hold(p, .12, .78);
+                return { gx: 34 * Math.sin(p * PI * 7) * h, top: .62 * h, bottom: .3 * h, rot: 1.5 * Math.sin(p * PI * 7) * h, mood: p > .8 ? 'happy' : 'neutral' };
               } },
     // dips out of sight a little and pops back up, pleased
     peek:     { dur: 1150, kick: 10, fn: function (p) {
@@ -289,8 +323,33 @@
     if (this.action && this.action.name !== 'blink') { if (this.queue.length < 2) this.queue.push(name); return; }
     this.action = { name: name, A: A, t0: performance.now() };
     if (A.kick) this.antV += A.kick;
-    if (A.emote) this.emote(A.emote);
+    if (A.emote) this.emote(A.emote, A.emoteSmall);
+    if (A.light) this.lightAntenna(A.dur);
+    var self = this;
+    if (name === 'polish') setTimeout(function () { self.emote('✧', true); }, A.dur * .8);
+    (A.burst || []).forEach(function (at, i) { setTimeout(function () { self.confetti(i % 2 ? -1 : 1); }, A.dur * at); });
     this.start();
+  };
+  /* A burst of pixel confetti from the top of the head, thrown to one side
+     (after the Codrops rebuild of Claude's confetti loop: the burst fires
+     when the jump peaks, shoots up fast, then falls under gravity). */
+  // distances scale with Kai, but never shrink below what reads on the small corner Kai
+  var U = 'max(1.5px, 1cqw)';
+  var BITS = ['#f4f6fa', '#9cc0ff', '#ffd27a', '#ff9ab0', '#8ff0c2'];
+  Kai.prototype.confetti = function (side) {
+    if (REDUCED || !document.body.animate) return;
+    for (var i = 0; i < 14; i++) {
+      var n = document.createElement('span');
+      n.className = 'kai-bit';
+      n.style.background = BITS[i % BITS.length];
+      this.root.appendChild(n);
+      var dx = (side || 1) * rand(4, 46) + rand(-12, 12), up = rand(22, 46), down = rand(10, 34), spin = rand(-260, 260);
+      n.animate([
+        { transform: 'translate(-50%, 0) rotate(0deg)', opacity: 1, easing: 'cubic-bezier(.2,.8,.4,1)' },
+        { transform: 'translate(calc(-50% + ' + (dx * .55).toFixed(1) + ' * ' + U + '), calc(-' + up.toFixed(1) + ' * ' + U + ')) rotate(' + spin * .5 + 'deg)', opacity: 1, offset: .38, easing: 'cubic-bezier(.5,0,.9,.6)' },
+        { transform: 'translate(calc(-50% + ' + dx.toFixed(1) + ' * ' + U + '), calc(' + down.toFixed(1) + ' * ' + U + ')) rotate(' + spin + 'deg)', opacity: 0 }
+      ], { duration: rand(1000, 1400) }).onfinish = function () { this.effect.target.remove(); };
+    }
   };
   Kai.prototype.blink = function (double) {
     if (REDUCED) return;
@@ -299,6 +358,13 @@
     this.start();
   };
   Kai.prototype.lookAt = function (target) { this.gazeTarget = target; this.start(); };
+  /* Keep looking at something (an element or {x, y}) until watch(null): the
+     brain stops following the pointer meanwhile. Watching counts as you being
+     active, so Kai never dozes off while, say, you play the arcade. */
+  Kai.prototype.watch = function (target) {
+    this.watching = target || null;
+    this.lookAt(target || null);
+  };
   /* Glance at an element (or {x, y}) and lean the antenna toward it, as a
      wind-up before something happens there ("Show me"). */
   Kai.prototype.pointAt = function (target) {
@@ -515,7 +581,7 @@
       if (near && dir && lastDir && dir !== lastDir) { reversals.push(now); reversals = reversals.filter(function (x) { return now - x < 600; }); if (reversals.length >= 6) { reversals = []; kai.setMood('scared', 1600); kai.do('startle'); } }
       if (dir) lastDir = dir;
       lastMove = now;
-      if (!self.focusEl) kai.lookAt(pointer);
+      if (!self.focusEl && !kai.watching) kai.lookAt(pointer);
       wake();
     }, { passive: true });
     addEventListener('pointerdown', wake, { passive: true });
@@ -536,11 +602,11 @@
     // look at what you hover (links, buttons, anything marked data-kai-look)
     document.addEventListener('pointerover', function (e) {
       var t = e.target.closest && e.target.closest('a, button, [data-kai-look]');
-      if (!t || root.contains(t)) return;
+      if (!t || root.contains(t) || kai.watching) return;
       self.focusEl = t; kai.lookAt(t);
     });
     document.addEventListener('pointerout', function (e) {
-      if (self.focusEl && (!e.relatedTarget || !self.focusEl.contains(e.relatedTarget))) { self.focusEl = null; if (pointer) kai.lookAt(pointer); }
+      if (self.focusEl && (!e.relatedTarget || !self.focusEl.contains(e.relatedTarget))) { self.focusEl = null; if (pointer) kai.lookAt(kai.watching || pointer); }
     });
     // typing in Kai's chat: focus, and never fidget meanwhile
     document.addEventListener('focusin', function (e) {
@@ -574,15 +640,17 @@
     var nextFidget = performance.now() + rand(16000, 30000);
     setInterval(function () {
       if (document.hidden || !kai.visible || REDUCED) return;
+      if (kai.watching) self.lastInput = performance.now();
       var now = performance.now(), idle = now - self.lastInput, sleepAt = night() ? self.sleepAfter * .5 : self.sleepAfter;
       if (now > nextBlink && kai.base !== 'asleep') { kai.blink(Math.random() < .22); nextBlink = now + rand(2000, 6000); }
       if (self.dozing && kai.base === 'sleepy' && idle > sleepAt * 1.35) { kai.setMood('asleep'); }
       else if (kai.base === 'neutral' && idle > sleepAt) { self.dozing = true; kai.setMood('sleepy'); kai.do('yawn'); }
       if (kai.base === 'asleep' && Math.random() < .12) kai.emote('z', true);
       // the pointer has been still a while: look back at the visitor
-      if (pointer && now - lastMove > 3500 && !self.focusEl && kai.gazeTarget) { kai.lookAt(null); if (Math.random() < .5) kai.blink(); }
+      if (pointer && now - lastMove > 3500 && !self.focusEl && !kai.watching && kai.gazeTarget) { kai.lookAt(null); if (Math.random() < .5) kai.blink(); }
       if (now > nextFidget && !self.typing && !kai.action && kai.base === 'neutral' && !kai.thinking && now >= kai.talkUntil) {
-        kai.do(pick(['lookAround', 'tilt', 'wiggle', 'stretch', 'lookAround', 'blink']));
+        // mostly small fidgets; now and then one of the idle activities
+        kai.do(pick(['lookAround', 'tilt', 'wiggle', 'stretch', 'lookAround', 'blink', 'scan', 'hum', 'polish']));
         nextFidget = now + rand(20000, 40000);
       }
     }, 250);
