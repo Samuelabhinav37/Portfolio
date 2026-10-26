@@ -14,7 +14,7 @@ let bgActive=true;
 // A still picture: it was redrawn every frame at a few percent opacity, a
 // full-screen canvas working constantly for something barely visible.
 function drawBg(){
-  if(!bgActive)return;
+  if(!bgActive||ascOn)return;
   bgX.fillStyle='#000';bgX.fillRect(0,0,BW,BH);
   bgX.strokeStyle='rgba(255,255,255,.005)';bgX.lineWidth=1;
   for(let x=0;x<BW;x+=42){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,BH);bgX.stroke();}
@@ -27,7 +27,29 @@ function drawBg(){
     bgX.fillStyle=`rgba(255,255,255,${a.b})`;bgX.fillRect(a.x*BW-1,a.y*BH-1,2,2);
   });
 }
+// ASCII field behind the title screen: four sine waves summed into a slow plasma, drawn as
+// characters from a density ramp at ~12fps. Dimmer toward the middle so the title stays clear.
+// Runs only while the title screen is up and the tab is visible.
+const ASC=' .:-=+*#%@';
+let ascOn=!matchMedia('(prefers-reduced-motion: reduce)').matches,ascT=0,ascLast=0;
+function ascii(ts){
+  if(!ascOn)return;
+  requestAnimationFrame(ascii);
+  if(document.hidden||ts-ascLast<83)return;
+  ascLast=ts;ascT+=.05;
+  bgX.fillStyle='#000';bgX.fillRect(0,0,BW,BH);
+  bgX.font='12px "JetBrains Mono",monospace';bgX.textBaseline='top';
+  for(let y=0;y<BH;y+=16)for(let x=0;x<BW;x+=10){
+    const u=x/BW,v=y/BH;
+    const p=(Math.sin(u*9+ascT)+Math.sin(v*7-ascT*1.3)+Math.sin((u+v)*6+ascT*.7)+Math.sin(Math.hypot(u-.5,v-.5)*14-ascT*1.6)+4)/8;
+    const f=Math.min(1,Math.hypot(u-.5,(v-.5)*1.3)*1.9)*p;
+    const k=Math.floor(f*f*(ASC.length-1));
+    if(!k)continue;
+    bgX.fillStyle='rgba(255,255,255,'+(.05+f*.16).toFixed(2)+')';bgX.fillText(ASC[k],x,y);
+  }
+}
 rsz();addEventListener('resize',rsz);
+if(ascOn)requestAnimationFrame(ascii);
 
 // ═══════════════════════════════════════════════════════════
 // MODE CARD SPRITES (intro only)
@@ -108,6 +130,7 @@ function goTo(i){
   ft(()=>{
     document.getElementById(SCREENS[CUR]).classList.remove('on');
     CUR=i;
+    {const was=ascOn;ascOn=CUR===0&&!matchMedia('(prefers-reduced-motion: reduce)').matches;if(ascOn&&!was)requestAnimationFrame(ascii);}
     document.getElementById(SCREENS[CUR]).classList.add('on');
     updateProg();
     document.getElementById('back').classList.toggle('on',CUR>0&&CUR<4);

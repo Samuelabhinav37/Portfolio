@@ -36,6 +36,15 @@
   // 0 -> 1 -> 0 over the action, with an eased hold in the middle
   var hold = function (p, inEnd, outStart) { return p < inEnd ? ease(p / inEnd) : p > outStart ? 1 - ease((p - outStart) / (1 - outStart)) : 1; };
   var bump = function (p, a, b) { return p <= a || p >= b ? 0 : Math.sin((p - a) / (b - a) * PI); };
+  // a jump arc over a..b: rises fast and eases into the top (sine out) by `up`, can hang
+  // there for `hang`, then falls slow-then-fast (cubic in), like gravity. Fractions of a..b.
+  var fall = function (p, a, b, up, hang) {
+    if (p <= a || p >= b) return 0;
+    var q = (p - a) / (b - a);
+    if (q < up) return Math.sin(q / up * PI / 2);
+    if (q < up + hang) return 1;
+    return 1 - Math.pow((q - up - hang) / (1 - up - hang), 3);
+  };
 
   // Face geometry in SVG units: the head image is 1000 wide, 968.6 tall.
   var EYE = { w: 191, h: 189, r: 54, cy: 443, cx: [343, 655] };
@@ -73,9 +82,11 @@
   var ACTIONS = {
     blink:    { dur: 160, fn: function (p) { return { blink: bump(p, 0, 1) }; } },
     wink:     { dur: 520, fn: function (p) { return { winkR: hold(p, .25, .7), rot: 4 * hold(p, .25, .7), mood: 'happy' }; } },
-    hop:      { dur: 640, kick: 14, fn: function (p) {
-                var crouch = bump(p, 0, .22), air = bump(p, .18, .78), land = bump(p, .72, 1);
-                return { dy: .02 * crouch - .13 * air + .015 * land, sx: 1 + .07 * crouch - .03 * air + .06 * land, sy: 1 - .09 * crouch + .05 * air - .07 * land };
+    // a wind-up crouch, a quick rise and a heavier fall (fall() below), a squash on landing,
+    // then one small rebound so it doesn't land dead
+    hop:      { dur: 700, kick: 14, fn: function (p) {
+                var crouch = bump(p, 0, .2), air = fall(p, .16, .72, .42, 0), land = bump(p, .7, .86), reb = bump(p, .86, 1);
+                return { dy: .025 * crouch - .13 * air + .015 * land - .012 * reb, sx: 1 + .08 * crouch - .03 * air + .07 * land, sy: 1 - .1 * crouch + .05 * air - .08 * land + .02 * reb };
               } },
     nod:      { dur: 760, fn: function (p) {
                 var d = Math.sin(p * PI * 2) * (1 - p * .3);
@@ -97,9 +108,15 @@
                 var j = bump(p, 0, .5);
                 return { dy: -.09 * j, sy: 1 + .06 * j, sx: 1 - .04 * j, mood: 'surprised' };
               } },
-    celebrate:{ dur: 1500, kick: 18, emote: '✦', fn: function (p) {
-                var a = bump(p, 0, .42), b = bump(p, .45, .85);
-                return { dy: -.12 * a - .08 * b, sx: 1 - .03 * (a + b), sy: 1 + .05 * (a + b), ant: 20 * Math.sin(p * PI * 6) * (1 - p), mood: 'joyful' };
+    // crouch, a big jump that hangs at the top while the first confetti fires, land, a
+    // smaller second jump with the second burst, settle. `burst` is when each fires (0..1).
+    celebrate:{ dur: 1800, kick: 18, emote: '✦', burst: [.27, .7], fn: function (p) {
+                var crouch = bump(p, 0, .12), a = fall(p, .1, .5, .35, .2), land = bump(p, .48, .6);
+                var b = fall(p, .6, .84, .4, 0), land2 = bump(p, .82, .94);
+                return { dy: .02 * crouch - .14 * a + .016 * land - .065 * b + .008 * land2,
+                         sx: 1 + .07 * crouch - .03 * (a + b) + .07 * land + .03 * land2,
+                         sy: 1 - .09 * crouch + .05 * (a + b) - .08 * land - .03 * land2,
+                         ant: 20 * Math.sin(p * PI * 6) * (1 - p), mood: 'joyful' };
               } },
     lookAround:{ dur: 2600, fn: function (p) {
                 var g = p < .4 ? -ease(p / .15) : p < .8 ? lerp(-1, 1, ease((p - .4) / .2)) : 1 - ease((p - .8) / .2);
@@ -290,7 +307,30 @@
     this.action = { name: name, A: A, t0: performance.now() };
     if (A.kick) this.antV += A.kick;
     if (A.emote) this.emote(A.emote);
+    var self = this;
+    (A.burst || []).forEach(function (at, i) { setTimeout(function () { self.confetti(i % 2 ? -1 : 1); }, A.dur * at); });
     this.start();
+  };
+  /* A burst of pixel confetti from the top of the head, thrown to one side
+     (after the Codrops rebuild of Claude's confetti loop: the burst fires
+     when the jump peaks, shoots up fast, then falls under gravity). */
+  // distances scale with Kai, but never shrink below what reads on the small corner Kai
+  var U = 'max(1.5px, 1cqw)';
+  var BITS = ['#f4f6fa', '#9cc0ff', '#ffd27a', '#ff9ab0', '#8ff0c2'];
+  Kai.prototype.confetti = function (side) {
+    if (REDUCED || !document.body.animate) return;
+    for (var i = 0; i < 14; i++) {
+      var n = document.createElement('span');
+      n.className = 'kai-bit';
+      n.style.background = BITS[i % BITS.length];
+      this.root.appendChild(n);
+      var dx = (side || 1) * rand(4, 46) + rand(-12, 12), up = rand(22, 46), down = rand(10, 34), spin = rand(-260, 260);
+      n.animate([
+        { transform: 'translate(-50%, 0) rotate(0deg)', opacity: 1, easing: 'cubic-bezier(.2,.8,.4,1)' },
+        { transform: 'translate(calc(-50% + ' + (dx * .55).toFixed(1) + ' * ' + U + '), calc(-' + up.toFixed(1) + ' * ' + U + ')) rotate(' + spin * .5 + 'deg)', opacity: 1, offset: .38, easing: 'cubic-bezier(.5,0,.9,.6)' },
+        { transform: 'translate(calc(-50% + ' + dx.toFixed(1) + ' * ' + U + '), calc(' + down.toFixed(1) + ' * ' + U + ')) rotate(' + spin + 'deg)', opacity: 0 }
+      ], { duration: rand(1000, 1400) }).onfinish = function () { this.effect.target.remove(); };
+    }
   };
   Kai.prototype.blink = function (double) {
     if (REDUCED) return;

@@ -13,6 +13,13 @@
  *   data-reveal            fade up
  *   data-reveal="lines"    heading lines rise out of a mask (SplitText)
  *   data-reveal="media"    image eases in from a slight zoom
+ *   data-reveal="assemble" letters start scattered and fly into place as
+ *                          the block scrolls up the screen (scrubbed)
+ *   data-reveal="rise"     letters rise out of a mask, from the middle of
+ *                          the line outwards, as soon as it is on screen
+ *   data-skew              leans a little with scroll speed, then settles
+ *   data-scroll-speed      a CSS animation (a marquee) that runs faster
+ *                          while the page scrolls fast
  *   data-reveal-group      each child fades up in turn
  *   data-scroll-lit        words brighten one by one as you scroll past
  *   data-roll              on hover the letters roll up one after another
@@ -120,6 +127,63 @@ function media(el) {
   });
 }
 
+// After Max Milkin's "assembling paragraph" (Codrops, Dec 2025): every
+// letter starts somewhere off to the side, tilted and faint, and travels home
+// as you scroll, the ones near the start of the line arriving first. Split
+// into words too, so a line never breaks inside a word.
+// A block that is already on screen when the page opens has no scroll left
+// to drive it, so it plays through once instead.
+function assemble(el) {
+  const split = SplitText.create(el, { type: 'words,chars' });
+  gsap.set(el, { autoAlpha: 1 });
+  const r = gsap.utils.random;
+  const from = { x: () => r(-160, 160), y: () => r(-90, 90), rotation: () => r(-50, 50), autoAlpha: 0, ease: 'power3.out' };
+  if (el.getBoundingClientRect().top < innerHeight * 0.9) {
+    gsap.from(split.chars, { ...from, duration: 1.4, delay: 0.3, stagger: { each: 0.008, from: 'start' } });
+  } else {
+    gsap.from(split.chars, { ...from, stagger: { each: 0.004, from: 'start' },
+      scrollTrigger: { trigger: el, start: 'top 98%', end: 'top 58%', scrub: 1 } });
+  }
+}
+
+// Letters rise from the centre of the line outwards (Milkin's hero).
+function rise(el) {
+  SplitText.create(el, {
+    type: 'lines,chars', mask: 'lines', autoSplit: true,
+    onSplit(self) {
+      gsap.set(el, { autoAlpha: 1 });
+      return gsap.from(self.chars, { yPercent: 110, duration: 1.3, ease: 'power4.inOut', stagger: { each: 0.025, from: 'center' } });
+    },
+  });
+}
+
+/* ── scroll speed ─────────────────────────────────────────────────── */
+// One input, the scroll velocity, read on scroll and eased back to rest
+// (after Vladyslav Penev: speed is what gives a page weight, position alone
+// looks decorative). [data-skew] blocks lean by up to 3deg; [data-scroll-speed]
+// marquees play up to 3x faster. Nothing runs while the page is still.
+function scrollSpeed() {
+  const skews = document.querySelectorAll('[data-skew]');
+  const runs = [...document.querySelectorAll('[data-scroll-speed]')];
+  if (!skews.length && !runs.length) return;
+  const clamp = gsap.utils.clamp(-3, 3);
+  const setSkew = skews.length ? gsap.quickSetter(skews, 'skewY', 'deg') : () => {};
+  const proxy = { v: 0 };
+  const apply = () => {
+    setSkew(proxy.v);
+    const rate = 1 + Math.abs(proxy.v) * 0.7;
+    runs.forEach((el) => el.getAnimations().forEach((a) => { a.playbackRate = rate; }));
+  };
+  ScrollTrigger.create({
+    onUpdate(self) {
+      const v = clamp(self.getVelocity() / -500);
+      if (Math.abs(v) <= Math.abs(proxy.v)) return;
+      proxy.v = v;
+      gsap.to(proxy, { v: 0, duration: 0.8, ease: 'power3', overwrite: true, onUpdate: apply });
+    },
+  });
+}
+
 /* ── scroll-lit statement ─────────────────────────────────────────── */
 // Words start dim and light up in reading order as the block scrolls
 // through the middle of the screen, then stay lit.
@@ -206,12 +270,15 @@ function init() {
     const kind = el.getAttribute('data-reveal');
     if (kind === 'lines') lines(el);
     else if (kind === 'media') media(el);
+    else if (kind === 'assemble') assemble(el);
+    else if (kind === 'rise') rise(el);
     else fadeUp(el, el);
   });
   document.querySelectorAll('[data-reveal-group]').forEach((group) => {
     gsap.set(group, { autoAlpha: 1 });
     fadeUp(group.children, group, { stagger: MOTION.stagger });
   });
+  scrollSpeed();
 
   // Late layout shifts (fonts, lazy images, live feeds filling in) move
   // trigger positions; re-measure once everything has loaded.

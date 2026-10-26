@@ -7,8 +7,30 @@
 <title>404 — Signal Lost · Samuel Abhinav</title>
 <link href="/fonts/fonts.css" rel="stylesheet">
 <style>
-  /* Same fixed-corner wordmark as every other page (SiteMenu.astro). */
-  .wordmark{ position:fixed; top:14px; left:28px; z-index:10; font-family:'Cormorant Garamond',serif; font-weight:500; font-size:1.5rem; line-height:1; letter-spacing:.01em; color:rgba(255,255,255,.9); text-decoration:none; }
+  /* Same fixed-corner logo as every other page: a copy of Logo.astro's markup and CSS,
+     since this is a static file outside the Astro build. */
+  :root{ --c-white:255,255,255; }
+  .logo-pos{ position:fixed; top:18px; left:28px; z-index:10; }
+  .logo{ display:inline-flex; align-items:center; gap:10px; color:rgba(var(--c-white),.92); text-decoration:none; user-select:none; }
+  .logo-mark{ width:24px; height:24px; flex:none; overflow:visible; }
+  .logo-mark line{ stroke:#7f8ba8; stroke-width:1.6; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:0; }
+  .logo-mark circle{ fill:#c6d1e8; transition:transform .5s ease; transform-box:fill-box; transform-origin:center; }
+  .logo-mark circle:first-of-type{ fill:#e2ebfd; }
+  @media (hover:hover) and (prefers-reduced-motion:no-preference){
+    .logo:hover .logo-lines line{ animation:logoDraw .7s ease both; }
+    .logo:hover .logo-lines line:nth-child(2){ animation-delay:.12s; }
+    .logo:hover .logo-lines line:nth-child(3){ animation-delay:.2s; }
+    .logo:hover .logo-mark circle{ transform:scale(1.25); }
+  }
+  @keyframes logoDraw{ from{ stroke-dashoffset:1; } }
+  .logo-word{ display:inline-flex; font:600 15px/1 'Inter', 'Inter Tight', system-ui, sans-serif; letter-spacing:.16em; }
+  .logo-l{ display:inline-grid; place-items:center; }
+  .logo-l i{ grid-area:1 / 1; font-style:normal; visibility:hidden; }
+  .logo-l i:nth-child(2){ font:italic 400 19px/1 'Cormorant Garamond', Georgia, serif; letter-spacing:0; }
+  .logo-l i:nth-child(3){ font:400 10px/1 'Press Start 2P', monospace; letter-spacing:0; }
+  .logo-l i:nth-child(4){ font:400 16px/1 'Special Elite', 'Courier New', monospace; letter-spacing:0; }
+  .logo-l[data-v="0"] i:nth-child(1), .logo-l[data-v="1"] i:nth-child(2),
+  .logo-l[data-v="2"] i:nth-child(3), .logo-l[data-v="3"] i:nth-child(4){ visibility:visible; }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
   body{
@@ -21,12 +43,13 @@
       repeating-linear-gradient(0deg, rgba(255,255,255,0.020) 0 1px, transparent 1px 3px);
   }
   .wrap{ max-width:560px; width:100%; }
-  .code{
-    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size:clamp(5rem, 18vw, 9rem); line-height:0.9; font-weight:500;
-    letter-spacing:0.02em; color:#eef2f8;
-    text-shadow:0 0 24px rgba(140,165,210,0.25);
-  }
+  /* "404" drawn in ASCII by the script below: the digits come from a character ramp
+     by how much of each cell they cover, and a band of interference rolls down them */
+  .code{ margin:0 auto; width:max-content; max-width:100%; overflow:hidden;
+    font:500 clamp(6px, 1.45vw, 10px)/1 'JetBrains Mono', monospace; letter-spacing:0; white-space:pre; text-align:left;
+    color:#eef2f8; text-shadow:0 0 12px rgba(140,165,210,0.35); }
+  .code-fallback{ font:500 clamp(5rem, 18vw, 9rem)/.9 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing:.02em; white-space:normal; }
+  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   .status{ margin-top:1.25rem; font-size:0.78rem; letter-spacing:0.35em; text-transform:uppercase; color:rgba(160,172,190,0.75); }
   .msg{ margin-top:0.9rem; font-size:0.9rem; color:rgba(180,190,206,0.68); }
   .home{
@@ -60,9 +83,14 @@
 </style>
 </head>
 <body>
-  <a class="wordmark" href="/">Samuel Abhinav</a>
+  <div class="logo-pos"><a class="logo" href="/" aria-label="Samuel Abhinav, home">
+    <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="logo-lines"><line x1="23" y1="8" x2="15" y2="16" pathLength="1"/><line x1="15" y1="16" x2="12" y2="25" pathLength="1"/><line x1="15" y1="16" x2="7" y2="12" pathLength="1"/></g><circle cx="23" cy="8" r="3"/><circle cx="15" cy="16" r="2.4"/><circle cx="12" cy="25" r="1.7"/><circle cx="7" cy="12" r="1.7"/></svg>
+    <span class="logo-word" aria-hidden="true"><span class="logo-l" data-v="0"><i>S</i><i>S</i><i>S</i><i>S</i></span><span class="logo-l" data-v="0"><i>A</i><i>A</i><i>A</i><i>A</i></span><span class="logo-l" data-v="0"><i>M</i><i>M</i><i>M</i><i>M</i></span><span class="logo-l" data-v="0"><i>U</i><i>U</i><i>U</i><i>U</i></span><span class="logo-l" data-v="0"><i>E</i><i>E</i><i>E</i><i>E</i></span><span class="logo-l" data-v="0"><i>L</i><i>L</i><i>L</i><i>L</i></span></span>
+  </a></div>
+  <script defer src="/scripts/logo.js"></script>
   <div class="wrap">
-    <div class="code">404</div>
+    <h1 class="sr">404, page not found</h1>
+    <pre class="code code-fallback" id="code" aria-hidden="true">404</pre>
     <div class="status">signal lost</div>
     <p class="msg">This route returned no telemetry. The page may have moved, or never existed.</p>
 
@@ -312,6 +340,48 @@
   }
   draw();
   requestAnimationFrame(loop);
+})();
+</script>
+<script>
+/* ASCII 404. The digits are drawn once into a small offscreen canvas; each
+   character cell takes a glyph from a density ramp by how much ink it covers.
+   At ~12fps a band of interference rolls down the screen: inside it cells
+   pick random glyphs and whole rows slip sideways, like a lost signal.
+   Still under reduced motion (one clean frame). */
+(function(){
+  var pre=document.getElementById('code');
+  if(!pre || !document.createElement('canvas').getContext) return;
+  var COLS=64, ROWS=17, RAMP=' .:-=+*#%@', NOISE='!<>/[]{}=+*#%01';
+  var c=document.createElement('canvas'); c.width=COLS; c.height=ROWS*2;
+  var x=c.getContext('2d');
+  x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle';
+  x.font='bold '+(ROWS*2.1)+'px Arial, Helvetica, sans-serif';
+  x.fillText('404', COLS/2, ROWS+1, COLS-2);
+  var px=x.getImageData(0,0,COLS,ROWS*2).data, ink=[];
+  for(var r=0;r<ROWS;r++){ ink[r]=[]; for(var k=0;k<COLS;k++){ var i=((r*2)*COLS+k)*4, j=((r*2+1)*COLS+k)*4; ink[r][k]=(px[i+3]+px[j+3])/510; } }
+  pre.classList.remove('code-fallback');
+  function frame(band){
+    var out='';
+    for(var r=0;r<ROWS;r++){
+      var near=Math.abs(r-band)<1.6, slip=near && Math.random()<.5 ? (Math.random()*4|0)-2 : 0, line='';
+      for(var k=0;k<COLS;k++){
+        var v=ink[r][Math.min(COLS-1,Math.max(0,k+slip))];
+        if(near && v>.05 && Math.random()<.35) line+=NOISE[Math.random()*NOISE.length|0];
+        else if(!near && v<.05 && Math.random()<.004) line+='.';
+        else line+=RAMP[Math.round(v*(RAMP.length-1))];
+      }
+      out+=line+'\n';
+    }
+    pre.textContent=out;
+  }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){ frame(-9); return; }
+  var band=-4, last=0;
+  (function tick(t){
+    requestAnimationFrame(tick);
+    if(document.hidden || t-last<83) return;
+    last=t; band+=.6; if(band>ROWS+8) band=-6-Math.random()*20;
+    frame(band);
+  })(0);
 })();
 </script>
 </body>
