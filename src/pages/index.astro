@@ -569,7 +569,7 @@ footer#site-footer{
   /* ── The beliefs as a white hologram, like the contact card (tone
         'holo-mono'): a red/blue fringe and a soft glow on the letters,
         scanlines and a slow rolling band over them. The tags become
-        projected labels. index-beliefs-glitch.js adds the signal drops. ── */
+        projected labels. holo-glitch.js adds the signal drops. ── */
   :is(#editorial,#writing) .ed-beliefs .ed-statement{ position:relative; --lit-off:rgba(238,241,248,.16); --lit-on:#f4f6fa;
     filter:drop-shadow(1px 0 0 rgba(255,80,220,.32)) drop-shadow(-1px 0 0 rgba(80,180,255,.38)) drop-shadow(0 0 12px rgba(255,255,255,.24));
     /* scanlines and the rolling band as a mask, so they sit in the letters only, never as a box over the sky */
@@ -583,8 +583,6 @@ footer#site-footer{
   :is(#editorial,#writing) .ed-beliefs .ed-tag{ background:repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
     color:#f2f4f8; border:1px solid rgba(255,255,255,.45); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(255,255,255,.08);
     text-shadow:0 0 8px rgba(255,255,255,.55), 1px 0 0 rgba(255,80,220,.35), -1px 0 0 rgba(80,180,255,.4); }
-  /* the signal drop: copies of the statement, slipped and split */
-  .ed-ghost{ pointer-events:none; filter:none !important; animation:none !important; }
   @keyframes holo-roll{ from{ -webkit-mask-position:0 0, 0 0; mask-position:0 0, 0 0; } to{ -webkit-mask-position:0 0, 0 -150%; mask-position:0 0, 0 -150%; } }
   @media (prefers-reduced-motion:reduce){
     :is(#editorial,#writing) .ed-beliefs .ed-statement{ animation:none; }
@@ -619,7 +617,7 @@ footer#site-footer{
       <span class="ed-tag ed-tag--a" aria-hidden="true">Architecture</span>
       <span class="ed-tag ed-tag--b" aria-hidden="true">Behaviour</span>
       <span class="ed-tag ed-tag--c" aria-hidden="true">Earned trust</span>
-      <p class="ed-statement" data-scroll-lit>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
+      <p class="ed-statement" data-scroll-lit data-holo-glitch>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
     </div>
   </section>
 
@@ -627,7 +625,8 @@ footer#site-footer{
 </div>
 
 <script is:inline defer src="/scripts/index-editorial-flow.js"></script>
-<script is:inline defer src="/scripts/index-beliefs-glitch.js"></script>
+<script is:inline defer src="/scripts/index-wreck-frames.js"></script>
+<script is:inline defer src="/scripts/holo-glitch.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
@@ -764,7 +763,7 @@ footer#site-footer{
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
-/* empty frames get the contact page's broken-screen roll (index-beliefs-glitch.js plays it while on screen) */
+/* empty frames get the contact page's broken-screen roll (index-wreck-frames.js plays it while on screen) */
 .pw-wreck{ position:absolute; inset:0; width:100%; height:100%; object-fit:fill; mix-blend-mode:screen; opacity:.28; pointer-events:none; }
 .pw-img--todo span{ position:relative;  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
 .pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 23px;

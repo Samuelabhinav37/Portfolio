@@ -5,8 +5,6 @@ import { getCollection } from 'astro:content';
 import SiteMenu from '../../components/SiteMenu.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
-import SkyBackground from '../../components/SkyBackground.astro';
-import SkyLife from '../../components/SkyLife.astro';
 import KaiSite from '../../components/KaiSite.astro';
 import '../../styles/tokens.css';
 import Fonts from '../../components/Fonts.astro';
@@ -120,27 +118,58 @@ window.SITE=window.SITE||{};
   --e:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;min-height:100svh;
+body{position:relative;background:#0f1730;color:var(--ink);font-family:var(--sans);min-height:100vh;min-height:100svh;
   overflow-x:hidden;-webkit-font-smoothing:antialiased}
+/* The painted backdrop from the homepage's projects sheet (scripts/paint):
+   mantas and a fish up top, coral trees on rock shelves down both sides,
+   sea stars and fish scattered, the sea floor with a turtle just above
+   the footer (its dark ground carried on under the footer) (.fn's tall bottom padding keeps the last row clear of it), light rays, clouds and star dust over the watercolour wash. It
+   scrolls with the page; all static images, so it costs nothing per frame. */
+.fn-paint{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:url(/images/paint/creatures-top.webp) center 40px / 1600px auto no-repeat,
+    url(/images/paint/creatures-bottom.webp) center bottom 100px / 1600px auto no-repeat,
+    linear-gradient(rgba(10,16,36,.62),rgba(10,16,36,.62)) center bottom / 100% 101px no-repeat,
+    url(/images/paint/side-l.webp) left 0 top 220px / 300px auto repeat-y,
+    url(/images/paint/side-r.webp) right 0 top 520px / 300px auto repeat-y,
+    url(/images/paint/scatter-tile.webp) 0 300px / 1400px auto,
+    url(/images/paint/rays.webp) center top / 1600px auto no-repeat,
+    url(/images/paint/clouds-tile.webp) 0 0 / 1024px,
+    url(/images/paint/stars-tile.webp) 0 0 / 1024px,
+    url(/images/paint/waves-tile.webp) 0 140px / 1024px,
+    url(/images/paint/wash-tile.webp) 0 0 / 1024px}
+@media (max-width:760px){
+  .fn-paint{background-size:1000px auto,1000px auto,100% 101px,110px auto,110px auto,900px auto,1000px auto,700px,1024px,700px,1024px;
+    background-position:center 60px,center bottom 100px,center bottom,left 0 top 220px,right 0 top 520px,0 300px,center top,0 0,0 0,0 140px,0 0}
+}
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 
-/* every content block is positioned so it paints above the fixed #sky
-   (a positioned element with z-index:auto) and the jellyfish (z-index 2) */
-.fn{position:relative;z-index:3;padding-bottom:96px;display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
+/* every content block is positioned so it paints above the painted backdrop */
+.fn{position:relative;z-index:3;padding-bottom:clamp(220px,22vw,320px);display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
 
 /* ── title + search ── */
-.fn-hero{display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
+.fn-hero{position:relative;display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
   padding:clamp(120px,15vw,170px) max(20px, env(safe-area-inset-right, 0px)) 4px max(20px, env(safe-area-inset-left, 0px))}
 /* the title keeps one serif moment, with the number of posts beside it like
    a shop menu's count and one quiet line of small capitals under it */
 .fn-title{font-family:var(--serif);font-weight:400;font-size:clamp(72px,12vw,148px);line-height:.9;letter-spacing:-.03em;
-  color:#eef2fb;text-align:center;text-wrap:balance;
-  /* the glow is a filter on the whole heading, not a text-shadow: the line
-     reveal clips each line, and a clipped shadow showed as a box */
-  filter:drop-shadow(0 0 24px rgba(143,179,255,.28)) drop-shadow(0 0 70px rgba(110,150,240,.22));
-  animation:fnDrift 9s ease-in-out infinite}
-.fn-title em{font-style:italic;color:#cdd9f7}
-.fn-title sup{font:500 .16em/1 var(--grot);letter-spacing:0;vertical-align:top;position:relative;top:.35em;margin-left:.12em;color:#c9d6ff}
+  color:#f4f6fa;text-align:center;text-wrap:balance;
+  /* a white hologram like the homepage beliefs: red/blue fringe and glow as
+     a filter (the line reveal clips each line, so a text-shadow showed as a
+     box), scanlines and a slow rolling band as a mask so they stay in the
+     letters. holo-glitch.js adds the signal drops. */
+  filter:drop-shadow(1.5px 0 0 rgba(255,80,220,.32)) drop-shadow(-1.5px 0 0 rgba(80,180,255,.38))
+    drop-shadow(0 0 18px rgba(255,255,255,.22)) drop-shadow(0 0 60px rgba(200,215,255,.14));
+  -webkit-mask:repeating-linear-gradient(180deg,#000 0 2px,rgba(0,0,0,.62) 2px 3px),
+    linear-gradient(180deg,#000 0%,rgba(0,0,0,.6) 50%,#000 56%) 0 0 / 100% 300%;
+  -webkit-mask-composite:source-in;
+  mask:repeating-linear-gradient(180deg,#000 0 2px,rgba(0,0,0,.62) 2px 3px),
+    linear-gradient(180deg,#000 0%,rgba(0,0,0,.6) 50%,#000 56%) 0 0 / 100% 300%;
+  mask-composite:intersect;
+  animation:fnDrift 9s ease-in-out infinite,holoRoll 16s linear infinite}
+.fn-title em{font-style:italic;color:#f4f6fa}
+.fn-title sup{font:500 .16em/1 var(--grot);letter-spacing:0;vertical-align:top;position:relative;top:.35em;margin-left:.12em;color:#f4f6fa}
+.fn-title.holo-ghost em,.fn-title.holo-ghost sup{color:inherit}
+@keyframes holoRoll{from{-webkit-mask-position:0 0,0 0;mask-position:0 0,0 0}to{-webkit-mask-position:0 0,0 -150%;mask-position:0 0,0 -150%}}
 .fn-tag{margin-top:-14px;font:600 11px/1 var(--grot);letter-spacing:.24em;text-transform:uppercase;text-align:center;
   color:rgba(226,232,250,.8);text-shadow:0 1px 8px rgba(3,6,16,.7)}
 @keyframes fnDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
@@ -247,10 +276,8 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 </head>
 <body>
 
-<!-- An open sky (full clouds, no blur over them) in the lighter tone with
-     whiter clouds, and the contact page's jellyfish drifting through it. -->
-<SkyBackground tone="bright" />
-<SkyLife cast />
+<!-- The homepage's painted night sea as the whole page's backdrop -->
+<div class="fn-paint" aria-hidden="true"></div>
 
 <SiteMenu currentPath="/blog" />
 
@@ -259,7 +286,7 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 <main class="fn" id="main">
   <section class="fn-hero" aria-labelledby="fn-title">
-    <h1 class="fn-title" id="fn-title" data-reveal="lines">Field <em>Notes</em><sup aria-hidden="true">({cards.length})</sup></h1>
+    <h1 class="fn-title" id="fn-title" data-reveal="lines" data-holo-glitch>Field <em>Notes</em><sup aria-hidden="true">({cards.length})</sup></h1>
     <p class="fn-tag" data-reveal>On security, from the start</p>
     <div class="fn-search" role="search" data-reveal>
       <label class="fn-field" for="fn-q">
@@ -337,6 +364,7 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 
 <script is:inline define:vars={{ cards }}>window.__FIELD_NOTES__ = cards;</script>
 <script src="../../scripts/blog-fieldnotes.js"></script>
+<script is:inline defer src="/scripts/holo-glitch.js"></script>
 
 
 
