@@ -549,8 +549,9 @@ footer#site-footer{
 
   /* ── Beliefs: one statement alone on a full screen over the sky, with a few
         coloured tags placed around it ── */
-  :is(#editorial,#writing) .ed-beliefs{ position:relative; min-height:100vh; min-height:100svh; display:grid; place-items:center;
-    padding:clamp(80px,14vh,160px) clamp(20px,6vw,96px); color:#eef1f8; overflow:hidden; }
+  :is(#editorial,#writing) .ed-beliefs{ position:relative; display:grid; place-items:center;
+    /* the bottom leaves room for the low tag; Selected work follows close behind */
+    padding:clamp(140px,24vh,240px) clamp(20px,6vw,96px) clamp(150px,20vh,190px); color:#eef1f8; overflow:hidden; }
   :is(#editorial,#writing) .ed-statement{ --lit-off:rgba(238,241,248,.2); --lit-on:#eef1f8; margin:0; max-width:30ch; text-align:center; text-wrap:balance;
     font:400 clamp(1.5rem,2.8vw,2.8rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     letter-spacing:-.012em; }
@@ -675,7 +676,7 @@ footer#site-footer{
   :root[data-heads="c"] .sec-head{ grid-template-columns:1fr; }
   :root[data-heads="c"] .sec-title{ grid-column:1; }
   :root[data-heads="c"] }
-#projects-section{ position:relative; z-index:3; width:100%; box-sizing:border-box; background:transparent; padding:var(--sec-pad) 0 0; }
+#projects-section{ position:relative; z-index:3; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 0; }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
    edge with a 6px gutter, frames in their own shapes so rows go ragged, no
    corners or borders. Under each frame a two-half caption in one small
@@ -711,10 +712,14 @@ footer#site-footer{
 .pw-tags{ grid-column:1; grid-row:2; padding-right:24px; color:rgba(233,236,247,.62); }
 .pw-line{ grid-column:2; grid-row:1 / span 2; padding-right:24px; color:rgba(233,236,247,.62); text-wrap:pretty; }
 @media (--bp-760){
-  .pw-grid{ width:100%; grid-template-columns:1fr; gap:60px 6px; }
-  #projects-section .sec-head{ width:auto; padding-inline:var(--gut); }
-  .pw-tile{ gap:12px; }
-  .pw-cap{ padding:0 var(--gut); }
+  .pw-grid{ width:79%; grid-template-columns:1fr; gap:50px 6px; }
+  #projects-section .sec-head{ width:79%; }
+  .pw-tile{ gap:14px; }
+  /* narrow tiles: name, tags and pitch stack instead of sharing a row */
+  .pw-cap{ padding:0 16px; grid-template-columns:1fr; }
+  .pw-name, .pw-tags, .pw-line{ grid-column:1; grid-row:auto; }
+  .pw-line{ margin-top:6px; }
+  :is(#editorial,#writing) .ed-beliefs{ padding-bottom:130px; }
   .pw-name, .pw-tags, .pw-line{ padding-right:0; }
 }
 @media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
