@@ -4,6 +4,9 @@
 #   rays.webp              faint light shafts coming down from the top of the sheet
 #   stars-tile.webp        seamless star dust with darker winding paths and a few sparkles
 #   waves-tile.webp        seamless, barely-there brushed swells
+#   clouds-tile.webp       seamless soft cloud banks, lit along their tops
+#   side-l/-r.webp         vertical strips: small coral trees on rock shelves, sea stars, passing fish
+#   scatter-tile.webp      a few sea stars and fish for the gaps between rows
 # Creatures come from the site's own sky-cast.js shapes (rendered by shapes.mjs),
 # painted the way whale sharks and mantas look at night: dark bodies covered
 # in pale spots, with a soft moonlit rim.
@@ -103,6 +106,35 @@ def weed(W, H, seed, x0, y0, height, n):
             d.line([pts[i], pts[i + 1]], fill=255, width=max(2, int(7 * (1 - i / len(pts))) + 2))
     return np.array(img.filter(ImageFilter.GaussianBlur(.7)), float) / 255
 
+CORAL = np.array([46, 64, 122.])
+
+def plants(c, seed, light=1.0, rough=.3):
+    """Coral, weed and rock masks painted a shade lighter than the sheet, moonlit at the edges, speckled with polyps."""
+    H, W = c.shape
+    m = blur((c + (fnoise(H, W, 1.0, seed) - .5) * rough > .35).astype(float), .8)
+    rim = np.clip(m - blur(m, 3), 0, 1) * 2
+    shade = .7 + .5 * fnoise(H, W, 1.6, seed + 1)
+    rgb = CORAL * shade[..., None] * light
+    rgb = rgb * (1 - rim[..., None] * .55) + RIM * (rim[..., None] * .55)
+    r = np.random.default_rng(seed)
+    ys, xs = np.nonzero(m > .6)
+    sp = Image.new('L', (W, H)); d = ImageDraw.Draw(sp)
+    for k in r.integers(0, len(xs), len(xs) // 90) if len(xs) else []:
+        s = r.uniform(.6, 1.5); d.ellipse([xs[k] - s, ys[k] - s, xs[k] + s, ys[k] + s], fill=int(r.uniform(90, 200)))
+    spa = np.array(sp, float)[..., None] / 255 * m[..., None]
+    rgb = rgb * (1 - spa) + SPOT * spa
+    return rgba(rgb, m * .9)
+
+def ledge(W, H, seed, y, length, left=True):
+    """A rough rock shelf sticking out from the side edge."""
+    r = np.random.default_rng(seed)
+    img = Image.new('L', (W, H)); d = ImageDraw.Draw(img)
+    x0 = 0 if left else W
+    for k in range(9):                                     # a pile of rounded stones, bumpy on top
+        cx = x0 + (1 if left else -1) * r.uniform(0, length * .85); w = r.uniform(.12, .3) * length; h = r.uniform(12, 30)
+        d.ellipse([cx - w, y - h, cx + w, y + h * .5], fill=255)
+    return np.array(img.filter(ImageFilter.GaussianBlur(1.2)), float) / 255
+
 # ---- top: two spotted mantas gliding past the heading, a fish further in ----
 top = Image.new('RGBA', (1600, 560))
 over(top, creature('manta', .62, 21, rot=-28, strength=.85), 1180, 270)
@@ -123,10 +155,9 @@ bot.alpha_composite(rgba(BODY * 1.1, fa))
 c = np.maximum.reduce([
     coral(W, H, 1, (80, 600), 1.45, 55, 5, 14), coral(W, H, 2, (200, 605), 1.7, 42, 5, 11),
     coral(W, H, 3, (1500, 600), 1.75, 58, 5, 14), coral(W, H, 4, (1390, 605), 1.45, 40, 5, 10),
-    weed(W, H, 5, 300, 600, 190, 7), weed(W, H, 6, 1270, 600, 170, 7)])
-ce = (c + (fnoise(H, W, 1.0, 7) - .5) * .3 > .35).astype(float)
-bot.alpha_composite(rgba(BODY * .7, blur(ce, .8) * .92))
-bot.alpha_composite(rgba(RIM, np.clip(blur(ce, .8) - blur(ce, 3), 0, 1) * .35))   # a little moonlight on the tips
+    coral(W, H, 8, (640, 600), 1.6, 34, 4, 9), coral(W, H, 9, (1010, 602), 1.5, 30, 4, 8),
+    weed(W, H, 5, 300, 600, 190, 7), weed(W, H, 6, 1270, 600, 170, 7), weed(W, H, 10, 760, 600, 110, 4)])
+bot.alpha_composite(plants(c, 7))
 over(bot, creature('turtle', .55, 51, rot=-20, strength=.85), 470, 420)
 over(bot, creature('star', .45, 61, rot=15, spots=1.6, strength=.8), 1120, 500)
 over(bot, creature('star', .3, 62, rot=-30, spots=1.6, strength=.7), 1215, 525)
@@ -197,4 +228,45 @@ for k in range(3):
     stroke = np.exp(-(d_ / width) ** 2) * np.clip((streak - .45) * 3, 0, 1)
     wa = np.maximum(wa, stroke * r.uniform(.05, .08))
 rgba(np.broadcast_to(MOON, (N, N, 3)), wa).save(f'{OUT}/waves-tile.webp', quality=80, alpha_quality=70, method=6)
+
+# ---- clouds: soft moonlit banks drifting through the water, lit on top ----
+n = fnoise(N, N, 2.6, 91)
+body = np.clip((n - .58) / .16, 0, 1) ** 1.5
+lit = np.clip(body - np.roll(blur(body, 6), 14, axis=0), 0, 1)       # the top edge catches the light
+ca = body * .14 + lit * .32
+rgba(np.broadcast_to(MOON * .9 + CREAM * .1, (N, N, 3)), np.clip(ca, 0, .4)).save(f'{OUT}/clouds-tile.webp', quality=78, alpha_quality=70, method=6)
+
+# ---- sides: small coral trees on rock shelves down both edges, sea stars on the rocks, fish passing ----
+# Each strip repeats vertically, so nothing touches its top or bottom edge.
+SW, SHt = 300, 1800
+def side(seed):
+    r = np.random.default_rng(seed)
+    s = Image.new('RGBA', (SW, SHt))
+    shelves = [(220 + k * 600 + r.uniform(-60, 60), r.uniform(90, 150)) for k in range(3)]
+    masks = []
+    for i, (y, ln) in enumerate(shelves):
+        masks.append(ledge(SW, SHt, seed + i, y, ln))
+        for t in range(r.integers(2, 4)):
+            x = r.uniform(12, ln * .85)
+            masks.append(coral(SW, SHt, seed * 10 + i * 4 + t, (x, y - 14), 1.57 + r.uniform(-.25, .25), r.uniform(24, 36), 3, r.uniform(4, 6)))
+        masks.append(weed(SW, SHt, seed * 20 + i, ln * .5, y - 4, r.uniform(60, 110), 3))
+    s.alpha_composite(plants(np.maximum.reduce(masks), seed, rough=.12))
+    for i, (y, ln) in enumerate(shelves):
+        over(s, creature('star', r.uniform(.24, .32), seed + 40 + i, rot=r.uniform(-40, 40), spots=1.6, strength=.85), r.uniform(25, ln * .7), y + 8)
+        fy = y + r.uniform(200, 380)
+        for f in range(r.integers(1, 4)):                              # a fish or a small school between shelves
+            over(s, creature('fish', r.uniform(.26, .36), seed + 60 + i * 5 + f, flip=r.random() < .5, spots=1.3, strength=.75),
+                 r.uniform(90, 230), fy + r.uniform(-30, 30) + f * 22)
+    return s
+side(3).save(f'{OUT}/side-l.webp', quality=80, alpha_quality=75, method=6)
+side(4).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/side-r.webp', quality=80, alpha_quality=75, method=6)
+
+# ---- scattered sea stars and fish for the gaps between rows ----
+TW, TH = 1400, 1300
+sc = Image.new('RGBA', (TW, TH)); r = np.random.default_rng(5)
+for i in range(4):
+    over(sc, creature('star', r.uniform(.2, .3), 100 + i, rot=r.uniform(-60, 60), spots=1.6, strength=.6), r.uniform(80, TW - 80), r.uniform(80, TH - 80))
+for i in range(6):
+    over(sc, creature('fish', r.uniform(.24, .34), 110 + i, flip=r.random() < .5, spots=1.3, strength=.6), r.uniform(80, TW - 80), r.uniform(80, TH - 80))
+sc.save(f'{OUT}/scatter-tile.webp', quality=80, alpha_quality=75, method=6)
 print('ok')
