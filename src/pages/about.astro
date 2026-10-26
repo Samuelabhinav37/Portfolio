@@ -23,6 +23,28 @@ const certs = [
   ['Security+', 'security-plus', true], ['Network+', 'network-plus', true], ['ISC2 CC', 'isc2-cc', false],
   ['AWS CCP', 'aws-ccp', false], ['AZ-900', 'az-900', false], ['HTB CJCA', 'htb-cjca', false],
 ];
+// same names and lines as the homepage project captions
+const projects: [string, string][] = [
+  ['Moat', 'A free ad blocker that runs entirely in the browser. No server, no account.'],
+  ['Sentinel', 'A SOC lab where every detection is tested against a real attack.'],
+  ['Cluster', 'Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.'],
+  ['Athena', 'Shows who has access, why they have it, and when it stops making sense.'],
+  ['Blue Streak', 'A Windows disk analyzer that reads the drive once, then finds duplicates, junk and lost space.'],
+  ['Knot', 'An Android app for building habits, with AI help and on-device storage.'],
+];
+// GitHub's public contribution calendar, read at build time (so it refreshes on every deploy).
+// Cells carry id="contribution-day-component-<weekday>-<week>" and data-level 0-4.
+let ghWeeks: number[][] = [];
+let ghActive = 0;
+try {
+  const html = await (await fetch('https://github.com/users/Samuelabhinav37/contributions', { signal: AbortSignal.timeout(8000) })).text();
+  const cols: number[][] = [];
+  for (const m of html.matchAll(/data-date="[\d-]+" id="contribution-day-component-(\d)-(\d+)" data-level="(\d)"/g)) {
+    (cols[+m[2]] ??= [])[+m[1]] = +m[3];
+    if (+m[3] > 0) ghActive++;
+  }
+  ghWeeks = cols.filter(Boolean).slice(-26).map((w) => w.filter((l) => l !== undefined));
+} catch { /* offline build: the card falls back to just the GitHub link */ }
 const team: [string, number, number][] = [['Greninja', 82, 90], ['Scizor', 79, 103], ['Ceruledge', 112, 112], ['Lucario', 58, 101], ['Blaziken', 118, 107], ['Sceptile', 74, 97]];
 ---
 
@@ -64,13 +86,14 @@ window.SITE=window.SITE||{};
 <Motion />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:var(--c-bg); color:rgba(var(--c-white),0.9); overflow-x:hidden; }
+html, body { background:#000; color:rgba(var(--c-white),0.9); overflow-x:hidden; }
 body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; }
 
-/* Night sky only: the painted wash and star dust from scripts/paint, with the
-   contact page's jellyfish (SkyLife) drifting over it. */
-.ab-sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
+/* Pure black with the contact page's jellyfish (SkyLife); the homepage's film
+   grain and edge vignette over everything for texture. */
+.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
+.page-grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0,0,0,.6) 100%); }
+.page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
 
 /* ── Layout after fattah.me/info: label | index | content on a 12-column grid ── */
 .ab{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(12, 1fr); column-gap:16px;
@@ -129,9 +152,12 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
 
 /* ── bento ── */
 .bento{ display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:auto 280px; gap:10px;
-  grid-template-areas:"certs certs signal" "team ascii signal"; }
+  grid-template-areas:"certs certs build" "team gh build"; }
 .card{ position:relative; background:rgba(0,0,0,.82); border:1px solid rgba(var(--c-white),0.08); border-top-color:rgba(var(--c-white),0.14);
   border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+/* a faint dot screen inside every card, like a dithered print */
+.card::before{ content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.3px) 0 0 / 7px 7px; }
+.card > *{ position:relative; }
 /* a soft light that follows the cursor around the card edges (pointer vars set below) */
 .card::after{ content:''; position:absolute; inset:0; border-radius:inherit; padding:1px; pointer-events:none; opacity:0; transition:opacity .4s;
   background:radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(170,200,255,.55), transparent 70%);
@@ -154,23 +180,28 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
 .cb--framed img{ filter:grayscale(1) invert(1) brightness(.9); }
 .cb span{ font-size:12px; color:#a4a4aa; white-space:normal; text-align:center; line-height:1.2; }
 
-.c-signal{ grid-area:signal; }
-.sig-graph{ flex:1; display:flex; flex-direction:column; min-height:0; padding:10px 10px 4px; }
-.sig-rec{ display:block; width:100%; flex:1; min-height:0; height:0; object-fit:cover; background:#000; border-radius:6px; }
-.sig-foot{ display:flex; justify-content:space-between; padding:6px 2px 0; }
-.sig-gf{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.14em; color:rgba(var(--c-white),0.5); }
-.sig-log{ height:66px; flex:0 0 auto; display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; position:relative; padding:2px 0 10px; border-top:1px solid rgba(var(--c-white),0.06); }
-.sig-log::before{ content:""; position:absolute; left:0; right:0; top:0; height:24px; background:linear-gradient(#000,transparent); pointer-events:none; z-index:2; }
-.sig-line{ font-size:12px; line-height:1.4; color:rgba(var(--c-white),0.5); padding:1px 14px; display:flex; gap:8px; white-space:nowrap; overflow:hidden; animation:sigslide .4s ease; transition:opacity .45s ease; }
-@keyframes sigslide{ from{ transform:translateY(6px) } to{ transform:translateY(0) } }
-.sig-ts{ color:rgba(var(--c-white),0.32); font-family:'JetBrains Mono', monospace; font-size:11px; flex-shrink:0; }
-.sig-msg{ overflow:hidden; text-overflow:ellipsis; flex:1; }
+/* building: the six projects, one decoding in at a time (script below) */
+.c-build{ grid-area:build; padding-bottom:18px; }
+.bd-list{ list-style:none; padding:14px 18px 0; display:flex; flex-direction:column; }
+.bd-list li{ display:flex; align-items:baseline; gap:14px; padding:9px 0; border-bottom:1px solid rgba(var(--c-white),0.07); cursor:default;
+  color:rgba(var(--c-white),0.32); transition:color .4s; }
+.bd-list li.on{ color:#f4f6fa; }
+.bd-i{ font-family:'JetBrains Mono', monospace; font-size:10px; }
+.bd-name{ font-size:18px; font-weight:600; letter-spacing:-.01em; font-variant-ligatures:none; }
+.bd-list li.on .bd-i{ color:#9cc0ff; }
+.bd-line{ margin:auto 18px 0; padding-top:16px; min-height:4.2em; font-size:14px; line-height:1.5; color:rgba(var(--c-white),0.62); transition:opacity .35s; }
+.bd-line.out{ opacity:0; }
 
-.c-ascii{ grid-area:ascii; }
-.ascii-card{ flex:1; display:flex; flex-direction:column; min-height:0; position:relative; }
-.ascii-stage{ flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-top:10px; }
-.ascii-rec{ width:100%; height:100%; object-fit:contain; display:block; background:#000; }
-.ascii-out{ margin:0; white-space:pre; font-family:'JetBrains Mono','DejaVu Sans Mono',monospace; color:rgba(var(--c-white),0.84); font-size:2px; line-height:2px; letter-spacing:0; }
+/* github: the last 26 weeks as a dot matrix, built from github.com at build time */
+.c-gh{ grid-area:gh; color:inherit; text-decoration:none; }
+.gh-big{ padding:12px 18px 0; display:flex; align-items:baseline; gap:10px; }
+.gh-num{ font-size:44px; font-weight:700; letter-spacing:-.03em; line-height:1; color:#f4f6fa; font-variant-numeric:tabular-nums; }
+.gh-cap{ font-size:13px; color:rgba(var(--c-white),0.55); }
+.gh-map{ margin:auto 18px 18px; display:grid; grid-template-rows:repeat(7, 1fr); grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; aspect-ratio:26 / 7; }
+.gh-map i{ display:block; border-radius:50%; background:#f4f6fa; place-self:center; width:calc(28% + var(--l) * 18%); aspect-ratio:1; opacity:calc(.1 + var(--l) * .22);
+  transition:opacity .5s, transform .6s var(--ease-out); transition-delay:calc(var(--c) * 22ms); }
+html.motion .c-gh:not(.in) .gh-map i{ opacity:0; transform:scale(.2); }
+.c-gh:hover .gh-cap{ color:#f4f6fa; }
 
 .c-team{ grid-area:team; padding-bottom:16px; }
 .poke-grid{ flex:1; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:14px 14px 0; }
@@ -221,8 +252,8 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
   .ab-portrait{ margin-top:44px; aspect-ratio:4 / 5; }
   .tk{ grid-template-columns:1fr; }
   .tk li{ font-size:18px; padding:14px 0; }
-  .bento{ grid-template-columns:1fr 1fr; grid-template-rows:auto; grid-template-areas:"certs certs" "team team"; }
-  .c-signal, .c-ascii{ display:none; }
+  .bento{ grid-template-columns:1fr; grid-template-rows:auto; grid-template-areas:"certs" "build" "gh" "team"; }
+  .c-gh{ min-height:220px; }
   .poke-grid{ grid-template-columns:repeat(3, 1fr); }
   /* the game (and its 70KB script) never boots on phones; see the boot script below */
   #arcade, .ab-index a[data-spy="arcade"]{ display:none; }
@@ -233,7 +264,7 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
 </head>
 
 <body>
-<div class="ab-sky" aria-hidden="true"></div>
+<div class="page-grain" aria-hidden="true"></div>
 <SkyLife jellies />
 
 <SiteMenu currentPath="/about" />
@@ -250,10 +281,8 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
     <section id="intro" class="ab-sec">
       <span class="ab-kicker">About Samuel</span>
       <h1 class="ab-intro" data-words>Hi, I'm <b>Samuel Abhinav.</b> I make networks harder to break. Most days.</h1>
-      <div class="ab-bio" data-reveal-group>
-        <p>I got into security because finding the fracture points in a system was the fun part. It turns out that is the entire job.</p>
-        <p>A network only survives a live adversary when you track <b>behaviour instead of indicators</b> and treat trust as something to be continuously earned.</p>
-        <p>Right now I am looking for a team that builds legible architecture and actually reads the logs.</p>
+      <div class="ab-bio" data-reveal>
+        <p>I got into security because finding the fracture points was the fun part. Now I am looking for a team that actually reads the logs.</p>
       </div>
       <figure class="ab-portrait" data-reveal="media">
         <span class="ab-lbl">Portrait coming soon</span>
@@ -287,28 +316,22 @@ html.motion [data-words]:not(.split){ visibility:hidden; }
             ))}
           </div></div>
         </div>
-        <div class="card c-signal">
-          <div class="card-hd"><span class="ab-lbl">Network</span><span class="sig-gf" id="sig-lat">— ms</span></div>
-          <div class="sig-graph">
-            <video class="sig-rec" muted loop playsinline preload="none" poster="/images/about-network-poster.webp" aria-hidden="true">
-              <source src="/videos/about-network.webm" type="video/webm" />
-              <source src="/videos/about-network.mp4" type="video/mp4" />
-            </video>
-            <div class="sig-foot"><span class="sig-gf" id="sig-form">WOLF</span><span class="sig-gf">Stream</span></div>
-          </div>
-          <div class="sig-log" id="sig-log"></div>
+        <div class="card c-build" data-lines={JSON.stringify(projects.map((p) => p[1]))}>
+          <div class="card-hd"><span class="ab-lbl">Building</span><span class="ab-lbl">{projects.length} projects</span></div>
+          <ul class="bd-list">
+            {projects.map(([name], i) => <li class={i === 0 ? 'on' : undefined} data-i={i}><span class="bd-i">{String(i + 1).padStart(2, '0')}</span><span class="bd-name">{name}</span></li>)}
+          </ul>
+          <p class="bd-line">{projects[0][1]}</p>
         </div>
-        <div class="card c-ascii">
-          <div class="ascii-card" id="asciiCard">
-            <div class="card-hd"><span class="ab-lbl" id="asciiTitle">ascii.cam</span></div>
-            <div class="ascii-stage" id="asciiStage">
-              <video class="ascii-rec" muted loop playsinline preload="none" poster="/images/about-ascii-cam-poster.webp" aria-hidden="true">
-                <source src="/videos/about-ascii-cam.webm" type="video/webm" />
-                <source src="/videos/about-ascii-cam.mp4" type="video/mp4" />
-              </video>
+        <a class="card c-gh" href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">
+          <div class="card-hd"><span class="ab-lbl">GitHub</span><span class="ab-lbl">Last 26 weeks ↗</span></div>
+          {ghWeeks.length > 0 && <>
+            <div class="gh-big"><span class="gh-num">{ghActive}</span><span class="gh-cap">active days this year</span></div>
+            <div class="gh-map" aria-hidden="true">
+              {ghWeeks.map((week, c) => week.map((l) => <i style={`--l:${l};--c:${c}`}></i>))}
             </div>
-          </div>
-        </div>
+          </>}
+        </a>
         <div class="card c-team">
           <div class="card-hd"><span class="ab-lbl">My team</span><span class="ab-lbl">{team.length} / 6</span></div>
           <div class="poke-grid">
@@ -708,6 +731,54 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   links.forEach(function(a){ var s = document.getElementById(a.dataset.spy); if(s) io.observe(s); });
 })();
 
+/* building card: every few seconds the next project decodes in (text scramble) and its line swaps.
+   Hovering a row picks it and holds; runs only while the card is on screen and the tab is visible. */
+(function(){
+  var card = document.querySelector('.c-build');
+  if(!card) return;
+  var rows = card.querySelectorAll('.bd-list li'), line = card.querySelector('.bd-line');
+  var lines = JSON.parse(card.getAttribute('data-lines'));
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var GLYPHS = '!<>-_\\/[]{}=+*^?#01';
+  var cur = 0, timer = 0, visible = false, held = false;
+  function scramble(el){
+    var text = el.dataset.t || (el.dataset.t = el.textContent), start = performance.now(), DUR = 520;
+    if(still) return;
+    (function tick(now){
+      var done = Math.min(1, (now - start) / DUR), keep = Math.floor(done * text.length), s = text.slice(0, keep);
+      for(var i = keep; i < text.length; i++) s += text[i] === ' ' ? ' ' : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+      el.textContent = s;
+      if(done < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+  function show(i){
+    if(i === cur) return;
+    rows[cur].classList.remove('on'); cur = i; rows[cur].classList.add('on');
+    scramble(rows[cur].querySelector('.bd-name'));
+    line.classList.add('out');
+    setTimeout(function(){ line.textContent = lines[cur]; line.classList.remove('out'); }, 300);
+  }
+  function loop(){
+    clearTimeout(timer);
+    if(!visible || held || document.hidden) return;
+    timer = setTimeout(function(){ show((cur + 1) % rows.length); loop(); }, 3200);
+  }
+  rows.forEach(function(r, i){
+    r.addEventListener('pointerenter', function(){ held = true; clearTimeout(timer); show(i); });
+  });
+  card.addEventListener('pointerleave', function(){ held = false; loop(); });
+  document.addEventListener('visibilitychange', loop);
+  new IntersectionObserver(function(es){ visible = es[0].isIntersecting; loop(); }).observe(card);
+})();
+
+/* github card: the dot matrix sweeps in left to right on first sight */
+(function(){
+  var gh = document.querySelector('.c-gh');
+  if(!gh) return;
+  var io = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ gh.classList.add('in'); io.disconnect(); } }, { rootMargin:'0px 0px -15% 0px' });
+  io.observe(gh);
+})();
+
 /* bento edge light: every card's border tracks the same pointer, so neighbours glow as it nears them */
 (function(){
   var bento = document.querySelector('.bento');
@@ -723,8 +794,6 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   });
 })();
 </script>
-<script is:inline src="/scripts/ascii-cam.js"></script>
-<script is:inline src="/scripts/about-network-formation.js"></script>
 
 <script is:inline>
 /* No intro choreography on this page: mark it settled straight away so
