@@ -568,9 +568,8 @@ footer#site-footer{
   }
   /* ── The beliefs as a white hologram, like the contact card (tone
         'holo-mono'): a red/blue fringe and a soft glow on the letters,
-        scanlines and a slow rolling band over them, a faint flicker. The
-        tags become projected labels. index-beliefs-glitch.js adds the
-        decoding words and the signal drops. ── */
+        scanlines and a slow rolling band over them. The tags become
+        projected labels. index-beliefs-glitch.js adds the signal drops. ── */
   :is(#editorial,#writing) .ed-beliefs .ed-statement{ position:relative; --lit-off:rgba(238,241,248,.16); --lit-on:#f4f6fa;
     filter:drop-shadow(1px 0 0 rgba(255,80,220,.32)) drop-shadow(-1px 0 0 rgba(80,180,255,.38)) drop-shadow(0 0 12px rgba(255,255,255,.24));
     /* scanlines and the rolling band as a mask, so they sit in the letters only, never as a box over the sky */
@@ -580,19 +579,15 @@ footer#site-footer{
     mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
       linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
     mask-composite:intersect;
-    animation:holo-flicker 18s steps(1) infinite, holo-roll 16s linear infinite; }
+    animation:holo-roll 16s linear infinite; }
   :is(#editorial,#writing) .ed-beliefs .ed-tag{ background:repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
     color:#f2f4f8; border:1px solid rgba(255,255,255,.45); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(255,255,255,.08);
-    text-shadow:0 0 8px rgba(255,255,255,.55), 1px 0 0 rgba(255,80,220,.35), -1px 0 0 rgba(80,180,255,.4);
-    animation:holo-flicker 18s steps(1) infinite; }
-  :is(#editorial,#writing) .ed-tag--b{ animation-delay:-6s; }
-  :is(#editorial,#writing) .ed-tag--c{ animation-delay:-11s; }
+    text-shadow:0 0 8px rgba(255,255,255,.55), 1px 0 0 rgba(255,80,220,.35), -1px 0 0 rgba(80,180,255,.4); }
   /* the signal drop: copies of the statement, slipped and split */
   .ed-ghost{ pointer-events:none; filter:none !important; animation:none !important; }
   @keyframes holo-roll{ from{ -webkit-mask-position:0 0, 0 0; mask-position:0 0, 0 0; } to{ -webkit-mask-position:0 0, 0 -150%; mask-position:0 0, 0 -150%; } }
-  @keyframes holo-flicker{ 0%,100%{ opacity:.94; } 41%{ opacity:.8; } 41.6%{ opacity:.96; } 78%{ opacity:.86; } 78.6%{ opacity:.94; } }
   @media (prefers-reduced-motion:reduce){
-    :is(#editorial,#writing) .ed-beliefs :is(.ed-statement,.ed-tag){ animation:none; }
+    :is(#editorial,#writing) .ed-beliefs .ed-statement{ animation:none; }
   }
   /* ── Research log — Work-grammar cards ── */
   :is(#editorial,#writing) .ed-log{ padding:var(--sec-pad) 0 0; }

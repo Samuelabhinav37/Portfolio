@@ -1,7 +1,5 @@
 /* The beliefs hologram's glitches, and the broken-screen roll on the empty
    project frames.
-   - Decoding words: as each word of the statement lights up (motion.js
-     adds .lit), it shows as scrambled glyphs for a moment, then settles.
    - Signal drops: every 8-15s while the beliefs are on screen, red and
      cyan copies of the statement slip sideways in thin bands for a few
      frames, the way the contact card glitches.
@@ -11,32 +9,9 @@
 (function(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var rnd = function(a, b){ return a + Math.random() * (b - a); };
-  var GLYPHS = '0123456789ABCDEF#%&@$/<>=+*';
 
   var st = document.querySelector('#beliefs .ed-statement');
-  var decode = function(w){
-    if(w.dataset.dec) return;
-    var t = w.dataset.t || (w.dataset.t = w.textContent);
-    w.dataset.dec = '1';
-    w.style.width = w.offsetWidth + 'px';   // glyphs are a different width: keep the line from shifting
-    var f = 0, N = 6;
-    var step = function(){
-      if(++f > N){ w.textContent = t; w.style.width = ''; delete w.dataset.dec; return; }
-      var keep = Math.floor(t.length * f / N);   // resolves left to right
-      w.textContent = t.slice(0, keep) + t.slice(keep).replace(/\S/g, function(){ return GLYPHS[Math.floor(Math.random() * GLYPHS.length)]; });
-      setTimeout(step, 45);
-    };
-    step();
-  };
-
   if(st){
-    new MutationObserver(function(list){
-      list.forEach(function(m){
-        var w = m.target;
-        if(w.classList.contains('lit-w') && w.classList.contains('lit') && !/(^|\s)lit(\s|$)/.test(m.oldValue || '')) decode(w);
-      });
-    }).observe(st, { subtree:true, attributes:true, attributeFilter:['class'], attributeOldValue:true });
-
     var body = st.parentNode, inView = false, timer = 0;
     var ghost = function(tint){
       var g = st.cloneNode(true);
@@ -49,8 +24,6 @@
     };
     var glitch = function(){
       var a = ghost('rgba(255,70,200,.75)'), b = ghost('rgba(70,190,255,.8)'), f = 0, n = Math.round(rnd(4, 7));
-      var lit = st.querySelectorAll('.lit-w.lit');
-      for(var k = 0; k < 2 && lit.length; k++) decode(lit[Math.floor(Math.random() * lit.length)]);
       var frame = function(){
         if(++f > n){ a.remove(); b.remove(); st.style.transform = ''; return; }
         [a, b].forEach(function(g, i){
