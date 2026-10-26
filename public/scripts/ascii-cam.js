@@ -1,5 +1,5 @@
 /* ascii.cam: a video drawn as live luminance-ramp ASCII, on the homepage
-   footer and the About page's skills card. Where WebGL is available the
+   footer (the About card plays a recording of it, below). Where WebGL is available the
    whole render runs on the graphics card (see glAscii); the text renderer
    stays as the fallback. Each widget is booted by cam() below with its own
    element ids, the colour behind it, and when to skip it entirely. */
@@ -162,6 +162,14 @@ function cam(o){
    About card is skipped in low-power mode. Both checked once at load. */
 cam({ card:'footerAsciiCard', out:'footerAsciiOut', stage:'footerAsciiStage', vid:'footerAsciiVid', samp:'footerAsciiSamp',
   skip:matchMedia('(max-width:980px)').matches, bg:'.0196,.0196,.0235' }); // .ascii-stage #050506
-cam({ card:'asciiCard', out:'asciiOut', stage:'asciiStage', vid:'asciiVid', samp:'asciiSamp',
-  skip:!!(window.SITE && window.SITE.LOW_POWER), bg:'0.,0.,0.' }); // the about card's #000
+/* the About card plays a recording of this renderer instead
+   (scripts/bake-ascii-cam.mjs): only while on screen, never in low-power mode */
+(function(){
+  var v=document.querySelector('#asciiCard .ascii-rec');
+  if(!v || (window.SITE && window.SITE.LOW_POWER) || matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+  var seen=false;
+  function go(){ if(seen && !document.hidden){ var q=v.play(); if(q&&q.catch) q.catch(function(){}); } else v.pause(); }
+  new IntersectionObserver(function(es){ seen=es[0].isIntersecting; go(); }).observe(v);
+  document.addEventListener('visibilitychange', go);
+})();
 })();

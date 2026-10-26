@@ -8,32 +8,26 @@
 const bgC=document.getElementById('bg');
 const bgX=bgC.getContext('2d');
 let BW,BH;
-function rsz(){BW=bgC.width=innerWidth;BH=bgC.height=innerHeight;}
-rsz();addEventListener('resize',rsz);
+function rsz(){BW=bgC.width=innerWidth;BH=bgC.height=innerHeight;drawBg();}
 const BN=Array.from({length:30},()=>({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.00009,vy:(Math.random()-.5)*.00009,b:Math.random()*.05+.02}));
-let bgActive=true,bgLoopRunning=false;
-function drawBg(t){
+let bgActive=true;
+// A still picture: it was redrawn every frame at a few percent opacity, a
+// full-screen canvas working constantly for something barely visible.
+function drawBg(){
   if(!bgActive)return;
-  bgX.fillStyle='rgba(0,0,0,.97)';bgX.fillRect(0,0,BW,BH);
+  bgX.fillStyle='#000';bgX.fillRect(0,0,BW,BH);
   bgX.strokeStyle='rgba(255,255,255,.005)';bgX.lineWidth=1;
   for(let x=0;x<BW;x+=42){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,BH);bgX.stroke();}
   for(let y=0;y<BH;y+=42){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(BW,y);bgX.stroke();}
-  BN.forEach(n=>{n.x=(n.x+n.vx+1)%1;n.y=(n.y+n.vy+1)%1;});
   BN.forEach((a,i)=>{
     BN.slice(i+1).forEach(b=>{
       const dx=(a.x-b.x)*BW,dy=(a.y-b.y)*BH,d=Math.sqrt(dx*dx+dy*dy);
       if(d<108){bgX.strokeStyle=`rgba(255,255,255,${(1-d/108)*.012})`;bgX.lineWidth=.7;bgX.beginPath();bgX.moveTo(a.x*BW,a.y*BH);bgX.lineTo(b.x*BW,b.y*BH);bgX.stroke();}
     });
-    bgX.fillStyle=`rgba(255,255,255,${a.b*(.6+.4*Math.sin(t*.0005+i*.9))})`;bgX.fillRect(a.x*BW-1,a.y*BH-1,2,2);
+    bgX.fillStyle=`rgba(255,255,255,${a.b})`;bgX.fillRect(a.x*BW-1,a.y*BH-1,2,2);
   });
 }
-function bgLoop(t){
-  if(!bgActive){bgLoopRunning=false;return;}
-  drawBg(t);
-  requestAnimationFrame(bgLoop);
-}
-function startBgLoop(){if(bgLoopRunning)return;bgLoopRunning=true;requestAnimationFrame(bgLoop);}
-startBgLoop();
+rsz();addEventListener('resize',rsz);
 
 // ═══════════════════════════════════════════════════════════
 // MODE CARD SPRITES (intro only)
@@ -117,7 +111,7 @@ function goTo(i){
     document.getElementById(SCREENS[CUR]).classList.add('on');
     updateProg();
     document.getElementById('back').classList.toggle('on',CUR>0&&CUR<4);
-    if(CUR<4){bgActive=true;bgC.style.display='';startBgLoop();gameRunning=false;}
+    if(CUR<4){bgActive=true;bgC.style.display='';drawBg();gameRunning=false;setPaused(false);}
     if(CUR===1)requestAnimationFrame(sprLoop);
     if(CUR===2)buildRules();
     if(CUR===3)buildThemeSel();
@@ -145,8 +139,31 @@ document.addEventListener('keydown',e=>{
     if(e.key==='a'||e.key==='A'){e.preventDefault();selectMode('attacker');return;}
     if(e.key==='d'||e.key==='D'){e.preventDefault();selectMode('defender');return;}
   }
-  if(CUR===4&&G.status==='playing')handleKey(e);
+  if(CUR===4){
+    if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.status==='playing')setPaused(!paused);return;}
+    if(paused){setPaused(false);return;}
+    if(G.status==='playing')handleKey(e);
+    else if(e.key==='r'||e.key==='R'||e.key==='Enter')restartGame();
+  }
 });
+// Pause: P or Esc, or by itself when you click away from the game or switch
+// tabs. Nothing runs while paused; any key or a click carries on.
+let paused=false,pauseEl=null;
+function setPaused(on){
+  if(on&&(CUR!==4||G.status!=='playing'))return;
+  paused=on;held=null;
+  if(!pauseEl){
+    pauseEl=document.createElement('div');
+    pauseEl.style.cssText='position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(0,0,0,.72);z-index:60;cursor:pointer;';
+    pauseEl.innerHTML='<div style="font-size:14px;letter-spacing:.12em">PAUSED</div><div style="font-size:6px;color:rgba(255,255,255,.45);letter-spacing:.14em">PRESS ANY KEY OR CLICK TO CARRY ON</div>';
+    pauseEl.addEventListener('click',()=>setPaused(false));
+    document.getElementById('game-canvas-wrap').appendChild(pauseEl);
+  }
+  pauseEl.style.display=on?'flex':'none';
+  if(!on)runLoop();
+}
+addEventListener('blur',()=>setPaused(true));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)setPaused(true);});
 document.getElementById('s-boot').addEventListener('click',()=>{if(CUR===0)goTo(1);});
 function selectMode(m){selMode=m;goTo(2);}
 
@@ -227,14 +244,16 @@ function updateLaunch(){
   } else {btn.disabled=true;btn.style.borderColor='';btn.style.color='';sm.textContent='SELECT A MAP TO CONTINUE';}
 }
 const miniPat=[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],[1,0,1,1,0,1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1,0,1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,1,1,0,1,1,1,1,0,1,0,1,1,0,1,1,0,1,1,1,1,1,0,1,0,0,1],[1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],[1,0,1,1,0,1,1,1,0,1,0,1,1,1,1,0,1,1,0,1,1,0,1,0,1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1,0,1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,1,1,0,1,1,1,1,0,1,0,1,1,0,1,1,0,1,1,1,1,1,0,1,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]];
-let miniSX=0;
+let miniSX=0,miniRunning=false;
 function drawMiniPrev(){
-  const th=THEMES.find(t=>t.id===selTheme);
+  // picking a map used to start another loop on top of the last one
+  if(miniRunning)return;miniRunning=true;
   const c=document.getElementById('mini-canvas');
   const ctx=c.getContext('2d');
   const TW=7;
   function animMini(){
-    if(CUR!==3)return;
+    if(CUR!==3){miniRunning=false;return;}
+    const th=THEMES.find(t=>t.id===selTheme);
     miniSX=(miniSX+.35)%(TW*miniPat[0].length);
     ctx.fillStyle=th?th.sw[0]:'#000';ctx.fillRect(0,0,c.width,c.height);
     if(!th){requestAnimationFrame(animMini);return;}
@@ -605,7 +624,7 @@ function buildGame(){
   G.propGrid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
   G.hideGrid=Array.from({length:ROWS},()=>Array(COLS).fill(false));
   G.keysGot=0;G.puHeld=null;G.puActive=null;G.blockPlaced=false;
-  G.status='playing';G.animT=0;G.lastTs=0;
+  G.status='playing';G.animT=0;G.lastTs=0;G.runT=0;
   G.guardTimers=[0,0,0];G.patrolT=[0,0];G.chaseUntil=[0,0];G.nextDecision=[0,0];
   G.phantomTimer=0;G.phantomHiding=false;G.phantomHideTimer=0;
   G.particles=[];G.pDir=1;G.pickupFlash=0;
@@ -875,6 +894,7 @@ function updateParticles(dt){
 // RENDER
 // ═══════════════════════════════════════════════════════════
 const GC=document.getElementById('gc');
+let vignette=null;
 const gctx=GC.getContext('2d');
 gctx.imageSmoothingEnabled=false;
 
@@ -887,9 +907,9 @@ function renderGame(){
   // 2. Prop anim re-bake every 0.5s (only animated props, timer advanced in gameLoop)
 
   // 3. Vignette (single gradient, no shadowBlur)
-  const vg=gctx.createRadialGradient(GC.width/2,GC.height/2,GC.width*.12,GC.width/2,GC.height/2,GC.width*.58);
-  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.22)');
-  gctx.fillStyle=vg;gctx.fillRect(0,0,GC.width,GC.height);
+  if(!vignette){vignette=gctx.createRadialGradient(GC.width/2,GC.height/2,GC.width*.12,GC.width/2,GC.height/2,GC.width*.58);
+    vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.22)');}
+  gctx.fillStyle=vignette;gctx.fillRect(0,0,GC.width,GC.height);
 
   // 4. Exit
   const exitOpen=G.mode==='attacker'&&G.keysGot>=3;
@@ -1081,8 +1101,20 @@ function endGame(win,title,sub){
   tellKai(win);
   document.getElementById('gm-title').textContent=title.toUpperCase();
   document.getElementById('gm-title').style.color=win?'#00ff88':'#ff2244';
-  document.getElementById('gm-sub').textContent=sub;
+  let line=sub;
+  if(win){
+    const t=G.runT,best=bestTime(t);
+    line+=' · time '+fmtT(t)+(best<t?' · best '+fmtT(best):' · new best');
+  }
+  document.getElementById('gm-sub').textContent=line;
   document.getElementById('game-msg').style.display='block';
+}
+function fmtT(t){const s=Math.floor(t);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+// best winning time per role, kept in this browser only
+function bestTime(t){
+  const k='arcade-best-'+G.mode;let b=Infinity;
+  try{b=+localStorage.getItem(k)||Infinity;if(t<b)localStorage.setItem(k,t.toFixed(1));}catch(e){}
+  return Math.min(b,t);
 }
 // Kai, outside this sandboxed frame, cheers or gasps: post only the result,
 // and only to the page that embeds the game.
@@ -1092,7 +1124,10 @@ function tellKai(win){
     if(to&&to!=='null')parent.postMessage({kai:'arcade',result:win?'win':'lose'},to);
   }catch(e){}
 }
+let hudKey='';
 function updateHUD(){
+  const key=[G.keysGot,G.puActive&&G.puActive.type,G.puActive&&Math.ceil(G.puActive.timer),G.puHeld&&G.puHeld.type,G.phantom&&G.phantom.keysGot,G.hideGrid[G.py]?.[G.px]].join();
+  if(key===hudKey)return;hudKey=key;
   for(let i=0;i<3;i++){
     const pip=document.getElementById(`kp${i}`);
     const wasGot=pip.classList.contains('got');
@@ -1135,9 +1170,11 @@ function updateHUD(){
 let gameRunning=false;
 let gameGen=0;
 function gameLoop(ts,gen){
-  if(!gameRunning||gen!==gameGen)return;
+  if(!gameRunning||gen!==gameGen||paused){loopOn=false;return;}
   const dt=Math.min((ts-G.lastTs)/1000,.05);G.lastTs=ts;G.animT+=dt;
   if(G.status==='playing'){
+    G.runT+=dt;
+    if(held&&(heldT-=dt)<=0){heldT=REPEAT;tryMove(held[0],held[1]);}
     stepGuards(dt);
     if(G.mode==='defender')stepPhantom(dt);
     checkCollisions();
@@ -1153,7 +1190,15 @@ function gameLoop(ts,gen){
   }
   updateTransform(dt);
   renderGame();
+  // a finished run holds its last frame once the effects have played out
+  if(G.status!=='playing'&&!txActive&&!G.particles.length&&G.pickupFlash<=0){loopOn=false;return;}
   requestAnimationFrame(function(ts2){gameLoop(ts2,gen);});
+}
+let loopOn=false;
+function runLoop(){
+  if(loopOn||!gameRunning||paused)return;
+  loopOn=true;G.lastTs=performance.now();
+  const gen=gameGen;requestAnimationFrame(function(ts){gameLoop(ts,gen);});
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1179,11 +1224,11 @@ function startGame(){
   for(let i=0;i<3;i++)document.getElementById(`kp${i}`).classList.remove('got');
   document.getElementById('hud-power').textContent='—';
   updateHUD();
-  gameGen++;const myGen=gameGen;
-  gameRunning=true;G.lastTs=performance.now();
-  requestAnimationFrame(function(ts){gameLoop(ts,myGen);});
+  vignette=null;hudKey='';held=null;
+  gameGen++;loopOn=false;
+  gameRunning=true;setPaused(false);runLoop();
 }
-function restartGame(){document.getElementById('game-msg').style.display='none';G.status='playing';buildGame();mazeDirty=true;updateHUD();}
+function restartGame(){document.getElementById('game-msg').style.display='none';G.status='playing';buildGame();mazeDirty=true;hudKey='';held=null;updateHUD();setPaused(false);runLoop();}
 
 // ═══════════════════════════════════════════════════════════
 // INPUT
@@ -1227,13 +1272,19 @@ function activatePower(){
   }
   updateHUD();
 }
+// Holding a direction keeps moving one tile every REPEAT seconds, rather
+// than waiting on the keyboard's own repeat (a long pause, then a stutter).
+const MOVES={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
+const REPEAT=.13;
+let held=null,heldKey=null,heldT=0;
+document.addEventListener('keyup',e=>{if(e.key===heldKey){held=null;heldKey=null;}});
 function handleKey(e){
   // Always block scrolling keys when game is active
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)||e.code==='Space'){
     e.preventDefault();
   }
-  const mv={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]}[e.key];
-  if(mv){tryMove(mv[0],mv[1]);}
+  const mv=MOVES[e.key];
+  if(mv){if(e.repeat)return;held=mv;heldKey=e.key;heldT=REPEAT*1.6;tryMove(mv[0],mv[1]);}
   if(e.code==='Space'||e.key===' '){
     activatePower();
   }

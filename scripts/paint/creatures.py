@@ -6,7 +6,6 @@
 #   waves-tile.webp        seamless, barely-there brushed swells
 #   clouds-tile.webp       seamless soft cloud banks, lit along their tops
 #   side-l/-r.webp         vertical strips: small coral trees on rock shelves, sea stars, passing fish
-#   reef-l/-r.webp, reef-floor.webp  the about page's fish-free versions of the strips and the sea floor
 #   scatter-tile.webp      a few sea stars and fish for the gaps between rows
 # Creatures come from the site's own sky-cast.js shapes (rendered by shapes.mjs),
 # painted the way whale sharks and mantas look at night: dark bodies covered
@@ -172,11 +171,6 @@ for k in range(14):
     d.ellipse([bx - s, by - s, bx + s, by + s], outline=200, width=1)
 bot.alpha_composite(rgba(SPOT, np.array(bub, float) / 255 * .5))
 bot.save(f'{OUT}/creatures-bottom.webp', quality=80, alpha_quality=75, method=6)
-# the about page's sea floor: corals, weed and the two sea stars, no turtle, fish or painted bubbles
-reef = Image.new('RGBA', (W, H)); reef.alpha_composite(rgba(BODY * 1.1, fa)); reef.alpha_composite(plants(c, 7))
-over(reef, creature('star', .45, 61, rot=15, spots=1.6, strength=.8), 1120, 500)
-over(reef, creature('star', .3, 62, rot=-30, spots=1.6, strength=.7), 1215, 525)
-reef.save(f'{OUT}/reef-floor.webp', quality=80, alpha_quality=75, method=6)
 
 # ---- light shafts from above ----
 RW, RH = 1600, 1500
@@ -268,9 +262,6 @@ def side(seed, fish=True):
     return s
 side(3).save(f'{OUT}/side-l.webp', quality=80, alpha_quality=75, method=6)
 side(4).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/side-r.webp', quality=80, alpha_quality=75, method=6)
-# the about page's reef: the same strips without fish
-side(3, fish=False).save(f'{OUT}/reef-l.webp', quality=80, alpha_quality=75, method=6)
-side(4, fish=False).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/reef-r.webp', quality=80, alpha_quality=75, method=6)
 
 # ---- scattered sea stars and fish for the gaps between rows ----
 TW, TH = 1400, 1300
