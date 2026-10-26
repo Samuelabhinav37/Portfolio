@@ -257,9 +257,9 @@ footer#site-footer{
      shadow so it reads as the same physical object returning at page end. */
   /* Width matches the old 1500px content column minus its side padding. */
   .f-card{
-    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); min-height:460px; margin:var(--sec-pad) auto 0;
+    position:relative; z-index:1; width:min(1040px, calc(100% - 2 * var(--gut))); margin:var(--sec-pad) auto 0;
     display:flex; align-items:center; justify-content:space-between; gap:56px;
-    padding:72px 64px; border-radius:20px; overflow:visible;
+    padding:40px 48px 40px 64px; border-radius:20px; overflow:visible;
     background:linear-gradient(155deg, rgba(15,17,27,0.94) 0%, rgba(7,7,14,0.90) 55%, rgba(3,3,8,0.94) 100%);
     border:1px solid rgba(var(--c-white),0.07);
     box-shadow:0 60px 130px -35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(var(--c-white),0.04);
@@ -307,15 +307,14 @@ footer#site-footer{
      sitting flush/aligned with the card. Fixed aspect ratio (not vh) so it stays
      a wide landscape rectangle instead of squashing into a taller/squarer crop. */
   .crt{
-    position:relative; z-index:3; align-self:flex-start;
-    width:min(320px,26%); aspect-ratio:240/427; height:auto; flex:0 0 auto;
+    position:relative; z-index:3; align-self:center;
+    width:min(180px,22%); aspect-ratio:240/427; height:auto; flex:0 0 auto;
     border-radius:12px; overflow:hidden; background:#000;
-    margin:-190px -30px 0 0;
     box-shadow:0 60px 130px -18px rgba(0,0,0,0.82),
                0 0 0 1px rgba(var(--c-white),0.06),
                0 0 140px 24px rgba(90,120,185,0.10);
     display:flex; flex-direction:column;
-    transform:translateZ(0) rotate(-1.6deg); will-change:transform; contain:layout paint;
+    transform:translateZ(0); contain:layout paint;
   }
   .crt-inner{
     position:relative; flex:1; min-height:0; width:100%;
@@ -514,38 +513,7 @@ footer#site-footer{
   :is(#editorial,#writing) .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
     letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 
-  /* ── KEV live feed ── */
-  :is(#editorial,#writing) .ed-kev{ max-width:1500px; margin:0 auto; }
-  @keyframes edpulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
-  :is(#editorial,#writing) .ed-ticker{ position:relative; border-top:1px solid rgba(var(--c-white),.1);
-    border-bottom:1px solid rgba(var(--c-white),.1); overflow:hidden;
-    -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
-            mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
-  :is(#editorial,#writing) .ed-track{ display:inline-flex; white-space:nowrap; will-change:transform;
-    animation:edscroll 80s linear infinite; }
-  :is(#editorial,#writing) .ed-ticker:hover .ed-track{ animation-play-state:paused; }
-  @keyframes edscroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  :is(#editorial,#writing) .ed-kv{ display:inline-flex; align-items:baseline; gap:12px; padding:16px 34px;
-    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.3px;
-    text-decoration:none; cursor:pointer; transition:background .2s; }
-  :is(#editorial,#writing) .ed-kv:hover{ background:rgba(var(--c-white),.05); }
-  :is(#editorial,#writing) .ed-kv .ed-cve{ color:#ededee; font-weight:500; }
-  :is(#editorial,#writing) .ed-kv .ed-vp{ color:#94949a; }
-  :is(#editorial,#writing) .ed-kv .ed-date{ color:#87878d; }
-  :is(#editorial,#writing) .ed-kv .ed-ransom{ color:#e5b8b8; font-size:11px; letter-spacing:1px;
-    border:1px solid rgba(229,184,184,.3); border-radius:3px; padding:1px 6px; }
-  :is(#editorial,#writing) .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
 
-  /* ── KEV feed, mobile: this section had no phone-specific sizing at all —
-     desktop's 24-32px heading and 34px-padded ticker pills just ran at full
-     size on a narrow screen. Everything below is scaled down and given its
-     own explicit spacing (head/ticker/foot were relying on desktop's large
-     padding for breathing room, so shrinking that without adding gap back
-     is what read as "no spacing" once the paddings came down). */
-  @media (--bp-760){
-    :is(#editorial,#writing) .ed-kv{ padding:11px 16px; gap:8px; font-size:11px; }
-    :is(#editorial,#writing) .ed-kv .ed-ransom{ font-size:11px; padding:1px 5px; }
-  }
 
   /* ── Beliefs: one statement alone on a full screen over the sky, with a few
         coloured tags placed around it ── */
@@ -599,17 +567,9 @@ footer#site-footer{
   @media (--bp-820){
     #writing .wr-track .fn-tile{ width:min(78vw,360px); }
   }
-  @media (prefers-reduced-motion:reduce){
-    :is(#editorial,#writing) .ed-track{ animation:none; } :is(#editorial,#writing) .ed-ticker{ overflow-x:auto; }
-  }
 </style>
 
 <div id="editorial">
-
-  <!-- KEV feed: the moving row of exploited CVEs, right under the hero -->
-  <section class="ed-kev" aria-label="Live threat feed from the CISA KEV catalog">
-    <div class="ed-ticker"><div class="ed-track" id="ed-track"></div></div>
-  </section>
 
   <!-- Beliefs: one statement that lights up word by word as you scroll -->
   <section class="ed-beliefs" id="beliefs" aria-label="What I believe">
@@ -624,7 +584,6 @@ footer#site-footer{
 
 </div>
 
-<script is:inline defer src="/scripts/index-editorial-flow.js"></script>
 <script is:inline defer src="/scripts/index-wreck-frames.js"></script>
 <script is:inline defer src="/scripts/holo-glitch.js"></script>
 <!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
