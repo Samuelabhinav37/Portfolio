@@ -75,22 +75,33 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 /* ── Layout after fattah.me/info: label | index | content on a 12-column grid ── */
 .ab{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(12, 1fr); column-gap:16px;
   padding:clamp(120px, 15vh, 168px) var(--gut, clamp(16px, 3.2vw, 48px)) 0; max-width:1600px; margin:0 auto; }
-.ab-label{ grid-column:1 / 3; }
+/* Inter, like the reference: wider than the site's Inter Tight, so lines run long */
+.ab{ font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+.ab-label{ grid-column:1 / 3; font-size:13px; font-weight:500; color:#f4f6fa; }
 .ab-index{ grid-column:3 / 5; align-self:start; position:sticky; top:128px; display:flex; flex-direction:column; gap:7px; }
 .ab-index a{ font-size:13px; color:rgba(var(--c-white),0.42); text-decoration:none; transition:color var(--dur-fast); width:max-content; }
 .ab-index a:hover, .ab-index a.on{ color:#f4f6fa; }
 .ab-main{ grid-column:5 / 13; min-width:0; }
-.ab-lbl, .ab-label{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
+.ab-lbl{ font-size:13px; font-weight:600; color:rgba(var(--c-white),0.85); }
+.card-hd .ab-lbl + .ab-lbl{ font-weight:400; color:rgba(var(--c-white),0.45); }
 
 .ab-sec{ scroll-margin-top:120px; }
 .ab-sec + .ab-sec{ margin-top:clamp(96px, 14vh, 150px); }
-.ab-sec > .ab-lbl{ display:block; margin-bottom:22px; }
+.ab-h{ font-size:20px; font-weight:700; letter-spacing:-.005em; color:#f4f6fa; margin-bottom:16px; }
 
-/* intro */
-.ab-intro{ font-size:clamp(30px, 3.1vw, 46px); font-weight:500; line-height:1.12; letter-spacing:-.015em; color:#f4f6fa; max-width:22ch; text-wrap:balance; }
+/* intro: one long sentence across the whole column, as on fattah.me/info */
+.ab-kicker{ display:block; font-size:13px; font-weight:600; color:#f4f6fa; margin-bottom:22px; }
+.ab-intro{ font-size:clamp(22px, 1.8vw, 28px); font-weight:500; line-height:1.3; letter-spacing:-.01em; color:#f4f6fa; }
 .ab-intro b{ font-weight:700; }
-.ab-bio{ margin-top:34px; max-width:60ch; }
-.ab-bio p{ font-size:19px; line-height:1.6; color:rgba(var(--c-white),0.62); }
+.ab-bio{ margin-top:30px; max-width:72ch; }
+.ab-bio p{ font-size:18px; line-height:1.6; color:rgba(var(--c-white),0.62); }
+
+/* headings arrive word by word, each rising out of a blur (split + trigger in the script below) */
+html.motion [data-words]:not(.split){ visibility:hidden; }
+[data-words] .w{ display:inline-block; opacity:0; filter:blur(8px); transform:translateY(.4em);
+  transition:opacity .8s var(--ease-out), filter .8s var(--ease-out), transform .8s var(--ease-out); transition-delay:calc(var(--i) * 45ms); }
+[data-words].in .w{ opacity:1; filter:none; transform:none; }
+@media (prefers-reduced-motion: reduce){ [data-words] .w{ opacity:1; filter:none; transform:none; transition:none; } }
 .ab-bio p + p{ margin-top:14px; }
 .ab-bio b{ font-weight:500; color:#f4f6fa; }
 
@@ -118,7 +129,7 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 
 /* ── bento ── */
 .bento{ display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:auto 280px; gap:10px;
-  grid-template-areas:"certs certs team" "signal ascii team"; }
+  grid-template-areas:"certs certs signal" "team ascii signal"; }
 .card{ position:relative; background:rgba(0,0,0,.82); border:1px solid rgba(var(--c-white),0.08); border-top-color:rgba(var(--c-white),0.14);
   border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
 /* a soft light that follows the cursor around the card edges (pointer vars set below) */
@@ -135,11 +146,13 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 .cb-wrap:hover .cb-track{ animation-play-state:paused; }
 @keyframes cbscroll{ from{ transform:translateX(0) } to{ transform:translateX(-50%) } }
 .cb{ display:inline-flex; flex-direction:column; align-items:center; gap:10px; width:100px; }
-.cb img{ width:66px; height:66px; object-fit:contain; box-sizing:content-box; transition:transform .3s var(--ease-out); }
-.cb:hover img{ transform:translateY(-3px) scale(1.06); }
-/* only CompTIA's badge art has an opaque white square baked in; the rest are transparent */
-.cb--framed img{ background:#f2f1ee; border-radius:12px; padding:6px; box-shadow:0 3px 14px rgba(0,0,0,.4); }
-.cb span{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#a4a4aa; white-space:normal; text-align:center; line-height:1.2; }
+/* black and white so they sit quietly in the card; full colour on hover */
+.cb img{ width:66px; height:66px; object-fit:contain; border-radius:10px; filter:grayscale(1) brightness(.9); opacity:.8;
+  transition:transform .3s var(--ease-out), filter .4s, opacity .4s; }
+.cb:hover img{ transform:translateY(-3px) scale(1.06); filter:none; opacity:1; }
+/* only CompTIA's badge art has an opaque white square baked in: inverted, that square turns black like the card */
+.cb--framed img{ filter:grayscale(1) invert(1) brightness(.9); }
+.cb span{ font-size:12px; color:#a4a4aa; white-space:normal; text-align:center; line-height:1.2; }
 
 .c-signal{ grid-area:signal; }
 .sig-graph{ flex:1; display:flex; flex-direction:column; min-height:0; padding:10px 10px 4px; }
@@ -160,10 +173,10 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 .ascii-out{ margin:0; white-space:pre; font-family:'JetBrains Mono','DejaVu Sans Mono',monospace; color:rgba(var(--c-white),0.84); font-size:2px; line-height:2px; letter-spacing:0; }
 
 .c-team{ grid-area:team; padding-bottom:16px; }
-.poke-grid{ flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:16px 16px 0; }
+.poke-grid{ flex:1; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:14px 14px 0; }
 .poke-slot{ background:rgba(var(--c-white),0.03); border:1px solid rgba(var(--c-white),0.06); border-radius:8px; padding:8px 4px 7px;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; transition:background .3s, border-color .3s; }
-.poke-slot img{ width:58px; height:58px; object-fit:contain; image-rendering:pixelated; filter:grayscale(1) brightness(.82) contrast(1.08); transition:filter .4s, transform .4s var(--ease-out); }
+.poke-slot img{ width:50px; height:50px; object-fit:contain; image-rendering:pixelated; filter:grayscale(1) brightness(.82) contrast(1.08); transition:filter .4s, transform .4s var(--ease-out); }
 .poke-slot:hover{ background:rgba(var(--c-white),0.06); border-color:rgba(var(--c-white),0.14); }
 .poke-slot:hover img{ filter:none; transform:translateY(-3px); }
 .poke-name{ font-size:12px; color:rgba(var(--c-white),0.55); }
@@ -228,14 +241,15 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 <Glitches />
 
 <main class="ab">
-  <div class="ab-label">About</div>
+  <div class="ab-label">Info</div>
   <nav class="ab-index" aria-label="On this page">
-    {sections.map(([id, name]) => <a href={`#${id}`} data-spy={id}>{name}</a>)}
+    {sections.map(([id, name]) => <a href={`#${id}`} data-spy={id} data-roll>{name}</a>)}
   </nav>
 
   <div class="ab-main">
     <section id="intro" class="ab-sec">
-      <h1 class="ab-intro" data-reveal="lines">Hi, I'm <b>Samuel Abhinav.</b> I make networks harder to break. Most days.</h1>
+      <span class="ab-kicker">About Samuel</span>
+      <h1 class="ab-intro" data-words>Hi, I'm <b>Samuel Abhinav.</b> I make networks harder to break. Most days.</h1>
       <div class="ab-bio" data-reveal-group>
         <p>I got into security because finding the fracture points in a system was the fun part. It turns out that is the entire job.</p>
         <p>A network only survives a live adversary when you track <b>behaviour instead of indicators</b> and treat trust as something to be continuously earned.</p>
@@ -247,7 +261,7 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     </section>
 
     <section id="toolkit" class="ab-sec">
-      <span class="ab-lbl">Toolkit</span>
+      <h2 class="ab-h" data-words>Toolkit</h2>
       <ul class="tk" data-reveal-group>
         {toolkit.map(([name, logo]) => (
           <li>
@@ -261,7 +275,7 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     </section>
 
     <section id="snapshot" class="ab-sec">
-      <span class="ab-lbl">Snapshot</span>
+      <h2 class="ab-h" data-words>Snapshot</h2>
       <div class="bento" data-reveal-group>
         <div class="card c-certs">
           <div class="card-hd"><span class="ab-lbl">Certifications</span><span class="ab-lbl">{certs.length}</span></div>
@@ -307,7 +321,7 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     </section>
 
     <section id="arcade" class="ab-sec">
-      <span class="ab-lbl">Arcade</span>
+      <h2 class="ab-h" data-words>Arcade</h2>
       <p class="ab-arcade-sub" data-reveal>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
       <div class="game-panel" data-reveal>
         <div class="game-hdr">
@@ -654,6 +668,35 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   });
   // clicking back out to the page brings the cover back, so the page scrolls again
   addEventListener('focus', function(){ play.classList.remove('gone'); });
+})();
+
+/* [data-words] headings: wrap each word (keeping <b> etc.) so CSS can stagger them in on first sight */
+(function(){
+  var els = document.querySelectorAll('[data-words]');
+  els.forEach(function(el){
+    var n = 0;
+    el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+    (function walk(node){
+      Array.prototype.slice.call(node.childNodes).forEach(function(c){
+        if(c.nodeType === 1){ walk(c); return; }
+        if(c.nodeType !== 3) return;
+        var frag = document.createDocumentFragment();
+        c.textContent.split(/(\s+)/).forEach(function(part){
+          if(!part) return;
+          if(/^\s+$/.test(part)){ frag.appendChild(document.createTextNode(part)); return; }
+          var s = document.createElement('span');
+          s.className = 'w'; s.setAttribute('aria-hidden', 'true'); s.style.setProperty('--i', n++); s.textContent = part;
+          frag.appendChild(s);
+        });
+        c.replaceWith(frag);
+      });
+    })(el);
+    el.classList.add('split');
+  });
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { rootMargin:'0px 0px -12% 0px' });
+  els.forEach(function(el){ io.observe(el); });
 })();
 
 /* light the index entry for the section in view */
