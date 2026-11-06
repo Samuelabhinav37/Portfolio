@@ -23,10 +23,14 @@ const pmYear = String(d.getFullYear());
    is the site's usual navy night, with the card and picture cooled to match;
    'mono' is all of it in black and white; 'holo' turns the card, the picture
    and the console into a cyan hologram projected into the navy sky;
-   'holo-mono' is that hologram in white light, sky creatures included. */
-type Tone = 'aged' | 'cool' | 'mono' | 'holo' | 'holo-mono';
-const tone = 'holo-mono' as Tone;
-const bodyTone = tone === 'holo-mono' ? 'holo' : tone;
+   'holo-mono' is that hologram in white light, sky creatures included;
+   'paper' is the hologram without its inversion: the bare print, black ink
+   screen-blended into the sky so it reads navy (what iPhone Safari showed
+   when it dropped the filter). */
+type Tone = 'aged' | 'cool' | 'mono' | 'holo' | 'holo-mono' | 'paper';
+const tone = 'paper' as Tone;
+const bodyTone = tone === 'holo-mono' || tone === 'paper' ? 'holo' : tone;
+const holoAttr = tone === 'holo-mono' ? 'mono' : tone === 'paper' ? 'paper' : undefined;
 ---
 
 <!DOCTYPE html>
@@ -510,6 +514,14 @@ window.SITE=window.SITE||{};
   body[data-holo="mono"] .pg-footer .f-links a{ color:rgba(205,210,220,0.7); }
   body[data-holo="mono"] .pg-footer .f-links a:hover{ color:#f4f6fa; }
   body[data-holo="mono"] .holo-status:not(:empty):not(.bad){ color:#f2f4f8; text-shadow:0 0 10px rgba(255,255,255,0.5); }
+
+  /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
+     back the right way round go back to their own print look ── */
+  body[data-holo="paper"] .poster{ filter:none; }
+  body[data-holo="paper"] .poster-art img{ filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
+  body[data-holo="paper"] .poster-art::after{ display:block; }
+  body[data-holo="paper"] .attach img, body[data-holo="paper"] .tear-hole{ filter:none; }
+  body[data-holo="paper"] .sky-life{ filter:grayscale(1) brightness(1.1); }
   @media (prefers-reduced-motion: reduce){
     body[data-tone="holo"] .poster{ animation:none; opacity:0.92; }
     body[data-tone="holo"] .poster::after{ animation:none; }
@@ -583,7 +595,7 @@ window.SITE=window.SITE||{};
 <ErrorReporter />
 <ClarityAnalytics />
 </head>
-<body data-tone={bodyTone} data-holo={tone === 'holo-mono' ? 'mono' : undefined}>
+<body data-tone={bodyTone} data-holo={holoAttr}>
 
 <a class="skip" href="#nm">Skip to the form</a>
 
