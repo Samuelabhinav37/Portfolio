@@ -1,22 +1,19 @@
 ---
 import Motion from '../components/Motion.astro';
-import Glitches from '../components/Glitches.astro';
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
-const sections = [['toolkit', 'Toolkit'], ['snapshot', 'Snapshot'], ['arcade', 'Arcade']];
-// [name, logo file in public/images/tools, or a monogram where no free logo exists]
-const toolkit = [
-  ['Splunk', '>'], ['Microsoft Sentinel', 'microsoft-sentinel.svg'],
-  ['Wazuh', 'W'], ['Security Onion', 'SO'],
-  ['Elastic', 'elastic.svg'], ['MITRE ATT&CK', 'M'],
-  ['Python', 'python.svg'], ['PowerShell', 'powershell.svg'],
-  ['Ghidra', 'ghidra.svg'], ['Terraform', 'terraform.svg'],
-  ['Docker', 'docker.svg'], ['AWS', 'aws.svg'],
+const toolkit: [string, string[]][] = [
+  ['Detection', ['Splunk SPL', 'Microsoft Sentinel KQL', 'Elastic / Kibana', 'Wazuh / Security Onion', 'Sigma / MITRE ATT&CK']],
+  ['Code and cloud', ['Python / PowerShell', 'Ghidra', 'Terraform / Docker', 'AWS / Azure']],
+];
+// [name, page, tile image (none yet for Sentinel)]
+const work = [
+  ['Moat', '/work/moat/', '/images/projects/moat-tile.w800.webp'], ['Cluster', '/work/cluster/', '/images/projects/cluster-tile.w800.webp'],
+  ['Sentinel', '/work/sentinel/', ''], ['Blue Streak', '/work/blue-streak/', '/images/projects/blue-streak-tile.w800.webp'],
 ];
 // [name, badge file in public/images/certs, has a baked-in white square]
 const certs = [
@@ -36,13 +33,6 @@ try {
   const kev = await (await fetch('https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json', { signal: AbortSignal.timeout(15000) })).json();
   wire = kev.vulnerabilities.sort((x: { dateAdded: string }, y: { dateAdded: string }) => y.dateAdded.localeCompare(x.dateAdded)).slice(0, 5).map(wireRow);
 } catch { /* offline build: the card shows a link to the catalog until /api/kev answers */ }
-// typing schedule: each line types at 20ms a character, 100ms after the one before
-let wireAt = 200;
-const wireSched = wire.map((w) => {
-  const cveAt = wireAt; wireAt += w.cve.length * 20 + 100;
-  const whatAt = wireAt; wireAt += w.what.length * 20 + 100;
-  return { cveAt, whatAt };
-});
 const fmtDay = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 // GitHub's public contribution calendar, read at build time (so it refreshes on every deploy).
 // Cells carry id="contribution-day-component-<weekday>-<week>" and data-level 0-4.
@@ -76,7 +66,7 @@ window.SITE=window.SITE||{};
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <meta name="darkreader-lock">
 <title>Samuel Abhinav — About</title>
 <meta name="description" content="I got into security because I liked figuring out how things break. M.S. in Cybersecurity, a handful of certs, and three projects I'm genuinely proud of — currently looking for a team that reads its own logs.">
@@ -97,180 +87,83 @@ window.SITE=window.SITE||{};
 <Fonts />
 <Motion />
 <style is:global>
+/* Layout after guide.4wide.jp: a white page, a 1200px column, and every section as a row of
+   title (340px) | body (720px) with 100px between them and a hairline under each. */
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:var(--c-bg); color:rgba(var(--c-white),0.9); overflow-x:hidden; }
-body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; }
+html, body { background:#fff; color:#050505; overflow-x:hidden; }
+body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size:16px; letter-spacing:.03em; -webkit-font-smoothing:antialiased; }
 
-/* Night sky: the painted wash and star dust from scripts/paint, with the contact
-   page's jellyfish (SkyLife); the homepage's film grain and vignette on top. */
-.ab-sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
-.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
-.page-grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
-.page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
+/* the shared header is built for the night sky: give it ink and a white fade on this page */
+#site-identity .name, #menu-trigger, #menu-trigger:hover { color:#050505 !important; }
+#topbar-scrim { background:linear-gradient(to bottom, rgba(255,255,255,.9), rgba(255,255,255,0)) !important; }
+html.is-scrolled #topbar-scrim { background:rgba(255,255,255,.75) !important; }
 
-/* ── Layout after fattah.me/info: label | index | content on a 12-column grid ── */
-.ab{ position:relative; z-index:2; display:grid; grid-template-columns:repeat(12, 1fr); column-gap:16px;
-  padding:clamp(120px, 15vh, 168px) var(--gut, clamp(16px, 3.2vw, 48px)) 0; max-width:1600px; margin:0 auto; }
-/* Inter, like the reference: wider than the site's Inter Tight, so lines run long */
-.ab{ font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-.ab-label{ grid-column:1 / 3; font-size:13px; font-weight:500; color:#f4f6fa; }
-.ab-index{ grid-column:3 / 5; align-self:start; position:sticky; top:128px; display:flex; flex-direction:column; gap:7px; }
-.ab-index a{ font-size:13px; color:rgba(var(--c-white),0.42); text-decoration:none; transition:color var(--dur-fast); width:max-content; display:flex; gap:10px; }
-.ab-index a:hover, .ab-index a.on{ color:#f4f6fa; }
-.ix-n{ font-family:'JetBrains Mono', monospace; font-size:11px; opacity:.6; padding-top:1px; }
-.ab-main{ grid-column:5 / 13; min-width:0; }
-.ab-lbl{ font-size:13px; font-weight:600; color:rgba(var(--c-white),0.85); }
-.card-hd .ab-lbl + .ab-lbl{ font-weight:400; color:rgba(var(--c-white),0.45); }
+.g{ max-width:1200px; margin:0 auto; padding:120px 20px 20px; }
+.en{ font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight:500; letter-spacing:-.01em; }
 
-.ab-sec{ scroll-margin-top:120px; }
-.ab-sec + .ab-sec{ margin-top:clamp(96px, 14vh, 150px); }
-.ab-h{ font-size:20px; font-weight:700; letter-spacing:-.005em; color:#f4f6fa; margin-bottom:16px; }
+.read{ display:flex; align-items:baseline; gap:10px; margin-bottom:100px; }
+.read h1{ font-size:18px; line-height:1; }
+.read p{ font-size:13px; line-height:1; font-weight:400; }
 
-/* intro: one long sentence across the whole column, as on fattah.me/info */
-.ab-intro{ font-size:clamp(22px, 1.8vw, 28px); font-weight:500; line-height:1.3; letter-spacing:-.01em; color:#f4f6fa; }
-.ab-intro b{ font-weight:700; }
-.ab-bio{ margin-top:30px; max-width:72ch; }
-.ab-bio p{ font-size:18px; line-height:1.6; color:rgba(var(--c-white),0.62); }
+.section{ display:flex; gap:100px; padding-bottom:80px; margin-bottom:80px; border-bottom:1px solid #dfdfdf; }
+.section:last-of-type{ border-bottom:0; margin-bottom:0; }
+.head{ flex:0 0 340px; display:flex; flex-direction:column; gap:10px; }
+.head h2{ font-size:28px; line-height:1; }
+.head h3{ font-size:13px; line-height:1; font-weight:400; }
+.body{ flex:0 1 720px; min-width:0; font-size:14px; line-height:1.8; }
+.body p + p{ margin-top:0; }
+.body a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
+.body a[target="_blank"]::after{ content:'↗'; font-size:.8em; margin-left:1px; }
 
-/* headings arrive word by word, each rising out of a blur (split + trigger in the script below) */
-html.motion [data-words]:not(.split){ visibility:hidden; }
-[data-words] .w{ display:inline-block; opacity:0; filter:blur(8px); transform:translateY(.4em);
-  transition:opacity .8s var(--ease-out), filter .8s var(--ease-out), transform .8s var(--ease-out); transition-delay:calc(var(--i) * 45ms); }
-[data-words].in .w{ opacity:1; filter:none; transform:none; }
-@media (prefers-reduced-motion: reduce){ [data-words] .w{ opacity:1; filter:none; transform:none; transition:none; } }
-.ab-bio p + p{ margin-top:14px; }
-.ab-bio b{ font-weight:500; color:#f4f6fa; }
+/* ▼ sub-heading, then a list with small square bullets */
+.body h4{ display:flex; gap:4px; font-size:16px; font-weight:500; line-height:1.15; padding-top:32px; margin-bottom:10px; }
+.body h4::before{ content:'▼'; font-size:.8em; }
+.body > h4:first-child{ padding-top:0; }
+.list{ list-style:none; display:flex; flex-direction:column; gap:2px; }
+.list li{ display:flex; align-items:baseline; gap:8px; }
+.list li::before{ content:''; flex:none; width:4px; height:4px; background:#050505; transform:translateY(-3px); }
 
-/* portrait: placeholder until the real photo arrives; a photo gets the grain and greyscale */
-.ab-portrait{ position:relative; margin-top:64px; aspect-ratio:16 / 10; border-radius:10px; overflow:hidden;
-  background:#05070d; border:1px solid rgba(var(--c-white),0.1); display:grid; place-items:center; }
-.ab-portrait img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05); }
-.ab-portrait:has(img)::after{ content:''; position:absolute; inset:0; background:url(/images/grain.webp); opacity:.3; mix-blend-mode:overlay; }
-.ab-portrait .ab-lbl{ position:relative; color:rgba(var(--c-white),0.7); background:rgba(3,5,12,.8); padding:7px 12px; border-radius:999px; }
-.ab-portrait:has(img) .ab-lbl{ display:none; }
+/* a framed picture: 4px inset, hairline, 4px corners */
+.frame{ padding:4px; border:1px solid #dfdfdf; border-radius:4px; background:#fff; }
+.frame > img, .frame > .ph{ display:block; width:100%; border-radius:4px; }
+.portrait{ width:240px; margin-bottom:16px; }
+.portrait .ph{ aspect-ratio:231 / 204; background:#efefef; display:grid; place-items:center; font-size:12px; color:#777; }
+.portrait img{ aspect-ratio:231 / 204; object-fit:cover; }
 
-/* registration marks (after gertix.studio): a small + on each outer corner of a block */
-.xm{ position:relative; }
-.xm::before{ content:''; position:absolute; inset:-6px; pointer-events:none; --x:linear-gradient(rgba(var(--c-white),0.4), rgba(var(--c-white),0.4));
-  background:var(--x) left 0 top 6px / 13px 1px, var(--x) left 6px top 0 / 1px 13px, var(--x) right 0 top 6px / 13px 1px, var(--x) right 6px top 0 / 1px 13px,
-    var(--x) left 0 bottom 6px / 13px 1px, var(--x) left 6px bottom 0 / 1px 13px, var(--x) right 0 bottom 6px / 13px 1px, var(--x) right 6px bottom 0 / 1px 13px;
-  background-repeat:no-repeat; }
+.tiles{ list-style:none; display:flex; flex-wrap:wrap; gap:30px 10px; }
+.tile{ width:calc((100% - 10px) / 2); max-width:288px; display:flex; flex-direction:column; gap:8px; }
+.tile .frame > *{ aspect-ratio:279 / 186; background:#efefef; object-fit:contain; }
+.tile .frame > img{ padding:9% 10%; }
+.tile .frame > .ph{ display:grid; place-items:center; font-size:12px; color:#777; }
+.tile a{ width:max-content; }
+.tiles--sm .tile{ width:calc((100% - 50px) / 6); }
+.tiles--sm .tile .frame > *{ aspect-ratio:1; padding:18%; background:#fff; }
+.tiles--sm .tile span{ font-size:13px; }
+.poke .tile .frame > img{ image-rendering:pixelated; padding:16%; }
+.etc{ margin-top:40px; }
 
-/* toolkit after mikewilcockdesign.com/about: two columns of dashed hairline rows, plus logos */
-.tk{ list-style:none; display:grid; grid-template-columns:1fr 1fr; column-gap:32px; border-top:1px dashed rgba(var(--c-white),0.16); }
-.tk li{ display:flex; align-items:center; gap:14px; padding:16px 0; border-bottom:1px dashed rgba(var(--c-white),0.16);
-  font-size:20px; color:rgba(var(--c-white),0.78); transition:padding .5s var(--ease-out), color .3s; }
-.tk-logo{ width:22px; height:22px; flex:none; background:currentColor; opacity:.72; transition:opacity .3s;
-  -webkit-mask:var(--logo) center / contain no-repeat; mask:var(--logo) center / contain no-repeat; }
-.tk-mono{ width:22px; height:22px; flex:none; display:grid; place-items:center; border:1px solid currentColor; border-radius:5px; opacity:.72;
-  font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:600; letter-spacing:0; }
-.tk li::after{ content:''; width:5px; height:5px; border-radius:50%; background:#9cc0ff; margin-left:auto; opacity:0; transform:scale(0); transition:opacity .3s, transform .4s var(--ease-out); }
-@media (hover:hover){
-  .tk li:hover{ padding-left:12px; color:#f4f6fa; }
-  .tk li:hover .tk-logo, .tk li:hover .tk-mono{ opacity:1; }
-  .tk li:hover::after{ opacity:1; transform:none; }
-}
+/* on the wire: newest CISA KEV rows (refreshed from /api/kev by the script below) */
+.wr-cve{ font-family:'JetBrains Mono', monospace; font-size:13px; }
+.wr-what{ color:#555; }
+.wr-foot{ margin-top:10px; color:#555; }
 
-/* ── bento ── */
-.bento{ display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:auto 280px; gap:10px;
-  grid-template-areas:"certs certs wire" "team gh wire"; }
-.card{ position:relative; background:rgba(0,0,0,.82); border:1px solid rgba(var(--c-white),0.08); border-top-color:rgba(var(--c-white),0.14);
-  border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
-/* a faint dot screen inside every card, like a dithered print */
-.card::before{ content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.3px) 0 0 / 7px 7px; }
-.card > *{ position:relative; }
-/* a soft light that follows the cursor around the card edges (pointer vars set below) */
-.card::after{ content:''; position:absolute; inset:0; border-radius:inherit; padding:1px; pointer-events:none; opacity:0; transition:opacity .4s;
-  background:radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(170,200,255,.55), transparent 70%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; }
-@media (hover:hover){ .bento:hover .card::after{ opacity:1; } }
-.card-hd{ display:flex; align-items:baseline; justify-content:space-between; padding:16px 18px 0; }
+/* github: the last 26 weeks as a dot matrix in ink */
+.gh-num{ font-size:28px; line-height:1; margin-right:8px; font-variant-numeric:tabular-nums; }
+.gh-map{ margin-top:16px; max-width:520px; display:grid; grid-template-rows:repeat(7, 1fr); grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; aspect-ratio:26 / 7; }
+.gh-map i{ display:block; border-radius:50%; background:#050505; place-self:center; width:calc(28% + var(--l) * 18%); aspect-ratio:1; opacity:calc(.08 + var(--l) * .22); }
 
-.c-certs{ grid-area:certs; padding-bottom:18px; }
-.cb-wrap{ flex:1; display:flex; align-items:center; overflow:hidden; padding-top:18px;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); }
-.cb-track{ display:inline-flex; gap:26px; white-space:nowrap; animation:cbscroll 34s linear infinite; }
-.cb-wrap:hover .cb-track{ animation-play-state:paused; }
-@keyframes cbscroll{ from{ transform:translateX(0) } to{ transform:translateX(-50%) } }
-.cb{ display:inline-flex; flex-direction:column; align-items:center; gap:10px; width:100px; }
-/* black and white so they sit quietly in the card; full colour on hover */
-.cb img{ width:66px; height:66px; object-fit:contain; border-radius:10px; filter:grayscale(1) brightness(.9); opacity:.8;
-  transition:transform .3s var(--ease-out), filter .4s, opacity .4s; }
-.cb:hover img{ transform:translateY(-3px) scale(1.06); filter:none; opacity:1; }
-/* only CompTIA's badge art has an opaque white square baked in: inverted, that square turns black like the card */
-.cb--framed img{ filter:grayscale(1) invert(1) brightness(.9); }
-.cb span{ font-size:12px; color:#a4a4aa; white-space:normal; text-align:center; line-height:1.2; }
-
-/* on the wire: the newest actively exploited CVEs, each line typing out in turn (after kvs.services).
-   Monospace, so a line's width is its length in ch and steps() can reveal it one character at a time. */
-.c-wire{ grid-area:wire; padding-bottom:18px; }
-.wr-src{ text-decoration:none; transition:color .3s; }
-.wr-src:hover{ color:#f4f6fa; }
-.wr-list{ list-style:none; padding:10px 18px 0; display:flex; flex-direction:column; }
-.wr-list li{ padding:10px 0; border-bottom:1px dashed rgba(var(--c-white),0.1); font-family:'JetBrains Mono', monospace; }
-.wr-t{ display:block; width:calc(var(--n) * 1ch); max-width:100%; overflow:hidden; white-space:nowrap; }
-.wr-cve{ font-size:13px; font-weight:500; color:#f4f6fa; }
-.wr-what{ margin-top:4px; font-size:12px; color:rgba(var(--c-white),0.55); }
-html.motion .c-wire:not(.in) .wr-t{ width:0; }
-/* backwards, not both: a finished run can stop a hair short of 1, which steps() rounds down a whole character */
-.c-wire.in .wr-t{ animation:wrType calc(var(--n) * 20ms) steps(var(--n), end) var(--d) backwards; }
-@keyframes wrType{ from{ width:0; } }
-.wr-foot{ margin:auto 18px 0; padding-top:16px; font-size:13px; line-height:1.5; color:rgba(var(--c-white),0.55); }
-.wr-foot::after{ content:''; display:inline-block; width:.55em; height:1em; margin-left:4px; vertical-align:-2px; background:#9cc0ff; animation:wrCaret 1s steps(1) infinite; }
-@keyframes wrCaret{ 50%{ opacity:0; } }
-@media (prefers-reduced-motion: reduce){ .wr-foot::after{ animation:none; } }
-
-/* github: the last 26 weeks as a dot matrix, built from github.com at build time */
-.c-gh{ grid-area:gh; color:inherit; text-decoration:none; }
-.gh-big{ padding:12px 18px 0; display:flex; align-items:baseline; gap:10px; }
-.gh-num{ font-size:44px; font-weight:700; letter-spacing:-.03em; line-height:1; color:#f4f6fa; font-variant-numeric:tabular-nums; }
-.gh-cap{ font-size:13px; color:rgba(var(--c-white),0.55); }
-.gh-map{ margin:auto 18px 18px; display:grid; grid-template-rows:repeat(7, 1fr); grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; aspect-ratio:26 / 7; }
-.gh-map i{ display:block; border-radius:50%; background:#f4f6fa; place-self:center; width:calc(28% + var(--l) * 18%); aspect-ratio:1; opacity:calc(.1 + var(--l) * .22);
-  transition:opacity .5s, transform .6s var(--ease-out); transition-delay:calc(var(--c) * 22ms); }
-html.motion .c-gh:not(.in) .gh-map i{ opacity:0; transform:scale(.2); }
-.c-gh:hover .gh-cap{ color:#f4f6fa; }
-
-.c-team{ grid-area:team; padding-bottom:16px; }
-.poke-grid{ flex:1; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:14px 14px 0; }
-.poke-slot{ background:rgba(var(--c-white),0.03); border:1px solid rgba(var(--c-white),0.06); border-radius:8px; padding:8px 4px 7px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; transition:background .3s, border-color .3s; }
-.poke-slot img{ width:50px; height:50px; object-fit:contain; image-rendering:pixelated; filter:grayscale(1) brightness(.82) contrast(1.08); transition:filter .4s, transform .4s var(--ease-out); }
-.poke-slot:hover{ background:rgba(var(--c-white),0.06); border-color:rgba(var(--c-white),0.14); }
-.poke-slot:hover img{ filter:none; transform:translateY(-3px); }
-.poke-name{ font-size:12px; color:rgba(var(--c-white),0.55); }
-
-/* ── arcade ── */
-/* a band of halftone cloud behind the heading (after detections.ai): square dots sized by the
-   brightness of a noise cloud, drawn once into a canvas by the script below */
-#arcade{ position:relative; }
-.ab-dots{ position:absolute; left:0; top:-190px; width:100%; height:250px; z-index:-1; pointer-events:none;
-  -webkit-mask-image:radial-gradient(60% 55% at 30% 60%, #000 15%, transparent 72%); mask-image:radial-gradient(60% 55% at 30% 60%, #000 15%, transparent 72%); }
-.ab-arcade-sub{ font-size:19px; line-height:1.6; color:rgba(var(--c-white),0.62); margin:-8px 0 24px; max-width:60ch; }
-/* the game sits in an old TV (after poolsuite.net and kvs.services): a plastic shell with a
-   window bar on top, a rounded screen with glass and vignette, a channel strip and two knobs below */
-.game-panel{ background:linear-gradient(180deg, #17191f, #0b0c10); border:1px solid rgba(var(--c-white),0.1); border-radius:22px; padding:0 16px 14px;
-  box-shadow:inset 0 1px 0 rgba(var(--c-white),0.08), 0 40px 90px -40px rgba(0,0,0,.95); display:flex; flex-direction:column; }
-.game-hdr{ height:42px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
+/* arcade: the TV keeps its dark shell, set in a frame like the pictures */
+.game-panel{ background:linear-gradient(180deg, #17191f, #0b0c10); border-radius:4px; padding:0 12px 12px; display:flex; flex-direction:column; }
+.game-hdr{ height:38px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
 .tv-btns{ display:flex; gap:7px; }
-.tv-btns i{ width:11px; height:11px; border-radius:3px; border:1px solid rgba(var(--c-white),0.22); background:rgba(var(--c-white),0.04); }
-.game-hdr-title{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.26em; color:rgba(var(--c-white),0.6); text-transform:uppercase; }
+.tv-btns i{ width:11px; height:11px; border-radius:3px; border:1px solid rgba(255,255,255,.22); }
+.game-hdr-title{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.26em; color:rgba(255,255,255,.6); }
 .tv-air{ justify-self:end; display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; color:rgba(255,120,110,.9);
   padding:4px 8px; border:1px solid rgba(255,120,110,.35); border-radius:4px; }
-.tv-air-dot{ width:6px; height:6px; border-radius:50%; background:#ff5a4e; box-shadow:0 0 8px #ff5a4e; animation:gdot 2s ease-in-out infinite; }
+.tv-air-dot{ width:6px; height:6px; border-radius:50%; background:#ff5a4e; animation:gdot 2s ease-in-out infinite; }
 @keyframes gdot{ 0%,100%{ opacity:1 } 50%{ opacity:.3 } }
-.tv-foot{ display:flex; align-items:center; justify-content:space-between; padding:12px 4px 0; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.2em; color:rgba(var(--c-white),0.4); }
-.tv-knobs{ display:flex; gap:12px; }
-.tv-knobs i{ width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #3a3e48, #121318 70%); box-shadow:0 1px 0 rgba(var(--c-white),0.08), 0 2px 6px rgba(0,0,0,.6); position:relative; }
-.tv-knobs i::after{ content:''; position:absolute; left:50%; top:3px; width:2px; height:6px; margin-left:-1px; border-radius:1px; background:rgba(var(--c-white),0.5); }
-.tv-knobs i:last-child{ transform:rotate(130deg); }
-/* the screen: rounded like a tube, glass glare and a vignette on top (they never take clicks) */
-.game-stage::after{ content:''; position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:inherit;
-  background:linear-gradient(160deg, rgba(var(--c-white),0.06), transparent 32%), radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.5) 100%);
-  box-shadow:inset 0 0 60px rgba(0,0,0,.6); }
-.game-stage{ position:relative; height:clamp(560px, 78vh, 720px); display:flex; border-radius:18px; overflow:hidden; background:#000; box-shadow:0 0 0 1px #000, 0 0 0 5px #08090c; }
-/* power-on, like an old CRT: a bright line, then the picture opens with a flicker (.on added on first sight) */
+.game-stage{ position:relative; height:clamp(480px, 70vh, 600px); display:flex; border-radius:12px; overflow:hidden; background:#000; }
 html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4); }
 .game-stage.on{ animation:crtOn 1.1s var(--ease-out) both; }
 @keyframes crtOn{
@@ -280,43 +173,32 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   68%{ opacity:.55; } 76%{ opacity:1; } 84%{ opacity:.8; }
   100%{ transform:none; filter:none; opacity:1; }
 }
-@media (prefers-reduced-motion: reduce){ .game-stage.on{ animation:none; } }
 /* the cover hands the keyboard to the game, so arrow keys stop scrolling the page */
-/* button sits low so the game's own title screen stays readable above it */
 .game-play{ position:absolute; inset:0; z-index:2; display:grid; place-items:end center; padding-bottom:12%; border:0; cursor:pointer; color:#f4f6fa;
   background:linear-gradient(transparent 45%, rgba(0,0,0,.7)); transition:opacity .4s var(--ease-out); }
-.game-play span{ font-family:'Press Start 2P', monospace; font-size:12px; letter-spacing:.12em; padding:14px 20px; border:1px solid rgba(var(--c-white),0.35); border-radius:6px;
-  background:rgba(0,0,0,.6); transition:border-color .3s, transform .4s var(--ease-out); }
-.game-play:hover span, .game-play:focus-visible span{ border-color:#f4f6fa; transform:scale(1.04); }
+.game-play span{ font-family:'Press Start 2P', monospace; font-size:12px; letter-spacing:.12em; padding:14px 20px; border:1px solid rgba(255,255,255,.35); border-radius:6px; background:rgba(0,0,0,.6); }
+.game-play:hover span, .game-play:focus-visible span{ border-color:#f4f6fa; }
 .game-play.gone{ opacity:0; pointer-events:none; }
 
-/* footer */
-.pg-footer{ grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 20px;
-  margin-top:clamp(110px, 16vh, 170px); padding:18px 0 32px; border-top:1px solid rgba(var(--c-white),0.1);
-  font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.1em; color:rgba(var(--c-white),0.62); }
-.pg-footer .f-links{ display:flex; align-items:center; gap:16px; letter-spacing:.16em; text-transform:uppercase; }
-.pg-footer .f-links a{ color:rgba(var(--c-white),0.55); text-decoration:none; transition:color .25s; display:inline-flex; align-items:center; gap:5px; }
-.pg-footer .f-links a:hover{ color:rgba(var(--c-white),0.92); }
-.pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:.9; flex:none; }
+/* closing line, centred, like the reference footer */
+.footer{ text-align:center; padding:200px 0 0; }
+.footer h2{ font-size:40px; line-height:1.15; margin-bottom:28px; }
+.footer p{ margin-bottom:200px; }
+.footer small{ display:block; font-size:12px; padding-bottom:4px; }
 
-@media (prefers-reduced-motion: reduce){
-  .cb-track, .tv-air-dot{ animation:none; }
-}
+@media (prefers-reduced-motion: reduce){ .game-stage.on{ animation:none; } .tv-air-dot{ animation:none; } }
 
 @media (--bp-900){
-  .ab{ grid-template-columns:1fr; padding-top:112px; }
-  .ab-label, .ab-main, .pg-footer{ grid-column:1; }
-  .ab-index{ display:none; }
-  .ab-label{ margin-bottom:22px; }
-  .ab-bio p, .ab-arcade-sub{ font-size:17px; }
-  .ab-portrait{ margin-top:44px; aspect-ratio:4 / 5; }
-  .tk{ grid-template-columns:1fr; }
-  .tk li{ font-size:18px; padding:14px 0; }
-  .bento{ grid-template-columns:1fr; grid-template-rows:auto; grid-template-areas:"certs" "wire" "gh" "team"; }
-  .c-gh{ min-height:220px; }
-  .poke-grid{ grid-template-columns:repeat(3, 1fr); }
+  .g{ padding-top:96px; }
+  .read{ margin-bottom:64px; flex-wrap:wrap; }
+  .section{ flex-direction:column; gap:24px; padding-bottom:56px; margin-bottom:56px; }
+  .head{ flex-basis:auto; }
+  .tiles--sm .tile{ width:calc((100% - 20px) / 3); }
+  .footer{ padding-top:120px; }
+  .footer h2{ font-size:30px; }
+  .footer p{ margin-bottom:120px; }
   /* the game (and its 70KB script) never boots on phones; see the boot script below */
-  #arcade, .ab-index a[data-spy="arcade"]{ display:none; }
+  #arcade{ display:none; }
 }
 </style>
 <ErrorReporter />
@@ -324,95 +206,137 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 </head>
 
 <body>
-<div class="ab-sky" aria-hidden="true"></div>
-<div class="page-grain" aria-hidden="true"></div>
-<SkyLife jellies />
-
 <SiteMenu currentPath="/about" />
 
-<Glitches />
+<main class="g">
+  <div class="read">
+    <h1 class="en">About</h1>
+    <p class="en" aria-hidden="true">/</p>
+    <p class="en">For anyone thinking about working with me.</p>
+  </div>
 
-<main class="ab">
-  <div class="ab-label">Info</div>
-  <nav class="ab-index" aria-label="On this page">
-    {sections.map(([id, name], i) => <a href={`#${id}`} data-spy={id}><span class="ix-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>{name}</a>)}
-  </nav>
+  <section class="section">
+    <div class="head"><h2 class="en">Intro</h2><h3>(Hello)</h3></div>
+    <div class="body">
+      <p>Thanks for stopping by.</p>
+      <p>This page is about me, the work I do, and how I think about security.</p>
+      <p>If you are hiring for blue-team work, I hope it helps you decide.</p>
+    </div>
+  </section>
 
-  <div class="ab-main">
-    <section id="intro" class="ab-sec">
-      <h1 class="ab-intro" data-words>Hi, I'm <b>Samuel Abhinav.</b> I make networks harder to break. Most days.</h1>
-      <div class="ab-bio" data-reveal>
-        <p>I got into security because finding the fracture points was the fun part. Now I am looking for a team that actually reads the logs.</p>
-      </div>
-      <figure class="ab-portrait" data-reveal="media">
-        <span class="ab-lbl">Portrait coming soon</span>
-      </figure>
-    </section>
+  <section class="section">
+    <div class="head"><h2 class="en">About Me</h2><h3>(Who I am)</h3></div>
+    <div class="body">
+      <!-- to add the photo: replace the .ph span with <img src=... alt=...> -->
+      <div class="frame portrait"><span class="ph">Photo coming soon</span></div>
+      <p>I'm Samuel Abhinav. I hold an M.S. in Cybersecurity and I'm in the US on OPT.</p>
+      <p>I got into security because finding the fracture points was the fun part.</p>
+      <p>Since then I've shipped three security projects, had bug bounty findings accepted, and kept a threat-intel blog.</p>
+      <p>Now I'm looking for a team that actually reads the logs.</p>
+    </div>
+  </section>
 
-    <section id="toolkit" class="ab-sec">
-      <h2 class="ab-h" data-words>Toolkit</h2>
-      <ul class="tk xm" data-reveal-group>
-        {toolkit.map(([name, logo]) => (
-          <li>
-            {logo.endsWith('.svg')
-              ? <span class="tk-logo" style={`--logo:url(/images/tools/${logo})`} aria-hidden="true"></span>
-              : <span class="tk-mono" aria-hidden="true">{logo}</span>}
-            {name}
+  <section class="section">
+    <div class="head"><h2 class="en">What I Do</h2><h3>(Where I can help)</h3></div>
+    <div class="body">
+      <p>I work on the defending side: writing detections, triaging alerts, and rebuilding attack chains from logs.</p>
+      <p>I'm aiming for SOC analyst, detection engineering and security engineering roles.</p>
+      <h4>Focus</h4>
+      <ul class="list">
+        <li>Detection engineering with Sigma rules tested against real attacks</li>
+        <li>Alert triage and log analysis</li>
+        <li>Incident response from EVTX, PCAP and portal logs</li>
+        <li>Email and browser security</li>
+        <li>Bug bounty recon: S3 exposure, IDOR, subdomain takeover</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2 class="en">Work</h2><h3>(Things I've built)</h3></div>
+    <div class="body">
+      <p>Each project solves a real problem and runs for real. The case studies show how.</p>
+      <h4>Projects</h4>
+      <ul class="tiles">
+        {work.map(([name, href, img]) => (
+          <li class="tile">
+            <div class="frame">{img ? <img src={img} alt="" loading="lazy" decoding="async"> : <span class="ph">Image coming soon</span>}</div>
+            <a class="en" href={href}>{name}</a>
           </li>
         ))}
       </ul>
-    </section>
+      <p class="etc">More work is on the <a href="/">home page</a>.</p>
+    </div>
+  </section>
 
-    <section id="snapshot" class="ab-sec">
-      <h2 class="ab-h" data-words>Snapshot</h2>
-      <div class="bento xm" data-reveal-group>
-        <div class="card c-certs">
-          <div class="card-hd"><span class="ab-lbl">Certifications</span><span class="ab-lbl">{certs.length}</span></div>
-          <div class="cb-wrap"><div class="cb-track">
-            {[...certs, ...certs].map(([name, img, framed], i) => (
-              <span class={framed ? 'cb cb--framed' : 'cb'} aria-hidden={i >= certs.length ? 'true' : undefined}>
-                <img src={`/images/certs/${img}.webp`} alt={i >= certs.length ? '' : `${name} certification badge`} width="60" height="60" loading="lazy" decoding="async"><span>{name}</span>
-              </span>
-            ))}
-          </div></div>
+  <section class="section">
+    <div class="head"><h2 class="en">Toolkit</h2><h3>(What I use)</h3></div>
+    <div class="body">
+      <p>These are the tools I reach for most. The projects are where they get used for real.</p>
+      {toolkit.map(([group, items]) => <>
+        <h4>{group}</h4>
+        <ul class="list">{items.map((t) => <li class="en">{t}</li>)}</ul>
+      </>)}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2 class="en">Certifications</h2><h3>(What I've passed)</h3></div>
+    <div class="body">
+      <ul class="tiles tiles--sm">
+        {certs.map(([name, img]) => (
+          <li class="tile"><div class="frame"><img src={`/images/certs/${img}.webp`} alt={`${name} certification badge`} loading="lazy" decoding="async"></div><span class="en">{name}</span></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section c-wire">
+    <div class="head"><h2 class="en">On the Wire</h2><h3>(What I'm watching)</h3></div>
+    <div class="body">
+      <p>The newest entries in CISA's catalog of vulnerabilities exploited in the wild.</p>
+      <h4>Latest</h4>
+      <ul class="list wr-list" data-kai-mood="suspicious">
+        {wire.map((w) => <li><span><span class="wr-cve">{w.cve}</span> <span class="wr-what">{w.what}</span></span></li>)}
+      </ul>
+      <p class="wr-foot">{wire.length ? `Newest added ${fmtDay(wire[0].date)}.` : 'The live feed is offline right now.'} <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">CISA KEV</a></p>
+    </div>
+  </section>
+
+  {ghWeeks.length > 0 && (
+    <section class="section">
+      <div class="head"><h2 class="en">Activity</h2><h3>(The last 26 weeks)</h3></div>
+      <div class="body">
+        <p><span class="gh-num en">{ghActive}</span>active days on GitHub this year.</p>
+        <div class="gh-map" aria-hidden="true">
+          {ghWeeks.map((week) => week.map((l) => <i style={`--l:${l}`}></i>))}
         </div>
-        <div class="card c-wire">
-          <div class="card-hd"><span class="ab-lbl">On the wire</span><a class="ab-lbl wr-src" href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">CISA KEV ↗</a></div>
-          <ol class="wr-list" data-kai-mood="suspicious" aria-label="Newest actively exploited vulnerabilities">
-            {wire.map((w, i) => (
-              <li><span class="wr-t wr-cve" style={`--n:${w.cve.length};--d:${wireSched[i].cveAt}ms`}>{w.cve}</span><span class="wr-t wr-what" style={`--n:${w.what.length};--d:${wireSched[i].whatAt}ms`}>{w.what}</span></li>
-            ))}
-          </ol>
-          <p class="wr-foot">{wire.length ? `Exploited in the wild. Newest added ${fmtDay(wire[0].date)}.` : 'The live feed is offline right now.'}</p>
-        </div>
-        <a class="card c-gh" href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">
-          <div class="card-hd"><span class="ab-lbl">GitHub</span><span class="ab-lbl">Last 26 weeks ↗</span></div>
-          {ghWeeks.length > 0 && <>
-            <div class="gh-big"><span class="gh-num">{ghActive}</span><span class="gh-cap">active days this year</span></div>
-            <div class="gh-map" aria-hidden="true">
-              {ghWeeks.map((week, c) => week.map((l) => <i style={`--l:${l};--c:${c}`}></i>))}
-            </div>
-          </>}
-        </a>
-        <div class="card c-team">
-          <div class="card-hd"><span class="ab-lbl">My team</span><span class="ab-lbl">{team.length} / 6</span></div>
-          <div class="poke-grid">
-            {team.map(([name, w, h]) => (
-              <div class="poke-slot"><img src={`/images/about-pokemon-${name.toLowerCase()}.gif`} alt={name} width={w} height={h} loading="lazy" decoding="async"><span class="poke-name">{name}</span></div>
-            ))}
-          </div>
-        </div>
+        <p class="etc"><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a></p>
       </div>
     </section>
+  )}
 
-    <section id="arcade" class="ab-sec">
-      <canvas class="ab-dots" aria-hidden="true"></canvas>
-      <h2 class="ab-h" data-words>Arcade</h2>
-      <p class="ab-arcade-sub" data-reveal>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
-      <div class="game-panel" data-reveal>
+  <section class="section">
+    <div class="head"><h2 class="en">Off the Clock</h2><h3>(My team)</h3></div>
+    <div class="body">
+      <ul class="tiles tiles--sm poke">
+        {team.map(([name, w, h]) => (
+          <li class="tile"><div class="frame"><img src={`/images/about-pokemon-${name.toLowerCase()}.gif`} alt={name} width={w} height={h} loading="lazy" decoding="async"></div><span class="en">{name}</span></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="arcade">
+    <div class="head"><h2 class="en">Arcade</h2><h3>(Play a round)</h3></div>
+    <div class="body">
+      <p>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
+      <h4>INFILTRATE // DEFEND</h4>
+      <div class="frame">
+      <div class="game-panel">
         <div class="game-hdr">
           <span class="tv-btns" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span class="game-hdr-title">INFILTRATE // DEFEND</span>
+          <span class="game-hdr-title">CH 03</span>
           <span class="tv-air"><span class="tv-air-dot" aria-hidden="true"></span>ON AIR</span>
         </div>
         <div class="game-stage">
@@ -800,20 +724,31 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
 &lt;/html&gt;
 " style="flex:1;width:100%;border:none;background:#000;display:block;" sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
-        <div class="tv-foot" aria-hidden="true"><span>CH 03 · AV-1</span><span class="tv-knobs"><i></i><i></i></span></div>
       </div>
-    </section>
-  </div>
-
-  <div class="pg-footer">
-<span>© 2026 Samuel Abhinav</span>
-    <div class="f-links">
-      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
-      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>
-      <a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener" aria-label="X"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      <a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2 class="en">Contact</h2><h3>(Get in touch)</h3></div>
+    <div class="body">
+      <p>Thanks for reading this far.</p>
+      <p>Pick whichever way is easiest for you.</p>
+      <ul class="list" style="margin-top:14px">
+        <li><a href="/contact/">Contact page</a></li>
+        <li><a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a></li>
+        <li><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a></li>
+        <li><a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener">X</a></li>
+        <li><a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <h2 class="en">Let's keep the logs honest.</h2>
+    <p>Talk soon.</p>
+    <small>© 2026 Samuel Abhinav</small>
+  </footer>
 </main>
 
 <script is:inline>
@@ -846,74 +781,16 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   addEventListener('focus', function(){ play.classList.remove('gone'); });
 })();
 
-/* [data-words] headings: wrap each word (keeping <b> etc.) so CSS can stagger them in on first sight */
+/* on the wire: shortly before the section is seen, ask /api/kev for the live list and swap
+   in newer rows, so it stays current between deploys. */
 (function(){
-  var els = document.querySelectorAll('[data-words]');
-  els.forEach(function(el){
-    var n = 0;
-    el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
-    (function walk(node){
-      Array.prototype.slice.call(node.childNodes).forEach(function(c){
-        if(c.nodeType === 1){ walk(c); return; }
-        if(c.nodeType !== 3) return;
-        var frag = document.createDocumentFragment();
-        c.textContent.split(/(\s+)/).forEach(function(part){
-          if(!part) return;
-          if(/^\s+$/.test(part)){ frag.appendChild(document.createTextNode(part)); return; }
-          var s = document.createElement('span');
-          s.className = 'w'; s.setAttribute('aria-hidden', 'true'); s.style.setProperty('--i', n++); s.textContent = part;
-          frag.appendChild(s);
-        });
-        c.replaceWith(frag);
-      });
-    })(el);
-    el.classList.add('split');
-  });
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, { rootMargin:'0px 0px -12% 0px' });
-  els.forEach(function(el){ io.observe(el); });
-})();
-
-/* light the index entry for the section in view */
-(function(){
-  var links = Array.prototype.slice.call(document.querySelectorAll('.ab-index [data-spy]'));
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      if(!e.isIntersecting) return;
-      links.forEach(function(a){ a.classList.toggle('on', a.dataset.spy === e.target.id); });
-    });
-  }, { rootMargin:'-35% 0px -60% 0px' });
-  links.forEach(function(a){ var s = document.getElementById(a.dataset.spy); if(s) io.observe(s); });
-})();
-
-/* on the wire: the build-time rows type in on first sight. Shortly before that the page asks
-   /api/kev for the live list and swaps in newer rows, so the card is current between deploys. */
-(function(){
-  var card = document.querySelector('.c-wire');
-  if(!card) return;
-  var list = card.querySelector('.wr-list'), foot = card.querySelector('.wr-foot');
+  var sec = document.querySelector('.c-wire');
+  if(!sec) return;
+  var list = sec.querySelector('.wr-list'), foot = sec.querySelector('.wr-foot');
   function row(v){
     var what = v.product.indexOf(v.vendorProject) === 0 ? v.product : v.vendorProject + ' ' + v.product;
     if(what.length > 28) what = what.slice(0, 27).trim() + '…';
     return { cve: v.cveID, what: what, date: v.dateAdded };
-  }
-  function render(rows){
-    var at = 200;
-    list.textContent = '';
-    rows.forEach(function(r){
-      var li = document.createElement('li');
-      [['wr-cve', r.cve], ['wr-what', r.what]].forEach(function(p){
-        var s = document.createElement('span');
-        s.className = 'wr-t ' + p[0]; s.textContent = p[1];
-        s.style.setProperty('--n', p[1].length); s.style.setProperty('--d', at + 'ms');
-        at += p[1].length * 20 + 100;
-        li.appendChild(s);
-      });
-      list.appendChild(li);
-    });
-    var d = new Date(rows[0].date + 'T00:00:00Z').toLocaleDateString('en-US', { month:'short', day:'numeric', timeZone:'UTC' });
-    foot.textContent = 'Exploited in the wild. Newest added ' + d + '.';
   }
   var first = list.querySelector('.wr-cve');
   var near = new IntersectionObserver(function(es){
@@ -923,58 +800,17 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
       if(!d || !d.items || !d.items.length) return;
       var rows = d.items.slice(0, 5).map(row);
       if(first && first.textContent === rows[0].cve) return;
-      var typed = card.classList.contains('in');
-      render(rows);
-      // already typed out: type the fresh rows again
-      if(typed){ card.classList.remove('in'); void card.offsetWidth; card.classList.add('in'); }
+      list.textContent = '';
+      rows.forEach(function(r){
+        var li = document.createElement('li'), s = document.createElement('span'), c = document.createElement('span'), w = document.createElement('span');
+        c.className = 'wr-cve'; c.textContent = r.cve; w.className = 'wr-what'; w.textContent = r.what;
+        s.append(c, ' ', w); li.appendChild(s); list.appendChild(li);
+      });
+      var day = new Date(rows[0].date + 'T00:00:00Z').toLocaleDateString('en-US', { month:'short', day:'numeric', timeZone:'UTC' });
+      foot.firstChild.textContent = 'Newest added ' + day + '. ';
     }).catch(function(){});
   }, { rootMargin:'400px 0px' });
-  near.observe(card);
-  var io = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ card.classList.add('in'); io.disconnect(); } }, { rootMargin:'0px 0px -15% 0px' });
-  io.observe(card);
-})();
-
-/* github card: the dot matrix sweeps in left to right on first sight */
-(function(){
-  var gh = document.querySelector('.c-gh');
-  if(!gh) return;
-  var io = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ gh.classList.add('in'); io.disconnect(); } }, { rootMargin:'0px 0px -15% 0px' });
-  io.observe(gh);
-})();
-
-/* halftone band behind the Arcade heading: a soft value-noise cloud, sampled on a 7px grid,
-   each sample drawn as a square dot whose size follows its brightness. Drawn once when near
-   the screen, again on resize; nothing animates. */
-(function(){
-  var cv = document.querySelector('.ab-dots');
-  if(!cv || !cv.getContext) return;
-  var seed = [];
-  for(var i = 0; i < 512; i++) seed.push(Math.random());
-  function n2(x, y){
-    var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
-    var h = function(a, b){ return seed[((a * 73856093) ^ (b * 19349663)) & 511]; };
-    var u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-    return (h(xi, yi) * (1 - u) + h(xi + 1, yi) * u) * (1 - v) + (h(xi, yi + 1) * (1 - u) + h(xi + 1, yi + 1) * u) * v;
-  }
-  function cloud(x, y){ return n2(x, y) * .55 + n2(x * 2.1, y * 2.1) * .3 + n2(x * 4.3, y * 4.3) * .15; }
-  function draw(){
-    var w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2), G = 7;
-    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    var x = cv.getContext('2d');
-    x.setTransform(dpr, 0, 0, dpr, 0, 0);
-    x.fillStyle = 'rgba(156,192,255,.42)';
-    for(var gy = 0; gy < h; gy += G) for(var gx = 0; gx < w; gx += G){
-      var b = Math.max(0, cloud(gx / 120, gy / 90) - .35) / .65;
-      var s = Math.min(G - 1.5, b * b * 9);
-      if(s > .6) x.fillRect(gx + (G - s) / 2, gy + (G - s) / 2, s, s);
-    }
-  }
-  var io = new IntersectionObserver(function(es){
-    if(!es[0].isIntersecting) return;
-    io.disconnect(); draw();
-    var t; addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(draw, 200); }, { passive:true });
-  }, { rootMargin:'400px 0px' });
-  io.observe(cv);
+  near.observe(sec);
 })();
 
 /* arcade power-on once the screen is a quarter in view */
@@ -983,21 +819,6 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   if(!st) return;
   var io = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ st.classList.add('on'); io.disconnect(); } }, { threshold:.25 });
   io.observe(st);
-})();
-
-/* bento edge light: every card's border tracks the same pointer, so neighbours glow as it nears them */
-(function(){
-  var bento = document.querySelector('.bento');
-  if(!bento || !matchMedia('(hover:hover)').matches) return;
-  var cards = bento.querySelectorAll('.card');
-  bento.addEventListener('pointermove', function(e){
-    // read every rect before writing any vars, so the writes never force a layout
-    var rs = Array.prototype.map.call(cards, function(c){ return c.getBoundingClientRect(); });
-    cards.forEach(function(c, i){
-      c.style.setProperty('--mx', (e.clientX - rs[i].left) + 'px');
-      c.style.setProperty('--my', (e.clientY - rs[i].top) + 'px');
-    });
-  });
 })();
 </script>
 
