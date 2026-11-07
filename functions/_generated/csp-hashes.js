@@ -3,9 +3,11 @@
 // missing file if someone runs `wrangler pages dev` without building first;
 // every real build overwrites this before Functions get bundled.
 export const CSP_SCRIPT_HASHES = [
+  "'sha256-+RY2vvdWdfbIsXKNwvwk9gmLTjLbRiyO/MK1G9kjdww='",
   "'sha256-+XThWANjCrvQvKANNHmD8PpT40UuuapQxoeB7Oa+VAY='",
   "'sha256-/2Wj8YBjUi5zHczD/oU0VIi27NDO9swlrG+leP0+j9o='",
   "'sha256-29Ok40SK19L8nZDICzhnBwmxf9YwRQxCaH4ZUIMlrhY='",
+  "'sha256-29ePXAaiOYKviO7nnOPSrEsm2yeJnzMjKx0WuzOv024='",
   "'sha256-3EB5VzzD4L63hemwala5984tTBat5KJGhWahEjEkHB8='",
   "'sha256-AsqcaULoENxctEMneY/usQppVAhppWoRTp2bkEr4/pg='",
   "'sha256-BWu+nHtqnn5ak+HHcDUONuIv820jp/PYaCYb5ZAM7iY='",
@@ -16,6 +18,7 @@ export const CSP_SCRIPT_HASHES = [
   "'sha256-NbJAYnv6mlnTiBgEiegihinTm4kQmV1inKVfNdnuZto='",
   "'sha256-PWXxH+62pct9ajSBxweHRhon0DvdcVFi409gpDNPJeM='",
   "'sha256-RHNlpztqMCsR2IwNZRdbOWYpdAElf4nJjkvrxyNRZm8='",
+  "'sha256-WZRJfWvsnNCPcxzZwvyhovnZGqhZaC+8gPGPRbx6wTk='",
   "'sha256-Xpx3JZnUUod6vfwKd051k3BtpttE5M2FuMFGuJXqCuY='",
   "'sha256-dKCAAPANjqeLfZpm1wOEWL2+Y6CzEz3Vl4IVdZDMNmM='",
   "'sha256-dsbACvBNGolnyw4a/0Pjn6SEJ44r304KtYwDrXmCROk='",
@@ -27,11 +30,8 @@ export const CSP_SCRIPT_HASHES = [
   "'sha256-lk8hq1LX9gvRwkwXm7RYJ3VbYUR4EY+wcIttceqwh9A='",
   "'sha256-m6CP8Rmz04ggp+ef+o2MX5nJLgkBiaLzYEQDz+C7l74='",
   "'sha256-mU9IQ//h3/3xvI4UYRNru6TC/H/hhXGZ7aO9I8NOaM8='",
-  "'sha256-oY1pRu5+mDm/jveR6Fbb1ZG45Ao51UL/D8sedQEsfXQ='",
-  "'sha256-qaHGCwcqXI7vKrqd7IdpleX9P+cansrFwRhITdEHW5A='",
   "'sha256-ry0KCHQFS9zZbJquk35mcbwbG/akUlHkLuDzmHgkZuU='",
   "'sha256-vi8EnZPw4i+N7cEqo4YasMt1PkUOLBxozOe4MfVn4Zg='",
-  "'sha256-wMRcQ5+/l0f+EHGuuD3p0CQtdT8MZgIm4sq8AUO+4po='",
   "'sha256-xAflJLLSZsGaYM1J3OoNot8eoU0/xoxWhM1uesuZS4o='",
   "'sha256-ycx/Ocg/AtRsxH1qvDkZfSoO5yFUYMx5zIO44k48UKw='"
 ];
