@@ -43,7 +43,7 @@
   };
 
   /* ══════════ SKY SHADER ══════════ */
-  function fragSrc(oct){
+  function fragSrc(oct, starBright){
     return 'precision highp float;\n' +
     '#define OCT ' + oct + '\n' +
     'uniform float uTime; uniform vec2 uRes;\n' +
@@ -68,7 +68,7 @@
     '  c+=.55*starLayer(st+vec2(t*.0030,0.),95.,' + (.12*LOOK.starDen).toFixed(3) + ',t,0.);\n' +
     '  c+=.85*starLayer(st+vec2(t*.0065,0.),48.,' + (.07*LOOK.starDen).toFixed(3) + ',t,' + LOOK.glow.toFixed(3) + ');\n' +
     '  c+=1.0*starLayer(st+vec2(t*.0130,0.),22.,' + (.045*LOOK.starDen).toFixed(3) + ',t,' + (LOOK.glow*1.4).toFixed(3) + ');\n' +
-    '  return c*' + LOOK.starBright.toFixed(3) + ';\n' +
+    '  return c*' + starBright.toFixed(3) + ';\n' +
     '}\n' +
     'void main(){\n' +
     '  vec2 uv=gl_FragCoord.xy/uRes.xy; vec2 st=uv; st.x*=uRes.x/uRes.y;\n' +
@@ -119,12 +119,14 @@
   var AGED = { deep:[.030,.026,.024], body:[.118,.100,.084], cloud:[.470,.420,.355], rim:[.760,.700,.600] };
   /* the 'mono' tone: the same sky in black and white */
   var MONO = { deep:[.024,.024,.024], body:[.100,.100,.100], cloud:[.440,.440,.440], rim:[.740,.740,.740] };
+  /* the 'night' tone: the black-and-white sky with brighter stars (the photos page) */
+  var NIGHT = { deep:MONO.deep, body:MONO.body, cloud:MONO.cloud, rim:MONO.rim, stars:1.6 };
   /* the 'bright' tone: a lighter navy with whiter clouds (the blog index) */
   var BRIGHT = { deep:[.030,.050,.120], body:[.120,.180,.330], cloud:[.800,.840,.930], rim:[.970,.980,1.000] };
 
   function create(skyCanvas, fxCanvas, opts){
     var tier = TIERS[opts && opts.tier] || TIERS.full;
-    var tone = { aged:AGED, mono:MONO, bright:BRIGHT }[opts && opts.tone] || LOOK;
+    var tone = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT }[opts && opts.tone] || LOOK;
     var W = 1, H = 1, DPR = 1, running = true;
     var sceneT = 40 + Math.random()*400;    /* a different sky on every visit */
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
@@ -135,7 +137,7 @@
     if(gl){
       var mk = function(type, src){ var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
         if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.warn('sky shader:', gl.getShaderInfoLog(s)); return null; } return s; };
-      var vs = mk(gl.VERTEX_SHADER, VERT), fs = mk(gl.FRAGMENT_SHADER, fragSrc(tier.oct));
+      var vs = mk(gl.VERTEX_SHADER, VERT), fs = mk(gl.FRAGMENT_SHADER, fragSrc(tier.oct, tone.stars || LOOK.starBright));
       if(vs && fs){
         var pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
         if(gl.getProgramParameter(pr, gl.LINK_STATUS)){
