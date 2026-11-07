@@ -43,7 +43,7 @@
     }
     if(window.SiteSky) return boot();
     var s = document.createElement('script');
-    s.src = '/scripts/sky-engine.js';
+    s.src = '/scripts/sky-engine.js?v=2';
     s.addEventListener('load', boot);
     document.head.appendChild(s);
   }
@@ -52,7 +52,7 @@
     var c = canvases(), worker;
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
-      worker = new Worker('/scripts/sky-worker.js');
+      worker = new Worker('/scripts/sky-worker.js?v=2');
       worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;
