@@ -21,7 +21,6 @@ const certs = [
   ['Security+', 'security-plus', true], ['Network+', 'network-plus', true], ['ISC2 CC', 'isc2-cc', false],
   ['AWS CCP', 'aws-ccp', false], ['AZ-900', 'az-900', false], ['HTB CJCA', 'htb-cjca', false],
 ];
-const team: [string, number, number][] = [['Greninja', 82, 90], ['Scizor', 79, 103], ['Ceruledge', 112, 112], ['Lucario', 58, 101], ['Blaziken', 118, 107], ['Sceptile', 74, 97]];
 ---
 
 <!DOCTYPE html>
@@ -82,8 +81,25 @@ body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'S
 .read h1{ font-size:18px; line-height:1; }
 .read p{ font-size:13px; line-height:1; font-weight:400; }
 
-.section{ display:flex; gap:100px; padding-bottom:80px; margin-bottom:80px; border-bottom:1px solid rgba(255,255,255,.14); }
-.section:last-of-type{ border-bottom:0; margin-bottom:0; }
+.section{ position:relative; display:flex; gap:100px; padding-bottom:80px; margin-bottom:80px; }
+/* the hairline under each section: a plain border, swapped by the script below for a .rule that draws in from the left */
+.section{ border-bottom:1px solid rgba(255,255,255,.14); }
+.section.has-rule{ border-bottom:0; }
+.rule{ position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(255,255,255,.14); transform:scaleX(0); transform-origin:left; transition:transform 1.6s var(--ease-inout); }
+.rule.in{ transform:none; }
+.section:last-of-type{ margin-bottom:0; border-bottom:0; }
+/* hover: pictures lean in, links underline from the left */
+.tile .frame{ overflow:hidden; transition:border-color .4s; }
+.tile .frame > img{ transition:transform .9s var(--ease-out); }
+.tile a{ text-decoration:none; background:linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat; transition:background-size .5s var(--ease-out); }
+@media (hover:hover){
+  .tile:hover .frame{ border-color:rgba(255,255,255,.4); }
+  .tile:hover .frame > img{ transform:scale(1.04); }
+  .tile:hover a{ background-size:0 1px; background-position:right bottom; }
+  .body .list a{ transition:opacity .3s; }
+  .body .list a:hover{ opacity:.6; }
+}
+@media (prefers-reduced-motion: reduce){ .rule, .tile .frame > img{ transition:none; } }
 .head{ flex:0 0 340px; display:flex; flex-direction:column; gap:10px; }
 .head h2{ font-size:28px; line-height:1; }
 .head h3{ font-size:13px; line-height:1; font-weight:400; }
@@ -118,7 +134,6 @@ body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'S
 .tiles--sm .tile{ width:calc((100% - 50px) / 6); }
 .tiles--sm .tile .frame > *{ aspect-ratio:1; padding:18%; }
 .tiles--sm .tile span{ font-size:13px; }
-.poke .tile .frame > img{ image-rendering:pixelated; padding:16%; }
 .etc{ margin-top:40px; }
 
 /* arcade: the TV keeps its dark shell, set in a frame like the pictures */
@@ -188,27 +203,27 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   </div>
 
   <section class="section">
-    <div class="head"><h2 class="en">Intro</h2><h3>(Hello)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">Intro</h2><h3 data-reveal>(Hello)</h3></div>
+    <div class="body" data-reveal-group>
       <p>Thanks for stopping by. This page covers who I am, what I work on and the tools I use. If you're hiring for blue-team work, I hope it helps you get to know me.</p>
     </div>
   </section>
 
   <section class="section">
-    <div class="head"><h2 class="en">About Me</h2><h3>(Who I am)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">About Me</h2><h3 data-reveal>(Who I am)</h3></div>
+    <div class="body" data-reveal-group>
       <!-- to add the photo: replace the .ph span with <img src=... alt=...> -->
       <div class="frame portrait"><span class="ph">Photo coming soon</span></div>
       <p>Hello! I'm Samuel Abhinav, a security engineer who enjoys finding out how things break and then making sure they don't. I earned my master's in Cybersecurity at Iowa State University. That is where I settled on the defending side of the field: detection, incident response and network security.</p>
       <p>Since graduating I've built and shipped three security projects. Moat is an ad and pop-up blocker that does all of its work inside the browser. Cluster cleans up Gmail and catches impersonation using only message headers. Sentinel is a SOC lab where every detection rule has to fire on a real attack before it counts.</p>
       <p>Outside those projects I hunt bugs on HackerOne. My accepted findings include an S3 bucket leaking personal data, an IDOR and a subdomain takeover. I also write up threats on my blog and hold six certifications, among them Security+, Network+ and ISC2 CC.</p>
-      <p>When I'm not working, I'm usually building a Pokémon team or tweaking the arcade game further down this page. If you need someone who actually enjoys reading the logs, I'd love to hear from you.</p>
+      <p>When I'm not working, I'm usually tweaking the arcade game further down this page. If you need someone who actually enjoys reading the logs, I'd love to hear from you.</p>
     </div>
   </section>
 
   <section class="section">
-    <div class="head"><h2 class="en">What I Do</h2><h3>(Where I can help)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">What I Do</h2><h3 data-reveal>(Where I can help)</h3></div>
+    <div class="body" data-reveal-group>
       <p>I work on the defending side. Most of my time goes into writing detections, triaging alerts and rebuilding attack chains from logs. I'm looking for SOC analyst, detection engineering and security engineering roles.</p>
       <h4>Focus</h4>
       <ul class="list">
@@ -222,11 +237,11 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   </section>
 
   <section class="section">
-    <div class="head"><h2 class="en">Work</h2><h3>(Things I've built)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">Work</h2><h3 data-reveal>(Things I've built)</h3></div>
+    <div class="body" data-reveal-group>
       <p>Each project solves a real problem and runs in the real world. The case studies explain how they work.</p>
       <h4>Projects</h4>
-      <ul class="tiles">
+      <ul data-reveal-group=".frame" class="tiles">
         {work.map(([name, href, img]) => (
           <li class="tile">
             <div class="frame">{img ? <img src={img} alt="" loading="lazy" decoding="async"> : <span class="ph">Image coming soon</span>}</div>
@@ -239,8 +254,8 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   </section>
 
   <section class="section">
-    <div class="head"><h2 class="en">Toolkit</h2><h3>(What I use)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">Toolkit</h2><h3 data-reveal>(What I use)</h3></div>
+    <div class="body" data-reveal-group>
       <p>These are the tools I reach for most, and the projects are where they get real use.</p>
       <div class="tk-cols">
         {toolkit.map(([group, items]) => (
@@ -254,9 +269,9 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   </section>
 
   <section class="section">
-    <div class="head"><h2 class="en">Certifications</h2><h3>(What I've passed)</h3></div>
-    <div class="body">
-      <ul class="tiles tiles--sm">
+    <div class="head"><h2 class="en" data-reveal="lines">Certifications</h2><h3 data-reveal>(What I've passed)</h3></div>
+    <div class="body" data-reveal-group>
+      <ul data-reveal-group=".frame" class="tiles tiles--sm">
         {certs.map(([name, img]) => (
           <li class="tile"><div class="frame"><img src={`/images/certs/${img}.webp`} alt={`${name} certification badge`} loading="lazy" decoding="async"></div><span class="en">{name}</span></li>
         ))}
@@ -264,20 +279,9 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </div>
   </section>
 
-  <section class="section">
-    <div class="head"><h2 class="en">Off the Clock</h2><h3>(My team)</h3></div>
-    <div class="body">
-      <ul class="tiles tiles--sm poke">
-        {team.map(([name, w, h]) => (
-          <li class="tile"><div class="frame"><img src={`/images/about-pokemon-${name.toLowerCase()}.gif`} alt={name} width={w} height={h} loading="lazy" decoding="async"></div><span class="en">{name}</span></li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
   <section class="section" id="arcade">
-    <div class="head"><h2 class="en">Arcade</h2><h3>(Play a round)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">Arcade</h2><h3 data-reveal>(Play a round)</h3></div>
+    <div class="body" data-reveal-group>
       <p>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
       <h4>INFILTRATE // DEFEND</h4>
       <div class="frame">
@@ -678,8 +682,8 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   </section>
 
   <section class="section">
-    <div class="head"><h2 class="en">Contact</h2><h3>(Get in touch)</h3></div>
-    <div class="body">
+    <div class="head"><h2 class="en" data-reveal="lines">Contact</h2><h3 data-reveal>(Get in touch)</h3></div>
+    <div class="body" data-reveal-group>
       <p>Thanks for reading this far. Pick whichever way of reaching me suits you best.</p>
       <ul class="list" style="margin-top:14px">
         <li><a href="/contact/">Contact page</a></li>
@@ -692,8 +696,8 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   </section>
 
   <footer class="footer">
-    <h2 class="en">Let's keep the logs honest.</h2>
-    <p>Talk soon.</p>
+    <h2 class="en" data-reveal="lines">Let's keep the logs honest.</h2>
+    <p data-reveal>Talk soon.</p>
     <small>© 2026 Samuel Abhinav</small>
   </footer>
 </main>
@@ -726,6 +730,18 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   });
   // clicking back out to the page brings the cover back, so the page scrolls again
   addEventListener('focus', function(){ play.classList.remove('gone'); });
+})();
+
+/* each section's hairline draws in from the left once it comes into view */
+(function(){
+  if(!document.documentElement.classList.contains('motion')) return;
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { rootMargin:'0px 0px -6% 0px' });
+  document.querySelectorAll('.section:not(:last-of-type)').forEach(function(s){
+    var r = document.createElement('i'); r.className = 'rule'; r.setAttribute('aria-hidden', 'true');
+    s.appendChild(r); s.classList.add('has-rule'); io.observe(r);
+  });
 })();
 
 /* arcade power-on once the screen is a quarter in view */
