@@ -1,0 +1,156 @@
+---
+import SiteMenu from '../components/SiteMenu.astro';
+import ClarityAnalytics from '../components/ClarityAnalytics.astro';
+import ErrorReporter from '../components/ErrorReporter.astro';
+import SkyLife from '../components/SkyLife.astro';
+import KaiSite from '../components/KaiSite.astro';
+import Fonts from '../components/Fonts.astro';
+import '../styles/tokens.css';
+/* Photos, laid out after tomoyaokada.com/snapshot: rows of small black-and-white
+   thumbnails on light grey; a thumbnail turns to colour on hover, and opens large
+   and in colour on click.
+   To add a photo: put the file in public/images/photos/ and set `src` (and `alt`)
+   on one entry below. Entries without a src show as grey placeholders. `r` is the
+   photo's width / height, so the thumbnail keeps its shape. */
+type Photo = { src?: string; alt: string; r: number };
+const P = (r: number): Photo => ({ alt: 'Photo coming soon', r });
+const rows: Photo[][] = [
+  [P(1.42), P(1.42), P(1.42), P(1.42)],
+  [P(1.8), P(1.8), P(1.8), P(1.8)],
+  [P(1.42), P(1.42), P(1.42), P(1.42), P(1.42), P(1.42)],
+  [P(1.42), P(1.42)],
+  [P(1.42), P(1.42), P(1.42), P(1.42)],
+  [P(1.8), P(1.8), P(1.8), P(1.8)],
+  [P(1.42), P(1.42), P(1.42)],
+];
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script is:inline>
+window.SITE=window.SITE||{};
+window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="darkreader-lock">
+<title>Samuel Abhinav · Photos</title>
+<meta name="description" content="Photos by Samuel Abhinav.">
+<link rel="canonical" href="https://samuelabhinav.com/photos/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Samuel Abhinav · Photos">
+<meta property="og:site_name" content="Samuel · Security Engineer">
+<meta property="og:url" content="https://samuelabhinav.com/photos/">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<Fonts />
+<style is:global>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:#dbdbdb; color:#111; overflow-x:hidden; }
+body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+
+/* the shared header is built for the night sky: give it ink and a grey fade here */
+#site-identity .name, #menu-trigger, #menu-trigger:hover { color:#111 !important; }
+#topbar-scrim { background:linear-gradient(to bottom, rgba(219,219,219,.9), rgba(219,219,219,0)) !important; }
+html.is-scrolled #topbar-scrim { background:rgba(219,219,219,.75) !important; }
+
+/* the jellyfish clips are pale digits on black, screened onto a dark sky. On grey they
+   are inverted (dark digits on white) and multiplied, so the white drops out instead */
+.sky-life{ mix-blend-mode:multiply !important; opacity:.85; }
+.life-jelly{ filter:invert(1); mix-blend-mode:multiply !important; background:#fff !important; }
+#life-sky{ filter:invert(1); }
+
+/* thumbnails: rows on a 4.2vw line, 0.42vw apart, rows 1.4vw apart (the reference's proportions) */
+.ph{ position:relative; z-index:3; padding:clamp(150px, 15vw, 260px) 1.3vw 120px; display:grid; row-gap:max(14px, 1.4vw); }
+.ph-row{ list-style:none; display:flex; flex-wrap:wrap; gap:max(5px, .42vw); }
+.ph-item{ height:max(54px, 4.2vw); aspect-ratio:var(--r); }
+.ph-btn{ display:block; width:100%; height:100%; padding:0; border:0; background:none; cursor:pointer; }
+.ph-btn img, .ph-btn .ph-empty{ display:block; width:100%; height:100%; object-fit:cover; }
+.ph-empty{ background:linear-gradient(160deg, #6d6d6d, #3e3e3e); }
+.ph-item{ filter:grayscale(1); transition:filter .3s, opacity .3s; }
+@media (hover:hover){ .ph-item:hover{ filter:none; } }
+.ph-btn:focus-visible{ outline:2px solid #111; outline-offset:3px; }
+/* the opened photo leaves its slot empty, as on the reference */
+.ph-item.is-open{ opacity:0; }
+
+/* opened: the page dims and the photo sits large in the middle, in colour */
+.lb{ position:fixed; inset:0; z-index:100001; display:grid; place-items:center; background:rgba(20,20,20,.72); cursor:zoom-out;
+  opacity:0; visibility:hidden; transition:opacity .35s, visibility 0s .35s; }
+.lb.on{ opacity:1; visibility:visible; transition:opacity .35s; }
+.lb-fig{ max-width:min(86vw, 1100px); transform:scale(.96); transition:transform .45s cubic-bezier(.16,1,.3,1); }
+.lb.on .lb-fig{ transform:none; }
+.lb-fig img, .lb-fig .ph-empty{ display:block; max-width:100%; max-height:76vh; width:auto; height:auto; }
+.lb-fig .ph-empty{ width:min(70vw, 900px); aspect-ratio:var(--r); max-height:76vh; display:grid; place-items:center; color:#ddd; font-size:13px; }
+.lb-cap{ margin-top:10px; font-size:12px; color:#ddd; text-align:left; }
+@media (prefers-reduced-motion: reduce){ .ph-item, .lb, .lb-fig{ transition:none; } }
+</style>
+<ErrorReporter />
+<ClarityAnalytics />
+</head>
+<body>
+<SkyLife jellies />
+<SiteMenu currentPath="/photos" />
+
+<main class="ph">
+  <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Photos</h1>
+  {rows.map((row) => (
+    <ul class="ph-row">
+      {row.map((p) => (
+        <li class="ph-item" style={`--r:${p.r}`}>
+          <button class="ph-btn" type="button" aria-label={`Open: ${p.alt}`} data-src={p.src} data-alt={p.alt}>
+            {p.src ? <img src={p.src} alt={p.alt} loading="lazy" decoding="async"> : <span class="ph-empty"></span>}
+          </button>
+        </li>
+      ))}
+    </ul>
+  ))}
+</main>
+
+<div class="lb" role="dialog" aria-modal="true" aria-label="Photo" tabindex="-1">
+  <figure class="lb-fig"></figure>
+</div>
+
+<script is:inline>
+/* open a photo large; click anywhere, Esc closes; arrow keys step through */
+(function(){
+  var lb = document.querySelector('.lb'), fig = lb.querySelector('.lb-fig');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.ph-btn')), cur = -1;
+  function show(i){
+    if(cur >= 0) btns[cur].parentNode.classList.remove('is-open');
+    cur = i;
+    var b = btns[i], src = b.dataset.src, alt = b.dataset.alt;
+    fig.textContent = '';
+    fig.style.setProperty('--r', b.parentNode.style.getPropertyValue('--r'));
+    if(src){ var im = new Image(); im.src = src; im.alt = alt; fig.appendChild(im); }
+    else { var e = document.createElement('span'); e.className = 'ph-empty'; e.textContent = alt; fig.appendChild(e); }
+    b.parentNode.classList.add('is-open');
+    lb.classList.add('on'); lb.focus();
+  }
+  function close(){
+    if(cur < 0) return;
+    lb.classList.remove('on');
+    btns[cur].parentNode.classList.remove('is-open');
+    btns[cur].focus(); cur = -1;
+  }
+  btns.forEach(function(b, i){ b.addEventListener('click', function(){ show(i); }); });
+  lb.addEventListener('click', close);
+  addEventListener('keydown', function(e){
+    if(cur < 0) return;
+    if(e.key === 'Escape') close();
+    else if(e.key === 'ArrowRight') show((cur + 1) % btns.length);
+    else if(e.key === 'ArrowLeft') show((cur - 1 + btns.length) % btns.length);
+  });
+})();
+</script>
+<script is:inline>
+/* no intro choreography here: mark the page settled so Kai's greet runs */
+window.SITE._introRevealReady = true;
+window.SITE._introFullyDone = true;
+</script>
+<KaiSite />
+<script is:inline src="/scripts/luna-kb-base.js"></script>
+</body>
+</html>

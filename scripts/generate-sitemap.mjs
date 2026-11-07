@@ -64,6 +64,7 @@ async function main() {
     { loc: `${SITE}/`, priority: '1.0' },
     { loc: `${SITE}/blog/`, priority: '0.9' },
     { loc: `${SITE}/about/`, priority: '0.8' },
+    { loc: `${SITE}/photos/`, priority: '0.6' },
     { loc: `${SITE}/contact/`, priority: '0.8' },
   ];
 
