@@ -2,12 +2,13 @@
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
+import SkyBackground from '../components/SkyBackground.astro';
 import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
 import Fonts from '../components/Fonts.astro';
 import '../styles/tokens.css';
 /* Photos, laid out after tomoyaokada.com/snapshot: rows of small black-and-white
-   thumbnails on light grey; a thumbnail turns to colour on hover, and opens large
+   thumbnails on the black night sky; a thumbnail turns to colour on hover, and opens large
    and in colour on click.
    To add a photo: put the file in public/images/photos/ and set `src` (and `alt`)
    on one entry below. Entries without a src show as grey placeholders. `r` is the
@@ -33,7 +34,7 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark">
 <meta name="darkreader-lock">
 <title>Samuel Abhinav · Photos</title>
 <meta name="description" content="Photos by Samuel Abhinav.">
@@ -49,19 +50,12 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 <Fonts />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:#dbdbdb; color:#111; overflow-x:hidden; }
+html, body { background:#000; color:#eee; overflow-x:hidden; }
 body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
 
-/* the shared header is built for the night sky: give it ink and a grey fade here */
-#site-identity .name, #menu-trigger, #menu-trigger:hover { color:#111 !important; }
-#topbar-scrim { background:linear-gradient(to bottom, rgba(219,219,219,.9), rgba(219,219,219,0)) !important; }
-html.is-scrolled #topbar-scrim { background:rgba(219,219,219,.75) !important; }
-
-/* the jellyfish clips are pale digits on black, screened onto a dark sky. On grey they
-   are inverted (dark digits on white) and multiplied, so the white drops out instead */
-.sky-life{ mix-blend-mode:multiply !important; opacity:.85; }
-.life-jelly{ filter:invert(1); mix-blend-mode:multiply !important; background:#fff !important; }
-#life-sky{ filter:invert(1); }
+/* brighter jellies than the other pages */
+#life-sky{ opacity:1 !important; }
+.life-jelly{ opacity:1 !important; filter:brightness(1.7); }
 
 /* thumbnails: rows on a 4.2vw line, 0.42vw apart, rows 1.4vw apart (the reference's proportions) */
 .ph{ position:relative; z-index:3; padding:clamp(150px, 15vw, 260px) 1.3vw 120px; display:grid; row-gap:max(14px, 1.4vw); }
@@ -72,7 +66,7 @@ html.is-scrolled #topbar-scrim { background:rgba(219,219,219,.75) !important; }
 .ph-empty{ background:linear-gradient(160deg, #6d6d6d, #3e3e3e); }
 .ph-item{ filter:grayscale(1); transition:filter .3s, opacity .3s; }
 @media (hover:hover){ .ph-item:hover{ filter:none; } }
-.ph-btn:focus-visible{ outline:2px solid #111; outline-offset:3px; }
+.ph-btn:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
 /* the opened photo leaves its slot empty, as on the reference */
 .ph-item.is-open{ opacity:0; }
 
@@ -91,6 +85,7 @@ html.is-scrolled #topbar-scrim { background:rgba(219,219,219,.75) !important; }
 <ClarityAnalytics />
 </head>
 <body>
+<SkyBackground tone="night" />
 <SkyLife jellies />
 <SiteMenu currentPath="/photos" />
 
