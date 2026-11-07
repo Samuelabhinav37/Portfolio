@@ -21,33 +21,6 @@ const certs = [
   ['Security+', 'security-plus', true], ['Network+', 'network-plus', true], ['ISC2 CC', 'isc2-cc', false],
   ['AWS CCP', 'aws-ccp', false], ['AZ-900', 'az-900', false], ['HTB CJCA', 'htb-cjca', false],
 ];
-// "On the wire": the newest entries in CISA's Known Exploited Vulnerabilities
-// catalog, read at build time so the card has real rows without JS; the page
-// asks /api/kev (functions/api/kev.js) for anything newer once it is in view.
-type Wire = { cve: string; what: string; date: string };
-const wireRow = (v: { cveID: string; vendorProject: string; product: string; dateAdded: string }): Wire => {
-  const what = v.product.startsWith(v.vendorProject) ? v.product : `${v.vendorProject} ${v.product}`;
-  return { cve: v.cveID, what: what.length > 28 ? what.slice(0, 27).trimEnd() + '…' : what, date: v.dateAdded };
-};
-let wire: Wire[] = [];
-try {
-  const kev = await (await fetch('https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json', { signal: AbortSignal.timeout(15000) })).json();
-  wire = kev.vulnerabilities.sort((x: { dateAdded: string }, y: { dateAdded: string }) => y.dateAdded.localeCompare(x.dateAdded)).slice(0, 5).map(wireRow);
-} catch { /* offline build: the card shows a link to the catalog until /api/kev answers */ }
-const fmtDay = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-// GitHub's public contribution calendar, read at build time (so it refreshes on every deploy).
-// Cells carry id="contribution-day-component-<weekday>-<week>" and data-level 0-4.
-let ghWeeks: number[][] = [];
-let ghActive = 0;
-try {
-  const html = await (await fetch('https://github.com/users/Samuelabhinav37/contributions', { signal: AbortSignal.timeout(8000) })).text();
-  const cols: number[][] = [];
-  for (const m of html.matchAll(/data-date="[\d-]+" id="contribution-day-component-(\d)-(\d+)" data-level="(\d)"/g)) {
-    (cols[+m[2]] ??= [])[+m[1]] = +m[3];
-    if (+m[3] > 0) ghActive++;
-  }
-  ghWeeks = cols.filter(Boolean).slice(-26).map((w) => w.filter((l) => l !== undefined));
-} catch { /* offline build: the card falls back to just the GitHub link */ }
 const team: [string, number, number][] = [['Greninja', 82, 90], ['Scizor', 79, 103], ['Ceruledge', 112, 112], ['Lucario', 58, 101], ['Blaziken', 118, 107], ['Sceptile', 74, 97]];
 ---
 
@@ -115,7 +88,9 @@ body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'S
 .head h2{ font-size:28px; line-height:1; }
 .head h3{ font-size:13px; line-height:1; font-weight:400; }
 .body{ flex:0 1 720px; min-width:0; font-size:14px; line-height:1.8; }
-.body p + p{ margin-top:0; }
+.body p + p{ margin-top:14px; }
+.tk-cols{ display:grid; grid-template-columns:1fr 1fr; gap:0 40px; }
+.tk-cols h4{ padding-top:32px; }
 .body a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
 .body a[target="_blank"]::after{ content:'↗'; font-size:.8em; margin-left:1px; }
 
@@ -145,16 +120,6 @@ body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'S
 .tiles--sm .tile span{ font-size:13px; }
 .poke .tile .frame > img{ image-rendering:pixelated; padding:16%; }
 .etc{ margin-top:40px; }
-
-/* on the wire: newest CISA KEV rows (refreshed from /api/kev by the script below) */
-.wr-cve{ font-family:'JetBrains Mono', monospace; font-size:13px; }
-.wr-what{ color:rgba(255,255,255,.6); }
-.wr-foot{ margin-top:10px; color:rgba(255,255,255,.6); }
-
-/* github: the last 26 weeks as a dot matrix in ink */
-.gh-num{ font-size:28px; line-height:1; margin-right:8px; font-variant-numeric:tabular-nums; }
-.gh-map{ margin-top:16px; max-width:520px; display:grid; grid-template-rows:repeat(7, 1fr); grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; aspect-ratio:26 / 7; }
-.gh-map i{ display:block; border-radius:50%; background:#f4f6fa; place-self:center; width:calc(28% + var(--l) * 18%); aspect-ratio:1; opacity:calc(.08 + var(--l) * .22); }
 
 /* arcade: the TV keeps its dark shell, set in a frame like the pictures */
 .game-panel{ background:linear-gradient(180deg, #17191f, #0b0c10); border-radius:4px; padding:0 12px 12px; display:flex; flex-direction:column; }
@@ -225,9 +190,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   <section class="section">
     <div class="head"><h2 class="en">Intro</h2><h3>(Hello)</h3></div>
     <div class="body">
-      <p>Thanks for stopping by.</p>
-      <p>This page is about me, the work I do, and how I think about security.</p>
-      <p>If you are hiring for blue-team work, I hope it helps you decide.</p>
+      <p>Thanks for stopping by. This page covers who I am, what I work on and the tools I use. If you're hiring for blue-team work, I hope it helps you get to know me.</p>
     </div>
   </section>
 
@@ -236,28 +199,17 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     <div class="body">
       <!-- to add the photo: replace the .ph span with <img src=... alt=...> -->
       <div class="frame portrait"><span class="ph">Photo coming soon</span></div>
-      <p>Hello! I'm Samuel Abhinav, a security engineer who likes finding out how things break.</p>
-      <p>I earned my master's in Cybersecurity at Iowa State University.</p>
-      <p>There I got serious about the defending side: detection, incident response and network security.</p>
-      <br>
-      <p>Since then I've shipped three security projects.</p>
-      <p>Moat is an ad and pop-up blocker that runs entirely in the browser.</p>
-      <p>Cluster cleans up Gmail and flags impersonation from message headers alone.</p>
-      <p>Sentinel is a SOC lab where every detection rule is tested against a real attack.</p>
-      <br>
-      <p>I also hunt bugs. My findings on HackerOne include an S3 bucket leaking personal data, an IDOR and a subdomain takeover.</p>
-      <p>I write up threats on my blog, and I hold Security+, Network+, ISC2 CC and a few more.</p>
-      <br>
-      <p>Away from the keyboard you'll find me building Pokémon teams or playing the arcade game further down this page.</p>
-      <p>If you need someone who reads the logs and enjoys it, let's talk.</p>
+      <p>Hello! I'm Samuel Abhinav, a security engineer who enjoys finding out how things break and then making sure they don't. I earned my master's in Cybersecurity at Iowa State University. That is where I settled on the defending side of the field: detection, incident response and network security.</p>
+      <p>Since graduating I've built and shipped three security projects. Moat is an ad and pop-up blocker that does all of its work inside the browser. Cluster cleans up Gmail and catches impersonation using only message headers. Sentinel is a SOC lab where every detection rule has to fire on a real attack before it counts.</p>
+      <p>Outside those projects I hunt bugs on HackerOne. My accepted findings include an S3 bucket leaking personal data, an IDOR and a subdomain takeover. I also write up threats on my blog and hold six certifications, among them Security+, Network+ and ISC2 CC.</p>
+      <p>When I'm not working, I'm usually building a Pokémon team or tweaking the arcade game further down this page. If you need someone who actually enjoys reading the logs, I'd love to hear from you.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="head"><h2 class="en">What I Do</h2><h3>(Where I can help)</h3></div>
     <div class="body">
-      <p>I work on the defending side: writing detections, triaging alerts, and rebuilding attack chains from logs.</p>
-      <p>I'm aiming for SOC analyst, detection engineering and security engineering roles.</p>
+      <p>I work on the defending side. Most of my time goes into writing detections, triaging alerts and rebuilding attack chains from logs. I'm looking for SOC analyst, detection engineering and security engineering roles.</p>
       <h4>Focus</h4>
       <ul class="list">
         <li>Detection engineering with Sigma rules tested against real attacks</li>
@@ -272,7 +224,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   <section class="section">
     <div class="head"><h2 class="en">Work</h2><h3>(Things I've built)</h3></div>
     <div class="body">
-      <p>Each project solves a real problem and runs for real. The case studies show how.</p>
+      <p>Each project solves a real problem and runs in the real world. The case studies explain how they work.</p>
       <h4>Projects</h4>
       <ul class="tiles">
         {work.map(([name, href, img]) => (
@@ -289,11 +241,15 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   <section class="section">
     <div class="head"><h2 class="en">Toolkit</h2><h3>(What I use)</h3></div>
     <div class="body">
-      <p>These are the tools I reach for most. The projects are where they get used for real.</p>
-      {toolkit.map(([group, items]) => <>
-        <h4>{group}</h4>
-        <ul class="list">{items.map((t) => <li class="en">{t}</li>)}</ul>
-      </>)}
+      <p>These are the tools I reach for most, and the projects are where they get real use.</p>
+      <div class="tk-cols">
+        {toolkit.map(([group, items]) => (
+          <div>
+            <h4>{group}</h4>
+            <ul class="list">{items.map((t) => <li class="en">{t}</li>)}</ul>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 
@@ -307,31 +263,6 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
       </ul>
     </div>
   </section>
-
-  <section class="section c-wire">
-    <div class="head"><h2 class="en">On the Wire</h2><h3>(What I'm watching)</h3></div>
-    <div class="body">
-      <p>The newest entries in CISA's catalog of vulnerabilities exploited in the wild.</p>
-      <h4>Latest</h4>
-      <ul class="list wr-list" data-kai-mood="suspicious">
-        {wire.map((w) => <li><span><span class="wr-cve">{w.cve}</span> <span class="wr-what">{w.what}</span></span></li>)}
-      </ul>
-      <p class="wr-foot">{wire.length ? `Newest added ${fmtDay(wire[0].date)}.` : 'The live feed is offline right now.'} <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">CISA KEV</a></p>
-    </div>
-  </section>
-
-  {ghWeeks.length > 0 && (
-    <section class="section">
-      <div class="head"><h2 class="en">Activity</h2><h3>(The last 26 weeks)</h3></div>
-      <div class="body">
-        <p><span class="gh-num en">{ghActive}</span>active days on GitHub this year.</p>
-        <div class="gh-map" aria-hidden="true">
-          {ghWeeks.map((week) => week.map((l) => <i style={`--l:${l}`}></i>))}
-        </div>
-        <p class="etc"><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a></p>
-      </div>
-    </section>
-  )}
 
   <section class="section">
     <div class="head"><h2 class="en">Off the Clock</h2><h3>(My team)</h3></div>
@@ -749,8 +680,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   <section class="section">
     <div class="head"><h2 class="en">Contact</h2><h3>(Get in touch)</h3></div>
     <div class="body">
-      <p>Thanks for reading this far.</p>
-      <p>Pick whichever way is easiest for you.</p>
+      <p>Thanks for reading this far. Pick whichever way of reaching me suits you best.</p>
       <ul class="list" style="margin-top:14px">
         <li><a href="/contact/">Contact page</a></li>
         <li><a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a></li>
@@ -796,38 +726,6 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   });
   // clicking back out to the page brings the cover back, so the page scrolls again
   addEventListener('focus', function(){ play.classList.remove('gone'); });
-})();
-
-/* on the wire: shortly before the section is seen, ask /api/kev for the live list and swap
-   in newer rows, so it stays current between deploys. */
-(function(){
-  var sec = document.querySelector('.c-wire');
-  if(!sec) return;
-  var list = sec.querySelector('.wr-list'), foot = sec.querySelector('.wr-foot');
-  function row(v){
-    var what = v.product.indexOf(v.vendorProject) === 0 ? v.product : v.vendorProject + ' ' + v.product;
-    if(what.length > 28) what = what.slice(0, 27).trim() + '…';
-    return { cve: v.cveID, what: what, date: v.dateAdded };
-  }
-  var first = list.querySelector('.wr-cve');
-  var near = new IntersectionObserver(function(es){
-    if(!es[0].isIntersecting) return;
-    near.disconnect();
-    fetch('/api/kev').then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
-      if(!d || !d.items || !d.items.length) return;
-      var rows = d.items.slice(0, 5).map(row);
-      if(first && first.textContent === rows[0].cve) return;
-      list.textContent = '';
-      rows.forEach(function(r){
-        var li = document.createElement('li'), s = document.createElement('span'), c = document.createElement('span'), w = document.createElement('span');
-        c.className = 'wr-cve'; c.textContent = r.cve; w.className = 'wr-what'; w.textContent = r.what;
-        s.append(c, ' ', w); li.appendChild(s); list.appendChild(li);
-      });
-      var day = new Date(rows[0].date + 'T00:00:00Z').toLocaleDateString('en-US', { month:'short', day:'numeric', timeZone:'UTC' });
-      foot.firstChild.textContent = 'Newest added ' + day + '. ';
-    }).catch(function(){});
-  }, { rootMargin:'400px 0px' });
-  near.observe(sec);
 })();
 
 /* arcade power-on once the screen is a quarter in view */
