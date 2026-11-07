@@ -68,7 +68,7 @@
 
     { id:'about', title:'About Samuel',
       keywords:['about','who','samuel','background','resume','cv','education','degree','masters','opt','hire','hiring','job','jobs','open to work','soc analyst','detection engineer','security engineer'],
-      reply:"Samuel's got his MS in cybersecurity, he's on OPT, and he's after SOC analyst and security engineering roles. He's open to work. I'm the companion he built to keep an eye on the archive.",
+      reply:"Samuel's got his MS in Cybersecurity from Iowa State University, and he's after SOC analyst and security engineering roles. He's open to work. I'm the companion he built to keep an eye on the archive.",
       detail:"The short pitch: three shipped security projects, accepted bounty findings, a threat-intel blog, and hands-on IR labs. If you are hiring for blue-team work, the contact page has the direct line.",
       target:{type:'scroll', value:'#sec-about'} },
 

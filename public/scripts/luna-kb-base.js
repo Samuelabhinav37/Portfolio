@@ -57,7 +57,7 @@ window.SITE.LUNA_KB_BASE = [
 
   { id:'about', title:'About Samuel',
     keywords:['about','who','samuel','background','resume','cv','education','degree','masters','opt','hire','hiring','job','jobs','open to work','soc analyst','detection engineer','security engineer'],
-    reply:"Samuel: MS in cybersecurity, on OPT, aiming at SOC analyst and security engineering roles. He is open to work. I am the companion he built to keep watch over the archive.",
+    reply:"Samuel: MS in Cybersecurity from Iowa State University, aiming at SOC analyst and security engineering roles. He is open to work. I am the companion he built to keep watch over the archive.",
     detail:"The short pitch: three shipped security projects, accepted bounty findings, a threat-intel blog, and hands-on IR labs. If you are hiring for blue-team work, the contact page has the direct line.",
     target:null },
 

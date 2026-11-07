@@ -4,7 +4,7 @@
    page-specific extraTargetHandler that scrolls to and focuses it. */
 window.SITE.initLunaDrawer(window.SITE.buildLunaKB({
   about: {
-    reply:"Samuel got into security chasing how interconnected everything really is, and what it takes to keep that trust intact — thinks like an attacker first, then builds the defense. That's Sentinel, PRISM, and Axon. MS in cybersecurity, on OPT, open to SOC analyst and security engineering roles. I'm the companion he built to keep watch over the archive.",
+    reply:"Samuel got into security chasing how interconnected everything really is, and what it takes to keep that trust intact — thinks like an attacker first, then builds the defense. That's Sentinel, PRISM, and Axon. MS in Cybersecurity from Iowa State University, open to SOC analyst and security engineering roles. I'm the companion he built to keep watch over the archive.",
     target:{type:'focus', value:'#nm'} },
   contact: {
     target:{type:'focus', value:'#nm'} }

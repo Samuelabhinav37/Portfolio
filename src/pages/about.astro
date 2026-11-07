@@ -1,6 +1,7 @@
 ---
 import Motion from '../components/Motion.astro';
 import SiteMenu from '../components/SiteMenu.astro';
+import SkyLife from '../components/SkyLife.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import KaiSite from '../components/KaiSite.astro';
@@ -66,7 +67,7 @@ window.SITE=window.SITE||{};
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark">
 <meta name="darkreader-lock">
 <title>Samuel Abhinav — About</title>
 <meta name="description" content="I got into security because I liked figuring out how things break. M.S. in Cybersecurity, a handful of certs, and three projects I'm genuinely proud of — currently looking for a team that reads its own logs.">
@@ -90,23 +91,25 @@ window.SITE=window.SITE||{};
 /* Layout after guide.4wide.jp: a white page, a 1200px column, and every section as a row of
    title (340px) | body (720px) with 100px between them and a hairline under each. */
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:#fff; color:#050505; overflow-x:hidden; }
+html, body { background:var(--c-bg); color:#f4f6fa; overflow-x:hidden; }
 body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size:16px; letter-spacing:.03em; -webkit-font-smoothing:antialiased; }
 
-/* the shared header is built for the night sky: give it ink and a white fade on this page */
-#site-identity .name, #menu-trigger, #menu-trigger:hover { color:#050505 !important; }
-#topbar-scrim { background:linear-gradient(to bottom, rgba(255,255,255,.9), rgba(255,255,255,0)) !important; }
-html.is-scrolled #topbar-scrim { background:rgba(255,255,255,.75) !important; }
+/* the night sky from the earlier About: painted wash and star dust, film grain and vignette on top */
+.ab-sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
+.page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
+.page-grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
+.page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
 
-.g{ max-width:1200px; margin:0 auto; padding:120px 20px 20px; }
+.g{ position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:120px 20px 20px; }
 .en{ font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight:500; letter-spacing:-.01em; }
 
 .read{ display:flex; align-items:baseline; gap:10px; margin-bottom:100px; }
 .read h1{ font-size:18px; line-height:1; }
 .read p{ font-size:13px; line-height:1; font-weight:400; }
 
-.section{ display:flex; gap:100px; padding-bottom:80px; margin-bottom:80px; border-bottom:1px solid #dfdfdf; }
+.section{ display:flex; gap:100px; padding-bottom:80px; margin-bottom:80px; border-bottom:1px solid rgba(255,255,255,.14); }
 .section:last-of-type{ border-bottom:0; margin-bottom:0; }
 .head{ flex:0 0 340px; display:flex; flex-direction:column; gap:10px; }
 .head h2{ font-size:28px; line-height:1; }
@@ -122,36 +125,36 @@ html.is-scrolled #topbar-scrim { background:rgba(255,255,255,.75) !important; }
 .body > h4:first-child{ padding-top:0; }
 .list{ list-style:none; display:flex; flex-direction:column; gap:2px; }
 .list li{ display:flex; align-items:baseline; gap:8px; }
-.list li::before{ content:''; flex:none; width:4px; height:4px; background:#050505; transform:translateY(-3px); }
+.list li::before{ content:''; flex:none; width:4px; height:4px; background:#f4f6fa; transform:translateY(-3px); }
 
 /* a framed picture: 4px inset, hairline, 4px corners */
-.frame{ padding:4px; border:1px solid #dfdfdf; border-radius:4px; background:#fff; }
+.frame{ padding:4px; border:1px solid rgba(255,255,255,.14); border-radius:4px; background:rgba(3,5,12,.6); }
 .frame > img, .frame > .ph{ display:block; width:100%; border-radius:4px; }
 .portrait{ width:240px; margin-bottom:16px; }
-.portrait .ph{ aspect-ratio:231 / 204; background:#efefef; display:grid; place-items:center; font-size:12px; color:#777; }
+.portrait .ph{ aspect-ratio:231 / 204; background:rgba(255,255,255,.05); display:grid; place-items:center; font-size:12px; color:rgba(255,255,255,.5); }
 .portrait img{ aspect-ratio:231 / 204; object-fit:cover; }
 
 .tiles{ list-style:none; display:flex; flex-wrap:wrap; gap:30px 10px; }
 .tile{ width:calc((100% - 10px) / 2); max-width:288px; display:flex; flex-direction:column; gap:8px; }
-.tile .frame > *{ aspect-ratio:279 / 186; background:#efefef; object-fit:contain; }
+.tile .frame > *{ aspect-ratio:279 / 186; background:rgba(255,255,255,.05); object-fit:contain; }
 .tile .frame > img{ padding:9% 10%; }
-.tile .frame > .ph{ display:grid; place-items:center; font-size:12px; color:#777; }
+.tile .frame > .ph{ display:grid; place-items:center; font-size:12px; color:rgba(255,255,255,.5); }
 .tile a{ width:max-content; }
 .tiles--sm .tile{ width:calc((100% - 50px) / 6); }
-.tiles--sm .tile .frame > *{ aspect-ratio:1; padding:18%; background:#fff; }
+.tiles--sm .tile .frame > *{ aspect-ratio:1; padding:18%; }
 .tiles--sm .tile span{ font-size:13px; }
 .poke .tile .frame > img{ image-rendering:pixelated; padding:16%; }
 .etc{ margin-top:40px; }
 
 /* on the wire: newest CISA KEV rows (refreshed from /api/kev by the script below) */
 .wr-cve{ font-family:'JetBrains Mono', monospace; font-size:13px; }
-.wr-what{ color:#555; }
-.wr-foot{ margin-top:10px; color:#555; }
+.wr-what{ color:rgba(255,255,255,.6); }
+.wr-foot{ margin-top:10px; color:rgba(255,255,255,.6); }
 
 /* github: the last 26 weeks as a dot matrix in ink */
 .gh-num{ font-size:28px; line-height:1; margin-right:8px; font-variant-numeric:tabular-nums; }
 .gh-map{ margin-top:16px; max-width:520px; display:grid; grid-template-rows:repeat(7, 1fr); grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; aspect-ratio:26 / 7; }
-.gh-map i{ display:block; border-radius:50%; background:#050505; place-self:center; width:calc(28% + var(--l) * 18%); aspect-ratio:1; opacity:calc(.08 + var(--l) * .22); }
+.gh-map i{ display:block; border-radius:50%; background:#f4f6fa; place-self:center; width:calc(28% + var(--l) * 18%); aspect-ratio:1; opacity:calc(.08 + var(--l) * .22); }
 
 /* arcade: the TV keeps its dark shell, set in a frame like the pictures */
 .game-panel{ background:linear-gradient(180deg, #17191f, #0b0c10); border-radius:4px; padding:0 12px 12px; display:flex; flex-direction:column; }
@@ -206,6 +209,10 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 </head>
 
 <body>
+<div class="ab-sky" aria-hidden="true"></div>
+<div class="page-grain" aria-hidden="true"></div>
+<SkyLife jellies />
+
 <SiteMenu currentPath="/about" />
 
 <main class="g">
@@ -229,10 +236,20 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     <div class="body">
       <!-- to add the photo: replace the .ph span with <img src=... alt=...> -->
       <div class="frame portrait"><span class="ph">Photo coming soon</span></div>
-      <p>I'm Samuel Abhinav. I hold an M.S. in Cybersecurity and I'm in the US on OPT.</p>
-      <p>I got into security because finding the fracture points was the fun part.</p>
-      <p>Since then I've shipped three security projects, had bug bounty findings accepted, and kept a threat-intel blog.</p>
-      <p>Now I'm looking for a team that actually reads the logs.</p>
+      <p>Hello! I'm Samuel Abhinav, a security engineer who likes finding out how things break.</p>
+      <p>I earned my master's in Cybersecurity at Iowa State University.</p>
+      <p>There I got serious about the defending side: detection, incident response and network security.</p>
+      <br>
+      <p>Since then I've shipped three security projects.</p>
+      <p>Moat is an ad and pop-up blocker that runs entirely in the browser.</p>
+      <p>Cluster cleans up Gmail and flags impersonation from message headers alone.</p>
+      <p>Sentinel is a SOC lab where every detection rule is tested against a real attack.</p>
+      <br>
+      <p>I also hunt bugs. My findings on HackerOne include an S3 bucket leaking personal data, an IDOR and a subdomain takeover.</p>
+      <p>I write up threats on my blog, and I hold Security+, Network+, ISC2 CC and a few more.</p>
+      <br>
+      <p>Away from the keyboard you'll find me building Pokémon teams or playing the arcade game further down this page.</p>
+      <p>If you need someone who reads the logs and enjoys it, let's talk.</p>
     </div>
   </section>
 
