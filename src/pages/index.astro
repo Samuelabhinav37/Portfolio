@@ -674,15 +674,13 @@ footer#site-footer{
 #projects-section{ position:relative; z-index:301; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 clamp(240px,36vh,360px); }
 /* After zainabkabira.com: the work arrives as a painted sheet that slides up
    over the beliefs. A night watercolour wash with a few brushed swells and
-   reef painted into it (coral trees on rock shelves down both sides, sea
+   reef painted into it (sea
    stars scattered, coral on the sea floor below the last row, clouds and
    stars throughout; no fish, mantas or turtle), cut by a dry-brush edge
    top and bottom. All generated once as images (scripts/paint/creatures.py,
    the home-* files), so scrolling costs nothing extra. */
 #projects-section::before{ content:""; position:absolute; z-index:-1; left:0; right:0; top:-130px; bottom:-60px; pointer-events:none;
   background:url(/images/paint/home-bottom.webp) center bottom 100px / 1600px auto no-repeat,
-    url(/images/paint/home-side-l.webp) left 0 top 160px / 300px auto repeat-y,
-    url(/images/paint/home-side-r.webp) right 0 top 460px / 300px auto repeat-y,
     url(/images/paint/home-scatter-tile.webp) 0 300px / 1400px auto,
     url(/images/paint/rays.webp) center top / 1600px auto no-repeat,
     url(/images/paint/clouds-tile.webp) 0 0 / 1024px,
@@ -704,7 +702,7 @@ footer#site-footer{
   }
 }
 @media (--bp-760){
-  #projects-section::before{ background-size:1000px auto, 110px auto, 110px auto, 900px auto, 1000px auto, 700px, 1024px, 700px, 1024px; background-position:center bottom 90px, left 0 top 160px, right 0 top 460px, 0 300px, center top, 0 0, 0 0, 0 140px, 0 0; }
+  #projects-section::before{ background-size:1000px auto, 900px auto, 1000px auto, 700px, 1024px, 700px, 1024px; background-position:center bottom 90px, 0 300px, center top, 0 0, 0 0, 0 140px, 0 0; }
 }
 @keyframes beliefs-sink{ to{ transform:translateY(70vh) scale(.88); opacity:.2; } }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to

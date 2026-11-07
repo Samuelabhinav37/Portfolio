@@ -265,8 +265,6 @@ def side(seed, fish=True):
     return s
 side(3).save(f'{OUT}/side-l.webp', quality=80, alpha_quality=75, method=6)
 side(4).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/side-r.webp', quality=80, alpha_quality=75, method=6)
-side(3, fish=False).save(f'{OUT}/home-side-l.webp', quality=80, alpha_quality=75, method=6)
-side(4, fish=False).transpose(Image.FLIP_LEFT_RIGHT).save(f'{OUT}/home-side-r.webp', quality=80, alpha_quality=75, method=6)
 
 # ---- scattered sea stars and fish for the gaps between rows ----
 TW, TH = 1400, 1300
