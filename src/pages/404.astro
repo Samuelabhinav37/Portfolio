@@ -37,8 +37,6 @@ BULB.forEach((row, y) => [...row].forEach((k, x) => { if (k !== '.') px.push({ x
 <title>404 · Signal Lost · Samuel Abhinav</title>
 <link href="/fonts/fonts.css" rel="stylesheet">
 <style is:global>
-  /* Same fixed-corner wordmark as every other page (SiteMenu.astro). */
-  .wordmark{ position:fixed; top:14px; left:28px; z-index:10; font-family:'Cormorant Garamond',serif; font-weight:500; font-size:1.5rem; line-height:1; letter-spacing:.01em; color:rgba(255,255,255,.9); text-decoration:none; }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ min-height:100%; }
   body{
@@ -86,7 +84,7 @@ BULB.forEach((row, y) => [...row].forEach((k, x) => { if (k !== '.') px.push({ x
   .tube.jolt .bulbs{ transform:translateX(9px); }
 
   /* ── the bulb sign ── lit bulbs glow warm, dead ones are dark glass; the ring chases */
-  .sign{ display:block; width:min(460px, 88vw); height:auto; margin:0 auto 26px; overflow:visible; shape-rendering:crispEdges; }
+  .sign{ display:block; width:min(300px, 70vw); height:auto; margin:0 auto 26px; overflow:visible; shape-rendering:crispEdges; }
   .sign .plate{ fill:#0b0705; stroke:#2a1d12; stroke-width:1; }
   .bulbs use{ --a:#2b2017; --b:#16100b; --c:#1d1610; --h:#4a3b2c; }
   .bulbs .lit{ --a:#c4661a; --b:#ffb347; --c:#ffe7a3; --h:#fffbe8; }
@@ -147,7 +145,6 @@ BULB.forEach((row, y) => [...row].forEach((k, x) => { if (k !== '.') px.push({ x
   <div class="sky" aria-hidden="true"></div>
   <canvas class="tears" aria-hidden="true"></canvas>
   <div class="crt" aria-hidden="true"><div class="grain"></div><div class="crt-roll"></div></div>
-  <a class="wordmark" href="/">Samuel Abhinav</a>
   <main class="tube">
     <h1 class="sr">404, page not found</h1>
     <svg class="sign" viewBox={`-4 -4 ${COLS * PITCH + 6} ${ROWS * PITCH + 6}`} aria-hidden="true">
