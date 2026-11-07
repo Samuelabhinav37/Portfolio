@@ -1,5 +1,16 @@
 ---
 /* Served by Cloudflare Pages for any missing route. Kai is lost too, so it runs. */
+// "404" on a 5x7 dot-matrix display: lit dots power on column by column; one dot in each 4 is weak
+const FONT: Record<string, string[]> = {
+  '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'],
+  '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'],
+};
+const P = 14;
+const dots: { x: number; y: number; on: boolean; col: number; weak: boolean }[] = [];
+[...'404'].forEach((d, i) => FONT[d].forEach((row, r) => [...row].forEach((v, c) => {
+  const col = i * 7 + c;
+  dots.push({ x: col * P + P / 2, y: r * P + P / 2, on: v === '1', col, weak: d === '4' && r === 4 && c === (i ? 1 : 3) });
+})));
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +35,7 @@
   /* the same night sky, grain and vignette as About */
   .sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
     background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
-  /* torn patches of the sky with glyph static behind them (after aura.build/404), drawn by the script below */
+  /* signal corruption on the sky's block grid (after aura.build/404), drawn by the script below */
   .tears{ position:fixed; inset:0; z-index:0; pointer-events:none; width:100%; height:100%; }
   .grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
   .grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
@@ -32,18 +43,14 @@
   .wrap{ position:relative; z-index:1; width:100%; max-width:720px; }
   .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
 
-  /* "404" in a calligraphy hand: each numeral is inked as an outline first, then fills, one after another */
-  .ink{ display:block; width:min(440px, 86vw); height:auto; margin:0 auto -6px; overflow:visible; }
-  .ink text{ font-family:'Pinyon Script', cursive; font-size:150px; fill:url(#ink-fill); stroke:#e9eef8; stroke-width:.9;
-    stroke-dasharray:900; stroke-dashoffset:900; fill-opacity:0;
-    animation:inkLine 2.2s cubic-bezier(.6,.05,.3,1) forwards, inkFill 1.2s ease forwards; }
-  .ink text:nth-of-type(1){ animation-delay:.2s, 1.4s; }
-  .ink text:nth-of-type(2){ animation-delay:.9s, 2.1s; }
-  .ink text:nth-of-type(3){ animation-delay:1.6s, 2.8s; }
-  @keyframes inkLine{ to{ stroke-dashoffset:0; } }
-  @keyframes inkFill{ to{ fill-opacity:1; stroke-opacity:.25; } }
-  .ink-glow{ filter:drop-shadow(0 0 18px rgba(150,180,235,.25)); }
-  @media (prefers-reduced-motion: reduce){ .ink text{ animation:none; stroke-dashoffset:0; fill-opacity:1; stroke-opacity:.25; } }
+  /* "404" on a dot-matrix display: the lit dots power on in a sweep from the left, the rest stay faint */
+  .matrix{ display:block; width:min(330px, 76vw); height:auto; margin:0 auto 1.4rem; overflow:visible; }
+  .matrix circle{ fill:#e9eef8; opacity:.07; }
+  .matrix .on{ opacity:1; filter:drop-shadow(0 0 4px rgba(160,190,240,.55)); animation:dotOn .5s steps(2) backwards; animation-delay:calc(var(--c) * 45ms + 200ms); }
+  .matrix .weak{ animation:dotOn .5s steps(2) backwards calc(var(--c) * 45ms + 200ms), dotWeak 6s steps(1) 2s infinite; }
+  @keyframes dotOn{ from{ opacity:.07; } }
+  @keyframes dotWeak{ 0%,88%,94%{ opacity:1; } 90%,92%,96%{ opacity:.15; } }
+  @media (prefers-reduced-motion: reduce){ .matrix circle{ animation:none !important; } }
 
   .status{ font-size:0.74rem; letter-spacing:0.35em; text-transform:uppercase; color:rgba(160,172,190,0.75); }
   .msg{ margin-top:0.8rem; font:400 0.95rem/1.5 'Inter Tight', -apple-system, 'Segoe UI', sans-serif; color:rgba(190,200,216,0.75); }
@@ -75,13 +82,8 @@
   <a class="wordmark" href="/">Samuel Abhinav</a>
   <main class="wrap">
     <h1 class="sr">404, page not found</h1>
-    <svg class="ink ink-glow" viewBox="0 0 440 170" aria-hidden="true">
-      <defs>
-        <linearGradient id="ink-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#f4f6fa"/><stop offset="1" stop-color="#9fb2d6"/>
-        </linearGradient>
-      </defs>
-      <text x="40" y="130">4</text><text x="160" y="130">0</text><text x="280" y="130">4</text>
+    <svg class="matrix" viewBox={`0 0 ${19 * P} ${7 * P}`} aria-hidden="true">
+      {dots.map((d) => <circle cx={d.x} cy={d.y} r="4.6" class={d.on ? (d.weak ? 'on weak' : 'on') : undefined} style={d.on ? `--c:${d.col}` : undefined} />)}
     </svg>
     <div class="status">signal lost</div>
     <p class="msg">That page isn't in my memory. It may have moved, or it never existed.</p>
@@ -95,73 +97,124 @@
   </main>
 
 <script is:inline>
-/* Torn sky, after aura.build/404: there the whole screen is a field of dim monospace
-   glyphs and a few swap every second. Here the night sky stays, and only a few
-   patches of it are missing, showing that glyph field through ragged holes. A patch
-   moves now and then with a flicker, and a thin tear crosses the screen once in a
-   while. Repaints about once a second (fast only while something flickers). */
+/* Signal corruption over the night sky. Real broken video and images fail on the
+   codec's 16px block grid and in short bursts, so this does the same to the sky
+   itself (its two tiles are redrawn here at the CSS position, so the corrupt
+   pixels are the real ones underneath):
+     slip   a horizontal band jumps sideways, its red and blue channels split
+     smear  a block region repeats one row of pixels downward, like video that
+            lost its keyframe (datamosh)
+     drop   a cluster of 16px blocks decodes badly: flat average colour (only the
+            DC term survived), a block copied from elsewhere, or missing, showing
+            dim glyph static as on aura.build/404
+     run    from one block to the row's end the colour goes wrong (bad DC chain)
+   Quiet between bursts, and the loop sleeps when nothing is showing. One or two
+   small missing clusters stay a while. Off under reduced motion. */
 (function(){
   var cv=document.querySelector('.tears');
-  if(!cv || !cv.getContext) return;
-  var x=cv.getContext('2d'), CW=10, CH=18, W=0, H=0, dpr=1;
-  var GLYPHS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&*+-=<>[]{}()/\\:;_@?';
-  var TONES=['#2a2f3b','#323846','#3a4150','#444c5e','#76829c','#8a96b0'];
-  var still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var patches=[], tear=null, flick=0;
+  if(!cv || !cv.getContext || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var x=cv.getContext('2d'), sky=document.createElement('canvas'), sx=sky.getContext('2d', { willReadFrequently:true });
+  var W=0, H=0, dpr=1, B=16, fx=[], raf=0, lastDraw=0, imgs=[];
+  var GLYPHS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&*+-=<>[]{}()/\:;_@?';
+  var TONES=['#2a2f3b','#323846','#3a4150','#444c5e','#76829c'];
   function rnd(n){ return Math.random()*n|0; }
-  function cell(){ return { g:GLYPHS[rnd(GLYPHS.length)], c:TONES[Math.random()<.2 ? 4+rnd(2) : rnd(4)] }; }
-  // a patch: a block of cells with a ragged edge, kept to the sides so the text stays clear
-  function patch(){
-    var cols=5+rnd(11), rows=2+rnd(4), side=Math.random()<.5;
-    var maxC=Math.floor(W/CW), maxR=Math.floor(H/CH);
-    var band=W>760 ? Math.floor(maxC*.3) : maxC;
-    var c0=side ? rnd(Math.max(1, band-cols)) : maxC-cols-rnd(Math.max(1, band-cols));
-    var p={ c0:Math.max(0,c0), r0:rnd(Math.max(1, maxR-rows)), cols:cols, rows:rows, cells:[] };
-    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){
-      var edge=r===0||c===0||r===rows-1||c===cols-1;
-      if(edge ? Math.random()<.45 : Math.random()<.08) continue;
-      var e=cell(); e.r=r; e.k=c; p.cells.push(e);
-    }
-    return p;
-  }
-  function size(){
+  function pick(a){ return a[rnd(a.length)]; }
+
+  function buildSky(){
     dpr=Math.min(devicePixelRatio||1, 2); W=innerWidth; H=innerHeight;
-    cv.width=W*dpr; cv.height=H*dpr; x.setTransform(dpr,0,0,dpr,0,0);
-    x.font='15px "JetBrains Mono", monospace'; x.textBaseline='top';
-    patches=[]; for(var i=0;i<(W>760?5:3);i++) patches.push(patch());
+    cv.width=sky.width=Math.round(W*dpr); cv.height=sky.height=Math.round(H*dpr);
+    x.setTransform(dpr,0,0,dpr,0,0); sx.setTransform(dpr,0,0,dpr,0,0);
+    sx.fillStyle='#030307'; sx.fillRect(0,0,W,H);
+    // same order as the CSS: wash underneath, stars on top, 1024px tiles from 0 0
+    [imgs[1], imgs[0]].forEach(function(im){ for(var ty=0; ty<H; ty+=1024) for(var tx=0; tx<W; tx+=1024) sx.drawImage(im, tx, ty, 1024, 1024); });
   }
-  function draw(){
-    x.clearRect(0,0,W,H);
-    patches.forEach(function(p, i){
-      if(flick && i===0 && Math.random()<.5) return;
-      p.cells.forEach(function(e){
-        var px=(p.c0+e.k)*CW, py=(p.r0+e.r)*CH;
-        x.fillStyle='rgba(9,11,17,.9)'; x.fillRect(px, py, CW, CH);
-        x.fillStyle=e.c; x.fillText(e.g, px+1, py+1);
+  // device-pixel helpers for reading the sky
+  function d(v){ return Math.round(v*dpr); }
+  function avg(bx, by){
+    var px=sx.getImageData(d(bx), d(by), d(B), d(B)).data, r=0, g=0, b=0, n=px.length/4;
+    for(var i=0;i<px.length;i+=4){ r+=px[i]; g+=px[i+1]; b+=px[i+2]; }
+    return 'rgb('+(r/n|0)+','+(g/n|0)+','+(b/n|0)+')';
+  }
+
+  function slip(){
+    var y=rnd(H/B)*B+rnd(B), h=3+rnd(26), dx=(Math.random()<.5?-1:1)*(6+rnd(44)), sh=2+rnd(3);
+    var src=sx.getImageData(0, d(y), sky.width, d(h)), out=new ImageData(src.width, src.height), w=src.width;
+    for(var r=0;r<src.height;r++) for(var c=0;c<w;c++){
+      var o=(r*w+c)*4;
+      var cr=Math.min(w-1, Math.max(0, c-d(dx)-d(sh))), cg=Math.min(w-1, Math.max(0, c-d(dx))), cb=Math.min(w-1, Math.max(0, c-d(dx)+d(sh)));
+      out.data[o]=src.data[(r*w+cr)*4]; out.data[o+1]=src.data[(r*w+cg)*4+1]; out.data[o+2]=src.data[(r*w+cb)*4+2]; out.data[o+3]=255;
+    }
+    var band=document.createElement('canvas'); band.width=w; band.height=src.height; band.getContext('2d').putImageData(out,0,0);
+    return { end:Date.now()+80+rnd(260), draw:function(){ x.drawImage(band, 0, y, W, h); } };
+  }
+  function smear(){
+    var cols=3+rnd(8), rows=3+rnd(7), bx=rnd(W/B-cols)*B, by=rnd(H/B-rows)*B, row=by+rnd(B);
+    return { end:Date.now()+600+rnd(1400), draw:function(){ x.drawImage(sky, d(bx), d(row), d(cols*B), Math.max(1,d(1)), bx, by, cols*B, rows*B); } };
+  }
+  function drop(life){
+    // a random walk over the block grid makes a believable cluster
+    var c=rnd(W/B), r=rnd(H/B), n=4+rnd(12), cells=[], seen={};
+    for(var i=0;i<n;i++){
+      var k=c+','+r;
+      if(!seen[k] && c>=0 && r>=0){ seen[k]=1;
+        var kind=Math.random(), cell={ x:c*B, y:r*B };
+        if(kind<.35) cell.flat=avg(cell.x, cell.y);
+        else if(kind<.55){ cell.fx=rnd(W/B)*B; cell.fy=rnd(H/B)*B; }
+        else cell.glyph=1;
+        cells.push(cell);
+      }
+      if(Math.random()<.6) c+=Math.random()<.5?-1:1; else r+=Math.random()<.5?-1:1;
+    }
+    return { end:Date.now()+(life||400+rnd(2000)), draw:function(){
+      x.font='12px "JetBrains Mono", monospace'; x.textBaseline='middle'; x.textAlign='center';
+      cells.forEach(function(e){
+        if(e.flat){ x.fillStyle=e.flat; x.fillRect(e.x, e.y, B, B); }
+        else if(e.fx!=null) x.drawImage(sky, d(e.fx), d(e.fy), d(B), d(B), e.x, e.y, B, B);
+        else {
+          x.fillStyle='#07080d'; x.fillRect(e.x, e.y, B, B);
+          if(!e.g || Math.random()<.04){ e.g=pick(GLYPHS); e.t=TONES[Math.random()<.2 ? 4 : rnd(4)]; }
+          x.fillStyle=e.t; x.fillText(e.g, e.x+B/2, e.y+B/2+1);
+        }
       });
-    });
-    if(tear){
-      x.fillStyle='rgba(6,7,11,.9)'; x.fillRect(tear.x, tear.y, tear.w, CH);
-      for(var k=0;k<tear.w/CW;k++){ var e=cell(); x.fillStyle=e.c; x.fillText(e.g, tear.x+k*CW+1, tear.y+1); }
-    }
+    } };
   }
-  function swap(){ patches.forEach(function(p){ p.cells.forEach(function(e){ if(Math.random()<.06){ var n=cell(); e.g=n.g; e.c=n.c; } }); }); }
-  size(); draw();
-  addEventListener('resize', function(){ size(); draw(); });
-  if(still) return;
-  var next=Date.now()+4000, nextTear=Date.now()+6000;
-  setInterval(function(){
-    if(document.hidden) return;
+  function run(){
+    var r=rnd(H/B), from=rnd(W/B)*B, tint=pick(['rgba(255,0,170,.10)','rgba(0,255,140,.08)','rgba(255,170,0,.08)']);
+    var shift=B*(1+rnd(3));
+    return { end:Date.now()+150+rnd(350), draw:function(){
+      x.drawImage(sky, d(from-shift), d(r*B), d(W-from), d(B), from, r*B, W-from, B);
+      x.fillStyle=tint; x.fillRect(from, r*B, W-from, B);
+    } };
+  }
+
+  function frame(t){
+    raf=0;
     var now=Date.now();
-    if(now>next){ flick=6; next=now+5000+rnd(6000); }
-    if(flick){ flick--; if(!flick){ patches.shift(); patches.push(patch()); } }
-    if(tear && now>tear.end) tear=null;
-    if(!tear && now>nextTear){
-      var w=W*(.25+Math.random()*.4);
-      tear={ x:rnd(W-w), y:rnd(H/CH)*CH, w:w, end:now+180 }; nextTear=now+7000+rnd(9000);
+    fx=fx.filter(function(f){ return f.end>now; });
+    if(t-lastDraw>=33 || !fx.length){
+      lastDraw=t; x.clearRect(0,0,W,H);
+      fx.forEach(function(f){ f.draw(); });
     }
-    if(flick || tear || now%1000<130) { swap(); draw(); }
-  }, 120);
+    if(fx.length) raf=requestAnimationFrame(frame);
+  }
+  function wake(){ if(!raf) raf=requestAnimationFrame(frame); }
+  function burst(){
+    if(!document.hidden && W){
+      var n=1+rnd(3);
+      for(var i=0;i<n;i++){ var r=Math.random(); fx.push(r<.4 ? slip() : r<.6 ? smear() : r<.85 ? drop() : run()); }
+      // slips come in quick runs, like a signal dropping in and out
+      if(Math.random()<.5) for(var j=0;j<2+rnd(3);j++) setTimeout(function(){ fx.push(slip()); wake(); }, 60+rnd(240));
+      if(Math.random()<.35) fx.push(drop(7000+rnd(8000)));
+      wake();
+    }
+    setTimeout(burst, 2500+rnd(5500));
+  }
+
+  var left=2;
+  ['/images/paint/stars-tile.webp','/images/paint/wash-tile.webp'].forEach(function(src, i){
+    var im=new Image(); im.decoding='async'; im.addEventListener('load', function(){ if(--left===0){ buildSky(); fx.push(drop(9000)); wake(); setTimeout(burst, 1800); } }); im.src=src; imgs[i]=im;
+  });
+  var rt; addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ if(!left){ buildSky(); wake(); } }, 200); });
 })();
 </script>
 <script is:inline src="/scripts/lost-runner.js"></script>
