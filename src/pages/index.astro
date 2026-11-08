@@ -400,9 +400,9 @@ footer#site-footer{
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
 .pw-img--todo span{ position:relative;  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
-/* Caption: one or two words beside the frame, top-aligned on its right.
+/* Caption: one or two words beside the frame, at its bottom right.
    The name stays for screen readers; the logo or picture shows it. */
-.pw-cap{ font:500 12px/1.3 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.01em; color:#eef1f8;
+.pw-cap{ align-self:end; font:500 12px/1.3 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.01em; color:#eef1f8;
   /* captions sit on the sky: a dark halo keeps them readable over cloud */
   text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
 .pw-name{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
@@ -429,7 +429,7 @@ footer#site-footer{
       </a>
       <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
         <figure style="view-transition-name:work-cluster" class="pw-img pw-img--shot"><img src="/images/projects/cluster-tile.webp" srcset="/images/projects/cluster-tile.w800.webp 800w, /images/projects/cluster-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Cluster logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
-        <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-tags">Phishing detection</span></div>
+        <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-tags">Email organizer</span></div>
       </a>
       <a class="pw-tile" id="sec-athena" href="/work/athena/">
         <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
