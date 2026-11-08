@@ -314,7 +314,6 @@ footer#site-footer{
   }
 </style>
 
-<script is:inline defer src="/scripts/index-wreck-frames.js"></script>
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
@@ -395,8 +394,6 @@ footer#site-footer{
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
-/* empty frames get the contact page's broken-screen roll (index-wreck-frames.js plays it while on screen) */
-.pw-wreck{ position:absolute; inset:0; width:100%; height:100%; object-fit:fill; mix-blend-mode:screen; opacity:.28; pointer-events:none; }
 .pw-img--todo span{ position:relative;  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
 .pw-cap{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:6px; padding:0 23px;
   font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#eef1f8;
@@ -428,7 +425,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
       </a>
       <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/">
-        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
       </a>
       <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
@@ -436,7 +433,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
       </a>
       <a class="pw-tile" id="sec-athena" href="/work/athena/">
-        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-line">Shows who has access, why they have it, and when it stops making sense.</span><span class="pw-tags">Identity governance · Policy as code</span></div>
       </a>
       <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/">
@@ -444,7 +441,7 @@ footer#site-footer{
         <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-line">A Windows disk analyzer that reads the drive once, then finds duplicates, junk and lost space.</span><span class="pw-tags">Desktop app · Rust &amp; Tauri</span></div>
       </a>
       <a class="pw-tile" id="sec-knot" href="/work/knot/">
-        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><video class="pw-wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video><span>Image coming soon</span></figure>
+        <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-line">An Android app for building habits, with AI help and on-device storage.</span><span class="pw-tags">Android app · In development</span></div>
       </a>
     </div>
