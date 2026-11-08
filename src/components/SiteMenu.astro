@@ -28,8 +28,6 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
 
 <a class="sr-only sr-only-focusable" href="#site-nav">Skip to navigation</a>
 
-<div id="topbar-scrim" aria-hidden="true"></div>
-
 <header id="site-identity">
   {currentPath === '/'
     ? <div class="name">Samuel Abhinav</div>
@@ -62,35 +60,6 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
     font: 13px/1 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing: .04em;
   }
 
-  /* #site-identity/#site-nav are fixed, transparent text with nothing
-     behind them — whatever section is scrolled underneath (a bright KEV
-     ticker row, a light image, etc.) can wash them out or make them hard
-     to read. This scrim is a plain top-anchored fade, always present,
-     sitting just below both elements in stacking order so it never
-     intercepts clicks (pointer-events:none) and never outranks either
-     element's own z-index. */
-  #topbar-scrim {
-    position: fixed; top: 0; left: 0; right: 0; height: 100px;
-    z-index: 999;
-    background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
-    /* Size the gradient to the border box. Sized to the padding box (the
-       default) it repeats under the 1px bottom border, which drew a dark
-       line from the gradient's top colour across the page. */
-    background-origin: border-box;
-    pointer-events: none;
-    transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
-    border-bottom: 1px solid transparent;
-  }
-  /* The fade alone let page text show straight through behind the name and
-     Menu once scrolled. Past the top it becomes a frosted bar: the blur keeps
-     text behind it from reading through, with only a faint tint so the sky
-     stays visible instead of the header turning black. */
-  :global(html.is-scrolled) #topbar-scrim {
-    height: 56px;
-    background: rgba(8,12,24,0.18);
-    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  }
-
   /* the name and the links share one line in the site's serif */
   #site-identity, #site-nav {
     position: fixed; top: 16px; z-index: 1002;
@@ -100,7 +69,8 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
   #site-identity { left: 28px; }
   #site-identity .name { color: rgba(var(--c-white),0.95); text-decoration: none; user-select: none; }
   /* the list starts at the middle of the page, like the reference's 6-column bar; Contact at the right edge */
-  #site-nav { left: 50%; right: 28px; display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+  /* like the reference: nothing behind the line, the page scrolls under it */
+  #site-nav { font-size: 1rem; top: 18px; left: 50%; right: 28px; display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
   #site-nav a { color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
   /* on a page of the list, the others (and the commas) dim and light up on hover */
   #site-nav.has-current a:not([aria-current]), #site-nav.has-current .sep { opacity: 0.45; }
@@ -111,7 +81,8 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
   #site-nav a::before { content: ''; position: absolute; inset: -12px -4px; }
   @media (max-width: 760px) {
     /* phones: one smaller line, so the name, the list and Contact fit side by side */
-    #site-identity, #site-nav { font-size: 0.95rem; }
+    #site-identity { font-size: 0.95rem; }
+    #site-nav { font-size: 0.85rem; top: 17px; }
     #site-identity { left: 16px; }
     #site-nav { left: auto; right: 16px; gap: 12px; }
   }
@@ -124,18 +95,3 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
   </style>
 )}
 
-<script>
-  /* html.is-scrolled drives the frosted top bar (see #topbar-scrim). An
-     IntersectionObserver on a sentinel at the top of the page, not a scroll
-     listener, so it costs nothing per scroll frame. */
-  (function(){
-    var s = document.createElement('div');
-    s.setAttribute('aria-hidden', 'true');
-    s.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:48px;pointer-events:none;visibility:hidden';
-    document.body.prepend(s);
-    new IntersectionObserver(function(es){
-      document.documentElement.classList.toggle('is-scrolled', !es[0].isIntersecting);
-    }).observe(s);
-  })();
-
-</script>

@@ -61,27 +61,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .post-footer .f-links .fic { width: 12.5px; height: 12.5px; fill: currentColor; opacity: 0.9; flex: none; }
 
 
-/* ── Top bar: a light fade at the top of the page that becomes a solid,
-   blurred bar once scrolled (html.is-scrolled, set in blog-client.js), so
-   article text never reads through behind the wordmark and Menu. Same
-   treatment as SiteMenu.astro on the portfolio pages. ── */
-#topbar-scrim {
-  position: fixed; top: 0; left: 0; right: 0; height: 100px;
-  z-index: 999; pointer-events: none;
-  background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
-  /* sized to the border box, so the gradient can't repeat under the 1px
-     transparent border as a dark line (same fix as SiteMenu.astro) */
-  background-origin: border-box;
-  border-bottom: 1px solid transparent;
-  transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
-}
-html.is-scrolled #topbar-scrim {
-  height: 56px;
-  background: rgba(5,5,10,0.82);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  border-bottom-color: rgba(var(--c-white),0.06);
-}
-
 /* ── Site identity (fixed corner): the "Samuel Abhinav" wordmark, kept
    visible on scroll like every other page. ── */
 #site-identity, #site-nav {
@@ -92,7 +71,7 @@ html.is-scrolled #topbar-scrim {
 #site-identity { left: 28px; }
 .nav-name { color: rgba(var(--c-white),0.95); text-decoration: none; }
 /* Blog, Archive, About from the middle of the page, Contact at the right edge; Blog is bright, the rest dim */
-#site-nav { left: 50%; right: 28px; display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+#site-nav { font-size: 1rem; top: 18px; left: 50%; right: 28px; display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
 #site-nav a { position: relative; color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
 #site-nav a::before { content: ''; position: absolute; inset: -12px -4px; }
 #site-nav a:not([aria-current]), #site-nav .sep { opacity: 0.45; }
@@ -490,7 +469,8 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
-  #site-identity, #site-nav { font-size: 0.95rem; }
+  #site-identity { font-size: 0.95rem; }
+  #site-nav { font-size: 0.85rem; top: 17px; }
   #site-identity { left: 16px; }
   #site-nav { left: auto; right: 16px; gap: 12px; }
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }

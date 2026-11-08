@@ -251,18 +251,6 @@ document.addEventListener('click', (ev) => {
   }
 });
 
-/* html.is-scrolled drives the solid top bar (#topbar-scrim in blog.css). A
-   sentinel + IntersectionObserver, not a scroll listener. */
-(() => {
-  const s = document.createElement('div');
-  s.setAttribute('aria-hidden', 'true');
-  s.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:48px;pointer-events:none;visibility:hidden';
-  document.body.prepend(s);
-  new IntersectionObserver((es) => {
-    document.documentElement.classList.toggle('is-scrolled', !es[0].isIntersecting);
-  }).observe(s);
-})();
-
 /* ── Listen: read the post aloud with the browser's own voice ──
    The article is spoken a sentence at a time: Chrome's network voices stop
    mid-utterance after about 15 seconds, and short pieces let pause, speed
