@@ -3,7 +3,7 @@
    ~6.4s wordmark intro was removed. */
 (function(){
   var identity = document.getElementById('site-identity');
-  var nav      = document.getElementById('menu-trigger');
+  var nav      = document.getElementById('site-nav');
   var lunaWrap = document.getElementById('luna-wrap');
   var damp     = document.getElementById('chrome-damp');
   var termStage    = document.getElementById('term-stage');

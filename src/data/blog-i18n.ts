@@ -16,11 +16,10 @@ export const LOCALE_LABEL: Record<BlogLocale, string> = {
 interface BlogStrings {
   skipToContent: string;
   backToTop: string;
-  openMenu: string;
-  closeMenu: string;
   close: string;
   navAbout: string;
   navBlog: string;
+  navPhotos: string;
   navContact: string;
   minRead: string;
   /** Heading for the contents list (edge strip and the narrow-screen box). */
@@ -59,11 +58,10 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
   en: {
     skipToContent: 'Skip to content',
     backToTop: 'Back to top',
-    openMenu: 'Open menu',
-    closeMenu: 'Close menu',
     close: 'Close',
     navAbout: 'About',
     navBlog: 'Blog',
+    navPhotos: 'Photos',
     navContact: 'Contact',
     minRead: 'MIN READ',
     onThisPage: 'On this page',
@@ -85,11 +83,10 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
   es: {
     skipToContent: 'Saltar al contenido',
     backToTop: 'Volver arriba',
-    openMenu: 'Abrir menú',
-    closeMenu: 'Cerrar menú',
     close: 'Cerrar',
     navAbout: 'Acerca de',
     navBlog: 'Blog',
+    navPhotos: 'Fotos',
     navContact: 'Contacto',
     minRead: 'MIN DE LECTURA',
     onThisPage: 'En esta página',

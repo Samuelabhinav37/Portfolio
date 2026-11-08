@@ -84,64 +84,19 @@ html.is-scrolled #topbar-scrim {
 
 /* ── Site identity (fixed corner): the "Samuel Abhinav" wordmark, kept
    visible on scroll like every other page. ── */
-#site-identity {
-  position: fixed;
-  top: 14px; left: 28px;
-  z-index: 1002;
-  line-height: 1.3;
+#site-identity, #site-nav {
+  position: fixed; top: 18px; z-index: 1002;
+  font: 600 13px/1.2 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: -0.01em;
 }
-.nav-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 500; font-size: 1.5rem;
-  color: rgba(var(--c-white),0.90); text-decoration: none;
-  transition: opacity 0.4s;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  display: block;
-}
-/* ── Collapsed menu — plain-text trigger + black floating card ── */
-#menu-trigger {
-  position: fixed; top: 16px; right: 28px; z-index: 10001;
-  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;
-  color: rgba(var(--c-white),0.85); background: none; border: none; cursor: pointer;
-  padding: 4px 2px; letter-spacing: 0.01em;
-  transition: color 0.3s ease;
-}
-#menu-trigger:hover { color: rgba(var(--c-white),1); }
-
-#menu-overlay {
-  position: fixed; top: 56px; right: 22px; z-index: 10000;
-  width: min(270px, 74vw); height: auto; max-height: min(74vh, 520px);
-  background: var(--c-bg); border: 1px solid rgba(var(--c-white),0.07); border-radius: 15px;
-  box-shadow: 0 20px 55px rgba(0,0,0,0.6);
-  padding: 24px 22px 20px; display: flex; flex-direction: column; gap: 30px;
-  transform: scale(0.96); opacity: 0; transform-origin: top right;
-  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
-  pointer-events: none;
-}
-#menu-overlay.open { transform: scale(1); opacity: 1; pointer-events: all; }
-#menu-list { list-style: none; margin: 0; padding: 0; }
-#menu-list li { overflow: hidden; margin-bottom: 11px; }
-#menu-list a {
-  display: inline-block; text-decoration: none;
-  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 1.2rem;
-  letter-spacing: 0.01em; color: rgba(var(--c-white),0.5);
-  transition: color 0.3s ease;
-}
-#menu-list a span {
-  display: inline-block; transform: translateY(120%); opacity: 0;
-  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
-}
-#menu-overlay.open #menu-list a span { transform: translateY(0); opacity: 1; }
-#menu-overlay.open #menu-list li:nth-child(1) a span { transition-delay: 0.04s; }
-#menu-overlay.open #menu-list li:nth-child(2) a span { transition-delay: 0.08s; }
-#menu-overlay.open #menu-list li:nth-child(3) a span { transition-delay: 0.12s; }
-#menu-list a:hover { color: rgba(var(--c-white),1); }
-#menu-list a.active { color: rgba(var(--c-white),0.78); }
-
-@media (prefers-reduced-motion: reduce) {
-  #menu-overlay, #menu-list a span { transition: opacity 0.3s ease; transform: none; }
-}
+#site-identity { left: 28px; }
+.nav-name { color: rgba(var(--c-white),0.95); text-decoration: none; }
+/* the pages as one list from the middle of the page; Blog is bright, the rest dim */
+#site-nav { left: 50%; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+#site-nav a { position: relative; color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
+#site-nav a::before { content: ''; position: absolute; inset: -12px -4px; }
+#site-nav a:not([href="/blog/"]), #site-nav .sep { opacity: 0.45; }
+#site-nav a:hover, #site-nav a:focus-visible { opacity: 1; }
 
 /* ══════════ POST SYSTEM ══════════
    Set after Vogue's article pages, measured on vogue.com (Oct 2026), with
@@ -529,14 +484,13 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   .mnote-tag { margin: 0 0 0 10px; }
 }
 @media (--bp-900) {
-  #site-identity { top: 12px; left: 20px; }
-  .nav-name { font-size: 1.3rem; }
-  #menu-trigger { top: 14px; right: 20px; }
+  #site-identity { left: 20px; }
   .container { padding: 0 24px; }
 }
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
+  #site-nav { left: auto; right: 20px; }
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
   .post-audio { width: calc(100% - 48px); margin-top: 24px; gap: 12px; }

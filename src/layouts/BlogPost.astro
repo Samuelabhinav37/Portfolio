@@ -252,22 +252,9 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
     </div>
 
-    <button
-      type="button"
-      id="menu-trigger"
-      aria-label={i18n.openMenu}
-      aria-expanded="false"
-      data-text-closed={lang === 'es' ? 'Menú' : 'Menu'}
-      data-text-open={i18n.close}
-      data-label-closed={i18n.openMenu}
-      data-label-open={i18n.closeMenu}
-    >{lang === 'es' ? 'Menú' : 'Menu'}</button>
-    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
-      <ul id="menu-list">
-        <li><a href={SITE.links.about}><span>{i18n.navAbout}</span></a></li>
-        <li><a href={SITE.links.blogIndex} class="active"><span>{i18n.navBlog}</span></a></li>
-        <li><a href={SITE.links.contact}><span>{i18n.navContact}</span></a></li>
-      </ul>
+    <!-- the site's top line (SiteMenu.astro): pages as one comma-separated list -->
+    <nav id="site-nav" aria-label="Primary" class="has-current">
+      <a href={SITE.links.about}>{i18n.navAbout}</a><span class="sep" aria-hidden="true">, </span><a href={SITE.links.blogIndex}>{i18n.navBlog}</a><span class="sep" aria-hidden="true">, </span><a href="https://samuelabhinav.com/photos/">{i18n.navPhotos}</a><span class="sep" aria-hidden="true">, </span><a href={SITE.links.contact}>{i18n.navContact}</a>
     </nav>
 
     <!-- Header: the topic label, headline, the series line (no author name:
