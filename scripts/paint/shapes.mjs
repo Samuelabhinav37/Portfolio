@@ -5,7 +5,7 @@ const out = process.argv[2];
 const b = await pw.chromium.launch({ headless: true, channel: 'chrome' });
 const p = await b.newPage();
 await p.goto('http://localhost:4321/404.html').catch(() => {}); await p.setContent('<html><head></head><body></body></html>');
-await p.addScriptTag({ content: fs.readFileSync('public/scripts/sky-cast.js', 'utf8') });
+await p.addScriptTag({ content: fs.readFileSync('scripts/paint/sky-cast.js', 'utf8') });
 const jobs = [
   ['whale', 'whale({ wave:false, part:"all" })', 360, 2.7, 1.25, 0, -0.02],
   ['manta', 'manta({ ph:0, flat:true })', 150, 2.5, 2.4, 0, 0.25],

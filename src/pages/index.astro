@@ -220,7 +220,7 @@ footer#site-footer{
   /* Footer entrance — mirrors the project-tile reveal (scale + slide + fade), staggered.
      Elements start hidden/shifted; .fenter (added by JS when footer calm crosses in)
      animates them to rest. Same easing language as the tour tiles so it reads continuous. */
-  #site-footer .f-eyebrow, #site-footer .f-tagline,
+  #site-footer .f-tagline,
   #site-footer .f-copy, #site-footer .f-links{
     opacity:0; transform:translateY(24px) scale(0.965);
     transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1);
@@ -229,13 +229,11 @@ footer#site-footer{
   #site-footer .f-links{transition-delay:0s}
   #site-footer .f-copy{transition-delay:.06s}
   #site-footer .f-tagline{transition-delay:.18s}
-  #site-footer .f-eyebrow{transition-delay:.24s}
-  #site-footer.fenter .f-eyebrow{opacity:1; transform:translateY(0) scale(1); transition-delay:.12s}
   #site-footer.fenter .f-tagline{opacity:1; transform:translateY(0) scale(1); transition-delay:.20s}
   #site-footer.fenter .f-copy{opacity:1; transform:translateY(0) scale(1); transition-delay:.44s}
   #site-footer.fenter .f-links{opacity:1; transform:translateY(0) scale(1); transition-delay:.46s}
   @media (prefers-reduced-motion: reduce){
-    #site-footer .f-eyebrow, #site-footer .f-tagline,
+    #site-footer .f-tagline,
     #site-footer .f-copy, #site-footer .f-links{opacity:1; transform:none; transition:none}
   }
 
@@ -303,20 +301,6 @@ footer#site-footer{
        corner button covers part of that (decorative) name, not the links */
     .f-bottom{ padding-bottom:8px; }
   }
-  .f-eyebrow{
-    font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
-    color:#9aa0ae; margin:0 0 8px; display:flex; align-items:center; gap:6px;
-  }
-  .f-eyebrow::before{
-    content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.95);
-    box-shadow:0 0 6px 1px rgba(120,225,170,0.55), 0 0 14px 3px rgba(120,225,170,0.35);
-    animation:dotGlow 2.6s ease-in-out infinite;
-  }
-  @keyframes dotGlow{
-    0%,100%{box-shadow:0 0 6px 1px rgba(120,225,170,0.55), 0 0 14px 3px rgba(120,225,170,0.35)}
-    50%{box-shadow:0 0 10px 3px rgba(120,225,170,0.7), 0 0 22px 7px rgba(120,225,170,0.5)}
-  }
-  @media (prefers-reduced-motion: reduce){ .f-eyebrow::before{animation:none} }
   .f-tagline{font-family:var(--fsans); font-style:normal; font-weight:400; color:var(--fink);
     font-size:clamp(27px,2.6vw,34px); line-height:1.34; letter-spacing:-0.01em; white-space:nowrap; margin:0; text-shadow:0 4px 24px rgba(0,0,0,.55)}
   @media (--bp-820){ .f-tagline{ white-space:normal; } }
@@ -386,7 +370,7 @@ footer#site-footer{
 
 
 <SkyBackground />
-<!-- the sky cast: jellyfish and sea stars, between the sky and the page -->
+<!-- the sky cast: jellyfish, between the sky and the page -->
 <SkyLife cast />
 
 
@@ -493,14 +477,13 @@ footer#site-footer{
 #projects-section{ position:relative; z-index:301; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 clamp(240px,36vh,360px); }
 /* After zainabkabira.com: the work arrives as a painted sheet that slides up
    under the hero. A night watercolour wash with a few brushed swells and
-   reef painted into it (sea
-   stars scattered, coral on the sea floor below the last row, clouds and
-   stars throughout; no fish, mantas or turtle), cut by a dry-brush edge
+   reef painted into it (coral
+   on the sea floor below the last row, clouds and stars throughout; no
+   creatures), cut by a dry-brush edge
    top and bottom. All generated once as images (scripts/paint/creatures.py,
    the home-* files), so scrolling costs nothing extra. */
 #projects-section::before{ content:""; position:absolute; z-index:-1; left:0; right:0; top:-130px; bottom:-60px; pointer-events:none;
   background:url(/images/paint/home-bottom.webp) center bottom 100px / 1600px auto no-repeat,
-    url(/images/paint/home-scatter-tile.webp) 0 300px / 1400px auto,
     url(/images/paint/rays.webp) center top / 1600px auto no-repeat,
     url(/images/paint/clouds-tile.webp) 0 0 / 1024px,
     url(/images/paint/stars-tile.webp) 0 0 / 1024px,
@@ -513,7 +496,7 @@ footer#site-footer{
     linear-gradient(#000,#000) 0 278px / 100% calc(100% - 556px) no-repeat,
     url(/images/paint/wash-edge-b.webp) bottom / 100% 280px no-repeat; }
 @media (--bp-760){
-  #projects-section::before{ background-size:1000px auto, 900px auto, 1000px auto, 700px, 1024px, 700px, 1024px; background-position:center bottom 90px, 0 300px, center top, 0 0, 0 0, 0 140px, 0 0; }
+  #projects-section::before{ background-size:1000px auto, 1000px auto, 700px, 1024px, 700px, 1024px; background-position:center bottom 90px, center top, 0 0, 0 0, 0 140px, 0 0; }
 }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
    edge with a 6px gutter, frames in their own shapes so rows go ragged, no
@@ -642,7 +625,6 @@ footer#site-footer{
     <div class="f-card-tex" aria-hidden="true"></div>
     <div class="f-left">
       <div>
-        <p class="f-eyebrow">Open to work</p>
         <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
       </div>
     </div>

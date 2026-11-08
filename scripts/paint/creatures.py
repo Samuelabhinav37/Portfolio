@@ -7,7 +7,7 @@
 #   clouds-tile.webp       seamless soft cloud banks, lit along their tops
 #   side-l/-r.webp         vertical strips: small coral trees on rock shelves, sea stars, passing fish
 #   scatter-tile.webp      a few sea stars and fish for the gaps between rows
-# Creatures come from the site's own sky-cast.js shapes (rendered by shapes.mjs),
+# Creatures come from sky-cast.js shapes (scripts/paint, once the site's sky cast) (rendered by shapes.mjs),
 # painted the way whale sharks and mantas look at night: dark bodies covered
 # in pale spots, with a soft moonlit rim.
 import sys, json, numpy as np
@@ -158,12 +158,10 @@ c = np.maximum.reduce([
     coral(W, H, 8, (640, 600), 1.6, 34, 4, 9), coral(W, H, 9, (1010, 602), 1.5, 30, 4, 8),
     weed(W, H, 5, 300, 600, 190, 7), weed(W, H, 6, 1270, 600, 170, 7), weed(W, H, 10, 760, 600, 110, 4)])
 bot.alpha_composite(plants(c, 7))
-home = bot.copy()  # the homepage's floor: same corals and sea stars, no turtle, fish or bubbles
+bot.save(f'{OUT}/home-bottom.webp', quality=80, alpha_quality=75, method=6)  # the homepage's floor: corals and weed only
 over(bot, creature('turtle', .55, 51, rot=-20, strength=.85), 470, 420)
-for im in (bot, home):
-    over(im, creature('star', .45, 61, rot=15, spots=1.6, strength=.8), 1120, 500)
-    over(im, creature('star', .3, 62, rot=-30, spots=1.6, strength=.7), 1215, 525)
-home.save(f'{OUT}/home-bottom.webp', quality=80, alpha_quality=75, method=6)
+over(bot, creature('star', .45, 61, rot=15, spots=1.6, strength=.8), 1120, 500)
+over(bot, creature('star', .3, 62, rot=-30, spots=1.6, strength=.7), 1215, 525)
 for i, (fx, fy, s) in enumerate([(820, 300, .42), (880, 275, .36), (905, 330, .38), (960, 300, .33), (850, 350, .3), (1000, 270, .28)]):
     over(bot, creature('fish', s, 70 + i, spots=1.3, strength=.75), fx, fy)
 # bubbles drifting up from the turtle
@@ -271,7 +269,6 @@ TW, TH = 1400, 1300
 sc = Image.new('RGBA', (TW, TH)); r = np.random.default_rng(5)
 for i in range(4):
     over(sc, creature('star', r.uniform(.2, .3), 100 + i, rot=r.uniform(-60, 60), spots=1.6, strength=.6), r.uniform(80, TW - 80), r.uniform(80, TH - 80))
-sc.save(f'{OUT}/home-scatter-tile.webp', quality=80, alpha_quality=75, method=6)  # the homepage's: sea stars only
 for i in range(6):
     over(sc, creature('fish', r.uniform(.24, .34), 110 + i, flip=r.random() < .5, spots=1.3, strength=.6), r.uniform(80, TW - 80), r.uniform(80, TH - 80))
 sc.save(f'{OUT}/scatter-tile.webp', quality=80, alpha_quality=75, method=6)
