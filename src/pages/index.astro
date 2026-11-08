@@ -142,15 +142,7 @@ body.intro-done #term-stage { opacity:1; }
   border-radius:10px;
   display:flex; flex-direction:column; overflow:hidden;
   border:none;
-  box-shadow:
-    0 0 60px 10px rgba(var(--c-white),0.04),
-    0 0 170px 36px rgba(90,120,185,0.12),
-    0 40px 90px rgba(0,0,0,0.80);
   will-change:transform;
-}
-#term-window::before {
-  content:''; position:absolute; inset:0; z-index:200; pointer-events:none; border-radius:inherit;
-  background:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 4px);
 }
 #term-titlebar {
   position:relative; z-index:201; width:100%; height:34px; flex-shrink:0;
