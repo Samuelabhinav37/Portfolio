@@ -368,16 +368,15 @@ footer#site-footer{
   :root[data-heads="c"] .sec-title{ grid-column:1; }
 }
 #projects-section{ position:relative; z-index:301; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 clamp(240px,36vh,360px); }
-/* Work tiles laid out like a magazine spread (after hardholy.com, with
-   captions after readcereal.com): a 12-column field across the page, each
+/* Work tiles laid out like a magazine spread (after hardholy.com): a 12-column field across the page, each
    frame in its own column, size and shape, with wide gaps between them.
    Logo frames stay wide so the logo is never cropped; the empty frames
-   take the tall, narrow spots. Under each frame a small numbered caption. */
+   take the tall, narrow spots. A one- or two-word caption sits to the right. */
 #projects-section .ps-inner{ width:100%; }
 .pw-grid{ --col-gap:clamp(12px,1.6vw,24px); display:grid; width:calc(100% - 2 * var(--gut)); max-width:1500px; margin:0 auto;
-  grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:var(--col-gap); row-gap:clamp(90px,15vh,170px); align-items:start; counter-reset:pw; }
+  grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:var(--col-gap); row-gap:clamp(90px,15vh,170px); align-items:start; }
 #projects-section .sec-head{ width:calc(100% - 2 * var(--gut)); max-width:1500px; margin-inline:auto; padding-inline:0; }
-.pw-tile{ display:flex; flex-direction:column; gap:14px; color:inherit; text-decoration:none; counter-increment:pw; }
+.pw-tile{ display:grid; grid-template-columns:minmax(0,1fr) 7em; column-gap:14px; align-items:start; color:inherit; text-decoration:none; }
 .pw-img{ margin:0; position:relative; overflow:hidden; background:#0a0c14; aspect-ratio:3/2; }
 /* the spread: big frame left, a small one dropped low on the right, and so on */
 .pw-tile:nth-child(6n+1){ grid-column:1 / span 6; }
@@ -401,22 +400,16 @@ footer#site-footer{
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
 .pw-img--todo span{ position:relative;  font:500 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:rgba(226,232,244,.6); }
-/* Caption: "(01)" then the name, with the tags and the sentence dim below */
-.pw-cap{ display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:12px; row-gap:3px;
-  font:500 12px/1.3 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.01em; color:#eef1f8;
-  /* captions sit on the sky: the blog's dim tone (4.5:1) and dark halo keep them readable over cloud */
+/* Caption: one or two words beside the frame, top-aligned on its right.
+   The name stays for screen readers; the logo or picture shows it. */
+.pw-cap{ font:500 12px/1.3 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.01em; color:#eef1f8;
+  /* captions sit on the sky: a dark halo keeps them readable over cloud */
   text-shadow:0 1px 2px rgba(3,6,16,.85),0 0 14px rgba(3,6,16,.7); }
-.pw-cap::before{ content:"(" counter(pw, decimal-leading-zero) ")"; grid-row:1 / span 3; color:rgba(233,236,247,.62); font-variant-numeric:tabular-nums; }
-.pw-name{ grid-column:2; }
-.pw-tags{ grid-column:2; grid-row:2; color:rgba(233,236,247,.62); }
-.pw-line{ grid-column:2; grid-row:3; max-width:38ch; margin-top:6px; color:rgba(233,236,247,.62); text-wrap:pretty; }
+.pw-name{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 @media (--bp-760){
-  /* phones: one column, but the frames still change width and side */
+  /* phones: one column; the caption beside each frame takes the rest of the width */
   .pw-grid{ grid-template-columns:1fr; row-gap:64px; }
-  .pw-tile:nth-child(n){ grid-column:1; margin-top:0; width:100%; }
-  /* the tall frames go narrower and swap sides */
-  .pw-tile:nth-child(2n){ width:64%; }
-  .pw-tile:nth-child(4n+2){ justify-self:end; }
+  .pw-tile:nth-child(n){ grid-column:1; margin-top:0; }
 }
 @media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
 </style>
@@ -428,27 +421,27 @@ footer#site-footer{
     <div class="pw-grid" data-reveal-group>
       <a class="pw-tile" id="sec-moat" href="/work/moat/">
         <figure style="view-transition-name:work-moat" class="pw-img pw-img--shot"><img src="/images/projects/moat-tile.webp" srcset="/images/projects/moat-tile.w800.webp 800w, /images/projects/moat-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Moat logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
-        <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-line">A free ad blocker that runs entirely in the browser. No server, no account.</span><span class="pw-tags">Browser extension · Ad &amp; tracker blocking</span></div>
+        <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-tags">Ad blocker</span></div>
       </a>
       <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/">
         <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
-        <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-line">A SOC lab where every detection is tested against a real attack.</span><span class="pw-tags">Detection engineering · SOC automation</span></div>
+        <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-tags">SOC lab</span></div>
       </a>
       <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
         <figure style="view-transition-name:work-cluster" class="pw-img pw-img--shot"><img src="/images/projects/cluster-tile.webp" srcset="/images/projects/cluster-tile.w800.webp 800w, /images/projects/cluster-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Cluster logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
-        <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-line">Catches phishing in Gmail and Outlook from the headers alone, without reading a single email.</span><span class="pw-tags">Browser extension · Phishing detection</span></div>
+        <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-tags">Phishing detection</span></div>
       </a>
       <a class="pw-tile" id="sec-athena" href="/work/athena/">
         <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
-        <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-line">Shows who has access, why they have it, and when it stops making sense.</span><span class="pw-tags">Identity governance · Policy as code</span></div>
+        <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-tags">Access review</span></div>
       </a>
       <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/">
         <figure style="view-transition-name:work-blue-streak" class="pw-img pw-img--shot"><img src="/images/projects/blue-streak-tile.webp" srcset="/images/projects/blue-streak-tile.w800.webp 800w, /images/projects/blue-streak-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Blue Streak logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
-        <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-line">A Windows disk analyzer that reads the drive once, then finds duplicates, junk and lost space.</span><span class="pw-tags">Desktop app · Rust &amp; Tauri</span></div>
+        <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-tags">Disk analyzer</span></div>
       </a>
       <a class="pw-tile" id="sec-knot" href="/work/knot/">
         <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
-        <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-line">An Android app for building habits, with AI help and on-device storage.</span><span class="pw-tags">Android app · In development</span></div>
+        <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-tags">Habit tracker</span></div>
       </a>
     </div>
   </div>
