@@ -45,5 +45,5 @@ export function fieldCards(posts: Post[]) {
 
 export type FieldCard = ReturnType<typeof fieldCards>[number];
 export const levelsOf = (cards: FieldCard[]) => LEVELS.filter((l) => cards.some((c) => c.level === l));
-export const caption = (c: FieldCard) => [c.level, c.topic].filter(Boolean).join(' · ');
+export const caption = (c: FieldCard) => c.topic; // the topic only; the level stays on the hover card
 export const partLabel = (c: FieldCard) => (c.series ? `${c.series} · Part ${c.part} of ${c.parts}` : '');
