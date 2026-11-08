@@ -7,9 +7,8 @@
   var lunaWrap = document.getElementById('luna-wrap');
   var damp     = document.getElementById('chrome-damp');
   var termStage    = document.getElementById('term-stage');
-  var heroTagline  = document.getElementById('hero-tagline');
 
-  /* #term-stage/#hero-tagline have a CSS fade on body.intro-done; skip it for
+  /* #term-stage has a CSS fade on body.intro-done; skip it for
      one frame so the hero appears straight away instead of a ~1s black flash. */
   function snapOpacity(el){
     if(!el) return;
@@ -26,7 +25,6 @@
     if(lunaWrap) lunaWrap.style.opacity = '1';
     if(damp)     damp.style.opacity = '1';
     snapOpacity(termStage);
-    snapOpacity(heroTagline);
     document.body.classList.add('chrome-in');
     document.body.classList.add('intro-done');
     window.SITE._introFullyDone = true;

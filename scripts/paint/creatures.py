@@ -158,7 +158,6 @@ c = np.maximum.reduce([
     coral(W, H, 8, (640, 600), 1.6, 34, 4, 9), coral(W, H, 9, (1010, 602), 1.5, 30, 4, 8),
     weed(W, H, 5, 300, 600, 190, 7), weed(W, H, 6, 1270, 600, 170, 7), weed(W, H, 10, 760, 600, 110, 4)])
 bot.alpha_composite(plants(c, 7))
-bot.save(f'{OUT}/home-bottom.webp', quality=80, alpha_quality=75, method=6)  # the homepage's floor: corals and weed only
 over(bot, creature('turtle', .55, 51, rot=-20, strength=.85), 470, 420)
 over(bot, creature('star', .45, 61, rot=15, spots=1.6, strength=.8), 1120, 500)
 over(bot, creature('star', .3, 62, rot=-30, spots=1.6, strength=.7), 1215, 525)
