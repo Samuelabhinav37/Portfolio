@@ -192,7 +192,7 @@ body.intro-done #hero-tagline { opacity:1; }
 
 <style is:global>
 
-/* ===== v9 CRT VIDEO FOOTER (scoped, self-contained) ===== */
+/* ===== FOOTER (scoped, self-contained) ===== */
 /* the name across the bottom: fitted to the width by footer-wordmark.js,
    its lower part cut off by the edge of the page; a dim gradient fill, and
    a bright copy revealed by a soft light at the pointer (--mx, --my) */
@@ -212,7 +212,7 @@ body.intro-done #hero-tagline { opacity:1; }
   --map-line:rgba(200,206,216,.32); --map-node:236,240,248;
 }
 footer#site-footer{
-    position:relative; z-index:3; width:100%; min-height:100vh; min-height:100svh; overflow:hidden; background:transparent;
+    position:relative; z-index:3; width:100%; overflow:hidden; background:transparent;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:0;
     opacity:1; pointer-events:auto;   /* no panel: the sky shows through; ::before bloom sits on top */
   }
@@ -220,27 +220,23 @@ footer#site-footer{
   /* Footer entrance — mirrors the project-tile reveal (scale + slide + fade), staggered.
      Elements start hidden/shifted; .fenter (added by JS when footer calm crosses in)
      animates them to rest. Same easing language as the tour tiles so it reads continuous. */
-  #site-footer .crt, #site-footer .f-eyebrow, #site-footer .f-tagline,
-  #site-footer .f-cta, #site-footer .f-copy, #site-footer .f-links{
+  #site-footer .f-eyebrow, #site-footer .f-tagline,
+  #site-footer .f-copy, #site-footer .f-links{
     opacity:0; transform:translateY(24px) scale(0.965);
     transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1);
   }
   /* exit stagger (scroll up): reverse order — links leave first, CRT last */
   #site-footer .f-links{transition-delay:0s}
   #site-footer .f-copy{transition-delay:.06s}
-  #site-footer .f-cta{transition-delay:.12s}
   #site-footer .f-tagline{transition-delay:.18s}
   #site-footer .f-eyebrow{transition-delay:.24s}
-  #site-footer .crt{transition-delay:.30s}
-  #site-footer.fenter .crt{opacity:1; transform:translateY(0) scale(1); transition-delay:0s}
   #site-footer.fenter .f-eyebrow{opacity:1; transform:translateY(0) scale(1); transition-delay:.12s}
   #site-footer.fenter .f-tagline{opacity:1; transform:translateY(0) scale(1); transition-delay:.20s}
-  #site-footer.fenter .f-cta{opacity:1; transform:translateY(0) scale(1); transition-delay:.30s}
   #site-footer.fenter .f-copy{opacity:1; transform:translateY(0) scale(1); transition-delay:.44s}
   #site-footer.fenter .f-links{opacity:1; transform:translateY(0) scale(1); transition-delay:.46s}
   @media (prefers-reduced-motion: reduce){
-    #site-footer .crt, #site-footer .f-eyebrow, #site-footer .f-tagline,
-    #site-footer .f-cta, #site-footer .f-copy, #site-footer .f-links{opacity:1; transform:none; transition:none}
+    #site-footer .f-eyebrow, #site-footer .f-tagline,
+    #site-footer .f-copy, #site-footer .f-links{opacity:1; transform:none; transition:none}
   }
 
   /* soft halo behind the CRT — seats it in the space scene with a glow, the way the globe
@@ -280,7 +276,7 @@ footer#site-footer{
     background:radial-gradient(ellipse 60% 50% at 38% 112%, rgba(96,132,196,0.42), transparent 68%);
   }
   /* faint grain + a fine diagonal grid sheen so the card reads as a textured
-     surface rather than a flat gradient fill; sits behind the text/crt layers. */
+     surface rather than a flat gradient fill; sits behind the text. */
   .f-card-tex{ position:absolute; inset:0; z-index:0; border-radius:inherit; overflow:hidden; pointer-events:none; }
   .f-card-tex::before{
     content:''; position:absolute; inset:-20%; opacity:.05; mix-blend-mode:overlay;
@@ -300,77 +296,13 @@ footer#site-footer{
     position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center;
     gap:18px; flex:1 1 300px; max-width:540px;
   }
-  /* the terminal/recon-map panel is now the card's visual hook — same object as
-     before, just reframed to pop out of the card's top-right edge like a photo,
-     floating along the same top-right diagonal the reference image sits on. A
-     slight rotation gives it an intentionally "placed" artistic tilt rather than
-     sitting flush/aligned with the card. Fixed aspect ratio (not vh) so it stays
-     a wide landscape rectangle instead of squashing into a taller/squarer crop. */
-  .crt{
-    position:relative; z-index:3; align-self:flex-start;
-    width:min(320px,26%); aspect-ratio:240/427; height:auto; flex:0 0 auto;
-    border-radius:12px; overflow:hidden; background:#000;
-    margin:-190px -30px 0 0;
-    box-shadow:0 60px 130px -18px rgba(0,0,0,0.82),
-               0 0 0 1px rgba(var(--c-white),0.06),
-               0 0 140px 24px rgba(90,120,185,0.10);
-    display:flex; flex-direction:column;
-    transform:translateZ(0) rotate(-1.6deg); will-change:transform; contain:layout paint;
-  }
-  .crt-inner{
-    position:relative; flex:1; min-height:0; width:100%;
-    display:flex; flex-direction:column;
-  }
   @media (--bp-980){
-    /* The CRT (live ascii.cam video render) is the heaviest thing in the
-       footer — dropped entirely on phone/tablet rather than shrunk, same
-       call as the globe. ascii-cam.js skips booting it under
-       LOW_POWER so the video/canvas loop never runs either.
-       footer#site-footer itself is min-height:100vh so the CRT panel (the
-       thing that actually fills that height on desktop) has room — with
-       the CRT gone here, that same 100vh became mostly empty black space
-       above a small text card pinned to the bottom (justify-content:
-       flex-end), which on a real phone reads as an endless black screen
-       while scrolling through it. Let the footer size to its actual
-       content instead of forcing a full viewport of empty space. */
-    footer#site-footer{ min-height:0; }
     .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
     .f-left{ max-width:none; }
-    .crt{ display:none; }
     /* the name across the bottom now sits under the footer rows, so Kai's
        corner button covers part of that (decorative) name, not the links */
     .f-bottom{ padding-bottom:8px; }
   }
-  /* ascii.cam widget — ported from the About page's skills card, same spot
-     the CRT recon map used to occupy. Renders a baked-in default clip (or a
-     dropped/picked video or photo) as a live luminance-ramp ASCII render. */
-  .ascii-card{ position:relative; flex:1; min-height:0; display:flex; flex-direction:column; }
-  .ascii-stage{ flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center;
-    overflow:hidden; background:#050506; }
-  .ascii-out{ margin:0; white-space:pre; font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;
-    color:rgba(var(--c-white),0.84); font-size:2px; line-height:2px; letter-spacing:0; }
-  /* subtle screen-curve via inset shadow + a faint vignette so edges fall into the bezel */
-  .crt-curve{
-    position:absolute; inset:0; z-index:2; pointer-events:none;
-    background:radial-gradient(140% 42% at 50% -8%, rgba(var(--c-white),0.05), transparent 60%),
-               radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.48) 100%);
-    box-shadow:inset 0 0 90px 16px rgba(0,0,0,0.5), inset 0 0 220px 40px rgba(0,0,0,0.26);
-  }
-  /* scanlines — thin horizontal dark lines, classic CRT phosphor rows */
-  .crt-scan{
-    position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.6;
-    background:repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.28) 3px, rgba(0,0,0,0) 4px);
-  }
-  /* faint flicker — very subtle brightness pulse, the CRT "alive" cue */
-  .crt-flicker{position:absolute; inset:0; z-index:2; pointer-events:none; background:rgba(var(--c-white),0.015); animation:flicker 5s steps(60) infinite}
-  @keyframes flicker{0%,100%{opacity:.3}50%{opacity:.7}92%{opacity:.4}94%{opacity:.9}96%{opacity:.5}}
-  @media (prefers-reduced-motion: reduce){ .crt-flicker{animation:none} }
-  /* grain, kept from the styled version */
-  .f-grain{position:absolute; inset:-20%; z-index:2; pointer-events:none; opacity:.06; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    animation:grainShift 2.4s steps(3) infinite; will-change:transform; transform:translateZ(0)}
-  @keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-1%,1%)}50%{transform:translate(1%,-1%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}}
-
   .f-eyebrow{
     font-family:var(--fsans); font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
     color:#9aa0ae; margin:0 0 8px; display:flex; align-items:center; gap:6px;
@@ -408,17 +340,6 @@ footer#site-footer{
     .rotating-word{ animation:none; opacity:0; }
     .rotating-word:first-child{ opacity:1; }
   }
-  .f-cta{
-    font-family:var(--fsans); font-weight:500; font-size:14px; letter-spacing:0; text-transform:none;
-    color:rgba(238,241,247,0.94); text-decoration:none; background:rgba(var(--c-white),0.06); border-radius:6px;
-    border:1px solid rgba(226,232,244,0.14);
-    padding:11px 19px; white-space:nowrap; transition:transform .5s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1), border-color .5s ease, background .5s ease, box-shadow .5s ease;
-    display:inline-flex; align-items:center; gap:5px; position:relative; align-self:flex-start;
-  }
-  .f-cta .arrow{display:inline-block; transition:transform .5s cubic-bezier(.16,1,.3,1)}
-  .f-cta:hover{transform:translateY(-1px); background:rgba(var(--c-white),0.11); border-color:rgba(226,232,244,0.4); box-shadow:0 0 0 1px rgba(226,232,244,0.06), 0 10px 30px -14px rgba(0,0,0,0.8)}
-  .f-cta:hover .arrow{transform:translateX(5px)}
-
   /* footer navigation (after micro1): measured on micro1.ai, a ~1290px band;
      group labels 14px light at 40% white, links 16px medium at 80%, 36px apart */
   .f-nav{ position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:clamp(72px,9vw,120px) auto 0;
@@ -491,92 +412,15 @@ footer#site-footer{
   </div>
 </div>
 
-<!-- Beat 1 scroll distance: scrubs the expand floating &rarr; fullscreen -->
-<!-- beat1 removed: CRT is now a normal-flow section that scrolls away -->
-<!-- ═══════════════ EDITORIAL FLOW: KEV feed → beliefs (research log lives in #writing, after projects) ═══════════════
-     Normal-flow content between the CRT and the projects. Sits at z-index 300
-     over the sky background; the CRT releases on scroll, so nothing overlaps. -->
+<!-- Shared styles for the Recent writing reel (#writing, after projects). -->
 <style is:global id="ed-styles">
-  :is(#editorial,#writing){ position:relative; z-index:300; background:transparent; color:#ededee;
+  #writing{ position:relative; z-index:300; background:transparent; color:#ededee;
     font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; }
-  :is(#editorial,#writing) .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
+  #writing .ed-lbl{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:11px;
     letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
 
-  /* ── KEV live feed ── */
-  :is(#editorial,#writing) .ed-kev{ max-width:1500px; margin:0 auto; }
-  @keyframes edpulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
-  :is(#editorial,#writing) .ed-ticker{ position:relative; border-top:1px solid rgba(var(--c-white),.1);
-    border-bottom:1px solid rgba(var(--c-white),.1); overflow:hidden;
-    -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
-            mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
-  :is(#editorial,#writing) .ed-track{ display:inline-flex; white-space:nowrap; will-change:transform;
-    animation:edscroll 80s linear infinite; }
-  :is(#editorial,#writing) .ed-ticker:hover .ed-track{ animation-play-state:paused; }
-  @keyframes edscroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  :is(#editorial,#writing) .ed-kv{ display:inline-flex; align-items:baseline; gap:12px; padding:16px 34px;
-    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.3px;
-    text-decoration:none; cursor:pointer; transition:background .2s; }
-  :is(#editorial,#writing) .ed-kv:hover{ background:rgba(var(--c-white),.05); }
-  :is(#editorial,#writing) .ed-kv .ed-cve{ color:#ededee; font-weight:500; }
-  :is(#editorial,#writing) .ed-kv .ed-vp{ color:#94949a; }
-  :is(#editorial,#writing) .ed-kv .ed-date{ color:#87878d; }
-  :is(#editorial,#writing) .ed-kv .ed-ransom{ color:#e5b8b8; font-size:11px; letter-spacing:1px;
-    border:1px solid rgba(229,184,184,.3); border-radius:3px; padding:1px 6px; }
-  :is(#editorial,#writing) .ed-kv .ed-sep{ color:#87878d; opacity:.5; }
-
-  /* ── KEV feed, mobile: this section had no phone-specific sizing at all —
-     desktop's 24-32px heading and 34px-padded ticker pills just ran at full
-     size on a narrow screen. Everything below is scaled down and given its
-     own explicit spacing (head/ticker/foot were relying on desktop's large
-     padding for breathing room, so shrinking that without adding gap back
-     is what read as "no spacing" once the paddings came down). */
-  @media (--bp-760){
-    :is(#editorial,#writing) .ed-kv{ padding:11px 16px; gap:8px; font-size:11px; }
-    :is(#editorial,#writing) .ed-kv .ed-ransom{ font-size:11px; padding:1px 5px; }
-  }
-
-  /* ── Beliefs: one statement alone on a full screen over the sky, with a few
-        coloured tags placed around it ── */
-  :is(#editorial,#writing) .ed-beliefs{ position:relative; min-height:100vh; min-height:100svh; display:grid; place-items:center;
-    /* one screen of its own; Selected work starts just below it */
-    padding:clamp(80px,14vh,160px) clamp(20px,6vw,96px); color:#eef1f8; overflow:hidden; }
-  :is(#editorial,#writing) .ed-statement{ --lit-off:rgba(238,241,248,.2); --lit-on:#eef1f8; margin:0; max-width:30ch; text-align:center; text-wrap:balance;
-    font:400 clamp(1.5rem,2.8vw,2.8rem)/1.16 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    letter-spacing:-.012em; }
-  :is(#editorial,#writing) .ed-tag{ position:absolute; padding:.28em .4em; font:400 clamp(13px,1.15vw,17px)/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    color:#1c1c1c; white-space:nowrap; }
-  :is(#editorial,#writing) .ed-beliefs__body{ position:relative; }
-  :is(#editorial,#writing) .ed-tag--a{ bottom:calc(100% + clamp(48px,8vh,84px)); left:24%; background:#4caf50; }
-  :is(#editorial,#writing) .ed-tag--b{ bottom:calc(100% + clamp(30px,5.5vh,62px)); left:56%; background:#f3fbd9; }
-  :is(#editorial,#writing) .ed-tag--c{ top:calc(100% + clamp(60px,11vh,120px)); left:-8%; background:#cbc0de; }
-  @media (--bp-600){
-    :is(#editorial,#writing) .ed-tag--a{ left:4%; }
-    :is(#editorial,#writing) .ed-tag--b{ left:auto; right:4%; }
-    :is(#editorial,#writing) .ed-tag--c{ left:4%; }
-  }
-  /* ── The beliefs as a white hologram, like the contact card (tone
-        'holo-mono'): a red/blue fringe and a soft glow on the letters,
-        scanlines and a slow rolling band over them. The tags become
-        projected labels. holo-glitch.js adds the signal drops. ── */
-  :is(#editorial,#writing) .ed-beliefs .ed-statement{ position:relative; --lit-off:rgba(238,241,248,.16); --lit-on:#f4f6fa;
-    filter:drop-shadow(1px 0 0 rgba(255,80,220,.32)) drop-shadow(-1px 0 0 rgba(80,180,255,.38)) drop-shadow(0 0 12px rgba(255,255,255,.24));
-    /* scanlines and the rolling band as a mask, so they sit in the letters only, never as a box over the sky */
-    -webkit-mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
-      linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
-    -webkit-mask-composite:source-in;
-    mask:repeating-linear-gradient(180deg, #000 0 2px, rgba(0,0,0,.62) 2px 3px),
-      linear-gradient(180deg, #000 0%, rgba(0,0,0,.6) 50%, #000 56%) 0 0 / 100% 300%;
-    mask-composite:intersect;
-    animation:holo-roll 16s linear infinite; }
-  :is(#editorial,#writing) .ed-beliefs .ed-tag{ background:repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
-    color:#f2f4f8; border:1px solid rgba(255,255,255,.45); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(255,255,255,.08);
-    text-shadow:0 0 8px rgba(255,255,255,.55), 1px 0 0 rgba(255,80,220,.35), -1px 0 0 rgba(80,180,255,.4); }
-  @keyframes holo-roll{ from{ -webkit-mask-position:0 0, 0 0; mask-position:0 0, 0 0; } to{ -webkit-mask-position:0 0, 0 -150%; mask-position:0 0, 0 -150%; } }
-  @media (prefers-reduced-motion:reduce){
-    :is(#editorial,#writing) .ed-beliefs .ed-statement{ animation:none; }
-  }
   /* ── Research log — Work-grammar cards ── */
-  :is(#editorial,#writing) .ed-log{ padding:var(--sec-pad) 0 0; }
+  #writing .ed-log{ padding:var(--sec-pad) 0 0; }
   /* Edge-to-edge strip that drifts left; index-writing-reel.js moves it.
      overflow:clip, not hidden, so focusing a card can't scroll the box. */
   #writing .wr-reel{ overflow:clip; padding:8px 0 12px; cursor:grab; touch-action:pan-y; user-select:none; }
@@ -588,34 +432,11 @@ footer#site-footer{
     #writing .wr-track .fn-tile{ width:min(78vw,360px); }
   }
   @media (prefers-reduced-motion:reduce){
-    :is(#editorial,#writing) .ed-track{ animation:none; } :is(#editorial,#writing) .ed-ticker{ overflow-x:auto; }
+    #writing .ed-track{ animation:none; } #writing .ed-ticker{ overflow-x:auto; }
   }
 </style>
 
-<div id="editorial">
-
-  <!-- KEV feed: the moving row of exploited CVEs, right under the hero -->
-  <section class="ed-kev" aria-label="Live threat feed from the CISA KEV catalog">
-    <div class="ed-ticker"><div class="ed-track" id="ed-track"></div></div>
-  </section>
-
-  <!-- Beliefs: one statement that lights up word by word as you scroll -->
-  <section class="ed-beliefs" id="beliefs" aria-label="What I believe">
-    <div class="ed-beliefs__body">
-      <span class="ed-tag ed-tag--a" aria-hidden="true">Architecture</span>
-      <span class="ed-tag ed-tag--b" aria-hidden="true">Behaviour</span>
-      <span class="ed-tag ed-tag--c" aria-hidden="true">Earned trust</span>
-      <p class="ed-statement" data-scroll-lit data-holo-glitch>Security only works when the architecture survives contact with a live adversary. I track behaviour, not just indicators, and I treat trust as something that has to be earned again and again.</p>
-    </div>
-  </section>
-
-
-</div>
-
-<script is:inline defer src="/scripts/index-editorial-flow.js"></script>
 <script is:inline defer src="/scripts/index-wreck-frames.js"></script>
-<script is:inline defer src="/scripts/holo-glitch.js"></script>
-<!-- ═══════════════ END EDITORIAL FLOW ═══════════════ -->
 
 <!-- ═══════════════ PROJECTS ═══════════════ -->
 <style is:global>
@@ -627,7 +448,6 @@ footer#site-footer{
    A large serif line with one italic word. */
 .sec-head{ position:relative; display:grid; grid-template-columns:1fr auto; align-items:end; column-gap:24px;
   margin:0 0 var(--head-gap); padding:0 var(--gut); }
-#signal .sec-head{ padding:0; }
 .sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(46px,6.4vw,96px);
   line-height:.92; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
 .sec-title em{ font-style:italic; color:#cdd9f7; }
@@ -642,7 +462,6 @@ footer#site-footer{
 :root[data-heads="b"] .sec-title em{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; letter-spacing:-.02em; padding-right:.04em; }
 /* Variant C: editorial bar, label in a narrow left column, title in the right */
 :root[data-heads="c"] .sec-head{ grid-template-columns:minmax(140px,22%) 1fr auto; border-top:1px solid rgba(201,214,255,.16); padding-top:18px; }
-:root[data-heads="c"] #signal .sec-head{ padding-top:18px; }
 :root[data-heads="c"] .sec-title{ grid-column:2; }
 
 
@@ -673,7 +492,7 @@ footer#site-footer{
 }
 #projects-section{ position:relative; z-index:301; width:100%; box-sizing:border-box; background:transparent; padding:clamp(40px,6vh,64px) 0 clamp(240px,36vh,360px); }
 /* After zainabkabira.com: the work arrives as a painted sheet that slides up
-   over the beliefs. A night watercolour wash with a few brushed swells and
+   under the hero. A night watercolour wash with a few brushed swells and
    reef painted into it (sea
    stars scattered, coral on the sea floor below the last row, clouds and
    stars throughout; no fish, mantas or turtle), cut by a dry-brush edge
@@ -693,18 +512,9 @@ footer#site-footer{
           mask:url(/images/paint/wash-edge.webp) top / 100% 280px no-repeat,
     linear-gradient(#000,#000) 0 278px / 100% calc(100% - 556px) no-repeat,
     url(/images/paint/wash-edge-b.webp) bottom / 100% 280px no-repeat; }
-/* ...and the beliefs sink back under it: they drift down with the page
-   (so they seem to stay put), shrink a little and dim, like her hero. */
-@supports (animation-timeline:view()){
-  @media (prefers-reduced-motion:no-preference){
-    #beliefs{ view-timeline:--beliefs; }
-    #beliefs > *{ animation:beliefs-sink linear both; animation-timeline:--beliefs; animation-range:exit 0% exit 100%; transform-origin:50% 30%; }
-  }
-}
 @media (--bp-760){
   #projects-section::before{ background-size:1000px auto, 900px auto, 1000px auto, 700px, 1024px, 700px, 1024px; background-position:center bottom 90px, 0 300px, center top, 0 0, 0 0, 0 140px, 0 0; }
 }
-@keyframes beliefs-sink{ to{ transform:translateY(70vh) scale(.88); opacity:.2; } }
 /* Work tiles, after Bodeyco's journal: two equal columns running edge to
    edge with a 6px gutter, frames in their own shapes so rows go ragged, no
    corners or borders. Under each frame a two-half caption in one small
@@ -802,167 +612,13 @@ footer#site-footer{
   </section>
 </div>
 <script is:inline defer src="/scripts/index-writing-reel.js"></script>
-<script is:inline defer src="/scripts/index-thread.js"></script>
 
-<!-- ═══════════════ SIGNAL — security news · podcasts · CTFs (editorial feel) ═══════════════ -->
 <style is:global>
-#signal{ position:relative; z-index:3; background:transparent; padding:var(--sec-pad) 0; }
-/* the same fine grain the sky uses, inside the cards, so they read as a material */
-.sig-card, .pw-img{ isolation:isolate; }
-.sig-card{ position:relative; }
-.sig-card::after, .pw-img::after{ content:""; position:absolute; inset:0; z-index:1; border-radius:inherit; pointer-events:none; opacity:.08;
+/* the same fine grain the sky uses, inside the frames, so they read as a material */
+.pw-img{ isolation:isolate; }
+.pw-img::after{ content:""; position:absolute; inset:0; z-index:1; border-radius:inherit; pointer-events:none; opacity:.08;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-/* same width and gap as the project grid above */
-#signal .sig-inner{ width:87%; margin:0 auto; box-sizing:border-box; }
-#signal .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:13px; }
-@media (--bp-760){ #signal .sig-inner{ width:79%; } }
-@media (--bp-820){
-  #signal .sig-grid{ grid-template-columns:1fr; }
-  .sig-card{ padding:18px; }
-  .news-row, .pod-row{ padding:10px 0; gap:10px; }
-  .news-badge{ width:40px; height:32px; }
-  .pod-art{ width:36px; height:36px; font-size:11px; }
-  .news-title, .pod-name{ font-size:12px; }
-  .pod-why{ font-size:11px; }
-  .news-meta, .ctf-meta{ font-size:11px; }
-  .pod-stars{ font-size:11px; }
-  /* Not enough room for the full list on a phone — cap both to 3 rows;
-     the rest are still reachable through each card's own "See more" dialog. */
-  #news-list .news-row:nth-child(n+4){ display:none; }
-  .pod-shelf .pod-row:nth-child(n+4){ display:none; }
-}
-/* Solid cards that float over the sky (same fill and shadow as the blog's). */
-.sig-card, .ctf-strip{ background:#0d1222; border:1px solid rgba(190,205,240,.11); border-radius:14px;
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 22px 50px -26px rgba(0,0,0,.85), 0 6px 16px -8px rgba(0,0,0,.5); }
-.sig-card{ padding:clamp(20px,2.4vw,30px); display:flex; flex-direction:column; }
-.sig-card__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; margin:0 0 16px; display:flex; align-items:center; gap:9px; }
-.sig-card__lbl::before{ content:''; width:5px; height:5px; border-radius:50%; background:rgba(120,225,170,0.8); box-shadow:0 0 7px rgba(120,225,170,0.5); }
-.news-row{ display:flex; gap:13px; align-items:flex-start; padding:13px 0; text-decoration:none; border-top:1px solid rgba(var(--c-white),.06); }
-.news-row:first-child{ border-top:0; }
-/* Row hover after minhpham.design's lists: a faint band opens from the
-   row's middle line outward (clip-path inset 50% -> 0, 0.4s). */
-.news-row, .pod-row{ position:relative; }
-.news-row > *, .pod-row > *{ position:relative; }
-.news-row::before, .pod-row::before{ content:""; position:absolute; inset:0 -12px; border-radius:8px; pointer-events:none;
-  background:rgba(var(--c-white),.045); clip-path:inset(50% 0); transition:clip-path .4s var(--ease-out); }
-.news-row:hover::before, .news-row:focus-visible::before, .pod-row:hover::before{ clip-path:inset(0); }
-@media (prefers-reduced-motion: reduce){ .news-row::before, .pod-row::before{ transition:none; } }
-.news-badge{ width:52px; height:40px; flex:none; border-radius:3px; background:rgba(var(--c-white),.05) center/cover no-repeat; border:1px solid rgba(var(--c-white),.08); }
-.news-badge.has-img{ background-color:#05060b; filter:grayscale(1) brightness(.72) contrast(.95);
-  transition:filter .5s cubic-bezier(.22,1,.36,1); }
-.news-row:hover .news-badge.has-img{ filter:grayscale(0) brightness(.92) contrast(1); }
-.news-body{ display:flex; flex-direction:column; gap:4px; min-width:0; }
-.news-title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:14px; line-height:1.32; color:#d8dced; transition:color .2s; }
-.news-row:hover .news-title{ color:#fff; }
-.news-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
-.pod-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid rgba(var(--c-white),.06); }
-.pod-row:first-child{ border-top:0; }
-.pod-art{ width:44px; height:44px; flex:none; border-radius:4px; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:14px; color:rgba(226,232,244,0.55);
-  filter:grayscale(1) brightness(.75) contrast(.95); transition:filter .5s cubic-bezier(.22,1,.36,1); }
-/* Cover art is self-hosted under /images/podcasts/. It used to be looked up
-   live through an iTunes proxy, but Apple's search API returns nothing to
-   Cloudflare's Worker IPs, so the art never loaded in production. */
-.pod-art{ overflow:hidden; }
-.pod-art img{ width:100%; height:100%; object-fit:cover; display:block; }
-.pod-row:hover .pod-art{ filter:grayscale(0) brightness(.95) contrast(1); }
-.pod-body{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
-.pod-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:500; font-size:14px; color:#e8ebf4; }
-.pod-name a{ color:inherit; text-decoration:none; }
-.pod-name a:hover{ color:#fff; }
-.pod-why{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:300; font-size:12px; line-height:1.35; color:rgba(226,232,244,0.5); }
-.pod-stars{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.6); letter-spacing:1px; flex:none; transition:color .3s ease; }
-.pod-row:hover .pod-stars{ color:rgba(226,232,244,0.88); }
-.ctf-strip{ margin-top:clamp(20px,2.5vw,36px); padding:clamp(16px,2vw,24px); display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; }
-.ctf-strip__lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
-.ctf-item{ display:grid; grid-template-columns:30px auto; column-gap:10px; row-gap:2px; align-items:center; }
-.ctf-item > :not(.ctf-logo){ grid-column:2; }
-.ctf-logo{ grid-row:1 / span 2; width:30px; height:30px; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1a1f2e,#0a0c14); border:1px solid rgba(var(--c-white),.1); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(226,232,244,0.55); filter:grayscale(1) brightness(.8); transition:filter .5s cubic-bezier(.22,1,.36,1); }
-.ctf-logo img{ width:100%; height:100%; object-fit:cover; display:block; background:#fff; }
-.ctf-item:hover .ctf-logo{ filter:none; }
-.ctf-name{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:14px; color:#dfe4f0; }
-.ctf-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; }
-.ctf-more{ margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; }
-.ctf-more:hover{ color:#fff; }
-
-.sig-card__head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-.sig-more{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; background:none; border:none; cursor:pointer; padding:0; white-space:nowrap; }
-.sig-more:hover{ color:#fff; }
-
-.sig-dialog{ position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px;
-  opacity:0; visibility:hidden; transition:opacity .3s ease; }
-.sig-dialog[aria-hidden="false"]{ opacity:1; visibility:visible; }
-.sig-dialog__backdrop{ position:absolute; inset:0; background:rgba(4,4,12,0.72); backdrop-filter:blur(3px); }
-.sig-dialog__panel{
-  position:relative; z-index:1; width:min(480px,100%); max-height:min(560px,86vh); overflow-y:auto;
-  background:#0b0b14; border:1px solid rgba(var(--c-white),0.12); border-radius:8px;
-  padding:clamp(20px,3vw,28px); box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);
-  transform:translateY(10px); transition:transform .35s cubic-bezier(.22,1,.36,1);
-}
-.sig-dialog[aria-hidden="false"] .sig-dialog__panel{ transform:none; }
-.sig-dialog__close{ position:absolute; top:10px; right:10px; width:36px; height:36px; display:grid; place-items:center;
-  background:rgba(var(--c-white),0.06); border:1px solid rgba(var(--c-white),0.12); border-radius:50%;
-  color:#dfe4f0; font-size:16px; line-height:1; cursor:pointer; }
-.sig-dialog__close::before{ content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
-.sig-dialog__close:hover{ background:rgba(var(--c-white),0.12); }
-.sig-dialog__eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9aa0ae; margin:0 0 6px; }
-.sig-dialog__title{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:400; font-size:20px; color:#f2f4f8; margin:0 0 18px; padding-right:28px; }
-.sig-dialog__list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
-.sig-dialog__list li{ display:flex; gap:12px; align-items:flex-start; }
-.sig-dialog__list img{ width:20px; height:20px; border-radius:4px; margin-top:2px; flex:none; background:rgba(var(--c-white),0.06); }
-.sig-dialog__list a{ font-family:'Inter Tight',-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; color:#e8ebf1; text-decoration:none; }
-.sig-dialog__list a:hover{ text-decoration:underline; }
-.sig-dialog__how{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.5; color:rgba(226,232,244,0.55); margin-top:2px; }
-@media (prefers-reduced-motion: reduce){ .sig-dialog__backdrop{ backdrop-filter:none; } .sig-dialog, .sig-dialog__panel{ transition:none; } }
 </style>
-<section id="signal" aria-label="Signal: news, podcasts and CTFs">
-  <div class="sig-inner">
-    <header class="sec-head">
-      <h2 class="sec-title" data-reveal="lines">On my <em>radar</em></h2>
-    </header>
-    <div class="sig-grid" data-reveal-group>
-      <div class="sig-card">
-        <div class="sig-card__head"><p class="sig-card__lbl">Security news</p><button type="button" class="sig-more" data-more="news" data-roll>See more &rarr;</button></div>
-        <div id="news-list"><div class="news-row"><span class="news-badge"></span><span class="news-body"><span class="news-title">Loading latest&hellip;</span><span class="news-meta">feed</span></span></div></div>
-      </div>
-      <div class="sig-card">
-        <div class="sig-card__head"><p class="sig-card__lbl">Security podcasts</p><button type="button" class="sig-more" data-more="podcasts" data-roll>See more &rarr;</button></div>
-        <div class="pod-shelf">
-          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/darknet-diaries.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://darknetdiaries.com" target="_blank" rel="noopener">Darknet Diaries</a></div><div class="pod-why">True stories from the dark side of the internet.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
-          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/malicious-life.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://malicious.life" target="_blank" rel="noopener">Malicious Life</a></div><div class="pod-why">The history behind the threats we face.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/risky-business.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://risky.biz" target="_blank" rel="noopener">Risky Business</a></div><div class="pod-why">Weekly news and analysis for practitioners.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/security-now.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://twit.tv/shows/security-now" target="_blank" rel="noopener">Security Now</a></div><div class="pod-why">Deep, weekly breakdowns of what actually happened.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-          <div class="pod-row"><div class="pod-art"><img src="/images/podcasts/critical-thinking.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></div><div class="pod-body"><div class="pod-name"><a href="https://www.criticalthinkingpodcast.io" target="_blank" rel="noopener">Critical Thinking — Bug Bounty</a></div><div class="pod-why">How top hunters actually think through a target.</div></div><div class="pod-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="ctf-strip" data-reveal>
-      <span class="ctf-strip__lbl">Upcoming CTFs</span>
-      <span id="ctf-items" style="display:contents">
-        <div class="ctf-item"><span class="ctf-name">picoCTF</span><span class="ctf-meta">loading&hellip;</span></div>
-        <div class="ctf-item"><span class="ctf-name">HTB Business CTF</span><span class="ctf-meta">loading&hellip;</span></div>
-      </span>
-      <button type="button" class="ctf-more" data-more="ctfs" data-roll>See more &rarr;</button>
-    </div>
-  </div>
-</section>
-
-<!-- Deliberately NOT nested inside #signal: that section is its own stacking
-     context (position:relative + z-index:3), which would trap this dialog's
-     z-index:2000 so it only outranks things inside #signal — #site-footer is
-     a later sibling at the same z-index:3 and would paint over it once
-     scrolled into view. Living as a top-level sibling keeps z-index:2000
-     meaningful against the whole page. -->
-<div id="signal-dialog" class="sig-dialog" aria-hidden="true">
-  <div class="sig-dialog__backdrop" data-close></div>
-  <div class="sig-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="sig-dialog-title">
-    <button type="button" class="sig-dialog__close" data-close aria-label="Close">&times;</button>
-    <p class="sig-dialog__eyebrow" id="sig-dialog-eyebrow"></p>
-    <h3 id="sig-dialog-title" class="sig-dialog__title"></h3>
-    <ul class="sig-dialog__list" id="sig-dialog-list"></ul>
-  </div>
-</div>
-<script is:inline src="/scripts/index-signal-loaders.js"></script>
-<script is:inline src="/scripts/index-signal-dialog.js"></script>
 
 
 
@@ -989,20 +645,7 @@ footer#site-footer{
         <p class="f-eyebrow">Open to work</p>
         <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
       </div>
-      <a class="f-cta" href="/contact/" data-roll data-magnet>Get in touch <span class="arrow">→</span></a>
     </div>
-
-    <div class="crt">
-    <div class="crt-inner">
-    <div class="ascii-card" id="footerAsciiCard">
-      <div class="ascii-stage" id="footerAsciiStage">
-        <pre class="ascii-out" id="footerAsciiOut"></pre>
-      </div>
-    </div>
-    <video id="footerAsciiVid" playsinline muted loop crossorigin="anonymous" style="display:none"></video>
-    <canvas id="footerAsciiSamp" style="display:none"></canvas>
-    </div><!-- /crt-inner -->
-    </div><!-- /crt -->
   </div><!-- /f-card -->
 
   <!-- Footer navigation, after micro1's: the name and social icons on the
@@ -1065,7 +708,6 @@ footer#site-footer{
 <KaiSite hasIntro={true} />
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
-<script is:inline defer src="/scripts/ascii-cam.js"></script>
 <script is:inline defer src="/scripts/index-luna-safety-net.js"></script>
 </body>
 </html>
