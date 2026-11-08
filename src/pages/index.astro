@@ -220,113 +220,34 @@ footer#site-footer{
   /* Footer entrance — mirrors the project-tile reveal (scale + slide + fade), staggered.
      Elements start hidden/shifted; .fenter (added by JS when footer calm crosses in)
      animates them to rest. Same easing language as the tour tiles so it reads continuous. */
-  #site-footer .f-tagline,
   #site-footer .f-copy, #site-footer .f-links{
     opacity:0; transform:translateY(24px) scale(0.965);
     transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), translate .6s cubic-bezier(.16,1,.3,1);
   }
-  /* exit stagger (scroll up): reverse order — links leave first, CRT last */
+  /* exit stagger (scroll up): links leave first */
   #site-footer .f-links{transition-delay:0s}
   #site-footer .f-copy{transition-delay:.06s}
-  #site-footer .f-tagline{transition-delay:.18s}
-  #site-footer.fenter .f-tagline{opacity:1; transform:translateY(0) scale(1); transition-delay:.20s}
   #site-footer.fenter .f-copy{opacity:1; transform:translateY(0) scale(1); transition-delay:.44s}
   #site-footer.fenter .f-links{opacity:1; transform:translateY(0) scale(1); transition-delay:.46s}
   @media (prefers-reduced-motion: reduce){
-    #site-footer .f-tagline,
     #site-footer .f-copy, #site-footer .f-links{opacity:1; transform:none; transition:none}
   }
 
-  /* soft halo behind the CRT — seats it in the space scene with a glow, the way the globe
-     has its own bloom, rather than a hard-edged panel pasted over the background */
+  /* soft halo behind the footer, seating it in the sky */
   footer#site-footer::before{
     content:''; position:absolute; z-index:0; width:min(1900px,104vw); height:110vh;
     left:50%; bottom:-18vh; transform:translateX(-50%);
     background:radial-gradient(ellipse at 50% 70%, rgba(20,26,48,0.55) 0%, rgba(8,8,20,0.25) 45%, transparent 72%);
     filter:blur(30px); pointer-events:none;
   }
-  /* the CRT — a full terminal window, same grammar as the hero frame: 34px
-     titlebar (icons / mono title / status), screen below with the video as a
-     faint feed, corner brackets inside. 10px radius + the hero's triple glow
-     shadow so it reads as the same physical object returning at page end. */
-  /* Width matches the old 1500px content column minus its side padding. */
-  .f-card{
-    position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:var(--sec-pad) auto 0;
-    display:flex; align-items:center; justify-content:space-between; gap:56px;
-    padding:40px 48px 40px 64px; border-radius:20px; overflow:visible;
-    background:linear-gradient(155deg, rgba(15,17,27,0.94) 0%, rgba(7,7,14,0.90) 55%, rgba(3,3,8,0.94) 100%);
-    border:1px solid rgba(var(--c-white),0.07);
-    box-shadow:0 60px 130px -35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(var(--c-white),0.04);
-  }
-  /* dot-grid + bottom bloom — same device as the reference hero mock, tinted
-     into the site's own blue (the exact tone already used in #term-window's
-     box-shadow) rather than the reference's amber. Dot-grid favors the left
-     column where the copy lives; the bloom rises from the bottom edge. */
-  .f-card::before{
-    content:''; position:absolute; inset:0; z-index:0; opacity:.4; pointer-events:none; border-radius:inherit;
-    background-image:radial-gradient(rgba(var(--c-ice),0.6) 1px, transparent 1.5px);
-    background-size:22px 22px;
-    -webkit-mask-image:radial-gradient(ellipse 70% 65% at 28% 50%, #000 0%, transparent 75%);
-            mask-image:radial-gradient(ellipse 70% 65% at 28% 50%, #000 0%, transparent 75%);
-  }
-  .f-card::after{
-    content:''; position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit;
-    background:radial-gradient(ellipse 60% 50% at 38% 112%, rgba(96,132,196,0.42), transparent 68%);
-  }
-  /* faint grain + a fine diagonal grid sheen so the card reads as a textured
-     surface rather than a flat gradient fill; sits behind the text. */
-  .f-card-tex{ position:absolute; inset:0; z-index:0; border-radius:inherit; overflow:hidden; pointer-events:none; }
-  .f-card-tex::before{
-    content:''; position:absolute; inset:-20%; opacity:.05; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  }
-  .f-card-tex::after{
-    content:''; position:absolute; inset:0; opacity:.55;
-    background:
-      linear-gradient(122deg, rgba(var(--c-white),0.06) 0%, transparent 32%),
-      linear-gradient(rgba(var(--c-white),.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--c-white),.035) 1px, transparent 1px);
-    background-size:auto, 42px 42px, 42px 42px;
-    -webkit-mask-image:radial-gradient(120% 100% at 26% 18%, #000 42%, transparent 100%);
-    mask-image:radial-gradient(120% 100% at 26% 18%, #000 42%, transparent 100%);
-  }
-  .f-left{
-    position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center;
-    gap:18px; flex:1 1 300px; max-width:540px;
-  }
   @media (--bp-980){
-    .f-card{ flex-direction:column; align-items:stretch; min-height:0; padding:36px 26px 30px; gap:28px; margin-top:56px; }
-    .f-left{ max-width:none; }
     /* the name across the bottom now sits under the footer rows, so Kai's
        corner button covers part of that (decorative) name, not the links */
     .f-bottom{ padding-bottom:8px; }
   }
-  .f-tagline{font-family:var(--fsans); font-style:normal; font-weight:400; color:var(--fink);
-    font-size:clamp(27px,2.6vw,34px); line-height:1.34; letter-spacing:-0.01em; white-space:nowrap; margin:0; text-shadow:0 4px 24px rgba(0,0,0,.55)}
-  @media (--bp-820){ .f-tagline{ white-space:normal; } }
-  /* rotating word — four words cross-fade in an 8s loop, one every 2s. All
-     words share one grid cell (instead of being absolutely positioned) so the
-     box sizes to natural line height and sits on the same baseline as the
-     rest of the sentence — no manual height/vertical-align guessing needed. */
-  .rotator{ position:relative; display:inline-grid; min-width:185px; overflow:hidden; vertical-align:baseline; }
-  .rotating-word{ grid-row:1; grid-column:1; white-space:nowrap; opacity:0; transform:translateY(55%);
-    animation:wordRotate 8s ease-in-out infinite; }
-  .rotating-word:nth-child(2){ animation-delay:2s; }
-  .rotating-word:nth-child(3){ animation-delay:4s; }
-  .rotating-word:nth-child(4){ animation-delay:6s; }
-  @keyframes wordRotate{
-    0%,3%{ opacity:0; transform:translateY(55%); }
-    8%,17%{ opacity:1; transform:translateY(0); }
-    22%,100%{ opacity:0; transform:translateY(-55%); }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .rotator{ overflow:visible; }
-    .rotating-word{ animation:none; opacity:0; }
-    .rotating-word:first-child{ opacity:1; }
-  }
   /* footer navigation (after micro1): measured on micro1.ai, a ~1290px band;
      group labels 14px light at 40% white, links 16px medium at 80%, 36px apart */
-  .f-nav{ position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:clamp(72px,9vw,120px) auto 0;
+  .f-nav{ position:relative; z-index:1; width:calc(100% - 2 * var(--gut)); margin:var(--sec-pad) auto 0;
     display:grid; grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)); gap:32px; font-family:var(--fsans); }
   .f-brand-name{ font-family:'Cormorant Garamond', Georgia, serif; font-size:28px; font-weight:500; line-height:1; color:#fff; text-decoration:none; letter-spacing:-.01em; }
   .f-social{ display:flex; align-items:center; gap:22px; margin-top:26px; }
@@ -621,15 +542,6 @@ footer#site-footer{
      itself is position:fixed and animates in place; you scroll through this spacer. -->
 <!-- beat-footer removed: footer is now a normal-flow section -->
 <footer id="site-footer">
-  <div class="f-card">
-    <div class="f-card-tex" aria-hidden="true"></div>
-    <div class="f-left">
-      <div>
-        <h2 class="f-tagline">Let's bring resilience to your next <span class="rotator" aria-hidden="true"><span class="rotating-word">deployment</span><span class="rotating-word">architecture</span><span class="rotating-word">model</span><span class="rotating-word">integration</span></span><span class="sr-only">Let's bring resilience to your next deployment, architecture, model, integration.</span></h2>
-      </div>
-    </div>
-  </div><!-- /f-card -->
-
   <!-- Footer navigation, after micro1's: the name and social icons on the
        left, three columns of links (a dim group label over brighter links),
        then the copyright and small links on one line. -->
