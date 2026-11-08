@@ -1,8 +1,9 @@
 ---
 /**
  * Shared site chrome, after angelaricciardi.com: a fixed top line with the
- * name on the left and the pages as one comma-separated list starting at
- * the middle of the page. The page you are on is bright, the others dim and
+ * name on the left, "Blog, Archive, About" as one comma-separated list
+ * starting at the middle of the page, and Contact alone at the right edge,
+ * all in the site's serif. The page you are on is bright, the others dim and
  * brighten on hover; on the home page (no current page) all are bright.
  *
  * `hasIntro` is only true on the home page, which fades the name and links
@@ -14,13 +15,15 @@ interface Props {
 }
 const { currentPath, hasIntro = false } = Astro.props;
 
+// the list in the middle; Contact sits alone at the right edge
 const links = [
-  { href: '/about/', label: 'About' },
   { href: '/blog/', label: 'Blog' },
-  { href: '/photos/', label: 'Photos' },
-  { href: '/contact/', label: 'Contact' },
+  { href: '/photos/', label: 'Archive' },
+  { href: '/about/', label: 'About' },
 ];
-const onLink = links.some((l) => l.href === currentPath + '/');
+const contact = { href: '/contact/', label: 'Contact' };
+const onLink = [...links, contact].some((l) => l.href === currentPath + '/');
+const here = (href: string) => (href === currentPath + '/' ? ('page' as const) : undefined);
 ---
 
 <a class="sr-only sr-only-focusable" href="#site-nav">Skip to navigation</a>
@@ -34,11 +37,10 @@ const onLink = links.some((l) => l.href === currentPath + '/');
 </header>
 
 <nav id="site-nav" aria-label="Primary" class={onLink ? 'has-current' : undefined}>
-  {links.map((l, i) => (
-    <>{i > 0 && <span class="sep" aria-hidden="true">, </span>}{l.href === currentPath + '/'
-      ? <a href={l.href} aria-current="page">{l.label}</a>
-      : <a href={l.href}>{l.label}</a>}</>
-  ))}
+  <span class="nav-list">{links.map((l, i) => (
+    <>{i > 0 && <span class="sep" aria-hidden="true">, </span>}<a href={l.href} aria-current={here(l.href)}>{l.label}</a></>
+  ))}</span>
+  <a href={contact.href} aria-current={here(contact.href)}>{contact.label}</a>
 </nav>
 
 <style>
@@ -89,16 +91,16 @@ const onLink = links.some((l) => l.href === currentPath + '/');
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   }
 
-  /* the name and the links share one small bold grotesk line */
+  /* the name and the links share one line in the site's serif */
   #site-identity, #site-nav {
-    position: fixed; top: 18px; z-index: 1002;
-    font: 600 13px/1.2 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    letter-spacing: -0.01em;
+    position: fixed; top: 16px; z-index: 1002;
+    font: 500 1.15rem/1.2 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.01em;
   }
   #site-identity { left: 28px; }
   #site-identity .name { color: rgba(var(--c-white),0.95); text-decoration: none; user-select: none; }
-  /* the list starts at the middle of the page, like the reference's 6-column bar */
-  #site-nav { left: 50%; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+  /* the list starts at the middle of the page, like the reference's 6-column bar; Contact at the right edge */
+  #site-nav { left: 50%; right: 28px; display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
   #site-nav a { color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
   /* on a page of the list, the others (and the commas) dim and light up on hover */
   #site-nav.has-current a:not([aria-current]), #site-nav.has-current .sep { opacity: 0.45; }
@@ -108,8 +110,10 @@ const onLink = links.some((l) => l.href === currentPath + '/');
   #site-nav a { position: relative; }
   #site-nav a::before { content: ''; position: absolute; inset: -12px -4px; }
   @media (max-width: 760px) {
-    #site-identity { left: 20px; }
-    #site-nav { left: auto; right: 20px; }
+    /* phones: one smaller line, so the name, the list and Contact fit side by side */
+    #site-identity, #site-nav { font-size: 0.95rem; }
+    #site-identity { left: 16px; }
+    #site-nav { left: auto; right: 16px; gap: 12px; }
   }
 </style>
 

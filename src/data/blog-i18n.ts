@@ -19,7 +19,7 @@ interface BlogStrings {
   close: string;
   navAbout: string;
   navBlog: string;
-  navPhotos: string;
+  navArchive: string;
   navContact: string;
   minRead: string;
   /** Heading for the contents list (edge strip and the narrow-screen box). */
@@ -61,7 +61,7 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
     close: 'Close',
     navAbout: 'About',
     navBlog: 'Blog',
-    navPhotos: 'Photos',
+    navArchive: 'Archive',
     navContact: 'Contact',
     minRead: 'MIN READ',
     onThisPage: 'On this page',
@@ -86,7 +86,7 @@ export const BLOG_STRINGS: Record<BlogLocale, BlogStrings> = {
     close: 'Cerrar',
     navAbout: 'Acerca de',
     navBlog: 'Blog',
-    navPhotos: 'Fotos',
+    navArchive: 'Archivo',
     navContact: 'Contacto',
     minRead: 'MIN DE LECTURA',
     onThisPage: 'En esta página',

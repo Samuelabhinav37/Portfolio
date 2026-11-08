@@ -85,17 +85,17 @@ html.is-scrolled #topbar-scrim {
 /* ── Site identity (fixed corner): the "Samuel Abhinav" wordmark, kept
    visible on scroll like every other page. ── */
 #site-identity, #site-nav {
-  position: fixed; top: 18px; z-index: 1002;
-  font: 600 13px/1.2 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  letter-spacing: -0.01em;
+  position: fixed; top: 16px; z-index: 1002;
+  font: 500 1.15rem/1.2 'Cormorant Garamond', Georgia, serif;
+  letter-spacing: 0.01em;
 }
 #site-identity { left: 28px; }
 .nav-name { color: rgba(var(--c-white),0.95); text-decoration: none; }
-/* the pages as one list from the middle of the page; Blog is bright, the rest dim */
-#site-nav { left: 50%; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+/* Blog, Archive, About from the middle of the page, Contact at the right edge; Blog is bright, the rest dim */
+#site-nav { left: 50%; right: 28px; display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
 #site-nav a { position: relative; color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
 #site-nav a::before { content: ''; position: absolute; inset: -12px -4px; }
-#site-nav a:not([href="/blog/"]), #site-nav .sep { opacity: 0.45; }
+#site-nav a:not([aria-current]), #site-nav .sep { opacity: 0.45; }
 #site-nav a:hover, #site-nav a:focus-visible { opacity: 1; }
 
 /* ══════════ POST SYSTEM ══════════
@@ -490,7 +490,9 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
-  #site-nav { left: auto; right: 20px; }
+  #site-identity, #site-nav { font-size: 0.95rem; }
+  #site-identity { left: 16px; }
+  #site-nav { left: auto; right: 16px; gap: 12px; }
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
   .post-audio { width: calc(100% - 48px); margin-top: 24px; gap: 12px; }
