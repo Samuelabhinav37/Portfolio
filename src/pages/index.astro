@@ -322,15 +322,16 @@ footer#site-footer{
 :root{ --gut:clamp(16px,3.2vw,48px); --sec-pad:clamp(150px,26vh,300px); --head-gap:clamp(40px,7vh,80px); }
 
 /* Section headings: a smaller sibling of the blog's "Field Notes (N)" title.
-   A large serif line with one italic word. */
+   A large serif line. Line-height 1.15, not tighter: the line-reveal mask
+   clips at the line box, so a tighter line cut off descenders (the g in Blog). */
 .sec-head{ position:relative; display:grid; grid-template-columns:1fr auto; align-items:end; column-gap:24px;
   margin:0 0 var(--head-gap); padding:0 var(--gut); }
 .sec-title{ margin:0; font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(23px,3.2vw,48px);
-  line-height:.92; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
+  line-height:1.15; letter-spacing:-.03em; color:#eef1f8; text-wrap:balance; }
 .sec-title em{ font-style:italic; color:#cdd9f7; }
 .sec-title sup{ font:500 max(12px,.32em)/1 'Cormorant Garamond',Georgia,serif; font-variant-numeric:lining-nums; letter-spacing:0;
   vertical-align:top; position:relative; top:.4em; margin-left:.14em; color:#c9d6ff; }
-.sec-link{ font:500 1rem/1 'Cormorant Garamond',Georgia,serif; letter-spacing:.01em; color:#9aa0ae;
+.sec-link{ font:600 12px/1.2 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; color:#9aa0ae;
   text-decoration:none; transition:color .3s; padding-bottom:.6em; }
 .sec-link:hover{ color:#ededee; }
 /* Variant B: grotesk headline, the italic word stays serif */
