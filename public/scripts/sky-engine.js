@@ -7,6 +7,7 @@
    hands it two canvases and talks to it through handle(msg):
      { type:'size', w, h, dpr }     viewport in CSS px
      { type:'running', on }         tab hidden/visible
+     { type:'look', sky, cloud, cover, stars }   live mix (the _sky-tune.html preview)
 
    Tiers, picked by the page:
      full   desktop: full-detail clouds, shooting stars
@@ -16,7 +17,8 @@
 
    Tones, also picked by the page (opts.tone): the default navy night,
    'aged', a faded umber night that sits behind the contact page's old print,
-   or 'bright', a lighter night with whiter clouds behind the blog index.
+   or 'bright', a lighter night with whiter clouds behind the blog index,
+   or 'space', the homepage: black space, dim clouds (tuned in _sky-tune.html).
 
    The flying cast (satellites, the police/robber chase over vaults, the
    contact courier, aircraft, freighter) was removed in October 2026: the
@@ -48,6 +50,7 @@
     '#define OCT ' + oct + '\n' +
     'uniform float uTime; uniform vec2 uRes;\n' +
     'uniform vec3 uDeep,uBody,uCloud,uRim;\n' +
+    'uniform float uSkyB,uCloudB,uCover,uStarB;\n' +
     'float h21(vec2 p){p=fract(p*vec2(234.34,435.345));p+=dot(p,p+34.23);return fract(p.x*p.y);}\n' +
     'float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),u.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),u.x),u.y);}\n' +
     'float fbm(vec2 p){float v=0.,a=.52,fr=1.;mat2 r=mat2(.877,.480,-.480,.877);for(int i=0;i<OCT;i++){v+=a*noise(p*fr);p=r*p;fr*=2.05;a*=.48;}return v;}\n' +
@@ -77,14 +80,14 @@
     '  vec2 wq=vec2(fbm(p*1.7+t*.1),fbm(p*1.7+vec2(4.,2.)));\n' +
     '  vec2 pw=p+' + LOOK.warp.toFixed(3) + '*wq;\n' +
     '  float base=fbm(pw);\n' +
-    '  float c=smoothstep(.44,.80,base);\n' +
+    '  float c=smoothstep(uCover,uCover+.36,base);\n' +
     /* lit from the upper left: brighter where the density falls off that way */
     '  float shade=.78+3.2*(base-fbm(pw+vec2(.035,-.035)));\n' +
-    '  vec3 sky=mix(uDeep,uBody,smoothstep(0.,1.,uv.y));\n' +
-    '  vec3 cl=mix(uCloud,uRim,smoothstep(.95,1.25,shade));\n' +
+    '  vec3 sky=mix(uDeep,uBody,smoothstep(0.,1.,uv.y))*uSkyB;\n' +
+    '  vec3 cl=mix(uCloud,uRim,smoothstep(.95,1.25,shade))*uCloudB;\n' +
     '  vec3 col=mix(sky,cl*clamp(shade,.45,1.25),c*.85)*' + LOOK.bright.toFixed(3) + ';\n' +
     '  vec2 v=uv-.5; col*=pow(clamp(1.-dot(v,v*' + LOOK.vign.toFixed(3) + '),0.,1.),.8);\n' +
-    '  col+=stars(st,uTime)*(1.-c);\n' +
+    '  col+=stars(st,uTime)*uStarB*(1.-c);\n' +
     '  gl_FragColor=vec4(clamp(col,0.,1.),1.);\n' +
     '}';
   }
@@ -123,11 +126,14 @@
   var NIGHT = { deep:MONO.deep, body:MONO.body, cloud:MONO.cloud, rim:MONO.rim, stars:1.6 };
   /* the 'bright' tone: a lighter navy with whiter clouds (the blog index) */
   var BRIGHT = { deep:[.030,.050,.120], body:[.120,.180,.330], cloud:[.800,.840,.930], rim:[.970,.980,1.000] };
+  /* the 'space' tone: the default look mixed down (homepage, 2026-11-08) */
+  var SPACE = { deep:LOOK.deep, body:LOOK.body, cloud:LOOK.cloud, rim:LOOK.rim, mix:{ sky:0, cloud:.4, cover:.429, stars:.95 } };
 
   function create(skyCanvas, fxCanvas, opts){
     var tier = TIERS[opts && opts.tier] || TIERS.full;
-    var tone = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT }[opts && opts.tone] || LOOK;
+    var tone = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT, space:SPACE }[opts && opts.tone] || LOOK;
     var W = 1, H = 1, DPR = 1, running = true;
+    var mixL = Object.assign({ sky:1, cloud:1, cover:.44, stars:1 }, tone.mix);   /* 1 = the look above; 'look' messages change it */
     var sceneT = 40 + Math.random()*400;    /* a different sky on every visit */
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
 
@@ -145,7 +151,7 @@
           var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
           gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
           var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-          ['uTime','uRes','uDeep','uBody','uCloud','uRim'].forEach(function(n){ U[n] = gl.getUniformLocation(pr, n); });
+          ['uTime','uRes','uDeep','uBody','uCloud','uRim','uSkyB','uCloudB','uCover','uStarB'].forEach(function(n){ U[n] = gl.getUniformLocation(pr, n); });
           gl.uniform3fv(U.uDeep, tone.deep); gl.uniform3fv(U.uBody, tone.body);
           gl.uniform3fv(U.uCloud, tone.cloud); gl.uniform3fv(U.uRim, tone.rim);
         } else gl = null;
@@ -158,6 +164,8 @@
       gl.viewport(0, 0, skyCanvas.width, skyCanvas.height);
       gl.uniform1f(U.uTime, sceneT);
       gl.uniform2f(U.uRes, skyCanvas.width, skyCanvas.height);
+      gl.uniform1f(U.uSkyB, mixL.sky); gl.uniform1f(U.uCloudB, mixL.cloud);
+      gl.uniform1f(U.uCover, mixL.cover); gl.uniform1f(U.uStarB, mixL.stars);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
@@ -169,7 +177,7 @@
       var px = sx*LOOK.scale + t*.55, py = sy*LOOK.scale;
       var wx = fbm(px*1.7 + t*.1, py*1.7 + t*.1, tier.oct), wy = fbm(px*1.7 + 4, py*1.7 + 2, tier.oct);
       var base = fbm(px + LOOK.warp*wx, py + LOOK.warp*wy, tier.oct);
-      return smooth(.44, .80, base) * .85;
+      return smooth(mixL.cover, mixL.cover + .36, base) * .85;
     }
     /* how much of something at depth z shows through the cloud at (x,y) */
     function seen(x, y, z){
@@ -232,6 +240,9 @@
         skyCanvas.width = Math.max(2, Math.round(W*q)); skyCanvas.height = Math.max(2, Math.round(H*q));
         fxCanvas.width = Math.round(W*DPR); fxCanvas.height = Math.round(H*DPR);
         if(!tier.fps) renderOnce();
+      } else if(m.type === 'look'){
+        ['sky','cloud','cover','stars'].forEach(function(k){ if(typeof m[k] === 'number' && isFinite(m[k])) mixL[k] = m[k]; });
+        if(!running || !tier.fps) drawSky();   /* paused or still: show the change now */
       } else if(m.type === 'running'){
         running = !!m.on; last = 0;
         if(running && tier.fps) schedule();

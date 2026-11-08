@@ -73,7 +73,7 @@ const { cast, jellies } = Astro.props;
   /* the homepage sky cast (sky-cast-life.js builds these) */
   :global(.sc-layer){ position:absolute; inset:0; overflow:hidden; }
   :global(.sc-jelly){ position:absolute; left:0; top:0; display:block; height:auto; aspect-ratio:240 / 420;
-    background:#000; mix-blend-mode:screen; opacity:0; will-change:transform, opacity; }
+    background:#000; mix-blend-mode:screen; opacity:0; will-change:transform, opacity; filter:brightness(2.5); }
   /* soft points of light that brighten and dim, each at its own pace */
   :global(.sc-star){ position:absolute; border-radius:50%;
     background:radial-gradient(circle, rgba(255,249,236,1) 0, rgba(255,246,228,.45) 25%, rgba(255,246,228,0) 70%);
