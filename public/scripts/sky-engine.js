@@ -163,6 +163,21 @@
     var clock = opts && opts.clock;
     function clockT(){ return clock.seed + (Date.now() - clock.at) / 1000 * .55; }
     var sceneT = clock ? clockT() : 40 + Math.random()*400;
+    /* hand-over to the next page: opts.drawn() after the first frame, and
+       opts.snap(blob) with a 96x60 JPEG of the sky every 1.5s, which the
+       next page shows until its own sky is up (sky.js, SkyBackground.astro) */
+    var snapCv = null, lastSnap = 0, firstDrawn = false;
+    function afterDraw(now){
+      if(!firstDrawn){ firstDrawn = true; if(opts && opts.drawn) opts.drawn(); }
+      if(!(opts && opts.snap) || typeof OffscreenCanvas === 'undefined' || now - lastSnap < 1500) return;
+      lastSnap = now;
+      try{
+        snapCv = snapCv || new OffscreenCanvas(96, 60);
+        var c2 = snapCv.getContext('2d');
+        c2.drawImage(skyCanvas, 0, 0, 96, 60);   /* same task as the draw, so the GL buffer is still there */
+        snapCv.convertToBlob({ type:'image/jpeg', quality:.7 }).then(opts.snap, function(){});
+      }catch(e){ opts.snap = null; }
+    }
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
 
     /* ── GL ── */
@@ -255,11 +270,11 @@
       if(tier.fps){ schedule(); if(last && now - last < frameMin - 1) return; }
       var dt = last ? Math.min((now - last)/1000, .1) : 0; last = now;
       sceneT = clock ? clockT() : sceneT + dt * .55;   /* the site's background pace */
-      drawSky();
+      drawSky(); afterDraw(now);
       if(tier.fps) stepMeteors(dt);
     }
     function schedule(){ if(!scheduled){ scheduled = true; raf(frame); } }
-    function renderOnce(){ drawSky(); if(ctx){ ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); } }
+    function renderOnce(){ drawSky(); afterDraw(0); if(ctx){ ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); } }
 
     function handle(m){
       if(m.type === 'size'){
