@@ -14,9 +14,11 @@
   var SCALE = small ? 1 : 2;
   // [image, width, height (art px), left %, top % of the two-screen field, depth]
   var PLAN = [
-    ['cloud-1', 260, 96, 72, 18, 0.3],
-    ['cloud-3', 80, 32, 14, 52, 0.14],
-    ['cloud-2', 150, 56, 30, 124, 0.22]
+    ['cloud-1', 260, 100, 72, 18, 0.3],
+    ['cloud-4', 60, 24, 16, 40, 0.12],
+    ['cloud-3', 64, 34, 84, 82, 0.16],
+    ['cloud-2', 220, 52, 30, 112, 0.22],
+    ['cloud-5', 180, 22, 62, 156, 0.1]
   ];
 
   var layer, clouds = [], H = innerHeight, W = innerWidth;
