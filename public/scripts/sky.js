@@ -30,11 +30,18 @@
 
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
   var covered = false;
-  /* the homepage light theme hides the sky, so it stops drawing too (home-theme.js sends 'theme:change') */
-  function light(){ return document.documentElement.getAttribute('data-theme') === 'light'; }
-  function running(){ send({ type:'running', on:!document.hidden && !covered && !light() }); }
-  document.addEventListener('theme:change', function(){ running(); document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered || light() })); });
-  function greet(){ send(size()); running(); }
+  function running(){ send({ type:'running', on:!document.hidden && !covered }); }
+  /* the homepage light theme (home-theme.js sends 'theme:change'): a light
+     sky picked by html[data-light-sky]; 'paper' keeps this page's own sky,
+     inverted in CSS */
+  function currentTone(){
+    var r = document.documentElement;
+    if(r.getAttribute('data-theme') !== 'light') return tone || 'default';
+    var v = r.getAttribute('data-light-sky');
+    return v === 'dawn' ? 'dawn' : v === 'paper' ? (tone || 'default') : 'day';
+  }
+  document.addEventListener('theme:change', function(){ send({ type:'tone', name:currentTone() }); });
+  function greet(){ send(size()); running(); send({ type:'tone', name:currentTone() }); }  // the engine may be ready after theme:change fired
 
   function runInline(){
     var c = canvases();
@@ -46,7 +53,7 @@
     }
     if(window.SiteSky) return boot();
     var s = document.createElement('script');
-    s.src = '/scripts/sky-engine.js?v=3';
+    s.src = '/scripts/sky-engine.js?v=4';
     s.addEventListener('load', boot);
     document.head.appendChild(s);
   }
@@ -55,7 +62,7 @@
     var c = canvases(), worker;
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
-      worker = new Worker('/scripts/sky-worker.js?v=3');
+      worker = new Worker('/scripts/sky-worker.js?v=4');
       worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;
@@ -104,7 +111,7 @@
         var now = false; state.forEach(function(v){ now = now || v; });
         if(now === covered) return;
         covered = now; running();
-        document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered || light() }));
+        document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered }));
       }, { threshold:th, rootMargin:(e[0] || 0) + 'px 0px ' + (e[1] || 0) + 'px 0px' }).observe(el);
     });
   }

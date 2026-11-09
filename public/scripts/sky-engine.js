@@ -8,6 +8,7 @@
      { type:'size', w, h, dpr }     viewport in CSS px
      { type:'running', on }         tab hidden/visible
      { type:'look', sky, cloud, cover, stars }   live mix (the _sky-tune.html preview)
+     { type:'tone', name }          switch tone live (the homepage light theme)
 
    Tiers, picked by the page:
      full   desktop: full-detail clouds, shooting stars
@@ -50,7 +51,7 @@
     '#define OCT ' + oct + '\n' +
     'uniform float uTime; uniform vec2 uRes;\n' +
     'uniform vec3 uDeep,uBody,uCloud,uRim;\n' +
-    'uniform float uSkyB,uCloudB,uCover,uStarB;\n' +
+    'uniform float uSkyB,uCloudB,uCover,uStarB,uInk;\n' +
     'float h21(vec2 p){p=fract(p*vec2(234.34,435.345));p+=dot(p,p+34.23);return fract(p.x*p.y);}\n' +
     'float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),u.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),u.x),u.y);}\n' +
     'float fbm(vec2 p){float v=0.,a=.52,fr=1.;mat2 r=mat2(.877,.480,-.480,.877);for(int i=0;i<OCT;i++){v+=a*noise(p*fr);p=r*p;fr*=2.05;a*=.48;}return v;}\n' +
@@ -87,7 +88,9 @@
     '  vec3 cl=mix(uCloud,uRim,smoothstep(.95,1.25,shade))*uCloudB;\n' +
     '  vec3 col=mix(sky,cl*clamp(shade,.45,1.25),c*.85)*' + LOOK.bright.toFixed(3) + ';\n' +
     '  vec2 v=uv-.5; col*=pow(clamp(1.-dot(v,v*' + LOOK.vign.toFixed(3) + '),0.,1.),.8);\n' +
-    '  col+=stars(st,uTime)*uStarB*(1.-c);\n' +
+    '  vec3 s=stars(st,uTime)*uStarB*(1.-c);\n' +
+    /* on a light sky (uInk 1) the stars are dark specks instead of light */
+    '  col=mix(col+s,col-s*.7,uInk);\n' +
     '  gl_FragColor=vec4(clamp(col,0.,1.),1.);\n' +
     '}';
   }
@@ -128,10 +131,14 @@
   var BRIGHT = { deep:[.030,.050,.120], body:[.120,.180,.330], cloud:[.800,.840,.930], rim:[.970,.980,1.000] };
   /* the 'space' tone: the default look mixed down (homepage, 2026-11-08) */
   var SPACE = { deep:LOOK.deep, body:LOOK.body, cloud:LOOK.cloud, rim:LOOK.rim, mix:{ sky:0, cloud:.4, cover:.429, stars:.95 } };
+  /* light skies for the homepage light theme (trial, 2026-11-08): deep = horizon, body = top; stars in ink */
+  var DAY  = { deep:[.80,.88,.97], body:[.50,.68,.92], cloud:[.93,.95,.98], rim:[1,1,1], ink:1 };
+  var DAWN = { deep:[.98,.84,.76], body:[.72,.70,.90], cloud:[.97,.90,.90], rim:[1,.97,.94], ink:1 };
+  var TONES = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT, space:SPACE, day:DAY, dawn:DAWN };
 
   function create(skyCanvas, fxCanvas, opts){
     var tier = TIERS[opts && opts.tier] || TIERS.full;
-    var tone = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT, space:SPACE }[opts && opts.tone] || LOOK;
+    var tone = TONES[opts && opts.tone] || LOOK;
     var W = 1, H = 1, DPR = 1, running = true;
     var mixL = Object.assign({ sky:1, cloud:1, cover:.44, stars:1 }, tone.mix);   /* 1 = the look above; 'look' messages change it */
     var sceneT = 40 + Math.random()*400;    /* a different sky on every visit */
@@ -151,9 +158,9 @@
           var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
           gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
           var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-          ['uTime','uRes','uDeep','uBody','uCloud','uRim','uSkyB','uCloudB','uCover','uStarB'].forEach(function(n){ U[n] = gl.getUniformLocation(pr, n); });
+          ['uTime','uRes','uDeep','uBody','uCloud','uRim','uSkyB','uCloudB','uCover','uStarB','uInk'].forEach(function(n){ U[n] = gl.getUniformLocation(pr, n); });
           gl.uniform3fv(U.uDeep, tone.deep); gl.uniform3fv(U.uBody, tone.body);
-          gl.uniform3fv(U.uCloud, tone.cloud); gl.uniform3fv(U.uRim, tone.rim);
+          gl.uniform3fv(U.uCloud, tone.cloud); gl.uniform3fv(U.uRim, tone.rim); gl.uniform1f(U.uInk, tone.ink || 0);
         } else gl = null;
       } else gl = null;
     }
@@ -243,6 +250,11 @@
       } else if(m.type === 'look'){
         ['sky','cloud','cover','stars'].forEach(function(k){ if(typeof m[k] === 'number' && isFinite(m[k])) mixL[k] = m[k]; });
         if(!running || !tier.fps) drawSky();   /* paused or still: show the change now */
+      } else if(m.type === 'tone'){
+        var t = TONES[m.name] || LOOK;
+        mixL = Object.assign({ sky:1, cloud:1, cover:.44, stars:1 }, t.mix);
+        if(gl){ gl.uniform3fv(U.uDeep, t.deep); gl.uniform3fv(U.uBody, t.body); gl.uniform3fv(U.uCloud, t.cloud); gl.uniform3fv(U.uRim, t.rim); gl.uniform1f(U.uInk, t.ink || 0); }
+        if(!running || !tier.fps) drawSky();
       } else if(m.type === 'running'){
         running = !!m.on; last = 0;
         if(running && tier.fps) schedule();

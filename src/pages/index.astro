@@ -470,14 +470,33 @@ footer#site-footer{
      After Notion's light mode: warm white page, near-black ink, grey rules.
      --c-white is the site's "ink on dark" colour, so flipping it to dark ink
      turns most rgba(var(--c-white), a) text and lines over in one go; the
-     rest are literal colours overridden here. The sky and its jellyfish are
-     hidden and paused (sky.js). -->
+     rest are literal colours overridden here. The sky keeps its clouds,
+     stars and jellyfish in one of three light skies picked by
+     html[data-light-sky] (home-theme.js, sky.js): day, dawn, or paper (the
+     night sky inverted). -->
 <style is:global>
 :root[data-theme="light"]{ --c-white:25,25,25; --c-bg:#fbfbfa; color-scheme:light; }
-:root[data-theme="light"] #sky, :root[data-theme="light"] .sky-life,
 :root[data-theme="light"] #chrome-damp, :root[data-theme="light"] #subliminal-layer,
-:root[data-theme="light"] #subliminal-flash, :root[data-theme="light"] .page-grain::before{ display:none; }
-:root[data-theme="light"] .page-grain{ display:none; }
+:root[data-theme="light"] #subliminal-flash, :root[data-theme="light"] .page-grain{ display:none; }
+:root[data-theme="light"][data-light-sky="paper"] #sky{ filter:invert(1) hue-rotate(180deg); }
+:root[data-theme="light"][data-light-sky="day"] #sky{ background:#8fb0e0; }
+:root[data-theme="light"][data-light-sky="dawn"] #sky{ background:#d9c6d6; }
+/* the jellyfish clips are white on black and their layer is screened onto
+   the sky; on a light sky they are inverted (dark on white) and the layer
+   is multiplied instead, so the white falls away */
+:root[data-theme="light"] .sky-life{ mix-blend-mode:multiply; }
+:root[data-theme="light"] .sc-jelly{ mix-blend-mode:normal; filter:invert(1) contrast(1.15); }
+/* the sky's scanlines only vanish on black */
+:root[data-theme="light"] #sky .sky-grain, :root[data-theme="light"] #sky::after{ display:none; }
+/* trial picker for the light sky, bottom left */
+.sky-pick{ display:none; }
+:root[data-theme="light"] .sky-pick{ position:fixed; left:16px; bottom:16px; z-index:1100; display:flex; gap:2px; padding:3px;
+  border-radius:8px; background:rgba(255,255,255,.85); box-shadow:0 0 0 1px rgba(15,15,15,.06), 0 3px 10px rgba(15,15,15,.12);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+.sky-pick button{ all:unset; cursor:pointer; padding:5px 10px; border-radius:6px; font:500 12px/1 'Inter Tight',-apple-system,'Segoe UI',sans-serif; color:rgba(55,53,47,.65); }
+.sky-pick button:hover{ background:rgba(55,53,47,.06); color:#37352f; }
+.sky-pick button[aria-checked="true"]{ background:#37352f; color:#fff; }
+.sky-pick button:focus-visible{ outline:2px solid #2383e2; outline-offset:1px; }
 :root[data-theme="light"] .sec-title{ color:#191919; }
 :root[data-theme="light"] .sec-title em{ color:#37352f; }
 :root[data-theme="light"] .sec-title sup{ color:rgba(55,53,47,.55); }
