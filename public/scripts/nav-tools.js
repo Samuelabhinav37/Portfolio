@@ -23,6 +23,33 @@
     });
   }
 
+  /* news: security headlines from /api/signal-feed (The Hacker News,
+     BleepingComputer, Krebs). The page ships the newest blog posts in the
+     strip, which stay if the feed fails. */
+  fetch('/api/signal-feed')
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error('news ' + r.status))))
+    .then((d) => {
+      const items = (Array.isArray(d.news) ? d.news : []).filter((n) => n.title && /^https?:\/\//.test(n.link));
+      if (!items.length) return;
+      const track = nt.querySelector('.nt-news .nt-track');
+      const glint = track.querySelector('.nt-glint');
+      track.querySelectorAll('.nt-run').forEach((run, copy) => {
+        run.replaceChildren(...items.map((n) => {
+          const a = document.createElement('a');
+          a.href = n.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+          if (copy) a.tabIndex = -1;
+          if (glint) a.append(glint.cloneNode(true));
+          a.append(n.title);
+          const s = document.createElement('span');
+          s.className = 'nt-src'; s.textContent = n.source || '';
+          a.append(s);
+          return a;
+        }));
+      });
+      if (current === 'news') drift(nt.querySelector('.nt-news'));
+    })
+    .catch(() => {});
+
   /* tabs */
   let current = 'news';
   function show(name) {
@@ -63,21 +90,21 @@
   const pod = (() => {
     const pane = nt.querySelector('.nt-music');
     const line = pane.querySelector('.nt-ep');
-    const cover = pane.querySelector('.nt-cover');
     const playB = pane.querySelector('.nt-play');
     const nextB = pane.querySelector('.nt-next');
     const muteB = pane.querySelector('.nt-mute');
     const tab = nt.querySelector('.nt-tab[data-tab="music"]');
-    let st = read('pod'); // { url, title, image, t, muted }
+    let st = read('pod'); // { url, title, subtitle, t, muted }
     if (st && typeof st.url !== 'string') st = null;
     let list = null, loading = null, audio = null, lastSave = 0;
 
-    const pick = (e) => ({ url: e.url, title: e.title, image: e.image || null, t: 0, muted: !!(st && st.muted) });
+    const pick = (e) => ({ url: e.url, title: e.title, subtitle: e.subtitle || '', t: 0, muted: !!(st && st.muted) });
     const save = () => write('pod', st);
     function render() {
-      line.querySelectorAll('.nt-ep-t').forEach((b) => { b.textContent = st ? st.title : 'Darknet Diaries'; });
-      cover.hidden = !(st && st.image);
-      if (st && st.image) cover.src = st.image;
+      // reads "Darknet Diaries  182: Blackshades  What if you got infected..."
+      const fill = (sel, v) => line.querySelectorAll(sel).forEach((b) => { b.textContent = v || ''; b.hidden = !v; });
+      fill('.nt-ep-t', st && st.title);
+      fill('.nt-ep-s', st && st.subtitle);
       muteB.setAttribute('aria-pressed', String(!!(st && st.muted)));
       muteB.setAttribute('aria-label', st && st.muted ? 'Unmute' : 'Mute');
       if (!pane.hidden) drift(pane);
@@ -88,6 +115,10 @@
         .then((d) => {
           list = Array.isArray(d.episodes) ? d.episodes : [];
           if (!st && list[0]) { st = pick(list[0]); render(); }
+          else if (st && st.subtitle == null) { // saved before subtitles existed
+            const e = list.find((x) => x.url === st.url);
+            st.subtitle = (e && e.subtitle) || ''; save(); render();
+          }
           return list;
         })
         .catch(() => { loading = null; return []; }));
