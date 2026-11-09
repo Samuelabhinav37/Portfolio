@@ -64,8 +64,12 @@
       v.addEventListener('loadedmetadata', () => { v.currentTime = start; }, { once: true });
       layer.appendChild(v);
       if (!still) play(v);
-      const dir = (Math.random() < 0.5 ? -1 : 1) * rnd(0.45, 0.95);
-      return { v, w, x: jellyX(), y: rnd(0.3, 1) * H, ph: rnd(0, 1), seed: rnd(0, 100), dir, aim: dir, lean: dir, fade: still ? 1 : 0, nextBubble: rnd(2, 6) };
+      // desktop: the two bigger ones always open as a pair in the top right, one above the other, leaning right
+      const START = [[0.875, 0.13], [0.855, 0.32]];
+      const pair = !narrowSky() && START[i];
+      const dir = pair ? rnd(0.45, 0.6) : (Math.random() < 0.5 ? -1 : 1) * rnd(0.45, 0.95);
+      const x = pair ? pair[0] * W : jellyX(), y = pair ? pair[1] * H : rnd(0.3, 1) * H;
+      return { v, w, x, y, ph: rnd(0, 1), seed: rnd(0, 100), dir, aim: dir, lean: dir, fade: still ? 1 : 0, nextBubble: rnd(2, 6) };
     });
   }
   function respawn(j) { // come back in from below
