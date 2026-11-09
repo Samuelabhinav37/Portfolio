@@ -9,7 +9,8 @@
  * stars, with rarer shooting stars. `tone="aged"` fades the sky to a warm,
  * old-photograph night (the contact page's print sits on it); `tone="bright"`
  * lifts it to a lighter navy with whiter clouds (the blog index); `tone="night"`
- * is the black-and-white sky with brighter stars (the photos page).
+ * is the black-and-white sky with brighter stars (the photos page);
+ * `tone="space"` is the homepage's black space with dim clouds.
  *
  * Layering matches what pages were built against: #sky is position:fixed
  * with z-index:auto, so later positioned content paints above it, and the
@@ -17,13 +18,13 @@
  */
 interface Props {
   calm?: boolean;
-  tone?: 'aged' | 'mono' | 'night' | 'bright';
+  tone?: 'aged' | 'mono' | 'night' | 'bright' | 'space';
 }
 const { calm, tone } = Astro.props;
 ---
 
 <div id="sky" aria-hidden="true" data-mood={calm ? 'calm' : undefined} data-tone={tone}><div class="sky-grain"></div></div>
-<script is:inline defer src="/scripts/sky.js?v=2"></script>
+<script is:inline defer src="/scripts/sky.js?v=9"></script>
 
 <style is:global>
   /* The gradient shows before the first frame, and wherever WebGL is unavailable. */
@@ -33,6 +34,7 @@ const { calm, tone } = Astro.props;
   #sky[data-tone="aged"] .sky-grain{ opacity:.1; }
   #sky[data-tone="mono"], #sky[data-tone="night"]{ background:linear-gradient(0deg, #060606 0%, #111 55%, #252525 100%); }
   #sky[data-tone="mono"] .sky-grain, #sky[data-tone="night"] .sky-grain{ opacity:.09; }
+  #sky[data-tone="space"]{ background:#000; }
   #sky[data-tone="bright"]{ background:linear-gradient(0deg, #08102a 0%, #111d3d 55%, #24365f 100%); }
   #sky canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
   /* Plain alpha over the sky, darkened to match the old overlay blend within

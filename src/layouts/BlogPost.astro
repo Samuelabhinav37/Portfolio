@@ -1,5 +1,6 @@
 ---
 import Motion from '../components/Motion.astro';
+import SiteSky from '../components/SiteSky.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
@@ -13,6 +14,7 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import '../styles/tokens.css';
 import '../styles/blog.css';
 import Fonts from '../components/Fonts.astro';
+import NavTools from '../components/NavTools.astro';
 import FieldTile from '../components/FieldTile.astro';
 import { fieldCards } from '../data/field-cards';
 import '../styles/field-tiles.css';
@@ -155,6 +157,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 <!doctype html>
 <html lang={lang}>
   <head>
+    <script is:inline src="/scripts/theme.js"></script>
     <script is:inline>
     window.SITE=window.SITE||{};
     (function(){
@@ -232,6 +235,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
   <body>
     <a class="skip-link" href="#main-content">{i18n.skipToContent}</a>
+    <SiteSky />
 
     <!-- Reading-progress ring traced around the button itself (Cloudflare-blog
          pattern) instead of a separate bar fixed to the top of the viewport —
@@ -246,28 +250,15 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       <svg viewBox="0 0 24 24" fill="none" stroke="rgba(var(--c-white),0.65)" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
 
-    <div id="topbar-scrim" aria-hidden="true"></div>
     <!-- Site identity (fixed corner wordmark) -->
     <div id="site-identity">
       <a href={SITE.links.portfolio} class="nav-name" id="navName">{SITE.author}</a>
     </div>
 
-    <button
-      type="button"
-      id="menu-trigger"
-      aria-label={i18n.openMenu}
-      aria-expanded="false"
-      data-text-closed={lang === 'es' ? 'Menú' : 'Menu'}
-      data-text-open={i18n.close}
-      data-label-closed={i18n.openMenu}
-      data-label-open={i18n.closeMenu}
-    >{lang === 'es' ? 'Menú' : 'Menu'}</button>
-    <nav id="menu-overlay" aria-label="Primary" aria-hidden="true" inert>
-      <ul id="menu-list">
-        <li><a href={SITE.links.about}><span>{i18n.navAbout}</span></a></li>
-        <li><a href={SITE.links.blogIndex} class="active"><span>{i18n.navBlog}</span></a></li>
-        <li><a href={SITE.links.contact}><span>{i18n.navContact}</span></a></li>
-      </ul>
+    <!-- the site's top line (SiteMenu.astro): pages as one comma-separated list -->
+    <nav id="site-nav" aria-label="Primary" class="has-current">
+      <span class="nav-list"><a href={SITE.links.blogIndex} aria-current="page">{i18n.navBlog}</a><span class="sep" aria-hidden="true">, </span><a href="https://samuelabhinav.com/photos/" data-roll>{i18n.navArchive}</a><span class="sep" aria-hidden="true">, </span><a href={SITE.links.about} data-roll>{i18n.navAbout}</a><span class="sep" aria-hidden="true">, </span><a href={SITE.links.contact} data-roll>{i18n.navContact}</a></span>
+      <NavTools />
     </nav>
 
     <!-- Header: the topic label, headline, the series line (no author name:

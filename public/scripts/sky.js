@@ -31,7 +31,13 @@
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
   var covered = false;
   function running(){ send({ type:'running', on:!document.hidden && !covered }); }
-  function greet(){ send(size()); running(); }
+  /* the light theme (theme.js sends 'theme:change') switches
+     the engine to its 'day' tone */
+  function currentTone(){
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'day' : (tone || 'default');
+  }
+  document.addEventListener('theme:change', function(){ send({ type:'tone', name:currentTone() }); });
+  function greet(){ send(size()); running(); send({ type:'tone', name:currentTone() }); }  // the engine may be ready after theme:change fired
 
   function runInline(){
     var c = canvases();
@@ -43,7 +49,7 @@
     }
     if(window.SiteSky) return boot();
     var s = document.createElement('script');
-    s.src = '/scripts/sky-engine.js?v=2';
+    s.src = '/scripts/sky-engine.js?v=8';
     s.addEventListener('load', boot);
     document.head.appendChild(s);
   }
@@ -52,7 +58,7 @@
     var c = canvases(), worker;
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
-      worker = new Worker('/scripts/sky-worker.js?v=2');
+      worker = new Worker('/scripts/sky-worker.js?v=8');
       worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;
@@ -79,6 +85,11 @@
     requestAnimationFrame(function(){ queued = false; send(size()); });
   }, { passive:true });
   document.addEventListener('visibilitychange', running);
+  /* the _sky-tune.html preview mixes the sky live: { sky, cloud, cover, stars } */
+  document.addEventListener('sky:look', function(e){
+    var d = e.detail || {};
+    send({ type:'look', sky:+d.sky, cloud:+d.cloud, cover:+d.cover, stars:+d.stars });
+  });
 
   /* While an opaque part of the page fills the whole screen (marked
      data-covers-sky: the homepage's painted projects sheet), nobody can see

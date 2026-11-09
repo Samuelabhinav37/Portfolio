@@ -2,13 +2,12 @@
 import Motion from '../components/Motion.astro';
 import Glitches from '../components/Glitches.astro';
 import SiteMenu from '../components/SiteMenu.astro';
-import SkyBackground from '../components/SkyBackground.astro';
+import SiteSky from '../components/SiteSky.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import KaiSite from '../components/KaiSite.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
-import SkyLife from '../components/SkyLife.astro';
 import ContactArtifacts from '../components/ContactArtifacts.astro';
 import ContactSkyArtifacts from '../components/ContactSkyArtifacts.astro';
 
@@ -36,6 +35,7 @@ const holoAttr = tone === 'holo-mono' ? 'mono' : tone === 'paper' ? 'paper' : un
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script is:inline src="/scripts/theme.js"></script>
 <script is:inline>
 window.SITE=window.SITE||{};
 (function(){
@@ -404,7 +404,7 @@ window.SITE=window.SITE||{};
   /* a darker edge to the whole view, like the corners of an old photo */
   body::after{ content:''; position:fixed; inset:0; z-index:39; pointer-events:none;
     background:radial-gradient(ellipse 85% 80% at 50% 48%, transparent 55%, rgba(8,5,2,0.55) 100%); }
-  body[data-tone="aged"] #site-identity, body[data-tone="aged"] #menu-trigger{ --c-white:226,212,184; }
+  body[data-tone="aged"] #site-identity, body[data-tone="aged"] #site-nav{ --c-white:226,212,184; }
 
   /* ── the cool tone: the site's navy night. The print keeps all its age
      (burns, creases, foxing) but loses the brown: it goes grey, then takes a
@@ -522,6 +522,15 @@ window.SITE=window.SITE||{};
   body[data-holo="paper"] .poster-art::after{ display:block; }
   body[data-holo="paper"] .attach img, body[data-holo="paper"] .tear-hole{ filter:none; }
   body[data-holo="paper"] .sky-life{ filter:grayscale(1) brightness(1.1); }
+  /* day sky: screen blending only works on black, so the card prints solid */
+  :root[data-theme="light"] body[data-tone="holo"]{ background:var(--c-bg); }
+  :root[data-theme="light"] body[data-tone="holo"] .field-wrap{ mix-blend-mode:normal; }
+  :root[data-theme="light"] body[data-tone="holo"] .poster::after{ display:none; }
+  :root[data-theme="light"] body[data-tone="holo"] .poster{ animation:drift 16s ease-in-out infinite alternate; }
+  :root[data-theme="light"] body[data-tone="holo"] .pg-footer{ color:rgba(25,25,25,0.55); }
+  :root[data-theme="light"] body[data-tone="holo"] .pg-footer .f-links a{ color:rgba(25,25,25,0.7); }
+  :root[data-theme="light"] body[data-tone="holo"] .pg-footer .f-links a:hover{ color:#191919; }
+  :root[data-theme="light"] body[data-tone="holo"] .holo-status:not(:empty):not(.bad){ color:#191919; text-shadow:none; }
   @media (prefers-reduced-motion: reduce){
     body[data-tone="holo"] .poster{ animation:none; opacity:0.92; }
     body[data-tone="holo"] .poster::after{ animation:none; }
@@ -599,8 +608,7 @@ window.SITE=window.SITE||{};
 
 <a class="skip" href="#nm">Skip to the form</a>
 
-<SkyBackground tone={tone === "aged" || tone === "mono" ? tone : undefined} />
-<SkyLife />
+<SiteSky />
 <ContactSkyArtifacts />
 <Glitches />
 

@@ -2,8 +2,8 @@
 import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import SkyBackground from '../components/SkyBackground.astro';
-import SkyLife from '../components/SkyLife.astro';
+import SiteSky from '../components/SiteSky.astro';
+import Motion from '../components/Motion.astro';
 import KaiSite from '../components/KaiSite.astro';
 import Fonts from '../components/Fonts.astro';
 import '../styles/tokens.css';
@@ -32,6 +32,7 @@ const rows: Photo[][] = [
 window.SITE=window.SITE||{};
 window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
 </script>
+<script is:inline src="/scripts/theme.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
@@ -48,14 +49,12 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <Fonts />
+<Motion />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:#000; color:#eee; overflow-x:hidden; }
+html, body { background:var(--c-bg); color:#eee; overflow-x:hidden; }
 body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
 
-/* brighter jellies than the other pages */
-#life-sky{ opacity:1 !important; }
-.life-jelly{ opacity:1 !important; filter:brightness(1.7); }
 
 /* thumbnails: rows on a 4.2vw line, 0.42vw apart, rows 1.4vw apart (the reference's proportions) */
 .ph{ position:relative; z-index:3; padding:clamp(150px, 15vw, 260px) 1.3vw 120px; display:grid; row-gap:max(14px, 1.4vw); }
@@ -80,13 +79,15 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 .lb-fig .ph-empty{ width:min(70vw, 900px); aspect-ratio:var(--r); max-height:76vh; display:grid; place-items:center; color:#ddd; font-size:13px; }
 .lb-cap{ margin-top:10px; font-size:12px; color:#ddd; text-align:left; }
 @media (prefers-reduced-motion: reduce){ .ph-item, .lb, .lb-fig{ transition:none; } }
+/* light theme (SiteSky); the opened photo keeps its dark backdrop */
+:root[data-theme="light"] body{ color:#191919; }
+:root[data-theme="light"] .ph-btn:focus-visible{ outline-color:#191919; }
 </style>
 <ErrorReporter />
 <ClarityAnalytics />
 </head>
 <body>
-<SkyBackground tone="night" />
-<SkyLife jellies />
+<SiteSky />
 <SiteMenu currentPath="/photos" />
 
 <main class="ph">

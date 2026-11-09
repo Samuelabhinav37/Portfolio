@@ -3,12 +3,11 @@ import Motion from '../../components/Motion.astro';
 import Glitches from '../../components/Glitches.astro';
 import { getCollection } from 'astro:content';
 import SiteMenu from '../../components/SiteMenu.astro';
-import SkyLife from '../../components/SkyLife.astro';
+import SiteSky from '../../components/SiteSky.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
 import KaiSite from '../../components/KaiSite.astro';
 import '../../styles/tokens.css';
-import '../../styles/bubbles.css';
 import Fonts from '../../components/Fonts.astro';
 import FieldTile from '../../components/FieldTile.astro';
 import { fieldCards, levelsOf, partLabel } from '../../data/field-cards';
@@ -90,6 +89,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script is:inline src="/scripts/theme.js"></script>
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
 <Motion />
@@ -120,50 +120,12 @@ window.SITE=window.SITE||{};
   --e:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{position:relative;background:#0f1730;color:var(--ink);font-family:var(--sans);min-height:100vh;min-height:100svh;
+body{position:relative;background:var(--c-bg);color:var(--ink);font-family:var(--sans);min-height:100vh;min-height:100svh;
   overflow-x:hidden;-webkit-font-smoothing:antialiased}
-/* The painted backdrop from the homepage's projects sheet (scripts/paint):
-   mantas and a fish up top, coral trees on rock shelves down both sides,
-   clouds, star dust and the watercolour wash, and the sea floor with a
-   turtle just above the footer (its dark ground carried on under it; .fn's
-   tall bottom padding keeps the last row clear). It scrolls with the page.
-   The live parts are separate layers so they only fade, move or turn (cheap
-   for the browser): three twinkle tiles fading out of step and the light
-   rays swaying from the top. A few fish and sea stars sit on top as their
-   own images; the contact page's jellyfish drift over it all (SkyLife). */
-.fn-paint{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
-  background:url(/images/paint/creatures-top.webp) center 40px / 1600px auto no-repeat,
-    url(/images/paint/creatures-bottom.webp) center bottom 100px / 1600px auto no-repeat,
-    linear-gradient(rgba(10,16,36,.62),rgba(10,16,36,.62)) center bottom / 100% 101px no-repeat,
-    url(/images/paint/side-l.webp) left 0 top 220px / 300px auto repeat-y,
-    url(/images/paint/side-r.webp) right 0 top 520px / 300px auto repeat-y,
-    url(/images/paint/clouds-tile.webp) 0 0 / 1024px,
-    url(/images/paint/stars-tile.webp) 0 0 / 1024px,
-    url(/images/paint/waves-tile.webp) 0 140px / 1024px,
-    url(/images/paint/wash-tile.webp) 0 0 / 1024px}
-/* twinkles are fixed to the screen (small layers, a touch of parallax against the star dust) */
-.fn-tw{position:fixed;inset:0;background:url(/images/paint/twinkle-0.webp) 0 0 / 1024px;opacity:.2;animation:fnTw 3.4s ease-in-out infinite alternate}
-.fn-tw:nth-child(2){background-image:url(/images/paint/twinkle-1.webp);background-position:300px 180px;animation-duration:4.6s;animation-delay:-1.7s}
-.fn-tw:nth-child(3){background-image:url(/images/paint/twinkle-2.webp);background-position:620px 410px;animation-duration:5.9s;animation-delay:-3.2s}
-@keyframes fnTw{to{opacity:1}}
-.fn-rays{position:absolute;top:0;left:50%;width:1600px;aspect-ratio:1600/1500;translate:-50% 0;background:url(/images/paint/rays.webp) 0 0 / 100% auto no-repeat;
-  transform-origin:78% -20%;animation:fnRays 16s ease-in-out infinite alternate}
-@keyframes fnRays{from{rotate:-1.6deg;opacity:.7}to{rotate:1.6deg;opacity:1}}
-.fn-paint img{position:absolute;height:auto}
-@media (max-width:760px){
-  .fn-paint{background-size:1000px auto,1000px auto,100% 101px,110px auto,110px auto,700px,1024px,700px,1024px;
-    background-position:center 60px,center bottom 100px,center bottom,left 0 top 220px,right 0 top 520px,0 0,0 0,0 140px,0 0}
-  .fn-rays{width:1000px}
-  .fn-paint img{scale:.7}
-}
-@media (prefers-reduced-motion:reduce){
-  .fn-tw,.fn-rays{animation:none}
-  .fn-tw{opacity:.6}
-}
 a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 
-/* every content block is positioned so it paints above the painted backdrop */
-.fn{position:relative;z-index:3;padding-bottom:clamp(220px,22vw,320px);display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
+/* every content block is positioned so it paints above the sky */
+.fn{position:relative;z-index:3;padding-bottom:clamp(80px,10vw,140px);display:flex;flex-direction:column;gap:clamp(56px,7vw,92px)}
 
 /* ── title + search ── */
 .fn-hero{position:relative;display:flex;flex-direction:column;align-items:center;gap:34px;width:100%;max-width:1240px;margin:0 auto;
@@ -289,39 +251,22 @@ footer .f-links .fic{width:12px;height:12px;fill:currentColor;flex:none}
 }
 </style>
 <style is:global>
+/* light theme (SiteSky): the tile colours are in field-tiles.css; these are this page's own */
+:root[data-theme="light"]{ --faint:rgba(55,53,47,.5); --card-line:rgba(55,53,47,.12); --field:#fff;
+  --float:0 0 0 1px rgba(15,15,15,.04),0 10px 30px -14px rgba(15,15,15,.25); }
+:root[data-theme="light"] .fn-title, :root[data-theme="light"] .fn-title em, :root[data-theme="light"] .fn-title sup{ color:#191919; }
+:root[data-theme="light"] .fn-title{ filter:none; }
+:root[data-theme="light"] .fn-tag{ color:rgba(55,53,47,.7); text-shadow:none; }
+:root[data-theme="light"] .fn-feat{ background:#fff; }
+:root[data-theme="light"] .fn-index{ background:rgba(255,255,255,.96); border-color:rgba(55,53,47,.12); }
+:root[data-theme="light"] .fn-field select option{ background:#fff; }
 </style>
 <ErrorReporter />
 <ClarityAnalytics />
 </head>
 <body>
 
-<!-- The homepage's painted night sea as the whole page's backdrop -->
-<div class="fn-paint" aria-hidden="true">
-  <div class="fn-tw"></div><div class="fn-tw"></div><div class="fn-tw"></div>
-  <div class="fn-rays"></div>
-  <span class="bub" style="left:calc(50% - 160px);bottom:165px;--d:5.2s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(50% + 210px);bottom:175px;--d:6.4s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(50% - 255px);bottom:330px;--d:4.6s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(50% - 700px);bottom:260px;--d:7s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(50% + 600px);bottom:240px;--d:5.8s"><i></i><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:75px;top:300px;--d:5.6s"><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(100% - 70px);top:60px;--d:6.6s"><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(100% - 85px);top:690px;--d:5s"><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(9% - 2px);top:168px;--d:4.8s"><i></i><i></i><i></i><i></i></span>
-  <span class="bub" style="left:calc(100% - 175px);top:470px;--d:6.2s"><i></i><i></i><i></i><i></i></span>
-  <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:9%;top:140px;width:96px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-fish-1.webp" alt="" style="left:91%;top:23%;width:90px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-fish-2.webp" alt="" style="left:48%;top:31%;width:78px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:94%;top:44%;width:80px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-fish-1.webp" alt="" style="left:3%;top:52%;width:84px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-fish-2.webp" alt="" style="left:90%;top:67%;width:72px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-fish-0.webp" alt="" style="left:6%;top:79%;width:88px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-star-0.webp" alt="" style="left:calc(100% - 205px);top:470px;width:64px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-star-1.webp" alt="" style="left:95%;top:35%;width:54px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-star-0.webp" alt="" style="left:96%;top:72%;width:58px" loading="lazy" decoding="async">
-  <img src="/images/paint/sprite-star-1.webp" alt="" style="left:3%;top:66%;width:50px" loading="lazy" decoding="async">
-</div>
-<SkyLife jellies />
+<SiteSky />
 
 <SiteMenu currentPath="/blog" />
 

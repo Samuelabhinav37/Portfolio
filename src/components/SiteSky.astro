@@ -1,0 +1,34 @@
+---
+/**
+ * The site background, shared by every page: black space with dim clouds,
+ * stars and drifting jellyfish (the homepage sky), and the light theme's
+ * day sky. The nav's sun/moon switch (SiteMenu themeToggle) flips
+ * html[data-theme]; /scripts/theme.js, loaded in each page's <head>, sets it
+ * before the first paint and tells sky.js to switch night and day.
+ *
+ * Light theme basics live here: --c-white is the site's "ink on dark"
+ * colour, so flipping it to dark ink turns most rgba(var(--c-white), a) text
+ * and lines over in one go. Each page overrides its own literal colours.
+ */
+import SkyBackground from './SkyBackground.astro';
+import SkyLife from './SkyLife.astro';
+---
+<SkyBackground tone="space" />
+<!-- the sky cast: jellyfish, between the sky and the page -->
+<SkyLife cast />
+<!-- halo for the jellyfish in light mode: the clip plus two blurred copies of itself -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
+
+<style is:global>
+:root[data-theme="light"]{ --c-white:25,25,25; --c-bg:#fbfbfa; color-scheme:light; }
+:root[data-theme="light"] #chrome-damp, :root[data-theme="light"] #subliminal-layer,
+:root[data-theme="light"] #subliminal-flash, :root[data-theme="light"] .page-grain{ display:none; }
+:root[data-theme="light"] #sky{ background:#8fb0e0; }
+/* the jellyfish stay screened onto the sky as at night, brightened, with a
+   blurred copy behind for a halo (#jelly-glow); --jb and the glow's blur
+   are tuned in /_sky-tune.html */
+:root[data-theme="light"] .sc-jelly{ filter:brightness(var(--jb, 4)) url(#jelly-glow); }
+/* the sky's scanlines only vanish on black */
+:root[data-theme="light"] #sky .sky-grain, :root[data-theme="light"] #sky::after{ display:none; }
+html, body{ transition:background-color .4s ease; }
+</style>

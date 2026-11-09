@@ -26,7 +26,7 @@ function esc(s) {
 }
 
 /* ── shared pieces (same markup as index.astro) ── */
-const caption = (c) => [c.level, c.topic].filter(Boolean).join(' · ');
+const caption = (c) => c.topic; // the topic only, as in field-cards.ts
 const partLabel = (c) => (c.series ? `${c.series} · Part ${c.part} of ${c.parts}` : '');
 const lvl = (c) => c.level
   ? `<span class="lvl"><span class="bars" data-n="${c.levelN}"><i></i><i></i><i></i></span>${esc(c.level)}</span>`

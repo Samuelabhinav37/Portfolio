@@ -61,87 +61,23 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .post-footer .f-links .fic { width: 12.5px; height: 12.5px; fill: currentColor; opacity: 0.9; flex: none; }
 
 
-/* ── Top bar: a light fade at the top of the page that becomes a solid,
-   blurred bar once scrolled (html.is-scrolled, set in blog-client.js), so
-   article text never reads through behind the wordmark and Menu. Same
-   treatment as SiteMenu.astro on the portfolio pages. ── */
-#topbar-scrim {
-  position: fixed; top: 0; left: 0; right: 0; height: 100px;
-  z-index: 999; pointer-events: none;
-  background: linear-gradient(to bottom, rgba(4,4,10,0.55), rgba(4,4,10,0) 100%);
-  /* sized to the border box, so the gradient can't repeat under the 1px
-     transparent border as a dark line (same fix as SiteMenu.astro) */
-  background-origin: border-box;
-  border-bottom: 1px solid transparent;
-  transition: height 0.35s ease, background-color 0.35s ease, border-color 0.35s ease;
-}
-html.is-scrolled #topbar-scrim {
-  height: 56px;
-  background: rgba(5,5,10,0.82);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  border-bottom-color: rgba(var(--c-white),0.06);
-}
-
 /* ── Site identity (fixed corner): the "Samuel Abhinav" wordmark, kept
    visible on scroll like every other page. ── */
-#site-identity {
-  position: fixed;
-  top: 14px; left: 28px;
-  z-index: 1002;
-  line-height: 1.3;
-}
-.nav-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 500; font-size: 1.5rem;
-  color: rgba(var(--c-white),0.90); text-decoration: none;
-  transition: opacity 0.4s;
+#site-identity, #site-nav {
+  position: fixed; top: 16px; z-index: 1002;
+  font: 500 1.15rem/1.2 'Cormorant Garamond', Georgia, serif;
   letter-spacing: 0.01em;
-  line-height: 1;
-  display: block;
 }
-/* ── Collapsed menu — plain-text trigger + black floating card ── */
-#menu-trigger {
-  position: fixed; top: 16px; right: 28px; z-index: 10001;
-  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem;
-  color: rgba(var(--c-white),0.85); background: none; border: none; cursor: pointer;
-  padding: 4px 2px; letter-spacing: 0.01em;
-  transition: color 0.3s ease;
-}
-#menu-trigger:hover { color: rgba(var(--c-white),1); }
-
-#menu-overlay {
-  position: fixed; top: 56px; right: 22px; z-index: 10000;
-  width: min(270px, 74vw); height: auto; max-height: min(74vh, 520px);
-  background: var(--c-bg); border: 1px solid rgba(var(--c-white),0.07); border-radius: 15px;
-  box-shadow: 0 20px 55px rgba(0,0,0,0.6);
-  padding: 24px 22px 20px; display: flex; flex-direction: column; gap: 30px;
-  transform: scale(0.96); opacity: 0; transform-origin: top right;
-  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
-  pointer-events: none;
-}
-#menu-overlay.open { transform: scale(1); opacity: 1; pointer-events: all; }
-#menu-list { list-style: none; margin: 0; padding: 0; }
-#menu-list li { overflow: hidden; margin-bottom: 11px; }
-#menu-list a {
-  display: inline-block; text-decoration: none;
-  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 500; font-size: 1.2rem;
-  letter-spacing: 0.01em; color: rgba(var(--c-white),0.5);
-  transition: color 0.3s ease;
-}
-#menu-list a span {
-  display: inline-block; transform: translateY(120%); opacity: 0;
-  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
-}
-#menu-overlay.open #menu-list a span { transform: translateY(0); opacity: 1; }
-#menu-overlay.open #menu-list li:nth-child(1) a span { transition-delay: 0.04s; }
-#menu-overlay.open #menu-list li:nth-child(2) a span { transition-delay: 0.08s; }
-#menu-overlay.open #menu-list li:nth-child(3) a span { transition-delay: 0.12s; }
-#menu-list a:hover { color: rgba(var(--c-white),1); }
-#menu-list a.active { color: rgba(var(--c-white),0.78); }
-
-@media (prefers-reduced-motion: reduce) {
-  #menu-overlay, #menu-list a span { transition: opacity 0.3s ease; transform: none; }
-}
+#site-identity { left: 28px; }
+.nav-name { color: rgba(var(--c-white),0.95); text-decoration: none; }
+/* Blog, Archive, About, Contact a little left of the middle (same as SiteMenu's), the
+   tool strip (NavTools) at the right edge; Blog is bright, the rest dim */
+#site-nav { font-size: 1rem; top: 10px; left: 36%; right: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+#site-nav .nav-list { flex: none; }
+#site-nav .nav-list a { position: relative; color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
+#site-nav .nav-list a::before { content: ''; position: absolute; inset: -12px -4px; }
+#site-nav .nav-list a:not([aria-current]), #site-nav .sep { opacity: 0.45; }
+#site-nav .nav-list a:hover, #site-nav .nav-list a:focus-visible { opacity: 1; }
 
 /* ══════════ POST SYSTEM ══════════
    Set after Vogue's article pages, measured on vogue.com (Oct 2026), with
@@ -529,14 +465,16 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
   .mnote-tag { margin: 0 0 0 10px; }
 }
 @media (--bp-900) {
-  #site-identity { top: 12px; left: 20px; }
-  .nav-name { font-size: 1.3rem; }
-  #menu-trigger { top: 14px; right: 20px; }
+  #site-identity { left: 20px; }
   .container { padding: 0 24px; }
 }
 /* phones: Vogue stacks the header, words first, then the picture 24px in
    from the sides; the share button becomes its "Save this story" pill */
 @media (--bp-760) {
+  #site-identity { font-size: 0.95rem; }
+  #site-nav { font-size: 0.85rem; top: 10px; }
+  #site-identity { left: 16px; }
+  #site-nav { left: auto; right: 16px; gap: 10px; }
   .post-hero { grid-template-columns: minmax(0, 1fr); margin-top: 64px; min-height: 0; }
   .post-hero-text { order: -1; width: 100%; padding: 32px 24px 0; }
   .post-audio { width: calc(100% - 48px); margin-top: 24px; gap: 12px; }
@@ -739,8 +677,9 @@ button.faq-q:focus-visible { outline: 1px solid rgba(var(--c-white),0.6); outlin
    replaces the runtime tokenizer), link resets for cards that became real
    links, and an image placeholder for posts without card art. */
 
-/* Shiki css-variables theme — mapped to the template's tk-* palette */
-:root {
+/* Shiki css-variables theme — mapped to the template's tk-* palette
+   (also set on .code-block so the light theme's night-ink reset reaches the tokens) */
+:root, .code-block {
   --astro-code-foreground: rgba(72,215,145,0.82);
   --astro-code-background: transparent;
   --astro-code-token-keyword: rgba(var(--c-white),0.88);
@@ -771,3 +710,32 @@ a.social-icon { text-decoration: none; color: inherit; }
 .post-cat { display: inline-block; }
 .copy-btn { min-height: 24px; }
 .nav-name { padding-block: 2px; margin-block: -2px; }
+
+/* ── light theme (SiteSky): dark ink on the day sky ── */
+:root[data-theme="light"] {
+  --ink-strong: rgba(25,25,25,0.96);
+  --ink: rgba(25,25,25,0.88);
+  --ink-dim: rgba(55,53,47,0.72);
+  --ink-faint: rgba(55,53,47,0.55);
+  --rule: rgba(55,53,47,0.14);
+  --rule-strong: rgba(55,53,47,0.28);
+}
+:root[data-theme="light"] body { color: rgba(25,25,25,0.82); }
+:root[data-theme="light"] .post-footer .f-links a:hover { color: #191919; }
+/* code, diagrams and the share dialog stay dark panels, so they keep the night ink */
+:root[data-theme="light"] :is(.code-wrap, .code-block, .plate, .flt-dialog__panel) {
+  --c-white: 255,255,255;
+  --ink-strong: rgba(255,255,255,0.96);
+  --ink: rgba(248,248,248,0.9);
+  --ink-dim: rgba(200,206,218,0.7);
+  --ink-faint: rgba(200,206,218,0.52);
+  --rule: rgba(200,206,218,0.16);
+  --rule-strong: rgba(200,206,218,0.3);
+  color: var(--ink);
+}
+/* Shiki writes an inline transparent background; on the day sky the block needs its own night */
+:root[data-theme="light"] .code-block { background-color: #0a0b10 !important; }
+/* tables become white cards; inline code dark ink on a grey chip */
+:root[data-theme="light"] .dtable,
+:root[data-theme="light"] .article-col > table { background: #fff; }
+:root[data-theme="light"] :is(.code-inline, .article-col code:not(pre code)) { background: rgba(55,53,47,0.08); color: #b4332b; }

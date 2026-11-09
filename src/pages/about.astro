@@ -1,26 +1,18 @@
 ---
 import Motion from '../components/Motion.astro';
 import SiteMenu from '../components/SiteMenu.astro';
-import SkyLife from '../components/SkyLife.astro';
+import SiteSky from '../components/SiteSky.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
-import KaiSite from '../components/KaiSite.astro';
+import ScrollToc from '../components/ScrollToc.astro';
 import '../styles/tokens.css';
+import { PROJECTS } from '../data/projects';
 import Fonts from '../components/Fonts.astro';
 const toolkit: [string, string[]][] = [
   ['Detection', ['Splunk SPL', 'Microsoft Sentinel KQL', 'Elastic / Kibana', 'Wazuh / Security Onion', 'Sigma / MITRE ATT&CK']],
   ['Code and cloud', ['Python / PowerShell', 'Ghidra', 'Terraform / Docker', 'AWS / Azure']],
 ];
-// [name, page, tile image (none yet for Sentinel)]
-const work = [
-  ['Moat', '/work/moat/', '/images/projects/moat-tile.w800.webp'], ['Cluster', '/work/cluster/', '/images/projects/cluster-tile.w800.webp'],
-  ['Sentinel', '/work/sentinel/', ''], ['Blue Streak', '/work/blue-streak/', '/images/projects/blue-streak-tile.w800.webp'],
-];
-// [name, badge file in public/images/certs, has a baked-in white square]
-const certs = [
-  ['Security+', 'security-plus', true], ['Network+', 'network-plus', true], ['ISC2 CC', 'isc2-cc', false],
-  ['AWS CCP', 'aws-ccp', false], ['AZ-900', 'az-900', false], ['HTB CJCA', 'htb-cjca', false],
-];
+const certs = ['Security+', 'Network+', 'ISC2 CC', 'AWS CCP', 'AZ-900', 'HTB CJCA'];
 ---
 
 <!DOCTYPE html>
@@ -56,98 +48,63 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script is:inline src="/scripts/theme.js"></script>
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
 <Motion />
 <style is:global>
-/* Layout after guide.4wide.jp: a white page, a 1200px column, and every section as a row of
-   title (340px) | body (720px) with 100px between them and a hairline under each. */
+/* Layout after angelaricciardi.com/information: one big statement with the key
+   words in full ink and the rest grey, then small label | value rows, and the
+   arcade game where that page has its photo, bottom right. The site sky
+   (SiteSky) shows behind everything. */
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:var(--c-bg); color:#f4f6fa; overflow-x:hidden; }
-body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size:16px; letter-spacing:.03em; -webkit-font-smoothing:antialiased; }
-
-/* the night sky from the earlier About: painted wash and star dust, film grain and vignette on top */
-.ab-sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
+html, body { background:var(--c-bg); overflow-x:hidden; }
+:root{ --ab-ink:#f4f6fa; --ab-dim:rgba(244,246,250,.42); }
+:root[data-theme="light"]{ --ab-ink:#191919; --ab-dim:rgba(25,25,25,.45); }
+body { color:var(--ab-ink); font-family:'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing:antialiased; }
 .page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
 .page-grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
 .page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
 
-.g{ position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:120px 20px 20px; }
-.en{ font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight:500; letter-spacing:-.01em; }
+.ab{ position:relative; z-index:3; padding:120px 28px 40px; min-height:100vh; }
+/* the page fades in, as on the reference */
+html.motion .ab{ animation:abIn .7s ease-in-out both; }
+@keyframes abIn{ from{ opacity:0; } }
+/* the statement: bold and tight, grey, with the names and facts in full ink */
+.ab-lede{ font-size:clamp(22px, 1.95vw, 28px); line-height:1.02; font-weight:600; letter-spacing:-.02em;
+  color:var(--ab-dim); max-width:1400px; margin-bottom:56px; }
+.ab-lede b{ font-weight:600; color:var(--ab-ink); }
 
-.read{ display:flex; align-items:baseline; gap:10px; margin-bottom:100px; }
-.read h1{ font-size:18px; line-height:1; }
-.read p{ font-size:13px; line-height:1; font-weight:400; }
+.ab-info{ display:grid; grid-template-columns:minmax(0, 1fr) 460px; gap:40px; align-items:start; }
+.ab-rows{ display:flex; flex-direction:column; gap:40px; font-size:13px; line-height:16px; font-weight:600; letter-spacing:-.01em; }
+.row{ display:grid; grid-template-columns:170px minmax(0, 1fr); }
+.row > h2{ font:inherit; color:var(--ab-dim); }
+.row ul{ list-style:none; }
+.row a{ color:inherit; text-decoration:none; transition:opacity .25s; }
+.row a:hover{ opacity:.55; }
+.row a[target="_blank"]::after{ content:' ↗'; }
+.k{ color:var(--ab-dim); }
 
-.section{ position:relative; display:flex; gap:100px; padding-bottom:80px; margin-bottom:80px; }
-/* the hairline under each section: a plain border, swapped by the script below for a .rule that draws in from the left */
-.section{ border-bottom:1px solid rgba(255,255,255,.14); }
-.section.has-rule{ border-bottom:0; }
-.rule{ position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(255,255,255,.14); transform:scaleX(0); transform-origin:left; transition:transform 1.6s var(--ease-inout); }
-.rule.in{ transform:none; }
-.section:last-of-type{ margin-bottom:0; border-bottom:0; }
-/* hover: pictures lean in, links underline from the left */
-.tile .frame{ overflow:hidden; transition:border-color .4s; }
-.tile .frame > img{ transition:transform .9s var(--ease-out); }
-.tile a{ text-decoration:none; background:linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat; transition:background-size .5s var(--ease-out); }
-@media (hover:hover){
-  .tile:hover .frame{ border-color:rgba(255,255,255,.4); }
-  .tile:hover .frame > img{ transform:scale(1.04); }
-  .tile:hover a{ background-size:0 1px; background-position:right bottom; }
-  .body .list a{ transition:opacity .3s; }
-  .body .list a:hover{ opacity:.6; }
-}
-@media (prefers-reduced-motion: reduce){ .rule, .tile .frame > img{ transition:none; } }
-.head{ flex:0 0 340px; display:flex; flex-direction:column; gap:10px; }
-.head h2{ font-size:28px; line-height:1; }
-.head h3{ font-size:13px; line-height:1; font-weight:400; }
-.body{ flex:0 1 720px; min-width:0; font-size:14px; line-height:1.8; }
-.body p + p{ margin-top:14px; }
-.tk-cols{ display:grid; grid-template-columns:1fr 1fr; gap:0 40px; }
-.tk-cols h4{ padding-top:32px; }
-.body a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
-.body a[target="_blank"]::after{ content:'↗'; font-size:.8em; margin-left:1px; }
+/* selected work: a plain table like the reference's client list */
+.work{ display:grid; grid-template-columns:110px 150px 170px; column-gap:20px; }
+.work > *{ display:contents; }
+.work > * > span, .tk{ white-space:nowrap; overflow:hidden; }
+.tk{ max-width:470px; }
+/* a cell too long for its column scrolls sideways in a loop (the script below adds .mq) */
+.mq{ display:inline-flex; animation:mq var(--d, 12s) linear infinite; }
+.mq > span{ padding-right:2.5em; }
+@keyframes mq{ to{ transform:translateX(-50%); } }
+@media (prefers-reduced-motion: reduce){ .mq{ animation:none; } }
+.work .th > span{ color:var(--ab-dim); }
 
-/* ▼ sub-heading, then a list with small square bullets */
-.body h4{ display:flex; gap:4px; font-size:16px; font-weight:500; line-height:1.15; padding-top:32px; margin-bottom:10px; }
-.body h4::before{ content:'▼'; font-size:.8em; }
-.body > h4:first-child{ padding-top:0; }
-.list{ list-style:none; display:flex; flex-direction:column; gap:2px; }
-.list li{ display:flex; align-items:baseline; gap:8px; }
-.list li::before{ content:''; flex:none; width:4px; height:4px; background:#f4f6fa; transform:translateY(-3px); }
-
-/* a framed picture: 4px inset, hairline, 4px corners */
-.frame{ padding:4px; border:1px solid rgba(255,255,255,.14); border-radius:4px; background:rgba(3,5,12,.6); }
-.frame > img, .frame > .ph{ display:block; width:100%; border-radius:4px; }
-.portrait{ width:240px; margin-bottom:16px; }
-.portrait .ph{ aspect-ratio:231 / 204; background:rgba(255,255,255,.05); display:grid; place-items:center; font-size:12px; color:rgba(255,255,255,.5); }
-.portrait img{ aspect-ratio:231 / 204; object-fit:cover; }
-
-.tiles{ list-style:none; display:flex; flex-wrap:wrap; gap:30px 10px; }
-.tile{ width:calc((100% - 10px) / 2); max-width:288px; display:flex; flex-direction:column; gap:8px; }
-.tile .frame > *{ aspect-ratio:279 / 186; background:rgba(255,255,255,.05); object-fit:contain; }
-.tile .frame > img{ padding:9% 10%; }
-.tile .frame > .ph{ display:grid; place-items:center; font-size:12px; color:rgba(255,255,255,.5); }
-.tile a{ width:max-content; }
-.tiles--sm .tile{ width:calc((100% - 50px) / 6); }
-.tiles--sm .tile .frame > *{ aspect-ratio:1; padding:18%; }
-.tiles--sm .tile span{ font-size:13px; }
-.etc{ margin-top:40px; }
-
-/* arcade: the TV keeps its dark shell, set in a frame like the pictures */
-.game-panel{ background:linear-gradient(180deg, #17191f, #0b0c10); border-radius:4px; padding:0 12px 12px; display:flex; flex-direction:column; }
-.game-hdr{ height:38px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
-.tv-btns{ display:flex; gap:7px; }
-.tv-btns i{ width:11px; height:11px; border-radius:3px; border:1px solid rgba(255,255,255,.22); }
-.game-hdr-title{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.26em; color:rgba(255,255,255,.6); }
-.tv-air{ justify-self:end; display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; color:rgba(255,120,110,.9);
-  padding:4px 8px; border:1px solid rgba(255,120,110,.35); border-radius:4px; }
-.tv-air-dot{ width:6px; height:6px; border-radius:50%; background:#ff5a4e; animation:gdot 2s ease-in-out infinite; }
-@keyframes gdot{ 0%,100%{ opacity:1 } 50%{ opacity:.3 } }
-.game-stage{ position:relative; height:clamp(480px, 70vh, 600px); display:flex; border-radius:12px; overflow:hidden; background:#000; }
-html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4); }
+/* the game, where the reference has its photo */
+.ab-game{ display:flex; flex-direction:column; gap:8px; font-size:13px; line-height:16px; font-weight:600; }
+.ab-game p{ display:flex; justify-content:space-between; color:var(--ab-dim); }
+.ab-game p b{ color:var(--ab-ink); font-weight:600; }
+.game-stage{ position:relative; aspect-ratio:7 / 6; display:flex; border-radius:4px; overflow:hidden; background:#000;
+  box-shadow:0 18px 40px rgba(0,0,0,.35); }
+#game-iframe{ position:absolute; left:0; top:0; width:760px !important; height:652px; transform:scale(calc(460 / 760)); transform-origin:0 0; }
 .game-stage.on{ animation:crtOn 1.1s var(--ease-out) both; }
 @keyframes crtOn{
   0%{ transform:scale(.4, .004); filter:brightness(4); }
@@ -157,31 +114,23 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
   100%{ transform:none; filter:none; opacity:1; }
 }
 /* the cover hands the keyboard to the game, so arrow keys stop scrolling the page */
-.game-play{ position:absolute; inset:0; z-index:2; display:grid; place-items:end center; padding-bottom:12%; border:0; cursor:pointer; color:#f4f6fa;
-  background:linear-gradient(transparent 45%, rgba(0,0,0,.7)); transition:opacity .4s var(--ease-out); }
-.game-play span{ font-family:'Press Start 2P', monospace; font-size:12px; letter-spacing:.12em; padding:14px 20px; border:1px solid rgba(255,255,255,.35); border-radius:6px; background:rgba(0,0,0,.6); }
-.game-play:hover span, .game-play:focus-visible span{ border-color:#f4f6fa; }
+.game-play{ position:absolute; inset:0; z-index:2; display:grid; place-items:end center; padding-bottom:16%; border:0; cursor:pointer; color:#f4f6fa;
+  background:none; transition:opacity .4s var(--ease-out); }
+/* before the first click: a still of the game's start screen, nothing loaded or moving */
+.game-stage:not(.on) .game-play{ background:#000 url(/images/arcade-poster.webp) 0 0 / 100% 100% no-repeat; }
+.game-play:focus-visible{ outline:2px solid #f4f6fa; outline-offset:-4px; }
 .game-play.gone{ opacity:0; pointer-events:none; }
-
-/* closing line, centred, like the reference footer */
-.footer{ text-align:center; padding:200px 0 0; }
-.footer h2{ font-size:40px; line-height:1.15; margin-bottom:28px; }
-.footer p{ margin-bottom:200px; }
-.footer small{ display:block; font-size:12px; padding-bottom:4px; }
-
-@media (prefers-reduced-motion: reduce){ .game-stage.on{ animation:none; } .tv-air-dot{ animation:none; } }
+@media (prefers-reduced-motion: reduce){ .game-stage.on{ animation:none; } }
 
 @media (--bp-900){
-  .g{ padding-top:96px; }
-  .read{ margin-bottom:64px; flex-wrap:wrap; }
-  .section{ flex-direction:column; gap:24px; padding-bottom:56px; margin-bottom:56px; }
-  .head{ flex-basis:auto; }
-  .tiles--sm .tile{ width:calc((100% - 20px) / 3); }
-  .footer{ padding-top:120px; }
-  .footer h2{ font-size:30px; }
-  .footer p{ margin-bottom:120px; }
+  .ab{ padding:96px 16px 40px; }
+  .ab-lede{ margin-bottom:64px; }
+  .ab-info{ grid-template-columns:1fr; }
+  .row{ grid-template-columns:1fr; gap:8px; }
+  .work{ grid-template-columns:minmax(0, 1fr) auto; }
+  .work .c3{ display:none; }
   /* the game (and its 70KB script) never boots on phones; see the boot script below */
-  #arcade{ display:none; }
+  .ab-game{ display:none; }
 }
 </style>
 <ErrorReporter />
@@ -189,110 +138,57 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 </head>
 
 <body>
-<div class="ab-sky" aria-hidden="true"></div>
 <div class="page-grain" aria-hidden="true"></div>
-<SkyLife jellies />
+<SiteSky />
 
 <SiteMenu currentPath="/about" />
 
-<main class="g">
-  <div class="read">
-    <h1 class="en">About</h1>
-    <p class="en" aria-hidden="true">/</p>
-    <p class="en">For anyone thinking about working with me.</p>
-  </div>
+<main class="ab">
+  <h1 class="ab-lede" data-reveal>
+    <b>Samuel Abhinav</b> is a <b>security engineer</b> working on <b>detection, incident response</b> and <b>network security</b>.
+    It started with a master's in Cybersecurity at <b>Iowa State University</b> and a habit of finding out how things break, then making sure they don't.
+    Most days go into writing detections, triaging alerts and rebuilding attack chains from logs.
+    The work so far includes <b>Moat</b>, an ad blocker that runs entirely in the browser, <b>Cluster</b>, which catches impersonation in Gmail from the headers alone, and <b>Sentinel</b>, a SOC lab where every rule has to fire on a real attack before it counts.
+    Outside of that there are accepted bug bounty findings on <b>HackerOne</b> and six certifications.
+    Currently looking for <b>SOC analyst, detection engineering</b> and <b>security engineering</b> roles.
+  </h1>
 
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">Intro</h2><h3 data-reveal>(Hello)</h3></div>
-    <div class="body" data-reveal-group>
-      <p>Thanks for stopping by. This page covers who I am, what I work on and the tools I use. If you're hiring for blue-team work, I hope it helps you get to know me.</p>
-    </div>
-  </section>
+  <div class="ab-info">
+    <div class="ab-rows" data-reveal-group>
+      <section class="row" data-toc="Contact">
+        <h2>Contact</h2>
+        <ul>
+          <li><a href="mailto:hello@samuelabhinav.com">hello@samuelabhinav.com</a></li>
+          <li><a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a></li>
+          <li><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a></li>
+        </ul>
+      </section>
 
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">About Me</h2><h3 data-reveal>(Who I am)</h3></div>
-    <div class="body" data-reveal-group>
-      <!-- to add the photo: replace the .ph span with <img src=... alt=...> -->
-      <div class="frame portrait"><span class="ph">Photo coming soon</span></div>
-      <p>Hello! I'm Samuel Abhinav, a security engineer who enjoys finding out how things break and then making sure they don't. I earned my master's in Cybersecurity at Iowa State University. That is where I settled on the defending side of the field: detection, incident response and network security.</p>
-      <p>Since graduating I've built and shipped three security projects. Moat is an ad and pop-up blocker that does all of its work inside the browser. Cluster cleans up Gmail and catches impersonation using only message headers. Sentinel is a SOC lab where every detection rule has to fire on a real attack before it counts.</p>
-      <p>Outside those projects I hunt bugs on HackerOne. My accepted findings include an S3 bucket leaking personal data, an IDOR and a subdomain takeover. I also write up threats on my blog and hold six certifications, among them Security+, Network+ and ISC2 CC.</p>
-      <p>When I'm not working, I'm usually tweaking the arcade game further down this page. If you need someone who actually enjoys reading the logs, I'd love to hear from you.</p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">What I Do</h2><h3 data-reveal>(Where I can help)</h3></div>
-    <div class="body" data-reveal-group>
-      <p>I work on the defending side. Most of my time goes into writing detections, triaging alerts and rebuilding attack chains from logs. I'm looking for SOC analyst, detection engineering and security engineering roles.</p>
-      <h4>Focus</h4>
-      <ul class="list">
-        <li>Detection engineering with Sigma rules tested against real attacks</li>
-        <li>Alert triage and log analysis</li>
-        <li>Incident response from EVTX, PCAP and portal logs</li>
-        <li>Email and browser security</li>
-        <li>Bug bounty recon: S3 exposure, IDOR, subdomain takeover</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">Work</h2><h3 data-reveal>(Things I've built)</h3></div>
-    <div class="body" data-reveal-group>
-      <p>Each project solves a real problem and runs in the real world. The case studies explain how they work.</p>
-      <h4>Projects</h4>
-      <ul data-reveal-group=".frame" class="tiles">
-        {work.map(([name, href, img]) => (
-          <li class="tile">
-            <div class="frame">{img ? <img src={img} alt="" loading="lazy" decoding="async"> : <span class="ph">Image coming soon</span>}</div>
-            <a class="en" href={href}>{name}</a>
-          </li>
-        ))}
-      </ul>
-      <p class="etc">More work is on the <a href="/">home page</a>.</p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">Toolkit</h2><h3 data-reveal>(What I use)</h3></div>
-    <div class="body" data-reveal-group>
-      <p>These are the tools I reach for most, and the projects are where they get real use.</p>
-      <div class="tk-cols">
-        {toolkit.map(([group, items]) => (
-          <div>
-            <h4>{group}</h4>
-            <ul class="list">{items.map((t) => <li class="en">{t}</li>)}</ul>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">Certifications</h2><h3 data-reveal>(What I've passed)</h3></div>
-    <div class="body" data-reveal-group>
-      <ul data-reveal-group=".frame" class="tiles tiles--sm">
-        {certs.map(([name, img]) => (
-          <li class="tile"><div class="frame"><img src={`/images/certs/${img}.webp`} alt={`${name} certification badge`} loading="lazy" decoding="async"></div><span class="en">{name}</span></li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  <section class="section" id="arcade">
-    <div class="head"><h2 class="en" data-reveal="lines">Arcade</h2><h3 data-reveal>(Play a round)</h3></div>
-    <div class="body" data-reveal-group>
-      <p>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
-      <h4>INFILTRATE // DEFEND</h4>
-      <div class="frame">
-      <div class="game-panel">
-        <div class="game-hdr">
-          <span class="tv-btns" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span class="game-hdr-title">CH 03</span>
-          <span class="tv-air"><span class="tv-air-dot" aria-hidden="true"></span>ON AIR</span>
+      <section class="row" data-toc="Selected Work">
+        <h2>Selected Work</h2>
+        <div class="work">
+          <div class="th"><span>Project</span><span>Type</span><span class="c3">Area</span></div>
+          {PROJECTS.map((p) => (
+            <a href={`/work/${p.slug}/`}><span>{p.name}</span><span>{p.tags[0]}</span><span class="c3">{p.tags.slice(1).join(', ')}</span></a>
+          ))}
         </div>
-        <div class="game-stage">
-          <button class="game-play" type="button" aria-label="Play INFILTRATE // DEFEND"><span>CLICK TO PLAY</span></button>
+      </section>
+
+      <section class="row" data-toc="Toolkit">
+        <h2>Toolkit</h2>
+        <p class="tk">{toolkit.flatMap(([, items]) => items).join(', ')}</p>
+      </section>
+
+      <section class="row" data-toc="Certifications">
+        <h2>Certifications</h2>
+        <p>{certs.join(', ')}</p>
+      </section>
+    </div>
+
+    <figure class="ab-game" id="arcade" data-toc="Arcade">
+      <p><b>INFILTRATE // DEFEND</b><span>Play a round</span></p>
+      <div class="game-stage">
+        <button class="game-play" type="button" aria-label="Play INFILTRATE // DEFEND"></button>
 <iframe id="game-iframe" title="INFILTRATE // DEFEND (playable arcade game)" data-srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
@@ -675,31 +571,9 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
 &lt;/body&gt;
 &lt;/html&gt;
 " style="flex:1;width:100%;border:none;background:#000;display:block;" sandbox="allow-scripts allow-same-origin"></iframe>
-        </div>
       </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="head"><h2 class="en" data-reveal="lines">Contact</h2><h3 data-reveal>(Get in touch)</h3></div>
-    <div class="body" data-reveal-group>
-      <p>Thanks for reading this far. Pick whichever way of reaching me suits you best.</p>
-      <ul class="list" style="margin-top:14px">
-        <li><a href="/contact/">Contact page</a></li>
-        <li><a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a></li>
-        <li><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a></li>
-        <li><a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener">X</a></li>
-        <li><a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a></li>
-      </ul>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <h2 class="en" data-reveal="lines">Let's keep the logs honest.</h2>
-    <p data-reveal>Talk soon.</p>
-    <small>© 2026 Samuel Abhinav</small>
-  </footer>
+    </figure>
+  </div>
 </main>
 
 <script is:inline>
@@ -716,15 +590,17 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   var play = document.querySelector('.game-play');
   if(!ifr) return;
   if(window.SITE && window.SITE.LOW_POWER){ ifr.remove(); if(play) play.remove(); return; }
-  var io = new IntersectionObserver(function(es){
-    if(!es[0].isIntersecting) return;
-    io.disconnect();
-    ifr.srcdoc = ifr.getAttribute('data-srcdoc');
-    ifr.removeAttribute('data-srcdoc');
-  }, { rootMargin:'600px 0px' });
-  io.observe(ifr);
+  var stage = document.querySelector('.game-stage');
+  // nothing loads or moves until the first click: then the game boots and the screen powers on
   play.addEventListener('click', function(){
     play.classList.add('gone');
+    if(ifr.hasAttribute('data-srcdoc')){
+      ifr.addEventListener('load', function(){ ifr.focus(); try { ifr.contentWindow.focus(); } catch(e){} }, { once:true });
+      ifr.srcdoc = ifr.getAttribute('data-srcdoc');
+      ifr.removeAttribute('data-srcdoc');
+      stage.classList.add('on');
+      return;
+    }
     ifr.focus();
     try { ifr.contentWindow.focus(); } catch(e){}
   });
@@ -732,32 +608,16 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
   addEventListener('focus', function(){ play.classList.remove('gone'); });
 })();
 
-/* each section's hairline draws in from the left once it comes into view */
+/* a cell too long for its column scrolls sideways in a loop, like the reference's client list */
 (function(){
-  if(!document.documentElement.classList.contains('motion')) return;
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, { rootMargin:'0px 0px -6% 0px' });
-  document.querySelectorAll('.section:not(:last-of-type)').forEach(function(s){
-    var r = document.createElement('i'); r.className = 'rule'; r.setAttribute('aria-hidden', 'true');
-    s.appendChild(r); s.classList.add('has-rule'); io.observe(r);
+  document.querySelectorAll('.work > a > span, .tk').forEach(function(el){
+    if(el.scrollWidth <= el.clientWidth + 1) return;
+    var h = el.innerHTML;
+    el.innerHTML = '<span class="mq"><span>' + h + '</span><span aria-hidden="true">' + h + '</span></span>';
+    var w = el.firstChild.firstChild.offsetWidth;
+    el.firstChild.style.setProperty('--d', (w / 28).toFixed(1) + 's'); // about 28px a second
   });
 })();
-
-/* arcade power-on once the screen is a quarter in view */
-(function(){
-  var st = document.querySelector('.game-stage');
-  if(!st) return;
-  var io = new IntersectionObserver(function(es){ if(es[0].isIntersecting){ st.classList.add('on'); io.disconnect(); } }, { threshold:.25 });
-  io.observe(st);
-})();
-</script>
-
-<script is:inline>
-/* No intro choreography on this page: mark it settled straight away so
-   Kai's arrival greet runs (it waits on _introFullyDone). */
-window.SITE._introRevealReady = true;
-window.SITE._introFullyDone   = true;
 </script>
 
 
@@ -765,20 +625,9 @@ window.SITE._introFullyDone   = true;
 
 
 
-<script is:inline>
-/* Luna arrival on the About page — no intro timeline here, so fire the
-   portal bloom once shortly after load; the greet (wave + sparkle) inside
-   the Luna embed self-triggers off window.SITE._introFullyDone. */
-(function(){
-  var portal = document.getElementById('luna-portal');
-  if(!portal) return;
-  setTimeout(function(){ portal.classList.add('opening'); }, 600);
-})();
-</script>
 
-<KaiSite />
-<script is:inline src="/scripts/luna-kb-base.js"></script>
-<script is:inline src="/scripts/about-luna-kb.js"></script>
+
+<ScrollToc />
 
 
 </body>
