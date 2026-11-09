@@ -26,8 +26,16 @@
     var cut = rest.length <= n + 1 ? rest.length : n, f = rest.slice(0, cut);
     rest = rest.slice(cut); return f;
   }
-  function ink(a){ return root.getAttribute('data-theme') === 'light' ? 'rgba(34,58,40,' + a + ')' : 'rgba(228,224,184,' + a + ')'; }
-  function text(s, x, y, size, a){ ctx.font = '500 ' + size + 'px ' + FONT; ctx.fillStyle = ink(a); ctx.fillText(s, x, y); }
+  // AM, SZ: alpha and size of the layer being drawn (a dim, blurred, larger one behind the sharp one)
+  var AM = 1, SZ = 1;
+  function light(){ return root.getAttribute('data-theme') === 'light'; }
+  // dark: a soft warm cream (the glow is set per layer); light: green ink
+  function ink(a){ a = Math.min(1, a * AM); return light() ? 'rgba(34,58,40,' + a + ')' : 'rgba(222,212,168,' + (a * 0.85).toFixed(3) + ')'; }
+  // every word a little bigger or smaller than its neighbours
+  function text(s, x, y, size, a){
+    ctx.font = (light() ? '500 ' : '400 ') + (size * SZ * (0.82 + rnd() * 0.36)).toFixed(1) + 'px ' + FONT;
+    ctx.fillStyle = ink(a); ctx.fillText(s, x, y);
+  }
 
   // a column of fragments along a path; n(t) = letters per piece, t from 0 (start) to 1
   function stem(pt, len, n, size){
@@ -58,10 +66,14 @@
       while (cx < b0){
         var span = b0 - cx, w = word(), mw = ctx.measureText(w).width;
         if (mw > span + 4){ var keep = Math.max(1, Math.floor(w.length * (span + 4) / mw)); w = w.slice(0, keep); mw = ctx.measureText(w).width; }
-        text(w, cx, yy, size, 0.55 + rnd() * 0.35);
+        // brighter toward the tip
+        var uu = ((cx - x) * ca + (yy - y) * sa) / len;
+        text(w, cx, yy, size, 0.3 + uu * 0.35 + rnd() * 0.3);
         cx += mw * (0.7 + rnd() * 0.2) + 1;
       }
     }
+    // a vein of short fragments down the middle
+    for (var d = 3; d < len * 0.85; d += size * 0.6) text(frag(2), x + ca * d - 3, y + sa * d, size * 0.8, 0.95);
   }
 
   // a small flower: five word petals around a knot of short fragments
@@ -84,15 +96,29 @@
     var H = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
     cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'middle';
-    rnd = rng(11); wi = 0; rest = '';
-    var sx = function(y){ return 40 + 14 * Math.sin(y / 170) + 7 * Math.sin(y / 61 + 1); };
+    // the back layer: bigger, dimmer and out of focus, a little further left
+    ctx.save(); if ('filter' in ctx) ctx.filter = 'blur(1.6px)';
+    AM = light() ? 0.3 : 0.32; SZ = 1.3; plant(H, -18, 23, 1.25); ctx.restore();
+    // the front layer, sharp; in the dark a faint glow round the letters
+    ctx.save(); if (!light()){ ctx.shadowColor = 'rgba(230,214,150,.35)'; ctx.shadowBlur = 6; }
+    AM = 1; SZ = 1; plant(H, 12, 11, 1); ctx.restore();
+  }
+
+  // the creeper itself; ox = how far in from the edge the stem stands, k = scale of its leaves
+  function plant(H, ox, seed, k){
+    rnd = rng(seed); wi = seed; rest = '';
+    var sx = function(y){ return ox + 12 * Math.sin(y / 170) + 6 * Math.sin(y / 61 + 1); };
     // main stem, bottom to top, 4 letters wide at the foot thinning to 1
     stem(function(t){ var y = H + 10 - t * (H - 70); return [sx(y), y]; }, H - 70, function(t){ return 4 - t * 3; }, 12);
     // a second, thinner stem winding round the first for the lower two thirds
     stem(function(t){ var y = H + 10 - t * H * 0.66; return [sx(y) + 10 * Math.sin(y / 38), y]; }, H * 0.66, function(t){ return 2 - t; }, 11);
     // side shoots, alternating right and left, each ending in a leaf; some carry a flower or a tendril
+    // small leaflets all the way up, alternating sides
+    for (var ly = H - 20, ls = 1; ly > 110; ly -= 26 + rnd() * 18, ls = -ls)
+      leaf(sx(ly), ly, ls > 0 ? -0.6 - rnd() * 0.5 : -Math.PI + 0.5 + rnd() * 0.5, (14 + rnd() * 10) * k, (4 + rnd() * 2) * k);
+    // side shoots, mostly to the right now the stem stands at the edge
     var side = 1, n = 0;
-    for (var y = H - 60; y > 130; y -= 70 + rnd() * 40, side = -side, n++){
+    for (var y = H - 60; y > 170; y -= (60 + rnd() * 40) * k, n++, side = n % 3 === 2 ? -1 : 1){
       var bx = sx(y), dirA = side > 0 ? -0.5 - rnd() * 0.5 : -Math.PI + 0.6 + rnd() * 0.4;
       var blen = side > 0 ? 30 + rnd() * 40 : 10 + rnd() * 10;
       var ex = bx + Math.cos(dirA) * blen, ey = y + Math.sin(dirA) * blen;
