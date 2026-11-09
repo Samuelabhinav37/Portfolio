@@ -44,11 +44,12 @@
   /* ── the tear: a small console in the top-left corner of the New York
      plate, beside the seal (the plate is 26% of the card; the seal starts
      66px before its right edge, so this stays under ~145px wide) ── */
-  .tear{ position:absolute; z-index:6; left:14px; top:30px; pointer-events:none; }
+  /* z-index 4: when it runs wide while typing, its corner tucks under the seal (5) */
+  .tear{ position:absolute; z-index:4; left:30px; top:32px; pointer-events:none; }
   .tear-hole{ position:relative; background:#060505; filter:sepia(0.3) brightness(0.92);
     box-shadow:0 3px 8px rgba(0,0,0,0.35); }
-  .ic-body{ margin:0; padding:6px 9px 7px 8px;
-    font-family:'Lucida Console', 'JetBrains Mono', monospace; font-size:8px; line-height:10px;
+  .ic-body{ margin:0; padding:7px 10px 8px 9px;
+    font-family:'Lucida Console', 'JetBrains Mono', monospace; font-size:9px; line-height:11.5px;
     color:#c8c8c8; white-space:pre; overflow:hidden;
     /* the colour fringing of a broken signal */
     text-shadow:-0.5px 0 rgba(255,70,90,0.45), 0.5px 0 rgba(90,235,225,0.45); }
