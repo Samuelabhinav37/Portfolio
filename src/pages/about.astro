@@ -14,7 +14,6 @@ const toolkit: [string, string[]][] = [
   ['Code and cloud', ['Python / PowerShell', 'Ghidra', 'Terraform / Docker', 'AWS / Azure']],
 ];
 const certs = ['Security+', 'Network+', 'ISC2 CC', 'AWS CCP', 'AZ-900', 'HTB CJCA'];
-const focus = ['Detection engineering with Sigma rules tested against real attacks', 'Alert triage and log analysis', 'Incident response from EVTX, PCAP and portal logs', 'Email and browser security', 'Bug bounty recon: S3 exposure, IDOR, subdomain takeover'];
 ---
 
 <!DOCTYPE html>
@@ -75,7 +74,7 @@ body { color:var(--ab-ink); font-family:'Inter Tight', 'Inter', -apple-system, B
   color:var(--ab-dim); max-width:1400px; margin-bottom:96px; }
 .ab-lede b{ font-weight:600; color:var(--ab-ink); }
 
-.ab-info{ display:grid; grid-template-columns:minmax(0, 1fr) min(640px, 44vw); gap:40px; align-items:end; }
+.ab-info{ display:grid; grid-template-columns:minmax(0, 1fr) 460px; gap:40px; align-items:end; }
 .ab-rows{ display:flex; flex-direction:column; gap:52px; font-size:13px; line-height:16px; font-weight:600; letter-spacing:-.01em; }
 .row{ display:grid; grid-template-columns:170px minmax(0, 1fr); }
 .row > h2{ font:inherit; color:var(--ab-dim); }
@@ -86,7 +85,7 @@ body { color:var(--ab-ink); font-family:'Inter Tight', 'Inter', -apple-system, B
 .k{ color:var(--ab-dim); }
 
 /* selected work: a plain table like the reference's client list */
-.work{ display:grid; grid-template-columns:minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1.2fr); column-gap:20px; }
+.work{ display:grid; grid-template-columns:120px 190px minmax(0, 1fr); column-gap:20px; }
 .work > *{ display:contents; }
 .work span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .work .th > span{ color:var(--ab-dim); }
@@ -150,17 +149,10 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
       <section class="row" data-toc="Contact">
         <h2>Contact</h2>
         <ul>
-          <li><a href="/contact/">Send a postcard</a></li>
+          <li><a href="mailto:hello@samuelabhinav.com">hello@samuelabhinav.com</a></li>
           <li><a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener">LinkedIn</a></li>
           <li><a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener">GitHub</a></li>
-          <li><a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener">X</a></li>
-          <li><a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a></li>
         </ul>
-      </section>
-
-      <section class="row" data-toc="Focus">
-        <h2>Focus</h2>
-        <ul>{focus.map((f) => <li>{f}</li>)}</ul>
       </section>
 
       <section class="row" data-toc="Selected Work">
@@ -168,7 +160,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
         <div class="work">
           <div class="th"><span>Project</span><span>Type</span><span class="c3">Area</span></div>
           {PROJECTS.map((p) => (
-            <a href={`/work/${p.slug}/`}><span>{p.name} <span class="k">{p.line}</span></span><span>{p.tags[0]}</span><span class="c3">{p.tags.slice(1).join(', ')}</span></a>
+            <a href={`/work/${p.slug}/`}><span>{p.name}</span><span>{p.tags[0]}</span><span class="c3">{p.tags.slice(1).join(', ')}</span></a>
           ))}
         </div>
       </section>
