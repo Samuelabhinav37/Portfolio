@@ -1,6 +1,6 @@
 // Cloudflare Pages Function — GET /api/signal-feed
-// Server-side aggregator for the homepage's "Signal" panel (security news +
-// upcoming CTFs), so the browser never has to route through a public CORS
+// Server-side aggregator for security news (the nav's news tab) +
+// upcoming CTFs, so the browser never has to route through a public CORS
 // proxy (allorigins.win, corsproxy.io) — those have no uptime SLA and go
 // down/rate-limit independently of each other. Cached at the edge since
 // refetching the same feeds per visitor would be wasteful.
@@ -83,9 +83,10 @@ async function fetchFeed(f) {
 
 async function fromNews() {
   const results = await Promise.all(NEWS_FEEDS.map((f) => fetchFeed(f).catch(() => [])));
-  const all = results.flat();
+  // three from each site, so one busy feed can't fill the whole strip
+  const all = results.flatMap((items) => items.slice(0, 3));
   all.sort((a, b) => b.date - a.date);
-  return all.slice(0, 5);
+  return all;
 }
 
 async function fromCtf() {

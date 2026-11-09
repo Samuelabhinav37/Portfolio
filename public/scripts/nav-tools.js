@@ -23,6 +23,33 @@
     });
   }
 
+  /* news: security headlines from /api/signal-feed (The Hacker News,
+     BleepingComputer, Krebs). The page ships the newest blog posts in the
+     strip, which stay if the feed fails. */
+  fetch('/api/signal-feed')
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error('news ' + r.status))))
+    .then((d) => {
+      const items = (Array.isArray(d.news) ? d.news : []).filter((n) => n.title && /^https?:\/\//.test(n.link));
+      if (!items.length) return;
+      const track = nt.querySelector('.nt-news .nt-track');
+      const glint = track.querySelector('.nt-glint');
+      track.querySelectorAll('.nt-run').forEach((run, copy) => {
+        run.replaceChildren(...items.map((n) => {
+          const a = document.createElement('a');
+          a.href = n.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+          if (copy) a.tabIndex = -1;
+          if (glint) a.append(glint.cloneNode(true));
+          a.append(n.title);
+          const s = document.createElement('span');
+          s.className = 'nt-src'; s.textContent = n.source || '';
+          a.append(s);
+          return a;
+        }));
+      });
+      if (current === 'news') drift(nt.querySelector('.nt-news'));
+    })
+    .catch(() => {});
+
   /* tabs */
   let current = 'news';
   function show(name) {

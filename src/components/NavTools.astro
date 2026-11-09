@@ -2,7 +2,8 @@
 /**
  * The nav's tool strip, after motherdesign.com: a panel and four square
  * tabs. Each tab swaps what the panel shows:
- *   news   - the newest blog posts, drifting left in a loop
+ *   news   - security headlines (/api/signal-feed), drifting left in a
+ *            loop; the newest blog posts are the fallback
  *   cursor - pick one of the site's own cursors (public/cursors, drawn by
  *            scripts/make-cursors.mjs)
  *   music  - a small Darknet Diaries player (episodes from /api/podcast)
@@ -106,6 +107,7 @@ const cursors = [
   .nt-news a { display: inline-flex; align-items: center; gap: 8px; padding-right: 28px; color: inherit; text-decoration: none; transition: opacity .25s; }
   .nt-news a:first-child { padding-left: 14px; }
   .nt-news a:hover { opacity: .6; }
+  .nt-src { opacity: .55; }
   .nt-glint { width: 10px !important; height: 10px !important; flex: none; }
   .nt-glint path { fill: currentColor; stroke: none; }
   .nt-news:hover .nt-track, .nt-news:focus-within .nt-track { animation-play-state: paused; }
