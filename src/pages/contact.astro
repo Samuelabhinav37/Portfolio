@@ -109,8 +109,8 @@ window.SITE=window.SITE||{};
   @media (min-width:901px){ .poster{ zoom:0.8; } }
 
   .poster-art{ position:relative; overflow:hidden; background:#5f5a50;
-    -webkit-mask:var(--plate-cut, url("/images/contact-burn-plate-cut.svg")) 0 0 / 100% 100% no-repeat;
-    mask:var(--plate-cut, url("/images/contact-burn-plate-cut.svg")) 0 0 / 100% 100% no-repeat; }
+    -webkit-mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat;
+    mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat; }
   /* black and white, faded, like an old halftone plate */
   .poster-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:47% 50%; display:block;
     filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
@@ -240,7 +240,7 @@ window.SITE=window.SITE||{};
     box-shadow:inset 0 0 0 1px rgba(100,70,34,0.35), inset 0 0 34px rgba(100,68,30,0.45), inset 0 0 130px rgba(90,62,28,0.25);
     /* a punched strip down both edges, as on a loose-leaf page */
     -webkit-mask:
-      var(--paper-cut, url("/images/contact-burn-paper-cut.svg")) 0 0 / 100% 100% no-repeat,
+      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
       var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
       linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
@@ -249,7 +249,7 @@ window.SITE=window.SITE||{};
       linear-gradient(#000,#000) 0 0 / var(--strip) var(--top) no-repeat,
       linear-gradient(#000,#000) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat;
     mask:
-      var(--paper-cut, url("/images/contact-burn-paper-cut.svg")) 0 0 / 100% 100% no-repeat,
+      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
       var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
       linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
@@ -505,38 +505,13 @@ window.SITE=window.SITE||{};
 
   /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
      back the right way round go back to their own print look ── */
-  /* clean paper: the same postcard, minus the age. No stains, foxing,
-     scuffs, creases, embossing or burns; neutral ink; the window chrome
-     unburnt. The base is a mid grey because the brightness/contrast below
-     lifts it to an off-white (#f4f2ec). */
-  body[data-holo="paper"]{ --plate-cut:linear-gradient(#000,#000); --paper-cut:linear-gradient(#000,#000); }
-  body[data-holo="paper"] .form-panel{ --ink:26,28,36; --paper:#b4b2ae;
-    --rims:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), rgba(0,0,0,0.22) calc(var(--hole) / 2 + 0.5px), rgba(0,0,0,0.05) calc(var(--hole) / 2 + 2px), transparent calc(var(--hole) / 2 + 5px));
-    background:
-      linear-gradient(var(--paper),var(--paper)) 100% 0 / var(--strip) var(--top) no-repeat,
-      linear-gradient(var(--paper),var(--paper)) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
-      linear-gradient(var(--paper),var(--paper)) 0 0 / var(--strip) var(--top) no-repeat,
-      linear-gradient(var(--paper),var(--paper)) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
-      var(--rims) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
-      var(--rims) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
-      var(--paper);
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12); }
-  body[data-holo="paper"] .form-panel::after,
-  body[data-holo="paper"] .poster-art::before,
-  body[data-holo="paper"] .poster-art::after,
-  body[data-holo="paper"] .xp-bar::after,
-  body[data-holo="paper"] .xp-frame::after{ display:none; }
-  body[data-holo="paper"] .poster-art img{ filter:grayscale(1) contrast(1.05); }
-  body[data-holo="paper"] .plate-title{ color:rgba(26,28,36,0.85); filter:none; }
-  body[data-holo="paper"] .seal{ filter:grayscale(1) drop-shadow(0 4px 5px rgba(0,0,0,0.35)); }
-  body[data-holo="paper"] .pc-stamp{ filter:drop-shadow(0 1px 1.5px rgba(0,0,0,0.3)); }
-  body[data-holo="paper"] .xp-bar, body[data-holo="paper"] .xp-frame{ filter:none; -webkit-mask:none; mask:none; }
-  body[data-holo="paper"] #turnstile-widget{ filter:none; }
   /* brighter, crisper paper (set in public/_contact-tune.html, 2026-11-09) */
   body[data-holo="paper"] .poster{ filter:hue-rotate(1deg) brightness(1.25) contrast(1.2); }
-  body[data-holo="paper"] .attach{ filter:grayscale(1) contrast(1.34); }
+  body[data-holo="paper"] .attach{ filter:contrast(1.34); }
   :root[data-theme="light"] body[data-holo="paper"] .poster{ filter:brightness(1.25) contrast(1.2); }
-  :root[data-theme="light"] body[data-holo="paper"] .attach{ filter:grayscale(1); }
+  :root[data-theme="light"] body[data-holo="paper"] .attach{ filter:none; }
+  body[data-holo="paper"] .poster-art img{ filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
+  body[data-holo="paper"] .poster-art::after{ display:block; }
   body[data-holo="paper"] .attach img, body[data-holo="paper"] .tear-hole{ filter:none; }
   body[data-holo="paper"] .sky-life{ filter:grayscale(1) brightness(1.1); }
   /* day sky: screen blending only works on black, so the card prints solid */
