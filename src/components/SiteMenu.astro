@@ -6,6 +6,9 @@
  * all in the site's serif. The page you are on is bright, the others dim and
  * brighten on hover; on the home page (no current page) all are bright.
  *
+ * Links other than the current page roll their letters up on hover, like
+ * the footer links (data-roll, motion.js).
+ *
  * `hasIntro` is only true on the home page, which fades the name and links
  * in with its intro (index-intro-sequence.js writes their opacity by id).
  */
@@ -38,7 +41,7 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
 
 <nav id="site-nav" aria-label="Primary" class={onLink ? 'has-current' : undefined}>
   <span class="nav-list">{links.map((l, i) => (
-    <>{i > 0 && <span class="sep" aria-hidden="true">, </span>}<a href={l.href} aria-current={here(l.href)}>{l.label}</a></>
+    <>{i > 0 && <span class="sep" aria-hidden="true">, </span>}<a href={l.href} aria-current={here(l.href)} data-roll={here(l.href) ? undefined : ""}>{l.label}</a></>
   ))}</span>
   <span class="nav-end">
     {themeToggle && (
@@ -47,7 +50,7 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
       </button>
     )}
-    <a href={contact.href} aria-current={here(contact.href)}>{contact.label}</a>
+    <a href={contact.href} aria-current={here(contact.href)} data-roll={here(contact.href) ? undefined : ""}>{contact.label}</a>
   </span>
 </nav>
 

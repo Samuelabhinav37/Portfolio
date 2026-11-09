@@ -253,8 +253,8 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
 
     <!-- the site's top line (SiteMenu.astro): pages as one comma-separated list -->
     <nav id="site-nav" aria-label="Primary" class="has-current">
-      <span class="nav-list"><a href={SITE.links.blogIndex} aria-current="page">{i18n.navBlog}</a><span class="sep" aria-hidden="true">, </span><a href="https://samuelabhinav.com/photos/">{i18n.navArchive}</a><span class="sep" aria-hidden="true">, </span><a href={SITE.links.about}>{i18n.navAbout}</a></span>
-      <a href={SITE.links.contact}>{i18n.navContact}</a>
+      <span class="nav-list"><a href={SITE.links.blogIndex} aria-current="page">{i18n.navBlog}</a><span class="sep" aria-hidden="true">, </span><a href="https://samuelabhinav.com/photos/" data-roll>{i18n.navArchive}</a><span class="sep" aria-hidden="true">, </span><a href={SITE.links.about} data-roll>{i18n.navAbout}</a></span>
+      <a href={SITE.links.contact} data-roll>{i18n.navContact}</a>
     </nav>
 
     <!-- Header: the topic label, headline, the series line (no author name:
