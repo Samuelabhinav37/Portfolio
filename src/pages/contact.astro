@@ -109,8 +109,8 @@ window.SITE=window.SITE||{};
   @media (min-width:901px){ .poster{ zoom:0.8; } }
 
   .poster-art{ position:relative; overflow:hidden; background:#5f5a50;
-    -webkit-mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat;
-    mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat; }
+    -webkit-mask:var(--plate-cut, url("/images/contact-burn-plate-cut.svg")) 0 0 / 100% 100% no-repeat;
+    mask:var(--plate-cut, url("/images/contact-burn-plate-cut.svg")) 0 0 / 100% 100% no-repeat; }
   /* black and white, faded, like an old halftone plate */
   .poster-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:47% 50%; display:block;
     filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
@@ -240,7 +240,7 @@ window.SITE=window.SITE||{};
     box-shadow:inset 0 0 0 1px rgba(100,70,34,0.35), inset 0 0 34px rgba(100,68,30,0.45), inset 0 0 130px rgba(90,62,28,0.25);
     /* a punched strip down both edges, as on a loose-leaf page */
     -webkit-mask:
-      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
+      var(--paper-cut, url("/images/contact-burn-paper-cut.svg")) 0 0 / 100% 100% no-repeat,
       var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
       linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
@@ -249,7 +249,7 @@ window.SITE=window.SITE||{};
       linear-gradient(#000,#000) 0 0 / var(--strip) var(--top) no-repeat,
       linear-gradient(#000,#000) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat;
     mask:
-      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
+      var(--paper-cut, url("/images/contact-burn-paper-cut.svg")) 0 0 / 100% 100% no-repeat,
       var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
       linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
