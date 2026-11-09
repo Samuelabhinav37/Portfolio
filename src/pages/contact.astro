@@ -138,19 +138,6 @@ window.SITE=window.SITE||{};
     filter:saturate(0.7) sepia(0.2) brightness(0.78) contrast(1.08) drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
   .paper-shadow{ min-width:0; }
 
-  /* the attachment hangs off the right edge, turned a little, pivoting on
-     its own tie hole (62,34 in the 581px original, 23.5,13 here); the
-     twine runs from the letter's second hole to it */
-  /* (the title bar adds 18px above the picture, so the pivot sits 18px lower) */
-  .attach{ position:absolute; z-index:-1; top:132px; left:calc(100% + 14px); width:220px;
-    transform:rotate(7deg); transform-origin:23.5px 31px; }
-  .attach img{ display:block; width:100%; height:auto;
-    filter:drop-shadow(0 10px 14px rgba(0,0,0,0.55)); }
-  .attach-glitch{ position:absolute; left:0; bottom:0; width:100%; height:auto; aspect-ratio:330 / 514; pointer-events:none; }
-  .twine{ position:absolute; z-index:6; top:100px; left:calc(100% - 40px); width:100px; height:110px;
-    overflow:visible; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.5)); pointer-events:none; }
-  /* only where there's room beside the card */
-  @media (max-width:1180px){ .attach, .twine{ display:none; } }
 
   /* ── Windows XP (Luna) title bar, faded and burnt ──
      The blue is the real Luna gradient; a sepia filter ages it, the paper
@@ -191,10 +178,6 @@ window.SITE=window.SITE||{};
     mask:url("/images/contact-xpframe-wide-mask.webp") 0 0 / 100% 100% no-repeat; }
   .xp-frame::after{ content:''; position:absolute; top:0; left:-6px; right:-6px; bottom:-6px;
     background:url("/images/contact-xpframe-wide-char.webp") 0 0 / 100% 100% no-repeat; }
-  .xp-frame-small{ left:-3px; right:-3px; top:18px; bottom:-3px; border-width:0 3px 3px;
-    box-shadow:inset 1px 0 0 #3d7bf2, inset -1px 0 0 #3d7bf2, inset 0 -1px 0 #3d7bf2;
-    -webkit-mask-image:url("/images/contact-xpframe-small-mask.webp"); mask-image:url("/images/contact-xpframe-small-mask.webp"); }
-  .xp-frame-small::after{ left:-3px; right:-3px; bottom:-3px; background-image:url("/images/contact-xpframe-small-char.webp"); }
 
   /* the picture viewer's bar, smaller, sitting on top of the plate */
   .xp-bar.xp-small{ position:relative; top:auto; left:auto; right:auto; margin-bottom:-3px; height:21px; gap:3px;
@@ -207,7 +190,7 @@ window.SITE=window.SITE||{};
   .xp-small .xp-max::before{ left:2px; top:2px; width:7px; height:7px; border-top-width:2px; }
   .xp-small .xp-close::before, .xp-small .xp-close::after{ width:8px; height:1.5px; margin:-0.75px 0 0 -4px; }
   .form-panel{
-    --ink:40,31,22;
+    --ink:40,31,22; --paper:#d3c6aa;
     --strip:52px; --hole:14px; --pitch:46px; --top:58px;
     --holes:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), #000 calc(var(--hole) / 2 + 0.6px));
     --rims:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), rgba(80,56,28,0.3) calc(var(--hole) / 2 + 0.5px), rgba(80,56,28,0.08) calc(var(--hole) / 2 + 2px), transparent calc(var(--hole) / 2 + 5px));
@@ -229,13 +212,13 @@ window.SITE=window.SITE||{};
       url("/images/contact-paper-photo.webp") center / cover no-repeat,
       url("/images/contact-paper.svg") 0 0 / 720px 960px,
       radial-gradient(ellipse 70% 60% at 52% 45%, rgba(236,224,196,0.18), transparent 75%),
-      linear-gradient(#d3c6aa,#d3c6aa) 100% 0 / var(--strip) var(--top) no-repeat,
-      linear-gradient(#d3c6aa,#d3c6aa) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
-      linear-gradient(#d3c6aa,#d3c6aa) 0 0 / var(--strip) var(--top) no-repeat,
-      linear-gradient(#d3c6aa,#d3c6aa) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 100% 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 0 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
       var(--rims) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--rims) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
-      #d3c6aa;
+      var(--paper);
     /* edges browned by years of handling */
     box-shadow:inset 0 0 0 1px rgba(100,70,34,0.35), inset 0 0 34px rgba(100,68,30,0.45), inset 0 0 130px rgba(90,62,28,0.25);
     /* a punched strip down both edges, as on a loose-leaf page */
@@ -441,7 +424,6 @@ window.SITE=window.SITE||{};
       drop-shadow(0 0 8px rgba(70,220,255,0.15));
     animation:drift 16s ease-in-out infinite alternate, holo-flicker 18s steps(1) infinite; }
   /* photos of light things (the flowers, the nebula) stay the right way round */
-  body[data-tone="holo"] .attach img{ filter:invert(1) grayscale(1); }
   /* the plate's drawing: its ink is what glows. Its tones are squeezed so the
      lines come out at about half strength and the paper drops away */
   body[data-tone="holo"] .poster-art img{ filter:grayscale(1) contrast(0.45) brightness(1.6); }
@@ -453,7 +435,6 @@ window.SITE=window.SITE||{};
   body[data-tone="holo"] .xp-frame{ opacity:0.5; }
   body[data-tone="holo"] .wreck-fx{ opacity:0.55; }
   body[data-tone="holo"] .tear-fx{ opacity:0.7; }
-  body[data-tone="holo"] .attach{ opacity:0.8; }
   /* the broken-screen overlay, gentler here: its rolling band lit the whole card */
   body[data-tone="holo"] .wreck{ opacity:0.4; }
   body[data-tone="holo"] .form-panel > .wreck{ opacity:0.2; }
@@ -506,13 +487,13 @@ window.SITE=window.SITE||{};
   /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
      back the right way round go back to their own print look ── */
   /* brighter, crisper paper (set in public/_contact-tune.html, 2026-11-09) */
-  body[data-holo="paper"] .poster{ filter:hue-rotate(1deg) brightness(1.25) contrast(1.2); }
-  body[data-holo="paper"] .attach{ filter:contrast(1.34); }
-  :root[data-theme="light"] body[data-holo="paper"] .poster{ filter:brightness(1.25) contrast(1.2); }
-  :root[data-theme="light"] body[data-holo="paper"] .attach{ filter:none; }
+  body[data-holo="paper"] .poster{ filter:hue-rotate(1deg) brightness(1.02) contrast(1.18); }
+  :root[data-theme="light"] body[data-holo="paper"] .poster{ filter:brightness(0.92) contrast(1.2); }
+  /* a little newer on the day sky: the paper 19% of the way from cream to the aged brown */
+  :root[data-theme="light"] body[data-holo="paper"] .form-panel{ --paper:#eae2d3; }
   body[data-holo="paper"] .poster-art img{ filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
   body[data-holo="paper"] .poster-art::after{ display:block; }
-  body[data-holo="paper"] .attach img, body[data-holo="paper"] .tear-hole{ filter:none; }
+  body[data-holo="paper"] .tear-hole{ filter:none; }
   body[data-holo="paper"] .sky-life{ filter:grayscale(1) brightness(1.1); }
   /* day sky: screen blending only works on black, so the card prints solid */
   :root[data-theme="light"] body[data-tone="holo"]{ background:var(--c-bg); }
@@ -656,38 +637,8 @@ window.SITE=window.SITE||{};
   </svg>
   <!-- the wax seal over the join -->
   <img class="seal" src="/images/contact-seal.webp" alt="" width="260" height="264" decoding="async" />
-  <!-- an old book plate sent along with the card, tied on through the
-       second punch hole with a loop of twine -->
-  <div class="attach" aria-hidden="true">
-    <div class="xp-bar xp-small" aria-hidden="true">
-    <svg class="xp-icon" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1" fill="#e9f1ff" stroke="#3b5a8a"/><path d="M2.5 12l3.5-4 2.5 3 2-2 3 3z" fill="#4c8a3c"/><circle cx="11" cy="5.5" r="1.4" fill="#f2c94c"/></svg><span class="xp-title">ngc6611.jpg - Windows Picture and Fax Viewer</span>
-    <span class="xp-btn xp-min"></span><span class="xp-btn xp-max"></span><span class="xp-btn xp-close"></span>
-  </div>
-    <div class="xp-frame xp-frame-small"></div>
-    <img src="/images/contact-attachment.webp" alt="" width="330" height="514" decoding="async" loading="lazy" />
-    <!-- the picture's glitch, drawn over it now and then (contact-artifacts.js) -->
-    <canvas class="attach-glitch"></canvas>
-    <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
-  </div>
+
   <ContactArtifacts />
-  <svg class="twine" viewBox="0 0 100 110" aria-hidden="true">
-    <g fill="none" stroke-linecap="round">
-      <g stroke="#a88a5c" stroke-width="2.6">
-        <path d="M14 27 C34 28 58 42 76 58"/>
-        <path d="M14 29 C36 40 56 56 75 61"/>
-        <path d="M74 60 C77 70 72 80 76 92"/>
-        <path d="M75 60 C83 66 84 76 92 84"/>
-      </g>
-      <!-- the twist of the fibres -->
-      <g stroke="#6e5434" stroke-width="2.6" stroke-dasharray="1.1 1.9">
-        <path d="M14 27 C34 28 58 42 76 58"/>
-        <path d="M14 29 C36 40 56 56 75 61"/>
-        <path d="M74 60 C77 70 72 80 76 92"/>
-        <path d="M75 60 C83 66 84 76 92 84"/>
-      </g>
-    </g>
-    <ellipse cx="75" cy="60" rx="4.2" ry="3.4" fill="#9b7d50" stroke="#6e5434" stroke-width="1.2"/>
-  </svg>
   <div class="paper-shadow">
   <div class="form-panel" data-reveal>
     <!-- the slow broken-screen overlay, faint here and fading out while someone writes -->
