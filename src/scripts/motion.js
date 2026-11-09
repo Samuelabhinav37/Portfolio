@@ -202,7 +202,12 @@ function init() {
   }
   lit.forEach(scrollLit);
 
+  // After a page transition, things already on screen arrived with it
+  // (Motion.astro sets html.vt-in); only what's below the fold reveals.
+  const arrived = root.classList.contains('vt-in');
+  const onScreen = (el) => arrived && el.getBoundingClientRect().top < innerHeight;
   document.querySelectorAll('[data-reveal]').forEach((el) => {
+    if (onScreen(el)) { gsap.set(el, { autoAlpha: 1 }); return; }
     const kind = el.getAttribute('data-reveal');
     if (kind === 'lines') lines(el);
     else if (kind === 'media') media(el);
@@ -210,7 +215,8 @@ function init() {
   });
   document.querySelectorAll('[data-reveal-group]').forEach((group) => {
     gsap.set(group, { autoAlpha: 1 });
-    fadeUp(group.children, group, { stagger: MOTION.stagger });
+    const later = [...group.children].filter((c) => !onScreen(c));
+    if (later.length) fadeUp(later, later[0], { stagger: MOTION.stagger });
   });
 
   // Late layout shifts (fonts, lazy images, live feeds filling in) move

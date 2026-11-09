@@ -14,6 +14,9 @@
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   h.classList.add('motion');
   setTimeout(function(){ if (!h.classList.contains('motion-on')) h.classList.remove('motion'); }, 3000);
+  // Arrived through a page transition: what's on screen comes in with the
+  // transition itself, so motion.js skips its reveal (one entrance, not two).
+  addEventListener('pagereveal', function(e){ if (e.viewTransition) h.classList.add('vt-in'); });
 })();
 </script>
 <style is:global>
@@ -28,6 +31,7 @@
     --dur-travel: 450ms;   --dur-travel-out: 180ms;   /* page to page, card into page */
   }
   html.motion [data-reveal], html.motion [data-reveal-group]{ visibility:hidden; }
+  html.motion.vt-in [data-reveal], html.motion.vt-in [data-reveal-group]{ visibility:visible; }
   [data-scroll-lit] .lit-w{ color:var(--lit-off, #3a3d4a); transition:color .35s var(--ease-out); }
   [data-scroll-lit] .lit-w.lit, [data-scroll-lit].is-static .lit-w{ color:var(--lit-on, #f3f5fb); }
 

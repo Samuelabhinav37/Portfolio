@@ -412,6 +412,13 @@ footer#site-footer{
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ scale:1.04; } }
 /* Screenshots fill their frame; projects without one show a logo or a placeholder. */
+/* "View" rides the cursor over a project (public/scripts/cursor-tip.js, after isablued.com) */
+.cursor-tip{ position:fixed; top:0; left:0; z-index:620; padding:5px 9px 4px; border-radius:4px; background:#eef1f8; color:#070710;
+  font:600 10px/1 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:.12em; text-transform:uppercase;
+  pointer-events:none; opacity:0; scale:.92; transition:opacity var(--dur-feedback-out) var(--ease-in), scale var(--dur-feedback-out) var(--ease-in); }
+.cursor-tip.on{ opacity:1; scale:1; transition-duration:var(--dur-feedback); transition-timing-function:var(--ease-out); }
+:root[data-theme="light"] .cursor-tip{ background:#191919; color:#fafaf8; }
+@media (prefers-reduced-motion: reduce){ .cursor-tip{ transition:none; } }
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
 .pw-img--logo, .pw-img--todo{ display:grid; place-items:center; }
 .pw-img--logo img{ width:clamp(56px,11%,120px); height:auto; display:block; }
@@ -435,27 +442,27 @@ footer#site-footer{
       <h2 class="sec-title" id="ps-title" data-reveal="lines">Projects<sup aria-hidden="true">(06)</sup></h2>
     </header>
     <div class="pw-grid" data-reveal-group>
-      <a class="pw-tile" id="sec-moat" href="/work/moat/" data-toc="Moat" data-toc-sub>
+      <a class="pw-tile" data-tip="View" id="sec-moat" href="/work/moat/" data-toc="Moat" data-toc-sub>
         <figure style="view-transition-name:work-moat" class="pw-img pw-img--shot"><img src="/images/projects/moat-tile.webp" srcset="/images/projects/moat-tile.w800.webp 800w, /images/projects/moat-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Moat logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-tags">Ad blocker</span></div>
       </a>
-      <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/" data-toc="Sentinel" data-toc-sub>
+      <a class="pw-tile" data-tip="View" id="sec-sentinel" href="/work/sentinel/" data-toc="Sentinel" data-toc-sub>
         <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-tags">SOC lab</span></div>
       </a>
-      <a class="pw-tile" id="sec-cluster" href="/work/cluster/" data-toc="Cluster" data-toc-sub>
+      <a class="pw-tile" data-tip="View" id="sec-cluster" href="/work/cluster/" data-toc="Cluster" data-toc-sub>
         <figure style="view-transition-name:work-cluster" class="pw-img pw-img--shot"><img src="/images/projects/cluster-tile.webp" srcset="/images/projects/cluster-tile.w800.webp 800w, /images/projects/cluster-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Cluster logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-tags">Email organizer</span></div>
       </a>
-      <a class="pw-tile" id="sec-athena" href="/work/athena/" data-toc="Athena" data-toc-sub>
+      <a class="pw-tile" data-tip="View" id="sec-athena" href="/work/athena/" data-toc="Athena" data-toc-sub>
         <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-tags">Access review</span></div>
       </a>
-      <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/" data-toc="Blue Streak" data-toc-sub>
+      <a class="pw-tile" data-tip="View" id="sec-blue-streak" href="/work/blue-streak/" data-toc="Blue Streak" data-toc-sub>
         <figure style="view-transition-name:work-blue-streak" class="pw-img pw-img--shot"><img src="/images/projects/blue-streak-tile.webp" srcset="/images/projects/blue-streak-tile.w800.webp 800w, /images/projects/blue-streak-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Blue Streak logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-tags">Disk analyzer</span></div>
       </a>
-      <a class="pw-tile" id="sec-knot" href="/work/knot/" data-toc="Knot" data-toc-sub>
+      <a class="pw-tile" data-tip="View" id="sec-knot" href="/work/knot/" data-toc="Knot" data-toc-sub>
         <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-tags">Habit tracker</span></div>
       </a>
@@ -513,6 +520,7 @@ footer#site-footer{
 
 
 <script is:inline defer src="/scripts/index-intro-sequence.js"></script>
+<script is:inline defer src="/scripts/cursor-tip.js"></script>
 
 
 
