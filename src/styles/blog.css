@@ -72,7 +72,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .nav-name { color: rgba(var(--c-white),0.95); text-decoration: none; }
 /* Blog, Archive, About, Contact a little left of the middle (same as SiteMenu's), the
    tool strip (NavTools) at the right edge; Blog is bright, the rest dim */
-#site-nav { font-size: 1rem; top: 10px; left: 42%; right: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+#site-nav { font-size: 1rem; top: 10px; left: 36%; right: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
 #site-nav .nav-list { flex: none; }
 #site-nav .nav-list a { position: relative; color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
 #site-nav .nav-list a::before { content: ''; position: absolute; inset: -12px -4px; }
