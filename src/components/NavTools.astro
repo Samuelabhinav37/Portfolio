@@ -39,7 +39,7 @@ const cursors = [
         <button type="button" data-cursor={key} aria-label={label} aria-pressed={key === 'arrow' ? 'true' : 'false'}>
           {key === 'arrow'
             ? <svg viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M3.25 0.5v13.5l3.1-4.35 2.73 5.85 2.04-.96-2.7-5.79h5.33z"/></svg>
-            : <img src={`/cursors/${key}.png`} alt="" width="20" height="20" />}
+            : <img src={`/cursors/${key}.png`} alt="" width="32" height="32" />}
         </button>
       ))}
     </div>
@@ -113,7 +113,7 @@ const cursors = [
 
   .nt-cursors { display: flex; }
   .nt-cursors button { all: unset; flex: 1; display: grid; place-items: center; cursor: pointer; box-sizing: border-box; }
-  .nt-cursors button img { width: 20px; height: 20px; image-rendering: auto; }
+  .nt-cursors button img { width: 32px; height: 32px; image-rendering: pixelated; }
   .nt-cursors button[aria-pressed="true"] { outline: 1px solid var(--nt-ink); outline-offset: -4px; }
   .nt-cursors button:focus-visible { outline: 2px solid var(--nt-ink); outline-offset: -4px; }
 
@@ -163,9 +163,9 @@ const cursors = [
   @media (hover: none) { .nt-tab[data-tab="cursor"] { display: none; } }
 
   /* the chosen cursor, everywhere except where you type */
-  :root[data-cursor="jelly"], :root[data-cursor="jelly"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/jelly.png) 16 4, auto !important; }
-  :root[data-cursor="star"], :root[data-cursor="star"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/star.png) 16 16, auto !important; }
-  :root[data-cursor="pixel"], :root[data-cursor="pixel"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/pixel.png) 1 1, auto !important; }
-  :root[data-cursor="key"], :root[data-cursor="key"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/key.png) 4 4, auto !important; }
-  :root[data-cursor="lens"], :root[data-cursor="lens"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/lens.png) 12 12, auto !important; }
+  :root[data-cursor="jelly"], :root[data-cursor="jelly"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/jelly.png) 7 7, auto !important; }
+  :root[data-cursor="star"], :root[data-cursor="star"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/star.png) 15 15, auto !important; }
+  :root[data-cursor="pixel"], :root[data-cursor="pixel"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/pixel.png) 3 2, auto !important; }
+  :root[data-cursor="key"], :root[data-cursor="key"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/key.png) 6 6, auto !important; }
+  :root[data-cursor="lens"], :root[data-cursor="lens"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/lens.png) 11 11, auto !important; }
 </style>
