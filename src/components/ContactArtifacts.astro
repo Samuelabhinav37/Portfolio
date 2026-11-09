@@ -18,7 +18,7 @@
 <!-- the tear, half hidden behind the card's left edge -->
 <div class="tear" id="tear" aria-hidden="true">
   <div class="tear-hole">
-    <pre class="ic-body" id="ic-body">{'Microsoft Windows XP [Version 5.1.2600]\n(C) Copyright 1985-2001 Microsoft Corp.\n\nC:\\> listen --band 1420MHz\nlistening for transmissions...'}<span class="ic-cursor">_</span></pre>
+    <pre class="ic-body" id="ic-body">{'Microsoft Windows XP\nC:\\> listen 1420MHz\nlistening...'}<span class="ic-cursor">_</span></pre>
     <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
   </div>
   <canvas class="tear-fx"></canvas>
@@ -41,22 +41,22 @@
 </div>
 
 <style is:global>
-  /* ── the tear: behind the card (z-index -1 inside .poster), its right end
-     tucked under the card's left edge ── */
-  .tear{ position:absolute; z-index:-1; right:calc(100% - 56px); top:270px; width:390px; pointer-events:none; }
-  .tear-hole{ position:relative; background:#060505; filter:sepia(0.3) brightness(0.92); }
-  .ic-body{ margin:0; padding:12px 70px 14px 16px;
-    font-family:'Lucida Console', 'JetBrains Mono', monospace; font-size:12.5px; line-height:16px;
+  /* ── the tear: a small console in the top-left corner of the New York
+     plate, beside the seal (the plate is 26% of the card; the seal starts
+     66px before its right edge, so this stays under ~145px wide) ── */
+  .tear{ position:absolute; z-index:6; left:14px; top:30px; pointer-events:none; }
+  .tear-hole{ position:relative; background:#060505; filter:sepia(0.3) brightness(0.92);
+    box-shadow:0 3px 8px rgba(0,0,0,0.35); }
+  .ic-body{ margin:0; padding:6px 9px 7px 8px;
+    font-family:'Lucida Console', 'JetBrains Mono', monospace; font-size:8px; line-height:10px;
     color:#c8c8c8; white-space:pre; overflow:hidden;
     /* the colour fringing of a broken signal */
-    text-shadow:-1px 0 rgba(255,70,90,0.4), 1px 0 rgba(90,235,225,0.4); }
+    text-shadow:-0.5px 0 rgba(255,70,90,0.45), 0.5px 0 rgba(90,235,225,0.45); }
   .ic-cursor{ animation:ic-blink 1s steps(1) infinite; }
   @keyframes ic-blink{ 50%{ opacity:0; } }
   .tear-fx{ position:absolute; left:-70px; top:-60px; width:calc(100% + 140px); height:calc(100% + 120px); }
-  /* a little smaller where the sky beside the card is narrower */
-  @media (max-width:1359px){ .tear{ width:340px; } .ic-body{ font-size:11px; line-height:14px; } }
-  /* only where there's room beside the card */
-  @media (max-width:1180px){ .tear{ display:none; } }
+  /* phones stack the plate over the card as a short band: no room there */
+  @media (max-width:900px){ .tear{ display:none; } }
 
   /* ── the wreck: a slow broken-screen video over the console, the card and
      the picture. It's light marks on black, difference-blended: black leaves
