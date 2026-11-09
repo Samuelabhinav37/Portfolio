@@ -82,6 +82,8 @@ window.SITE=window.SITE||{};
 <Fonts />
 <Motion />
 <style is:global>
+/* the ASCII plant up the left edge (/scripts/word-vine.js), behind the page; homepage only */
+#word-vine{ position:fixed; left:0; top:0; z-index:1; pointer-events:none; }
 * { margin:0; padding:0; box-sizing:border-box; }
 
 html, body {
@@ -275,6 +277,7 @@ footer#site-footer{
 
 
 <SiteSky />
+<script is:inline defer src="/scripts/word-vine.js"></script>
 
 
 
