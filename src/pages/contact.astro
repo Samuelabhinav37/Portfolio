@@ -505,7 +505,11 @@ window.SITE=window.SITE||{};
 
   /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
      back the right way round go back to their own print look ── */
-  body[data-holo="paper"] .poster{ filter:none; }
+  /* brighter, crisper paper (set in public/_contact-tune.html, 2026-11-09) */
+  body[data-holo="paper"] .poster{ filter:hue-rotate(1deg) brightness(1.25) contrast(1.2); }
+  body[data-holo="paper"] .attach{ filter:contrast(1.34); }
+  :root[data-theme="light"] body[data-holo="paper"] .poster{ filter:brightness(1.25) contrast(1.2); }
+  :root[data-theme="light"] body[data-holo="paper"] .attach{ filter:none; }
   body[data-holo="paper"] .poster-art img{ filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
   body[data-holo="paper"] .poster-art::after{ display:block; }
   body[data-holo="paper"] .attach img, body[data-holo="paper"] .tear-hole{ filter:none; }
