@@ -32,17 +32,26 @@
       const items = (Array.isArray(d.news) ? d.news : []).filter((n) => n.title && /^https?:\/\//.test(n.link));
       if (!items.length) return;
       const track = nt.querySelector('.nt-news .nt-track');
-      const glint = track.querySelector('.nt-glint');
+      // one small line icon per site, drawn to match the tab icons
+      const ICON = {
+        'The Hacker News': '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4.5 6.5l2 1.5-2 1.5M8.5 10h3"/>',
+        'BleepingComputer': '<rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M5.5 14h5M8 11v3"/>',
+        'Krebs on Security': '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/>',
+      };
+      const OTHER = '<path d="M2 4.5h12M2 8h12M2 11.5h8"/>';
       track.querySelectorAll('.nt-run').forEach((run, copy) => {
         run.replaceChildren(...items.map((n) => {
           const a = document.createElement('a');
+          a.className = 'nt-item';
           a.href = n.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
           if (copy) a.tabIndex = -1;
-          if (glint) a.append(glint.cloneNode(true));
-          a.append(n.title);
-          const s = document.createElement('span');
-          s.className = 'nt-src'; s.textContent = n.source || '';
-          a.append(s);
+          // ICON values are the constants above, never feed text
+          a.innerHTML = '<svg class="nt-ico" viewBox="0 0 16 16" aria-hidden="true">' + (ICON[n.source] || OTHER) + '</svg>';
+          const tag = document.createElement('span');
+          tag.className = 'nt-tag'; tag.textContent = n.source || 'News';
+          const t = document.createElement('span');
+          t.textContent = n.title;
+          a.append(tag, t);
           return a;
         }));
       });
@@ -101,9 +110,11 @@
     const pick = (e) => ({ url: e.url, title: e.title, subtitle: e.subtitle || '', t: 0, muted: !!(st && st.muted) });
     const save = () => write('pod', st);
     function render() {
-      // reads "Darknet Diaries  182: Blackshades  What if you got infected..."
+      // reads "[mic] DARKNET DIARIES  EP 182  Blackshades  | What if you got infected..."
       const fill = (sel, v) => line.querySelectorAll(sel).forEach((b) => { b.textContent = v || ''; b.hidden = !v; });
-      fill('.nt-ep-t', st && st.title);
+      const m = st && /^(\d+):\s*(.+)$/.exec(st.title); // "182: Blackshades"
+      fill('.nt-num', m && 'EP ' + m[1]);
+      fill('.nt-ep-t', m ? m[2] : st && st.title);
       fill('.nt-ep-s', st && st.subtitle);
       muteB.setAttribute('aria-pressed', String(!!(st && st.muted)));
       muteB.setAttribute('aria-label', st && st.muted ? 'Unmute' : 'Mute');
