@@ -416,9 +416,6 @@ window.SITE=window.SITE||{};
       drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
   body[data-tone="cool"] .sky-life{ filter:grayscale(1) brightness(1.08); }
   body[data-tone="cool"] .xp-balloon{ filter:none; }
-  body[data-tone="cool"] .pg-footer{ color:rgba(176,192,220,0.5); }
-  body[data-tone="cool"] .pg-footer .f-links a{ color:rgba(176,192,220,0.62); }
-  body[data-tone="cool"] .pg-footer .f-links a:hover{ color:#e4ecfa; }
 
   /* ── the mono tone: everything in black and white, like a photocopy of
      the print left on a dead monitor ── */
@@ -429,9 +426,6 @@ window.SITE=window.SITE||{};
       drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
   body[data-tone="mono"] .sky-life{ filter:grayscale(1) brightness(1.08); }
   body[data-tone="mono"] .xp-balloon{ filter:grayscale(1); }
-  body[data-tone="mono"] .pg-footer{ color:rgba(200,200,200,0.5); }
-  body[data-tone="mono"] .pg-footer .f-links a{ color:rgba(200,200,200,0.62); }
-  body[data-tone="mono"] .pg-footer .f-links a:hover{ color:#f2f2f2; }
 
   /* ── the holo tone: the print as a hologram. The card is inverted, so its
      ink becomes light lines on black; tinted cyan; and the whole layer is
@@ -499,9 +493,6 @@ window.SITE=window.SITE||{};
     font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.12em;
     color:#8ff0ff; text-shadow:0 0 10px rgba(80,220,255,0.7); }
   body[data-tone="holo"] .holo-status.bad{ color:#ffc266; text-shadow:0 0 10px rgba(255,170,60,0.7); }
-  body[data-tone="holo"] .pg-footer{ color:rgba(130,225,240,0.55); }
-  body[data-tone="holo"] .pg-footer .f-links a{ color:rgba(130,225,240,0.7); }
-  body[data-tone="holo"] .pg-footer .f-links a:hover{ color:#d8fbff; }
 
   /* ── the white hologram (tone 'holo-mono'): the same projection in white
      light: the card, the picture, the console, and the jellyfish and stars
@@ -510,9 +501,6 @@ window.SITE=window.SITE||{};
     filter:invert(1) grayscale(1) contrast(2.4) brightness(0.9) brightness(1.2)
       drop-shadow(1px 0 0 rgba(255,255,255,0.18)) drop-shadow(0 0 8px rgba(255,255,255,0.1)); }
   body[data-holo="mono"] .sky-life{ filter:grayscale(1) brightness(1.1); }
-  body[data-holo="mono"] .pg-footer{ color:rgba(205,210,220,0.55); }
-  body[data-holo="mono"] .pg-footer .f-links a{ color:rgba(205,210,220,0.7); }
-  body[data-holo="mono"] .pg-footer .f-links a:hover{ color:#f4f6fa; }
   body[data-holo="mono"] .holo-status:not(:empty):not(.bad){ color:#f2f4f8; text-shadow:0 0 10px rgba(255,255,255,0.5); }
 
   /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
@@ -527,26 +515,24 @@ window.SITE=window.SITE||{};
   :root[data-theme="light"] body[data-tone="holo"] .field-wrap{ mix-blend-mode:normal; }
   :root[data-theme="light"] body[data-tone="holo"] .poster::after{ display:none; }
   :root[data-theme="light"] body[data-tone="holo"] .poster{ animation:drift 16s ease-in-out infinite alternate; }
-  :root[data-theme="light"] body[data-tone="holo"] .pg-footer{ color:rgba(25,25,25,0.55); }
-  :root[data-theme="light"] body[data-tone="holo"] .pg-footer .f-links a{ color:rgba(25,25,25,0.7); }
-  :root[data-theme="light"] body[data-tone="holo"] .pg-footer .f-links a:hover{ color:#191919; }
   :root[data-theme="light"] body[data-tone="holo"] .holo-status:not(:empty):not(.bad){ color:#191919; text-shadow:none; }
   @media (prefers-reduced-motion: reduce){
     body[data-tone="holo"] .poster{ animation:none; opacity:0.92; }
     body[data-tone="holo"] .poster::after{ animation:none; }
   }
 
-  /* ── page footer: under the card, same width ── */
+  /* ── page footer: under the card, same width; type and colours from the home footer ── */
   .pg-footer{ width:100%; max-width:648px; display:flex; align-items:center;
-    justify-content:space-between; flex-wrap:wrap; gap:10px 20px;
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em;
-    color:rgba(214,198,168,0.5); }
-  .pg-footer .f-links{ display:flex; align-items:center; gap:14px;
-    letter-spacing:.14em; text-transform:uppercase; }
-  .pg-footer .f-links a{ color:rgba(214,198,168,0.62); text-decoration:none;
-    transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
-  .pg-footer .f-links a:hover{ color:#ece0c6; }
-  .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
+    justify-content:space-between; flex-wrap:wrap; gap:12px 20px;
+    font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px;
+    color:rgba(255,255,255,.6); }
+  .pg-footer .f-social{ display:flex; align-items:center; gap:22px; }
+  .pg-footer .f-social a{ display:grid; place-items:center; width:18px; height:18px; color:rgba(255,255,255,.7); text-decoration:none; transition:color .2s; }
+  .pg-footer .f-social a:hover{ color:#fff; }
+  .pg-footer .f-social svg{ width:16px; height:16px; fill:currentColor; }
+  .pg-footer .f-h1{ font:700 13px/1 'Inter Tight', sans-serif; letter-spacing:-.04em; }
+  :root[data-theme="light"] .pg-footer, :root[data-theme="light"] .pg-footer .f-social a{ color:rgba(55,53,47,.65); }
+  :root[data-theme="light"] .pg-footer .f-social a:hover{ color:#191919; }
 
   /* keyboard users could not see where they were on this page at all */
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
@@ -595,9 +581,9 @@ window.SITE=window.SITE||{};
     .form-status{ text-align:center; }
     /* links on top, copyright under them, both centred with room to breathe */
     .pg-footer{ flex-direction:column-reverse; justify-content:center; gap:16px; text-align:center; }
-    .pg-footer .f-links{ flex-wrap:wrap; justify-content:center; gap:6px 10px; font-size:11px; }
+    .pg-footer .f-social a{ width:36px; height:36px; }
+    .pg-footer .f-social{ gap:8px; }
     /* links big enough to tap */
-    .pg-footer .f-links a{ padding:10px 8px; }
   }
 
 </style>
@@ -768,11 +754,11 @@ window.SITE=window.SITE||{};
   <p class="holo-status" id="holo-status" aria-hidden="true"></p>
   <div class="pg-footer">
     <span>© 2026 Samuel Abhinav</span>
-    <div class="f-links">
-      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
-      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>
-      <a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener" aria-label="X"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      <a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
+    <div class="f-social">
+      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener" aria-label="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+      <a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="f-h1" href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener" aria-label="HackerOne">h1</a>
     </div>
   </div>
 
