@@ -114,12 +114,10 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
   100%{ transform:none; filter:none; opacity:1; }
 }
 /* the cover hands the keyboard to the game, so arrow keys stop scrolling the page */
-.game-play{ position:absolute; inset:0; z-index:2; display:grid; place-content:center; justify-items:center; gap:22px; border:0; cursor:pointer; color:#f4f6fa;
+.game-play{ position:absolute; inset:0; z-index:2; display:grid; place-items:end center; padding-bottom:16%; border:0; cursor:pointer; color:#f4f6fa;
   background:linear-gradient(transparent 45%, rgba(0,0,0,.7)); transition:opacity .4s var(--ease-out); }
-/* before the first click: a still title card, nothing moving */
-.game-stage:not(.on) .game-play{ background:#000; }
-.game-play b{ font:400 16px/1.6 'Press Start 2P', monospace; letter-spacing:.08em; text-align:center; }
-.game-stage.on .game-play b{ display:none; }
+/* before the first click: a still of the game's start screen, nothing loaded or moving */
+.game-stage:not(.on) .game-play{ background:#000 url(/images/arcade-poster.webp) 0 0 / 100% 100% no-repeat; }
 .game-play span{ font-family:'Press Start 2P', monospace; font-size:11px; letter-spacing:.12em; padding:12px 18px; border:1px solid rgba(255,255,255,.35); border-radius:6px; background:rgba(0,0,0,.6); }
 .game-play:hover span, .game-play:focus-visible span{ border-color:#f4f6fa; }
 .game-play.gone{ opacity:0; pointer-events:none; }
@@ -191,7 +189,7 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
     <figure class="ab-game" id="arcade" data-toc="Arcade">
       <p><b>INFILTRATE // DEFEND</b><span>Play a round</span></p>
       <div class="game-stage">
-        <button class="game-play" type="button" aria-label="Play INFILTRATE // DEFEND"><b aria-hidden="true">INFILTRATE<br>// DEFEND</b><span>CLICK TO PLAY</span></button>
+        <button class="game-play" type="button" aria-label="Play INFILTRATE // DEFEND"><span>CLICK TO PLAY</span></button>
 <iframe id="game-iframe" title="INFILTRATE // DEFEND (playable arcade game)" data-srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
