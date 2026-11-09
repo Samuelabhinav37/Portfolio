@@ -63,21 +63,21 @@
   const pod = (() => {
     const pane = nt.querySelector('.nt-music');
     const line = pane.querySelector('.nt-ep');
-    const cover = pane.querySelector('.nt-cover');
     const playB = pane.querySelector('.nt-play');
     const nextB = pane.querySelector('.nt-next');
     const muteB = pane.querySelector('.nt-mute');
     const tab = nt.querySelector('.nt-tab[data-tab="music"]');
-    let st = read('pod'); // { url, title, image, t, muted }
+    let st = read('pod'); // { url, title, subtitle, t, muted }
     if (st && typeof st.url !== 'string') st = null;
     let list = null, loading = null, audio = null, lastSave = 0;
 
-    const pick = (e) => ({ url: e.url, title: e.title, image: e.image || null, t: 0, muted: !!(st && st.muted) });
+    const pick = (e) => ({ url: e.url, title: e.title, subtitle: e.subtitle || '', t: 0, muted: !!(st && st.muted) });
     const save = () => write('pod', st);
     function render() {
-      line.querySelectorAll('.nt-ep-t').forEach((b) => { b.textContent = st ? st.title : 'Darknet Diaries'; });
-      cover.hidden = !(st && st.image);
-      if (st && st.image) cover.src = st.image;
+      // reads "Darknet Diaries  182: Blackshades  What if you got infected..."
+      const fill = (sel, v) => line.querySelectorAll(sel).forEach((b) => { b.textContent = v || ''; b.hidden = !v; });
+      fill('.nt-ep-t', st && st.title);
+      fill('.nt-ep-s', st && st.subtitle);
       muteB.setAttribute('aria-pressed', String(!!(st && st.muted)));
       muteB.setAttribute('aria-label', st && st.muted ? 'Unmute' : 'Mute');
       if (!pane.hidden) drift(pane);
@@ -88,6 +88,10 @@
         .then((d) => {
           list = Array.isArray(d.episodes) ? d.episodes : [];
           if (!st && list[0]) { st = pick(list[0]); render(); }
+          else if (st && st.subtitle == null) { // saved before subtitles existed
+            const e = list.find((x) => x.url === st.url);
+            st.subtitle = (e && e.subtitle) || ''; save(); render();
+          }
           return list;
         })
         .catch(() => { loading = null; return []; }));

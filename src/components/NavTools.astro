@@ -48,11 +48,11 @@ const cursors = [
       <div class="nt-scroll">
         <div class="nt-track nt-ep">
           {[0, 1].map((copy) => (
-            <span class="nt-run" aria-hidden={copy ? 'true' : undefined}><b class="nt-ep-t">Darknet Diaries</b><span class="nt-ep-s">Darknet Diaries</span></span>
+            <span class="nt-run" aria-hidden={copy ? 'true' : undefined}><span class="nt-ep-show">Darknet Diaries</span><b class="nt-ep-t" hidden></b><span class="nt-ep-s" hidden></span></span>
           ))}
         </div>
       </div>
-      <img class="nt-cover" alt="" width="34" height="34" hidden />
+      <img class="nt-cover" src="/images/darknet-diaries.webp" alt="" width="48" height="48" loading="lazy" decoding="async" />
       <button type="button" class="nt-btn nt-play" aria-label="Play" aria-pressed="false">
         <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M4.5 2.5v11l9-5.5z"/></svg>
         <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>
@@ -121,9 +121,10 @@ const cursors = [
   .nt-scroll { flex: 1 1 auto; min-width: 0; }
   .nt-ep .nt-run { padding-right: 28px; gap: 14px; }
   .nt-ep .nt-run:first-child { padding-left: 14px; }
-  .nt-ep-t { font-weight: 600; }
+  .nt-ep-show { font-weight: 600; }
   .nt-ep-s { opacity: .65; }
-  .nt-cover { width: var(--nt-h); height: 100%; object-fit: cover; flex: none; }
+  .nt-ep [hidden] { display: none; }
+  .nt-cover { width: var(--nt-h); height: 100%; object-fit: cover; flex: none; border-left: 1px solid var(--nt-line); box-sizing: border-box; }
   .nt-btn { all: unset; flex: none; width: calc(var(--nt-h) + 2px); display: grid; place-items: center; cursor: pointer; border-left: 1px solid var(--nt-line); box-sizing: border-box; }
   .nt-btn:hover { background: rgba(var(--c-white), .08); }
   .nt-btn:focus-visible { outline: 2px solid var(--nt-ink); outline-offset: -3px; }

@@ -27,20 +27,26 @@ const first = (s, re) => (s.match(re) || [])[1];
 // only plain https links leave this function; the player sets them as src
 const httpsOnly = (u) => (u && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 
+// the summary's opening line ("What if you got infected by a friend...?"), tags stripped
+const subtitleOf = (s) => {
+  const flat = s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const one = (flat.match(/^.*?[.?!](?=\s|$)/) || [flat])[0];
+  return one.length > 160 ? one.slice(0, 159).trimEnd() + '…' : one || null;
+};
+
 export function parseFeed(xml, keep = KEEP) {
   const head = xml.split('<item')[0];
   const show = text(first(head, /<title>([\s\S]*?)<\/title>/)) || 'Darknet Diaries';
-  const showImage = httpsOnly(text(first(head, /<itunes:image[^>]*href="([^"]+)"/)));
   const episodes = xml.split(/<item[\s>]/).slice(1)
     .map((it) => ({
       title: text(first(it, /<title>([\s\S]*?)<\/title>/)).slice(0, 200),
       url: httpsOnly(text(first(it, /<enclosure[^>]*url="([^"]+)"/))),
-      image: httpsOnly(text(first(it, /<itunes:image[^>]*href="([^"]+)"/))) || showImage,
       duration: text(first(it, /<itunes:duration>([^<]*)</)).slice(0, 12) || null,
+      subtitle: subtitleOf(text(first(it, /<itunes:summary>([\s\S]*?)<\/itunes:summary>/))),
     }))
     .filter((e) => e.title && e.url)
     .slice(0, keep);
-  return { show, image: showImage, episodes };
+  return { show, episodes };
 }
 
 function json(data, cacheable) {
@@ -64,7 +70,7 @@ export async function onRequestGet({ request }) {
     return parseFeed(await resp.text());
   })().catch((err) => {
     console.error('Podcast feed fetch failed:', err);
-    return { show: 'Darknet Diaries', image: null, episodes: [] };
+    return { show: 'Darknet Diaries', episodes: [] };
   });
 
   // only real data is cached, so one upstream blip doesn't empty the player for 6 hours
