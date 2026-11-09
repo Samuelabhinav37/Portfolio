@@ -494,6 +494,9 @@ window.SITE=window.SITE||{};
   body[data-holo="paper"] .poster-art img{ filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
   body[data-holo="paper"] .poster-art::after{ display:block; }
   body[data-holo="paper"] .tear-hole{ filter:none; }
+  /* the seal and the stamp in their own colours: red wax and gold, blue peonies */
+  body[data-holo="paper"] .seal{ filter:drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
+  body[data-holo="paper"] .pc-stamp{ filter:drop-shadow(0 1px 1.5px rgba(40,24,8,0.45)); }
   body[data-holo="paper"] .sky-life{ filter:grayscale(1) brightness(1.1); }
   /* day sky: screen blending only works on black, so the card prints solid */
   :root[data-theme="light"] body[data-tone="holo"]{ background:var(--c-bg); }
@@ -507,10 +510,12 @@ window.SITE=window.SITE||{};
   }
 
   /* ── page footer: under the card, same width; type and colours from the home footer ── */
-  .pg-footer{ width:100%; max-width:648px; display:flex; align-items:center;
+  /* as wide as the card (900px, drawn at 80% on desktop), so the ends line up with its edges */
+  .pg-footer{ width:100%; max-width:900px; display:flex; align-items:center;
     justify-content:space-between; flex-wrap:wrap; gap:12px 20px;
     font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px;
     color:rgba(255,255,255,.6); }
+  @media (min-width:901px){ .pg-footer{ max-width:720px; } }
   .pg-footer .f-social{ display:flex; align-items:center; gap:22px; }
   .pg-footer .f-social a{ display:grid; place-items:center; width:18px; height:18px; color:rgba(255,255,255,.7); text-decoration:none; transition:color .2s; }
   .pg-footer .f-social a:hover{ color:#fff; }
