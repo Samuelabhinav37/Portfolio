@@ -1,4 +1,4 @@
-// Draws the day sky's pixel clouds into public/images/clouds as small PNGs,
+// Draws the sky's pixel clouds (day and night palettes) into public/images/clouds as small PNGs,
 // shown at 2x with image-rendering:pixelated by public/scripts/pixel-clouds.js.
 //
 // The look follows hand-made cumulus sprites:
@@ -18,6 +18,8 @@ import { mkdirSync } from 'node:fs';
 const OUT = 'public/images/clouds/';
 // white, ice, pale, light blue, mid blue (shade), ledge (day sky is about #8fb0e0)
 const PAL = [[255, 255, 255], [236, 244, 252], [213, 228, 244], [188, 208, 234], [164, 188, 222], [136, 160, 200]];
+// the same ramp for the dark sky, moonlit: silver-blue tops down to slate, ledge near the sky, no pure black
+const NIGHT = [[104, 115, 140], [86, 97, 122], [68, 78, 102], [48, 56, 77], [32, 38, 55], [20, 24, 36]];
 const LEDGE = 5;
 
 // w, h: canvas in art px; base: row of the bottom; heads: [x, half width, height] towers;
@@ -128,13 +130,16 @@ function draw(r) {
     for (let x = a; x <= b; x++) if (tone[(y + 1) * W + x] < 0) tone[(y + 1) * W + x] = Math.min(4, c + 1);
   }
 
-  const out = Buffer.alloc(W * H * 4);
-  for (let i = 0; i < tone.length; i++) {
-    if (tone[i] < 0) continue;
-    const c = PAL[tone[i]];
-    out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
-  }
-  return sharp(out, { raw: { width: W, height: H, channels: 4 } }).png({ palette: true, colours: 8 }).toFile(OUT + r.name + '.png');
+  // one drawing, two palettes: cloud-N.png for the day sky, cloud-N-night.png for the dark one
+  return Promise.all([[PAL, ''], [NIGHT, '-night']].map(([pal, suffix]) => {
+    const out = Buffer.alloc(W * H * 4);
+    for (let i = 0; i < tone.length; i++) {
+      if (tone[i] < 0) continue;
+      const c = pal[tone[i]];
+      out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
+    }
+    return sharp(out, { raw: { width: W, height: H, channels: 4 } }).png({ palette: true, colours: 8 }).toFile(OUT + r.name + suffix + '.png');
+  }));
 }
 
 mkdirSync(OUT, { recursive: true });
