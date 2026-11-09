@@ -5,7 +5,7 @@
    Geometry comes from the source render: body 956 x 926, antenna top
    37.87% of body width above it. public/scripts/kai-life.js drives it. */
 .kai {
-  --kai-eye: #f1f2f6;
+  --kai-eye: #fff;
   --kai-glow: rgba(228, 236, 255, .9);
   --kai-mouth: #565a62;
   position: relative;
@@ -40,7 +40,11 @@
   left: 0; top: 37.87cqw;
   width: 100cqw; height: 96.86cqw;
 }
-.kai-body { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.kai-body { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  /* crisper shell: more contrast, a light sharpen (#kai-sharp, kai-life.js) and a thin edge
+     that is light on dark pages and dark on the day sky (tuned 2026-11-09) */
+  filter: contrast(1.25) brightness(1.32) saturate(1.11) url(#kai-sharp) drop-shadow(0 0 1.2px rgba(255, 255, 255, .9)); }
+:root[data-theme="light"] .kai-body { filter: contrast(1.25) brightness(1.32) saturate(1.11) url(#kai-sharp) drop-shadow(0 0 1.2px rgba(0, 0, 0, .9)); }
 .kai-face { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity .6s ease; }
 .kai-face .eye { fill: var(--kai-eye); }
 .kai-face .bar { fill: var(--kai-mouth); }

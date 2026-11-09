@@ -256,10 +256,18 @@
 
   Kai.prototype.buildFace = function (head) {
     var id = this.id;
+    // the shell's light sharpen, used by kai.css (.kai-body filter: url(#kai-sharp)); once per page,
+    // since a filter that points at a missing #id can hide the image in some browsers
+    if (!document.getElementById('kai-sharp')) {
+      var ss = el('svg', { width: '0', height: '0', 'aria-hidden': 'true', style: 'position:absolute' });
+      var sf = el('filter', { id: 'kai-sharp', 'color-interpolation-filters': 'sRGB' }, ss);
+      el('feConvolveMatrix', { order: '3', preserveAlpha: 'true', kernelMatrix: '0 -.13 0 -.13 1.52 -.13 0 -.13 0' }, sf);
+      (document.body || document.documentElement).appendChild(ss);
+    }
     var svg = el('svg', { class: 'kai-face', viewBox: '0 0 1000 968.6', 'aria-hidden': 'true' });
     var defs = el('defs', {}, svg);
     var f = el('filter', { id: id + 'glow', x: '-50%', y: '-50%', width: '200%', height: '200%' }, defs);
-    el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '14', result: 'b' }, f);
+    el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '30', result: 'b' }, f);
     var m = el('feMerge', {}, f); el('feMergeNode', { in: 'b' }, m); el('feMergeNode', { in: 'SourceGraphic' }, m);
     // glass glare, clipped to the screen
     var clip = el('clipPath', { id: id + 'scr' }, defs);
@@ -268,7 +276,7 @@
     var g = el('linearGradient', { id: id + 'glare', x1: '0', y1: '0', x2: '1', y2: '1' }, defs);
     el('stop', { offset: '0', 'stop-color': '#fff', 'stop-opacity': '0' }, g);
     el('stop', { offset: '.42', 'stop-color': '#fff', 'stop-opacity': '0' }, g);
-    el('stop', { offset: '.5', 'stop-color': '#fff', 'stop-opacity': '.07' }, g);
+    el('stop', { offset: '.5', 'stop-color': '#fff', 'stop-opacity': '.06' }, g);
     el('stop', { offset: '.58', 'stop-color': '#fff', 'stop-opacity': '0' }, g);
     var gc = el('g', { 'clip-path': 'url(#' + id + 'scr)' }, svg);
     this.glare = el('rect', { x: -200, y: -200, width: 900, height: 900, fill: 'url(#' + id + 'glare)' }, gc);
