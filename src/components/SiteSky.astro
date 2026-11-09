@@ -17,7 +17,7 @@ import SkyLife from './SkyLife.astro';
 <!-- the sky cast: jellyfish, between the sky and the page -->
 <SkyLife cast />
 <!-- pixel-art clouds over the day sky only; built on first switch to light -->
-<script is:inline defer src="/scripts/pixel-clouds.js"></script>
+<script is:inline defer src="/scripts/pixel-clouds.js?v=2"></script>
 <!-- halo for the jellyfish in light mode: the clip plus two blurred copies of itself -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 
@@ -36,5 +36,4 @@ html, body{ transition:background-color .4s ease; }
 /* pixel clouds (pixel-clouds.js): over the sky, under the jellyfish and the page */
 #px-clouds{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 #px-clouds .pxc{ position:absolute; left:0; top:0; image-rendering:pixelated; will-change:transform; }
-:root:not([data-theme="light"]) #px-clouds{ display:none; }
 </style>
