@@ -40,7 +40,8 @@ html, body{ transition:background-color .4s ease; }
 #px-clouds .pxc{ position:absolute; left:0; top:0; image-rendering:pixelated; will-change:transform; }
 :root:not([data-theme="light"]) #px-clouds{ display:none; }
 /* the word creeper (word-vine.js): fixed on the left, behind the page, grows up once */
-#word-vine{ position:fixed; left:0; top:0; z-index:1; pointer-events:none; animation:vine-grow 2.6s cubic-bezier(.2,.7,.2,1) both; }
+/* faded on pages whose text starts at the left edge; the homepage sets it back to 1 */
+#word-vine{ position:fixed; left:0; top:0; z-index:1; pointer-events:none; opacity:.28; animation:vine-grow 2.6s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes vine-grow{ from{ clip-path:inset(100% 0 0 0); } to{ clip-path:inset(0); } }
 @media (prefers-reduced-motion: reduce){ #word-vine{ animation:none; } }
 </style>
