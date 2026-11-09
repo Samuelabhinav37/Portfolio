@@ -103,8 +103,8 @@
     '  float shade=.78+3.2*(base-fbm(pw+vec2(.035,-.035)));\n' +
     '  vec3 sky=mix(uDeep,uBody,smoothstep(0.,1.,uv.y))*uSkyB;\n' +
     '  vec3 cl=mix(uCloud,uRim,smoothstep(.95,1.25,shade))*uCloudB;\n' +
-    '  vec3 col=mix(sky,cl*clamp(shade,.45,1.25),c*.85)*' + LOOK.bright.toFixed(3) + ';\n' +
-    '  vec2 v=uv-.5; col*=pow(clamp(1.-dot(v,v*' + LOOK.vign.toFixed(3) + '),0.,1.),.8);\n' +
+    '  vec3 col=mix(sky,cl*clamp(shade,mix(.45,.8,uInk),1.25),c*mix(.85,.95,uInk))*' + LOOK.bright.toFixed(3) + ';\n' +
+    '  vec2 v=uv-.5; col*=mix(pow(clamp(1.-dot(v,v*' + LOOK.vign.toFixed(3) + '),0.,1.),.8),1.,uInk*.8);\n' +
     /* a light sky (uInk 1) gets the day stars, thinning toward the pale horizon */
     '  if(uInk>.5) col+=dayStars(st,uTime)*uStarB*(1.-c)*smoothstep(.1,.8,uv.y);\n' +
     '  else col+=stars(st,uTime)*uStarB*(1.-c);\n' +
@@ -149,7 +149,7 @@
   /* the 'space' tone: the default look mixed down (homepage, 2026-11-08) */
   var SPACE = { deep:LOOK.deep, body:LOOK.body, cloud:LOOK.cloud, rim:LOOK.rim, mix:{ sky:0, cloud:.4, cover:.429, stars:.95 } };
   /* light skies for the homepage light theme (trial, 2026-11-08): deep = horizon, body = top; stars in ink */
-  var DAY  = { deep:[.80,.88,.97], body:[.50,.68,.92], cloud:[.93,.95,.98], rim:[1,1,1], ink:1 };
+  var DAY  = { deep:[.80,.88,.97], body:[.50,.68,.92], cloud:[.96,.97,1], rim:[1,1,1], ink:1, mix:{ sky:1, cloud:1.15, cover:.40, stars:.6 } };
   var DAWN = { deep:[.98,.84,.76], body:[.72,.70,.90], cloud:[.97,.90,.90], rim:[1,.97,.94], ink:1 };
   var TONES = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT, space:SPACE, day:DAY, dawn:DAWN };
 
