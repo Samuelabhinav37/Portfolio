@@ -33,8 +33,6 @@ const RECIPES = [
     tail: [-1, 62, 7], wob: 1, streaks: [[30, 0, 46, 1], [37, 8, 52, 2], [26, 186, 219, 1]] },
   // small round puff, soft bottom
   { name: 'cloud-3', seed: 12, w: 64, h: 34, base: 26, heads: [[30, 12, 18]], body: [8, 56, 8], round: 1, streaks: [] },
-  // two tiny puffs drifting together
-  { name: 'cloud-4', seed: 21, w: 60, h: 24, base: 18, heads: [[15, 6, 9], [43, 8, 12]], body: [6, 54, 0], round: 1, streaks: [] },
   // a long thin wisp: streaks with a couple of small lumps
   { name: 'cloud-5', seed: 5, w: 180, h: 22, base: 15, heads: [[70, 10, 8], [104, 8, 6]], body: [44, 130, 4], round: 1,
     streaks: [[8, 20, 150, 1], [12, 0, 60, 2], [16, 96, 179, 2], [19, 30, 110, 3]] },
