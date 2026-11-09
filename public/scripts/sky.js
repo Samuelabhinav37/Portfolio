@@ -31,14 +31,10 @@
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
   var covered = false;
   function running(){ send({ type:'running', on:!document.hidden && !covered }); }
-  /* the homepage light theme (home-theme.js sends 'theme:change'): a light
-     sky picked by html[data-light-sky]; 'paper' keeps this page's own sky,
-     inverted in CSS */
+  /* the homepage light theme (home-theme.js sends 'theme:change') switches
+     the engine to its 'day' tone */
   function currentTone(){
-    var r = document.documentElement;
-    if(r.getAttribute('data-theme') !== 'light') return tone || 'default';
-    var v = r.getAttribute('data-light-sky');
-    return v === 'dawn' ? 'dawn' : v === 'paper' ? (tone || 'default') : 'day';
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'day' : (tone || 'default');
   }
   document.addEventListener('theme:change', function(){ send({ type:'tone', name:currentTone() }); });
   function greet(){ send(size()); running(); send({ type:'tone', name:currentTone() }); }  // the engine may be ready after theme:change fired
@@ -53,7 +49,7 @@
     }
     if(window.SiteSky) return boot();
     var s = document.createElement('script');
-    s.src = '/scripts/sky-engine.js?v=7';
+    s.src = '/scripts/sky-engine.js?v=8';
     s.addEventListener('load', boot);
     document.head.appendChild(s);
   }
@@ -62,7 +58,7 @@
     var c = canvases(), worker;
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
-      worker = new Worker('/scripts/sky-worker.js?v=7');
+      worker = new Worker('/scripts/sky-worker.js?v=8');
       worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;

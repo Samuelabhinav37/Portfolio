@@ -148,10 +148,9 @@
   var BRIGHT = { deep:[.030,.050,.120], body:[.120,.180,.330], cloud:[.800,.840,.930], rim:[.970,.980,1.000] };
   /* the 'space' tone: the default look mixed down (homepage, 2026-11-08) */
   var SPACE = { deep:LOOK.deep, body:LOOK.body, cloud:LOOK.cloud, rim:LOOK.rim, mix:{ sky:0, cloud:.4, cover:.429, stars:.95 } };
-  /* light skies for the homepage light theme (trial, 2026-11-08): deep = horizon, body = top; stars in ink */
+  /* the day sky for the homepage light theme (2026-11-08): deep = horizon, body = top; ink:1 = the day stars */
   var DAY  = { deep:[.80,.88,.97], body:[.50,.68,.92], cloud:[.96,.97,1], rim:[1,1,1], ink:1, mix:{ sky:.9, cloud:1, cover:.484, stars:.1 } };
-  var DAWN = { deep:[.98,.84,.76], body:[.72,.70,.90], cloud:[.97,.90,.90], rim:[1,.97,.94], ink:1 };
-  var TONES = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT, space:SPACE, day:DAY, dawn:DAWN };
+  var TONES = { aged:AGED, mono:MONO, night:NIGHT, bright:BRIGHT, space:SPACE, day:DAY };
 
   function create(skyCanvas, fxCanvas, opts){
     var tier = TIERS[opts && opts.tier] || TIERS.full;
