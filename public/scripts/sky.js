@@ -31,7 +31,7 @@
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
   var covered = false;
   function running(){ send({ type:'running', on:!document.hidden && !covered }); }
-  /* the homepage light theme (home-theme.js sends 'theme:change') switches
+  /* the light theme (theme.js sends 'theme:change') switches
      the engine to its 'day' tone */
   function currentTone(){
     return document.documentElement.getAttribute('data-theme') === 'light' ? 'day' : (tone || 'default');

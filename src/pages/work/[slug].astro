@@ -7,7 +7,7 @@ import Motion from '../../components/Motion.astro';
 import SiteMenu from '../../components/SiteMenu.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
-import SkyBackground from '../../components/SkyBackground.astro';
+import SiteSky from '../../components/SiteSky.astro';
 import Fonts from '../../components/Fonts.astro';
 import '../../styles/tokens.css';
 import { PROJECTS } from '../../data/projects';
@@ -26,6 +26,7 @@ const og = 'https://samuelabhinav.com/images/og-home.jpg';
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script is:inline src="/scripts/theme.js"></script>
 <script is:inline>
 window.SITE=window.SITE||{};
 window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -57,7 +58,7 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 <ClarityAnalytics />
 </head>
 <body>
-<SkyBackground calm />
+<SiteSky />
 <SiteMenu currentPath="/work" />
 
 <main class="wk" id="main-content">
@@ -99,7 +100,7 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 html, body { background:var(--c-bg); color:#eef1f8; }
 body { font:400 16px/1.45 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; letter-spacing:-.01em; }
 
-.wk{ position:relative; display:grid; grid-template-columns:minmax(0,40%) minmax(0,1fr); column-gap:clamp(24px,3vw,48px);
+.wk{ position:relative; z-index:3; display:grid; grid-template-columns:minmax(0,40%) minmax(0,1fr); column-gap:clamp(24px,3vw,48px);
   padding:0 28px; min-height:100vh; }
 /* the left column stays put while the images scroll */
 .wk-side{ position:sticky; top:0; height:100vh; display:flex; flex-direction:column; padding:clamp(88px,13vh,128px) 0 28px;
@@ -139,6 +140,15 @@ body { font:400 16px/1.45 'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe 
   .wk-media{ padding-top:32px; }
 }
 @media print{ .wk-side{ position:static; height:auto; } }
+/* light theme (SiteSky) */
+:root[data-theme="light"] body, :root[data-theme="light"] .wk a, :root[data-theme="light"] .wk-pager a:first-child:hover{ color:#191919; }
+:root[data-theme="light"] .wk-side{ text-shadow:none; }
+:root[data-theme="light"] .wk-no{ color:rgba(55,53,47,.6); }
+:root[data-theme="light"] .wk-no span{ color:#191919; }
+:root[data-theme="light"] .wk-year, :root[data-theme="light"] .wk-pager a:first-child{ color:rgba(55,53,47,.62); }
+:root[data-theme="light"] .wk-about{ color:rgba(55,53,47,.85); }
+:root[data-theme="light"] .wk-img{ background:#f1f1ef; }
+:root[data-theme="light"] .wk-img--todo span{ color:rgba(55,53,47,.5); }
 </style>
 </body>
 </html>

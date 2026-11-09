@@ -6,6 +6,7 @@
  * all in the site's serif. The page you are on is bright, the others dim and
  * brighten on hover; on the home page (no current page) all are bright.
  *
+ * A sun/moon switch beside Contact flips the light theme (/scripts/theme.js).
  * Links other than the current page roll their letters up on hover, like
  * the footer links (data-roll, motion.js).
  *
@@ -15,10 +16,8 @@
 interface Props {
   currentPath: '/' | '/about' | '/blog' | '/contact' | '/work' | '/photos';
   hasIntro?: boolean;
-  /** a light/dark switch beside Contact (homepage only for now; wired by /scripts/home-theme.js) */
-  themeToggle?: boolean;
 }
-const { currentPath, hasIntro = false, themeToggle = false } = Astro.props;
+const { currentPath, hasIntro = false } = Astro.props;
 
 // the list in the middle; Contact sits alone at the right edge
 const links = [
@@ -44,12 +43,10 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
     <>{i > 0 && <span class="sep" aria-hidden="true">, </span>}<a href={l.href} aria-current={here(l.href)} data-roll={here(l.href) ? undefined : ""}>{l.label}</a></>
   ))}</span>
   <span class="nav-end">
-    {themeToggle && (
-      <button id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
+    <button id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
       </button>
-    )}
     <a href={contact.href} aria-current={here(contact.href)} data-roll={here(contact.href) ? undefined : ""}>{contact.label}</a>
   </span>
 </nav>

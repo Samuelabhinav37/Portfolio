@@ -1,7 +1,7 @@
 ---
 import Motion from '../components/Motion.astro';
 import SiteMenu from '../components/SiteMenu.astro';
-import SkyLife from '../components/SkyLife.astro';
+import SiteSky from '../components/SiteSky.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import KaiSite from '../components/KaiSite.astro';
@@ -57,6 +57,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script is:inline src="/scripts/theme.js"></script>
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
 <Motion />
@@ -68,9 +69,7 @@ html, body { background:var(--c-bg); color:#f4f6fa; overflow-x:hidden; }
 body { font-family:'Inter', 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size:16px; letter-spacing:.03em; -webkit-font-smoothing:antialiased; }
 
-/* the night sky from the earlier About: painted wash and star dust, film grain and vignette on top */
-.ab-sky{ position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:url(/images/paint/stars-tile.webp) 0 0 / 1024px, url(/images/paint/wash-tile.webp) 0 0 / 1024px; }
+/* the site sky (SiteSky) behind everything; film grain and vignette on top */
 .page-grain{ position:fixed; inset:0; z-index:2147483000; pointer-events:none; }
 .page-grain::before{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,4,12,.55) 100%); }
 .page-grain::after{ content:""; position:absolute; inset:0; background:url(/images/grain.webp) repeat; opacity:.06; }
@@ -172,6 +171,16 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 
 @media (prefers-reduced-motion: reduce){ .game-stage.on{ animation:none; } .tv-air-dot{ animation:none; } }
 
+/* light theme (SiteSky): dark ink on the day sky; the arcade TV keeps its dark shell */
+:root[data-theme="light"] body{ color:#191919; }
+:root[data-theme="light"] .section{ border-bottom-color:rgba(55,53,47,.16); }
+:root[data-theme="light"] .rule{ background:rgba(55,53,47,.16); }
+:root[data-theme="light"] .list li::before{ background:#191919; }
+:root[data-theme="light"] .frame{ border-color:rgba(55,53,47,.14); background:rgba(255,255,255,.55); }
+:root[data-theme="light"] .portrait .ph, :root[data-theme="light"] .tile .frame > *{ background:rgba(55,53,47,.05); }
+:root[data-theme="light"] .portrait .ph, :root[data-theme="light"] .tile .frame > .ph{ color:rgba(55,53,47,.55); }
+@media (hover:hover){ :root[data-theme="light"] .tile:hover .frame{ border-color:rgba(55,53,47,.4); } }
+
 @media (--bp-900){
   .g{ padding-top:96px; }
   .read{ margin-bottom:64px; flex-wrap:wrap; }
@@ -190,9 +199,8 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
 </head>
 
 <body>
-<div class="ab-sky" aria-hidden="true"></div>
 <div class="page-grain" aria-hidden="true"></div>
-<SkyLife jellies />
+<SiteSky />
 
 <SiteMenu currentPath="/about" />
 
