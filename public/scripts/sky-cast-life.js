@@ -1,7 +1,12 @@
 /* What lives in the homepage sky (SkyLife.astro with `cast`): jellyfish
    (a looping clip) drifting up, with soft stars and the odd rising bubble
-   as CSS animations. Nothing starts until the page has loaded, nothing runs
-   while the tab is hidden, and reduced motion holds everything still. */
+   as CSS animations. Nothing starts until the page has loaded (unless the
+   last page handed its cast over), nothing runs while the tab is hidden, and
+   reduced motion holds everything still.
+
+   Moving between pages: on pagehide the cast (jellyfish where they are,
+   the soft stars) goes into sessionStorage, and the next page puts it back,
+   so the sky carries on instead of starting over. */
 (function () {
   'use strict';
   const sky = document.querySelector('.sky-life');
@@ -11,6 +16,10 @@
   const play = (v) => (window.playClip ? playClip(v) : v.play()).catch(() => {}); // one download for all the jellyfish (shared-clip.js)
   const rnd = (a, b) => a + Math.random() * (b - a);
   let W = 0, H = 0;
+  const KEY = 'sky-cast';
+  let handed = null;
+  try { handed = JSON.parse(sessionStorage.getItem(KEY)); } catch (e) {}
+  if (!handed || !(Date.now() - handed.at < 15000)) handed = null;
   const layer = document.createElement('div');
   layer.className = 'sc-layer';
   sky.appendChild(layer);
@@ -18,7 +27,12 @@
   /* ── soft stars and bubbles ── */
   function placeStars() {
     layer.querySelectorAll('.sc-star').forEach((s) => s.remove());
-    for (let i = 0; i < (W < 700 ? 7 : 14); i++) {
+    const n = W < 700 ? 7 : 14;
+    if (handed && handed.stars && handed.stars.length === n) {
+      for (const css of handed.stars) { const s = document.createElement('i'); s.className = 'sc-star'; s.style.cssText = css; layer.appendChild(s); }
+      return;
+    }
+    for (let i = 0; i < n; i++) {
       const s = document.createElement('i'), r = rnd(0.6, 1.25) * 5, base = rnd(0.35, 0.75);
       s.className = 'sc-star';
       s.style.cssText = `left:${rnd(3, 97).toFixed(1)}%;top:${rnd(4, 96).toFixed(1)}%;width:${(r * 2).toFixed(1)}px;height:${(r * 2).toFixed(1)}px;margin:${(-r).toFixed(1)}px 0 0 ${(-r).toFixed(1)}px;--d:${rnd(2.5, 5).toFixed(2)}s;--o:${(-rnd(0, 5)).toFixed(2)}s;--lo:${(base * 0.2).toFixed(2)};--hi:${base.toFixed(2)}`;
@@ -51,8 +65,11 @@
   const jellyBox = (x, y, w) => ({ l: x - w * 0.45, r: x + w * 0.45, t: y - w * BELL_Y, b: y - w * BELL_Y + w * ASPECT * 0.85 });
   function makeJellies() {
     layer.querySelectorAll('.sc-jelly').forEach((v) => v.remove());
-    jel = (narrowSky() ? [0] : [0, 1, 2]).map((i) => {
-      const w = narrowSky() ? rnd(34, 40) : [rnd(70, 84), rnd(56, 66), rnd(44, 52)][i];
+    const idx = narrowSky() ? [0] : [0, 1, 2];
+    const prev = handed && handed.jel && handed.jel.length === idx.length ? handed.jel : null;
+    jel = idx.map((i) => {
+      const was = prev && prev[i];
+      const w = was ? was.w : narrowSky() ? rnd(34, 40) : [rnd(70, 84), rnd(56, 66), rnd(44, 52)][i];
       const v = document.createElement('video');
       v.className = 'sc-jelly'; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
       v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
@@ -60,7 +77,7 @@
       for (const [ext, type] of [['webm', 'video/webm'], ['mp4', 'video/mp4']]) {
         const src = document.createElement('source'); src.src = '/videos/contact-jelly.' + ext; src.type = type; v.appendChild(src);
       }
-      const start = rnd(0, PULSE);
+      const start = was ? was.vt : rnd(0, PULSE);
       v.addEventListener('loadedmetadata', () => { v.currentTime = start; }, { once: true });
       layer.appendChild(v);
       if (!still) play(v);
@@ -69,6 +86,7 @@
       const pair = !narrowSky() && START[i];
       const dir = pair ? rnd(0.45, 0.6) : (Math.random() < 0.5 ? -1 : 1) * rnd(0.45, 0.95);
       const x = pair ? pair[0] * W : jellyX(), y = pair ? pair[1] * H : rnd(0.3, 1) * H;
+      if (was) return { v, w, x: was.x * W, y: was.y * H, ph: was.ph, seed: was.seed, dir: was.dir, aim: was.dir, lean: was.lean, fade: 1, nextBubble: rnd(2, 6) };
       return { v, w, x, y, ph: rnd(0, 1), seed: rnd(0, 100), dir, aim: dir, lean: dir, fade: still ? 1 : 0, nextBubble: rnd(2, 6) };
     });
   }
@@ -129,7 +147,17 @@
       covered = e.detail;
       jel.forEach((j) => { if (covered) j.v.pause(); else if (!still && !document.hidden) play(j.v); });
     });
-    let last = 0, clock = 0;
+    let last = 0, clock = handed ? handed.clock + (Date.now() - handed.at) / 1000 : 0;
+    handed = null; // used once; a later resize builds a fresh cast
+    addEventListener('pagehide', () => {
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify({
+          at: Date.now(), clock,
+          stars: [...layer.querySelectorAll('.sc-star')].map((s) => s.style.cssText),
+          jel: jel.map((j) => ({ x: j.x / W, y: j.y / H, w: j.w, dir: j.dir, lean: j.lean, seed: j.seed, ph: j.ph, vt: j.v.currentTime || 0 })),
+        }));
+      } catch (e) {}
+    });
     const frame = (ms) => {
       if (covered && !still) { last = ms; requestAnimationFrame(frame); return; }
       if (!still && last && ms - last < FRAME_MS - 2) { requestAnimationFrame(frame); return; }
@@ -141,6 +169,6 @@
     };
     requestAnimationFrame(frame);
   }
-  if (document.readyState === 'complete') start();
+  if (document.readyState === 'complete' || handed) start();
   else addEventListener('load', start, { once: true });
 })();

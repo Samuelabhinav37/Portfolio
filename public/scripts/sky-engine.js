@@ -157,7 +157,12 @@
     var tone = TONES[opts && opts.tone] || LOOK;
     var W = 1, H = 1, DPR = 1, running = true;
     var mixL = Object.assign({ sky:1, cloud:1, cover:.44, stars:1 }, tone.mix);   /* 1 = the look above; 'look' messages change it */
-    var sceneT = 40 + Math.random()*400;    /* a different sky on every visit */
+    /* a different sky on every visit, but one sky per visit: with a session
+       clock (sky.js) every page draws the same moment, so moving between
+       pages never restarts the background */
+    var clock = opts && opts.clock;
+    function clockT(){ return clock.seed + (Date.now() - clock.at) / 1000 * .55; }
+    var sceneT = clock ? clockT() : 40 + Math.random()*400;
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
 
     /* ── GL ── */
@@ -249,7 +254,7 @@
       if(!running) return;
       if(tier.fps){ schedule(); if(last && now - last < frameMin - 1) return; }
       var dt = last ? Math.min((now - last)/1000, .1) : 0; last = now;
-      sceneT += dt * .55;                     /* the site's background pace */
+      sceneT = clock ? clockT() : sceneT + dt * .55;   /* the site's background pace */
       drawSky();
       if(tier.fps) stepMeteors(dt);
     }

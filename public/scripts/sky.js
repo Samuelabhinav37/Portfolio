@@ -39,17 +39,27 @@
   document.addEventListener('theme:change', function(){ send({ type:'tone', name:currentTone() }); });
   function greet(){ send(size()); running(); send({ type:'tone', name:currentTone() }); }  // the engine may be ready after theme:change fired
 
+  // one sky per visit: a random start and the time it began, kept for this
+  // tab, so every page draws the same moment (sky-engine.js) and the clouds
+  // (pixel-clouds.js) sway on the same clock
+  var clock = null;
+  try{ clock = JSON.parse(sessionStorage.getItem('sky-clock')); }catch(e){}
+  if(!clock || !(clock.at > 0)){
+    clock = { seed: 40 + Math.random()*400, at: Date.now() };
+    try{ sessionStorage.setItem('sky-clock', JSON.stringify(clock)); }catch(e){}
+  }
+
   function runInline(){
     var c = canvases();
     function boot(){
-      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier, tone:tone });
+      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier, tone:tone, clock:clock });
       if(!engine.hasGL) host.classList.add('no-gl');
       send = engine.handle;
       greet();
     }
     if(window.SiteSky) return boot();
     var s = document.createElement('script');
-    s.src = '/scripts/sky-engine.js?v=8';
+    s.src = '/scripts/sky-engine.js?v=9';
     s.addEventListener('load', boot);
     document.head.appendChild(s);
   }
@@ -58,8 +68,8 @@
     var c = canvases(), worker;
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
-      worker = new Worker('/scripts/sky-worker.js?v=8');
-      worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone }, [offSky, offFx]);
+      worker = new Worker('/scripts/sky-worker.js?v=9');
+      worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone, clock:clock }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;
     function fail(){ if(settled) return; settled = true; try{ worker.terminate(); }catch(e){} runInline(); }

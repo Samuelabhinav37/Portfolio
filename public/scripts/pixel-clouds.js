@@ -21,6 +21,15 @@
   ];
 
   var layer, clouds = [], H = innerHeight, W = innerWidth;
+  // the sway runs on the visit's clock (set by sky.js), so the clouds pick up
+  // where they were on the last page instead of starting over
+  var clock = null;
+  try{ clock = JSON.parse(sessionStorage.getItem('sky-clock')); }catch(e){}
+  var t0 = clock && clock.at > 0 ? clock.at : Date.now();
+  function sway(c){ // a back-and-forth of +-60px at 8px/s
+    var p = (((Date.now() - t0) / 1000 * 8 + c.phase) % 240 + 240) % 240;
+    return p < 120 ? p - 60 : 180 - p;
+  }
   var mx = 0, my = 0, tx = 0, ty = 0, last = 0, raf = 0;
 
   function build(){
@@ -30,7 +39,8 @@
       var el = new Image(p[1] * SCALE, p[2] * SCALE);
       el.alt = ''; el.decoding = 'async'; el.className = 'pxc';
       layer.appendChild(el);
-      clouds.push({ el: el, name: p[0], x: p[3], y: p[4], w: p[1] * SCALE, depth: p[5], drift: (i - 1) * 40, dir: i % 2 ? 1 : -1 });
+      var c = { el: el, name: p[0], x: p[3], y: p[4], w: p[1] * SCALE, depth: p[5], phase: i * 70 };
+      c.drift = sway(c); clouds.push(c);
     });
     var sky = document.getElementById('sky');
     (sky && sky.parentNode ? sky.parentNode : document.body).insertBefore(layer, sky ? sky.nextSibling : null);
@@ -41,7 +51,7 @@
     tx += (mx * 6 - tx) * 0.08; ty += (my * 6 - ty) * 0.08;
     for(var i = 0; i < clouds.length; i++){
       var c = clouds[i];
-      if(dt){ c.drift += c.dir * 8 * dt; if(c.drift > 60 || c.drift < -60){ c.dir = -c.dir; c.drift = Math.max(-60, Math.min(60, c.drift)); } }
+      if(dt) c.drift = sway(c);
       var x = c.x / 100 * W + c.drift + tx - c.w / 2;
       var y = c.y / 100 * H - sy * c.depth + ty;
       y = (((y + H * 0.3) % field) + field) % field - H * 0.3; // loops, and may sit a little above the top
