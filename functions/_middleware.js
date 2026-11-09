@@ -46,7 +46,8 @@ function buildCsp() {
     "style-src 'self' 'unsafe-inline'", // fonts are self-hosted under /fonts/
     "font-src 'self' data:",
     "img-src 'self' data: blob: https:",
-    "media-src 'self' data: blob:",
+    // https: for audio and video only: the nav's podcast streams from the show's host, behind tracking redirects that change
+    "media-src 'self' data: blob: https:",
     "connect-src 'self' https://challenges.cloudflare.com https://www.clarity.ms https://*.clarity.ms https://cloudflareinsights.com",
     "frame-src 'self' https://challenges.cloudflare.com",
     "object-src 'none'",

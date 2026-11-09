@@ -1,0 +1,171 @@
+---
+/**
+ * The nav's tool strip, after motherdesign.com: a panel and four square
+ * tabs. Each tab swaps what the panel shows:
+ *   news   - the newest blog posts, drifting left in a loop
+ *   cursor - pick one of the site's own cursors (public/cursors, drawn by
+ *            scripts/make-cursors.mjs)
+ *   music  - a small Darknet Diaries player (episodes from /api/podcast)
+ *   theme  - the sun/moon switch (#theme-toggle, /scripts/theme.js)
+ * Below 1100px the panel opens as a dropdown under the tabs; phones keep
+ * only the music and theme tabs. Behaviour lives in /scripts/nav-tools.js.
+ */
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/')))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 6);
+const cursors = [
+  ['arrow', 'Normal arrow'], ['jelly', 'Jellyfish'], ['star', 'Star'],
+  ['pixel', 'Pixel arrow'], ['key', 'Key'], ['lens', 'Magnifying glass'],
+];
+---
+<div class="nt" id="nav-tools">
+  <div class="nt-panel" id="nt-panel">
+    <div class="nt-pane nt-news" data-pane="news">
+      <div class="nt-track">
+        {[0, 1].map((copy) => (
+          <span class="nt-run" aria-hidden={copy ? 'true' : undefined}>
+            {posts.map((p) => (
+              <a href={`/blog/${p.id}/`} tabindex={copy ? -1 : undefined}><svg class="nt-glint" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 0l1.2 4.8L12 6 7.2 7.2 6 12 4.8 7.2 0 6l4.8-1.2z"/></svg>{p.data.title}</a>
+            ))}
+          </span>
+        ))}
+      </div>
+    </div>
+
+    <div class="nt-pane nt-cursors" data-pane="cursor" role="group" aria-label="Cursor" hidden>
+      {cursors.map(([key, label]) => (
+        <button type="button" data-cursor={key} aria-label={label} aria-pressed={key === 'arrow' ? 'true' : 'false'}>
+          {key === 'arrow'
+            ? <svg viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M3.25 0.5v13.5l3.1-4.35 2.73 5.85 2.04-.96-2.7-5.79h5.33z"/></svg>
+            : <img src={`/cursors/${key}.png`} alt="" width="20" height="20" />}
+        </button>
+      ))}
+    </div>
+
+    <div class="nt-pane nt-music" data-pane="music" hidden>
+      <div class="nt-scroll">
+        <div class="nt-track nt-ep">
+          {[0, 1].map((copy) => (
+            <span class="nt-run" aria-hidden={copy ? 'true' : undefined}><b class="nt-ep-t">Darknet Diaries</b><span class="nt-ep-s">Darknet Diaries</span></span>
+          ))}
+        </div>
+      </div>
+      <img class="nt-cover" alt="" width="34" height="34" hidden />
+      <button type="button" class="nt-btn nt-play" aria-label="Play" aria-pressed="false">
+        <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M4.5 2.5v11l9-5.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>
+      </button>
+      <button type="button" class="nt-btn nt-next" aria-label="Next episode">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M3 2.5v11l7.5-5.5zM11 2.5h2.5v11H11z"/></svg>
+      </button>
+      <button type="button" class="nt-btn nt-mute" aria-label="Mute" aria-pressed="false">
+        <svg class="i-on" viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M2 6h2.8L8.5 2.8v10.4L4.8 10H2z"/><path d="M10.8 5.4a3.6 3.6 0 0 1 0 5.2M12.6 3.6a6.2 6.2 0 0 1 0 8.8"/></svg>
+        <svg class="i-off" viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M2 6h2.8L8.5 2.8v10.4L4.8 10H2z"/><path d="M10.5 6l4 4M14.5 6l-4 4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="nt-tabs">
+    <button type="button" class="nt-tab" data-tab="news" aria-label="Latest posts" aria-controls="nt-panel" aria-pressed="true">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6"/><path d="M1.4 8h13.2M8 1.4c-3.6 3.6-3.6 9.6 0 13.2M8 1.4c3.6 3.6 3.6 9.6 0 13.2"/></svg>
+    </button>
+    <button type="button" class="nt-tab" data-tab="cursor" aria-label="Cursors" aria-controls="nt-panel" aria-pressed="false">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M3.25 0.5v13.5l3.1-4.35 2.73 5.85 2.04-.96-2.7-5.79h5.33z"/></svg>
+    </button>
+    <button type="button" class="nt-tab" data-tab="music" aria-label="Podcast" aria-controls="nt-panel" aria-pressed="false">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M7 2h5.5v3H9v6.6A2.6 2.6 0 1 1 7 9.1z"/></svg>
+    </button>
+    <button type="button" class="nt-tab" id="theme-toggle" aria-pressed="false" aria-label="Switch to light mode">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+    </button>
+  </div>
+</div>
+<script is:inline src="/scripts/nav-tools.js" defer></script>
+
+<style is:global>
+  .nt { --nt-h: 36px; --nt-line: rgba(var(--c-white), .3); --nt-bg: rgba(6, 8, 16, .5);
+    --nt-ink: rgba(var(--c-white), .92); --nt-on-bg: #f4f6fa; --nt-on-ink: #0b0d14;
+    position: relative; display: flex; justify-content: flex-end; gap: 12px; flex: 1 1 auto; min-width: 0;
+    font: 500 13px/1 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: 0; color: var(--nt-ink); }
+  :root[data-theme="light"] .nt { --nt-line: rgba(25, 25, 25, .85); --nt-bg: rgba(255, 255, 255, .85); --nt-on-bg: #191919; --nt-on-ink: #fff; }
+  .nt svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+  .nt svg .fill { fill: currentColor; stroke: none; }
+
+  .nt-panel { flex: 1 1 auto; min-width: 0; max-width: 500px; height: var(--nt-h); border: 1px solid var(--nt-line);
+    background: var(--nt-bg); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); overflow: hidden; }
+  .nt-pane { height: 100%; }
+  .nt-pane[hidden] { display: none !important; }
+
+  /* the drifting line (news, and the episode title): two copies side by side, moved one copy's width */
+  .nt-news, .nt-scroll { overflow: hidden; display: flex; align-items: center; }
+  .nt-track { display: flex; width: max-content; animation: nt-drift var(--d, 40s) linear infinite; }
+  .nt-run { display: flex; align-items: center; white-space: nowrap; }
+  .nt-news a { display: inline-flex; align-items: center; gap: 8px; padding-right: 28px; color: inherit; text-decoration: none; transition: opacity .25s; }
+  .nt-news a:first-child { padding-left: 14px; }
+  .nt-news a:hover { opacity: .6; }
+  .nt-glint { width: 10px !important; height: 10px !important; flex: none; }
+  .nt-glint path { fill: currentColor; stroke: none; }
+  .nt-news:hover .nt-track, .nt-news:focus-within .nt-track { animation-play-state: paused; }
+  @keyframes nt-drift { to { transform: translateX(-50%); } }
+
+  .nt-cursors { display: flex; }
+  .nt-cursors button { all: unset; flex: 1; display: grid; place-items: center; cursor: pointer; box-sizing: border-box; }
+  .nt-cursors button img { width: 20px; height: 20px; image-rendering: auto; }
+  .nt-cursors button[aria-pressed="true"] { outline: 1px solid var(--nt-ink); outline-offset: -4px; }
+  .nt-cursors button:focus-visible { outline: 2px solid var(--nt-ink); outline-offset: -4px; }
+
+  .nt-music { display: flex; align-items: stretch; }
+  .nt-scroll { flex: 1 1 auto; min-width: 0; }
+  .nt-ep .nt-run { padding-right: 28px; gap: 14px; }
+  .nt-ep .nt-run:first-child { padding-left: 14px; }
+  .nt-ep-t { font-weight: 600; }
+  .nt-ep-s { opacity: .65; }
+  .nt-cover { width: var(--nt-h); height: 100%; object-fit: cover; flex: none; }
+  .nt-btn { all: unset; flex: none; width: calc(var(--nt-h) + 2px); display: grid; place-items: center; cursor: pointer; border-left: 1px solid var(--nt-line); box-sizing: border-box; }
+  .nt-btn:hover { background: rgba(var(--c-white), .08); }
+  .nt-btn:focus-visible { outline: 2px solid var(--nt-ink); outline-offset: -3px; }
+  .nt-play .i-pause, .nt-play[aria-pressed="true"] .i-play { display: none; }
+  .nt-play[aria-pressed="true"] .i-pause { display: block; }
+  .nt-mute .i-off, .nt-mute[aria-pressed="true"] .i-on { display: none; }
+  .nt-mute[aria-pressed="true"] .i-off { display: block; }
+
+  .nt-tabs { display: flex; flex: none; height: var(--nt-h); border: 1px solid var(--nt-line); background: var(--nt-bg);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .nt-tab { all: unset; position: relative; box-sizing: border-box; width: var(--nt-h); display: grid; place-items: center; cursor: pointer; color: var(--nt-ink); transition: background-color .2s, color .2s; }
+  .nt-tab + .nt-tab { border-left: 1px solid var(--nt-line); }
+  .nt-tab:hover { background: rgba(var(--c-white), .08); }
+  .nt-tab[data-tab][aria-pressed="true"] { background: var(--nt-on-bg); color: var(--nt-on-ink); }
+  .nt-tab:focus-visible { outline: 2px solid var(--nt-ink); outline-offset: -4px; }
+  /* the music tab shows a small dot while an episode plays */
+  .nt-tab.on-air::after { content: ''; position: absolute; top: 6px; right: 6px; width: 5px; height: 5px; border-radius: 50%; background: #ff5a4e; }
+  /* the theme tab shows the mode you would switch to */
+  #theme-toggle .i-moon { display: none; }
+  :root[data-theme="light"] #theme-toggle .i-sun { display: none; }
+  :root[data-theme="light"] #theme-toggle .i-moon { display: block; }
+
+  @media (prefers-reduced-motion: reduce) { .nt-track { animation: none; } }
+
+  /* narrower screens: the panel opens under the tabs when a tab is pressed */
+  @media (max-width: 1100px) {
+    .nt { flex: none; }
+    .nt-panel { display: none; position: absolute; top: calc(100% + 8px); right: 0; width: min(440px, calc(100vw - 32px)); max-width: none; }
+    .nt[data-open] .nt-panel { display: block; }
+  }
+  @media (max-width: 760px) {
+    .nt { --nt-h: 32px; }
+    .nt-tab[data-tab="news"], .nt-tab[data-tab="cursor"] { display: none; }
+    .nt-tab[data-tab="music"] { border-left: 0; }
+  }
+  /* no mouse, no cursors */
+  @media (hover: none) { .nt-tab[data-tab="cursor"] { display: none; } }
+
+  /* the chosen cursor, everywhere except where you type */
+  :root[data-cursor="jelly"], :root[data-cursor="jelly"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/jelly.png) 16 4, auto !important; }
+  :root[data-cursor="star"], :root[data-cursor="star"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/star.png) 16 16, auto !important; }
+  :root[data-cursor="pixel"], :root[data-cursor="pixel"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/pixel.png) 1 1, auto !important; }
+  :root[data-cursor="key"], :root[data-cursor="key"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/key.png) 4 4, auto !important; }
+  :root[data-cursor="lens"], :root[data-cursor="lens"] :not(input, textarea, select, [contenteditable="true"]) { cursor: url(/cursors/lens.png) 12 12, auto !important; }
+</style>

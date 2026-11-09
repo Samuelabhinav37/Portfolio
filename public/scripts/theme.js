@@ -6,6 +6,8 @@
   const root = document.documentElement;
   // 'home-theme' was the key while only the homepage had the switch
   try { if ((localStorage.getItem('theme') || localStorage.getItem('home-theme')) === 'light') root.setAttribute('data-theme', 'light'); } catch (e) {}
+  // the cursor picked in the nav's pointer tab (nav-tools.js), only where there is a mouse
+  try { const c = localStorage.getItem('cursor'); if (c && c !== 'arrow' && matchMedia('(hover: hover)').matches) root.setAttribute('data-cursor', c); } catch (e) {}
   const changed = () => document.dispatchEvent(new CustomEvent('theme:change'));
   addEventListener('load', changed); // deferred sky scripts have run by now
   document.addEventListener('DOMContentLoaded', () => {
