@@ -18,6 +18,8 @@
 .stoc-dashes li { display: block; width: 16px; height: 2px; border-radius: 2px; background: rgba(255,255,255,.38); transition: width .25s, background .25s; }
 .stoc-dashes li.top { width: 22px; }
 .stoc-dashes li.is-active { width: 24px; background: #fff; }
+:root[data-theme="light"] .stoc-dashes li { background: rgba(55,53,47,.22); }
+:root[data-theme="light"] .stoc-dashes li.is-active { background: #37352f; }
 .stoc-card {
   position: absolute; right: calc(100% - 20px); top: 50%; width: 240px; max-height: 70vh; overflow: auto; padding: 6px;
   border: 1px solid rgba(55,53,47,.09); border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(15,15,15,.05), 0 3px 6px rgba(15,15,15,.1), 0 9px 24px rgba(15,15,15,.2);

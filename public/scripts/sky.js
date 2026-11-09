@@ -30,7 +30,10 @@
 
   function size(){ return { type:'size', w:innerWidth, h:innerHeight, dpr:window.devicePixelRatio || 1 }; }
   var covered = false;
-  function running(){ send({ type:'running', on:!document.hidden && !covered }); }
+  /* the homepage light theme hides the sky, so it stops drawing too (home-theme.js sends 'theme:change') */
+  function light(){ return document.documentElement.getAttribute('data-theme') === 'light'; }
+  function running(){ send({ type:'running', on:!document.hidden && !covered && !light() }); }
+  document.addEventListener('theme:change', function(){ running(); document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered || light() })); });
   function greet(){ send(size()); running(); }
 
   function runInline(){
@@ -101,7 +104,7 @@
         var now = false; state.forEach(function(v){ now = now || v; });
         if(now === covered) return;
         covered = now; running();
-        document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered }));
+        document.dispatchEvent(new CustomEvent('sky:covered', { detail:covered || light() }));
       }, { threshold:th, rootMargin:(e[0] || 0) + 'px 0px ' + (e[1] || 0) + 'px 0px' }).observe(el);
     });
   }

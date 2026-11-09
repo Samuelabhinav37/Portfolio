@@ -12,8 +12,10 @@
 interface Props {
   currentPath: '/' | '/about' | '/blog' | '/contact' | '/work' | '/photos';
   hasIntro?: boolean;
+  /** a light/dark switch beside Contact (homepage only for now; wired by /scripts/home-theme.js) */
+  themeToggle?: boolean;
 }
-const { currentPath, hasIntro = false } = Astro.props;
+const { currentPath, hasIntro = false, themeToggle = false } = Astro.props;
 
 // the list in the middle; Contact sits alone at the right edge
 const links = [
@@ -38,7 +40,15 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
   <span class="nav-list">{links.map((l, i) => (
     <>{i > 0 && <span class="sep" aria-hidden="true">, </span>}<a href={l.href} aria-current={here(l.href)}>{l.label}</a></>
   ))}</span>
-  <a href={contact.href} aria-current={here(contact.href)}>{contact.label}</a>
+  <span class="nav-end">
+    {themeToggle && (
+      <button id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      </button>
+    )}
+    <a href={contact.href} aria-current={here(contact.href)}>{contact.label}</a>
+  </span>
 </nav>
 
 <style>
@@ -76,6 +86,16 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
   #site-nav.has-current a:not([aria-current]), #site-nav.has-current .sep { opacity: 0.45; }
   #site-nav.has-current a:not([aria-current]):hover, #site-nav a:focus-visible { opacity: 1; }
   #site-nav a[aria-current] { cursor: default; }
+  .nav-end { display: flex; align-items: center; gap: 18px; }
+  #theme-toggle { all: unset; position: relative; display: grid; place-items: center; width: 18px; height: 18px; cursor: pointer; color: inherit; opacity: .7; transition: opacity .25s ease; }
+  #theme-toggle:hover, #theme-toggle:focus-visible { opacity: 1; }
+  #theme-toggle:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; border-radius: 4px; }
+  #theme-toggle::before { content: ''; position: absolute; inset: -10px; }
+  #theme-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  /* shows the mode you would switch to */
+  #theme-toggle .i-moon { display: none; }
+  :global(:root[data-theme="light"]) #theme-toggle .i-sun { display: none; }
+  :global(:root[data-theme="light"]) #theme-toggle .i-moon { display: block; }
   /* a bigger tap area without moving the text */
   #site-nav a { position: relative; }
   #site-nav a::before { content: ''; position: absolute; inset: -12px -4px; }

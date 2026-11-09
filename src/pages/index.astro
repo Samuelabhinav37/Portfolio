@@ -78,6 +78,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script is:inline src="/scripts/home-theme.js"></script>
 <script is:inline defer src="/scripts/title-manager.js"></script>
 <Fonts />
 <Motion />
@@ -259,7 +260,7 @@ footer#site-footer{
 <body>
 <div class="page-grain" aria-hidden="true"></div>
 
-<SiteMenu currentPath="/" hasIntro={true} />
+<SiteMenu currentPath="/" hasIntro={true} themeToggle />
 <h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
 
 
@@ -464,6 +465,46 @@ footer#site-footer{
   </section>
 </div>
 <script is:inline defer src="/scripts/index-writing-reel.js"></script>
+
+<!-- ═══════════════ LIGHT THEME (homepage trial, toggled in the nav) ═══════════════
+     After Notion's light mode: warm white page, near-black ink, grey rules.
+     --c-white is the site's "ink on dark" colour, so flipping it to dark ink
+     turns most rgba(var(--c-white), a) text and lines over in one go; the
+     rest are literal colours overridden here. The sky and its jellyfish are
+     hidden and paused (sky.js). -->
+<style is:global>
+:root[data-theme="light"]{ --c-white:25,25,25; --c-bg:#fbfbfa; color-scheme:light; }
+:root[data-theme="light"] #sky, :root[data-theme="light"] .sky-life,
+:root[data-theme="light"] #chrome-damp, :root[data-theme="light"] #subliminal-layer,
+:root[data-theme="light"] #subliminal-flash, :root[data-theme="light"] .page-grain::before{ display:none; }
+:root[data-theme="light"] .page-grain{ display:none; }
+:root[data-theme="light"] .sec-title{ color:#191919; }
+:root[data-theme="light"] .sec-title em{ color:#37352f; }
+:root[data-theme="light"] .sec-title sup{ color:rgba(55,53,47,.55); }
+:root[data-theme="light"] .sec-link{ color:rgba(55,53,47,.65); }
+:root[data-theme="light"] .sec-link:hover{ color:#191919; }
+:root[data-theme="light"] .pw-img{ background:#f1f1ef; }
+:root[data-theme="light"] .pw-img::after{ opacity:.05; }
+:root[data-theme="light"] .pw-img--todo span{ color:rgba(55,53,47,.5); }
+:root[data-theme="light"] .pw-cap, :root[data-theme="light"] .fn-cap{ color:#37352f; text-shadow:none; }
+:root[data-theme="light"] #writing{ color:#37352f; }
+:root[data-theme="light"] .fn-vars{ --ink:#191919; --muted:rgba(55,53,47,.75); --dim:rgba(55,53,47,.6); --accent:#2383e2; --lvl:#2383e2; }
+:root[data-theme="light"] .fn-pic{ background:#f1f1ef; border-color:rgba(55,53,47,.09); }
+:root[data-theme="light"] a:hover .fn-pic{ background:#ebebe9; border-color:rgba(55,53,47,.16); }
+:root[data-theme="light"] .fn-peek{ background:#fff; box-shadow:inset 0 0 0 1px rgba(55,53,47,.09); }
+:root[data-theme="light"] .chips li{ color:#37352f; background:rgba(55,53,47,.06); border-color:rgba(55,53,47,.1); }
+:root[data-theme="light"] .bars i{ background:rgba(55,53,47,.15); }
+:root[data-theme="light"] .foot{ border-top-color:rgba(55,53,47,.09); }
+:root[data-theme="light"] footer#site-footer::before{ display:none; }
+:root[data-theme="light"] .f-brand-name{ color:#191919; }
+:root[data-theme="light"] .f-social a, :root[data-theme="light"] .f-group,
+:root[data-theme="light"] .f-copy, :root[data-theme="light"] .f-links a{ color:rgba(55,53,47,.65); }
+:root[data-theme="light"] .f-col a{ color:#37352f; }
+:root[data-theme="light"] .f-social a:hover, :root[data-theme="light"] .f-col a:hover, :root[data-theme="light"] .f-links a:hover{ color:#191919; }
+:root[data-theme="light"] #site-footer .f-mark-base{ background-image:linear-gradient(180deg, rgba(55,53,47,.16) 0%, rgba(55,53,47,.06) 70%, rgba(55,53,47,0) 100%); }
+:root[data-theme="light"] #site-footer .f-mark-glow{ background-image:radial-gradient(circle at var(--mx) var(--my), rgba(25,25,25,.85) 0, rgba(55,53,47,.45) 10%, rgba(55,53,47,.12) 24%, rgba(55,53,47,0) 36%); }
+html, body{ transition:background-color .4s ease; }
+</style>
 
 <style is:global>
 /* the same fine grain the sky uses, inside the frames, so they read as a material */
