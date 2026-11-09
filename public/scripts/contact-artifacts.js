@@ -42,23 +42,23 @@
   function render(){
     if(!body || !ms || !enc) return;
     var text = ms.value;
-    var lines = ['C:\\> encode correspondence.txt'];
+    var lines = ['C:\\> encode msg.txt'];
     if(!text.trim()){
-      lines = ['Microsoft Windows XP [Version 5.1.2600]', '(C) Copyright 1985-2001 Microsoft Corp.', '', 'C:\\> listen --band 1420MHz', 'listening for transmissions...'];
+      lines = ['Microsoft Windows XP', 'C:\\> listen 1420MHz', 'listening...'];
     } else {
       var bytes = enc.encode(text);
-      /* six bytes a row, so the text column stays clear of the card */
-      var start = Math.max(0, Math.floor((bytes.length - 1) / 6) * 6 - 5 * 6);
-      for(var o = start; o < bytes.length; o += 6){
+      /* four bytes a row: the console is a small window on the plate */
+      var start = Math.max(0, Math.floor((bytes.length - 1) / 4) * 4 - 5 * 4);
+      for(var o = start; o < bytes.length; o += 4){
         var row = [], asc = '';
-        for(var j = 0; j < 6; j++){
+        for(var j = 0; j < 4; j++){
           var b = bytes[o + j];
           row.push(b === undefined ? '  ' : hex2(b));
           asc += b === undefined ? ' ' : (b >= 32 && b < 127 ? String.fromCharCode(b) : '.');
         }
         lines.push(' ' + o.toString(16).toUpperCase().padStart(4, '0') + '  ' + row.join(' ') + '  ' + asc);
       }
-      lines.push('', ' bytes: ' + bytes.length + '   crc32: ' + crc32(bytes));
+      lines.push('', ' ' + bytes.length + ' B  crc ' + crc32(bytes));
     }
     body.textContent = lines.concat(tail ? ['', tail] : []).join('\n');
     var cur = document.createElement('span');
@@ -195,9 +195,10 @@
     var hole = tear.querySelector('.tear-hole'), fx = tear.querySelector('.tear-fx');
     var PX = 70, PY = 60;   // how far the canvas reaches past the hole (see .tear-fx)
     var tw = 0, th = 0;
-    var shape = function(amt){ hole.style.clipPath = stepped(tw, th, amt, 'trbl'); };
+    // notches and scraps scale with the console's size (they were set for a 390px one)
+    var shape = function(amt){ hole.style.clipPath = stepped(tw, th, amt * Math.min(1, tw / 390), 'trbl'); };
     var paint = function(k){
-      paintEdges(fitCanvas(fx, tw + PX * 2, th + PY * 2), { x:PX, y:PY, w:tw, h:th, sides:'trbl', scraps:true }, k);
+      paintEdges(fitCanvas(fx, tw + PX * 2, th + PY * 2), { x:PX, y:PY, w:tw, h:th, sides:'trbl', scraps:tw > 250 }, k);
     };
     var measure = function(){ tw = tear.offsetWidth; th = tear.offsetHeight; };
     var settle = function(){ shape(24); paint(1); hole.style.transform = ''; };
@@ -346,7 +347,7 @@
   var STEPS = ['Dialing...', 'Verifying username and password...', 'Registering your computer on the network...', 'Sending...'];
   var stepTimer = 0;
   function startDial(){
-    tail = 'C:\\> transmit --baud 56000\n connecting [          ]';
+    tail = 'C:\\> transmit 56k\n[          ]';
     render();
     if(!dial) return;
     var i = 0;
@@ -354,7 +355,7 @@
     (function next(){
       dialStatus.textContent = STEPS[i];
       dialFill.style.width = Math.round((i + 1) / STEPS.length * 92) + '%';
-      tail = 'C:\\> transmit --baud 56000\n connecting [' + '##########'.slice(0, (i + 1) * 2) + '          '.slice((i + 1) * 2) + ']';
+      tail = 'C:\\> transmit 56k\n[' + '##########'.slice(0, (i + 1) * 2) + '          '.slice((i + 1) * 2) + ']';
       render();
       if(i < STEPS.length - 1){ i++; stepTimer = setTimeout(next, 700); }
     })();
@@ -367,7 +368,7 @@
       dialFill.style.width = ok ? '100%' : dialFill.style.width;
       setTimeout(function(){ dial.hidden = true; }, ok ? 900 : 1400);
     }
-    tail = 'C:\\> transmit --baud 56000\n ' + (ok ? 'TRANSMISSION SENT. awaiting reply...' : 'ERROR: carrier lost. retry?');
+    tail = 'C:\\> transmit 56k\n' + (ok ? 'SENT. awaiting reply' : 'ERROR: carrier lost');
     render();
   }
   if(send && window.MutationObserver){

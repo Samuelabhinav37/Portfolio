@@ -109,8 +109,8 @@ window.SITE=window.SITE||{};
   @media (min-width:901px){ .poster{ zoom:0.8; } }
 
   .poster-art{ position:relative; overflow:hidden; background:#5f5a50;
-    -webkit-mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat;
-    mask:url("/images/contact-burn-plate-cut.svg") 0 0 / 100% 100% no-repeat; }
+    -webkit-mask:var(--plate-cut, url("/images/contact-burn-plate-cut.svg")) 0 0 / 100% 100% no-repeat;
+    mask:var(--plate-cut, url("/images/contact-burn-plate-cut.svg")) 0 0 / 100% 100% no-repeat; }
   /* black and white, faded, like an old halftone plate */
   .poster-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:47% 50%; display:block;
     filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
@@ -138,19 +138,6 @@ window.SITE=window.SITE||{};
     filter:saturate(0.7) sepia(0.2) brightness(0.78) contrast(1.08) drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
   .paper-shadow{ min-width:0; }
 
-  /* the attachment hangs off the right edge, turned a little, pivoting on
-     its own tie hole (62,34 in the 581px original, 23.5,13 here); the
-     twine runs from the letter's second hole to it */
-  /* (the title bar adds 18px above the picture, so the pivot sits 18px lower) */
-  .attach{ position:absolute; z-index:-1; top:132px; left:calc(100% + 14px); width:220px;
-    transform:rotate(7deg); transform-origin:23.5px 31px; }
-  .attach img{ display:block; width:100%; height:auto;
-    filter:drop-shadow(0 10px 14px rgba(0,0,0,0.55)); }
-  .attach-glitch{ position:absolute; left:0; bottom:0; width:100%; height:auto; aspect-ratio:330 / 514; pointer-events:none; }
-  .twine{ position:absolute; z-index:6; top:100px; left:calc(100% - 40px); width:100px; height:110px;
-    overflow:visible; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.5)); pointer-events:none; }
-  /* only where there's room beside the card */
-  @media (max-width:1180px){ .attach, .twine{ display:none; } }
 
   /* ── Windows XP (Luna) title bar, faded and burnt ──
      The blue is the real Luna gradient; a sepia filter ages it, the paper
@@ -191,10 +178,6 @@ window.SITE=window.SITE||{};
     mask:url("/images/contact-xpframe-wide-mask.webp") 0 0 / 100% 100% no-repeat; }
   .xp-frame::after{ content:''; position:absolute; top:0; left:-6px; right:-6px; bottom:-6px;
     background:url("/images/contact-xpframe-wide-char.webp") 0 0 / 100% 100% no-repeat; }
-  .xp-frame-small{ left:-3px; right:-3px; top:18px; bottom:-3px; border-width:0 3px 3px;
-    box-shadow:inset 1px 0 0 #3d7bf2, inset -1px 0 0 #3d7bf2, inset 0 -1px 0 #3d7bf2;
-    -webkit-mask-image:url("/images/contact-xpframe-small-mask.webp"); mask-image:url("/images/contact-xpframe-small-mask.webp"); }
-  .xp-frame-small::after{ left:-3px; right:-3px; bottom:-3px; background-image:url("/images/contact-xpframe-small-char.webp"); }
 
   /* the picture viewer's bar, smaller, sitting on top of the plate */
   .xp-bar.xp-small{ position:relative; top:auto; left:auto; right:auto; margin-bottom:-3px; height:21px; gap:3px;
@@ -207,7 +190,7 @@ window.SITE=window.SITE||{};
   .xp-small .xp-max::before{ left:2px; top:2px; width:7px; height:7px; border-top-width:2px; }
   .xp-small .xp-close::before, .xp-small .xp-close::after{ width:8px; height:1.5px; margin:-0.75px 0 0 -4px; }
   .form-panel{
-    --ink:40,31,22;
+    --ink:40,31,22; --paper:#d3c6aa;
     --strip:52px; --hole:14px; --pitch:46px; --top:58px;
     --holes:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), #000 calc(var(--hole) / 2 + 0.6px));
     --rims:radial-gradient(circle at calc(var(--strip) / 2) 50%, transparent calc(var(--hole) / 2), rgba(80,56,28,0.3) calc(var(--hole) / 2 + 0.5px), rgba(80,56,28,0.08) calc(var(--hole) / 2 + 2px), transparent calc(var(--hole) / 2 + 5px));
@@ -229,18 +212,18 @@ window.SITE=window.SITE||{};
       url("/images/contact-paper-photo.webp") center / cover no-repeat,
       url("/images/contact-paper.svg") 0 0 / 720px 960px,
       radial-gradient(ellipse 70% 60% at 52% 45%, rgba(236,224,196,0.18), transparent 75%),
-      linear-gradient(#d3c6aa,#d3c6aa) 100% 0 / var(--strip) var(--top) no-repeat,
-      linear-gradient(#d3c6aa,#d3c6aa) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
-      linear-gradient(#d3c6aa,#d3c6aa) 0 0 / var(--strip) var(--top) no-repeat,
-      linear-gradient(#d3c6aa,#d3c6aa) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 100% 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 100% 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 0 0 / var(--strip) var(--top) no-repeat,
+      linear-gradient(var(--paper),var(--paper)) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat,
       var(--rims) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--rims) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
-      #d3c6aa;
+      var(--paper);
     /* edges browned by years of handling */
     box-shadow:inset 0 0 0 1px rgba(100,70,34,0.35), inset 0 0 34px rgba(100,68,30,0.45), inset 0 0 130px rgba(90,62,28,0.25);
     /* a punched strip down both edges, as on a loose-leaf page */
     -webkit-mask:
-      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
+      var(--paper-cut, url("/images/contact-burn-paper-cut.svg")) 0 0 / 100% 100% no-repeat,
       var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
       linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
@@ -249,7 +232,7 @@ window.SITE=window.SITE||{};
       linear-gradient(#000,#000) 0 0 / var(--strip) var(--top) no-repeat,
       linear-gradient(#000,#000) 0 100% / var(--strip) calc(var(--pitch) / 2) no-repeat;
     mask:
-      url("/images/contact-burn-paper-cut.svg") 0 0 / 100% 100% no-repeat,
+      var(--paper-cut, url("/images/contact-burn-paper-cut.svg")) 0 0 / 100% 100% no-repeat,
       var(--holes) 100% var(--top) / var(--strip) var(--pitch) repeat-y,
       var(--holes) 0 var(--top) / var(--strip) var(--pitch) repeat-y,
       linear-gradient(#000,#000) var(--strip) 0 / calc(100% - 2 * var(--strip)) 100% no-repeat,
@@ -416,9 +399,6 @@ window.SITE=window.SITE||{};
       drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
   body[data-tone="cool"] .sky-life{ filter:grayscale(1) brightness(1.08); }
   body[data-tone="cool"] .xp-balloon{ filter:none; }
-  body[data-tone="cool"] .pg-footer{ color:rgba(176,192,220,0.5); }
-  body[data-tone="cool"] .pg-footer .f-links a{ color:rgba(176,192,220,0.62); }
-  body[data-tone="cool"] .pg-footer .f-links a:hover{ color:#e4ecfa; }
 
   /* ── the mono tone: everything in black and white, like a photocopy of
      the print left on a dead monitor ── */
@@ -429,9 +409,6 @@ window.SITE=window.SITE||{};
       drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
   body[data-tone="mono"] .sky-life{ filter:grayscale(1) brightness(1.08); }
   body[data-tone="mono"] .xp-balloon{ filter:grayscale(1); }
-  body[data-tone="mono"] .pg-footer{ color:rgba(200,200,200,0.5); }
-  body[data-tone="mono"] .pg-footer .f-links a{ color:rgba(200,200,200,0.62); }
-  body[data-tone="mono"] .pg-footer .f-links a:hover{ color:#f2f2f2; }
 
   /* ── the holo tone: the print as a hologram. The card is inverted, so its
      ink becomes light lines on black; tinted cyan; and the whole layer is
@@ -447,7 +424,6 @@ window.SITE=window.SITE||{};
       drop-shadow(0 0 8px rgba(70,220,255,0.15));
     animation:drift 16s ease-in-out infinite alternate, holo-flicker 18s steps(1) infinite; }
   /* photos of light things (the flowers, the nebula) stay the right way round */
-  body[data-tone="holo"] .attach img{ filter:invert(1) grayscale(1); }
   /* the plate's drawing: its ink is what glows. Its tones are squeezed so the
      lines come out at about half strength and the paper drops away */
   body[data-tone="holo"] .poster-art img{ filter:grayscale(1) contrast(0.45) brightness(1.6); }
@@ -459,7 +435,6 @@ window.SITE=window.SITE||{};
   body[data-tone="holo"] .xp-frame{ opacity:0.5; }
   body[data-tone="holo"] .wreck-fx{ opacity:0.55; }
   body[data-tone="holo"] .tear-fx{ opacity:0.7; }
-  body[data-tone="holo"] .attach{ opacity:0.8; }
   /* the broken-screen overlay, gentler here: its rolling band lit the whole card */
   body[data-tone="holo"] .wreck{ opacity:0.4; }
   body[data-tone="holo"] .form-panel > .wreck{ opacity:0.2; }
@@ -499,9 +474,6 @@ window.SITE=window.SITE||{};
     font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.12em;
     color:#8ff0ff; text-shadow:0 0 10px rgba(80,220,255,0.7); }
   body[data-tone="holo"] .holo-status.bad{ color:#ffc266; text-shadow:0 0 10px rgba(255,170,60,0.7); }
-  body[data-tone="holo"] .pg-footer{ color:rgba(130,225,240,0.55); }
-  body[data-tone="holo"] .pg-footer .f-links a{ color:rgba(130,225,240,0.7); }
-  body[data-tone="holo"] .pg-footer .f-links a:hover{ color:#d8fbff; }
 
   /* ── the white hologram (tone 'holo-mono'): the same projection in white
      light: the card, the picture, the console, and the jellyfish and stars
@@ -510,43 +482,47 @@ window.SITE=window.SITE||{};
     filter:invert(1) grayscale(1) contrast(2.4) brightness(0.9) brightness(1.2)
       drop-shadow(1px 0 0 rgba(255,255,255,0.18)) drop-shadow(0 0 8px rgba(255,255,255,0.1)); }
   body[data-holo="mono"] .sky-life{ filter:grayscale(1) brightness(1.1); }
-  body[data-holo="mono"] .pg-footer{ color:rgba(205,210,220,0.55); }
-  body[data-holo="mono"] .pg-footer .f-links a{ color:rgba(205,210,220,0.7); }
-  body[data-holo="mono"] .pg-footer .f-links a:hover{ color:#f4f6fa; }
   body[data-holo="mono"] .holo-status:not(:empty):not(.bad){ color:#f2f4f8; text-shadow:0 0 10px rgba(255,255,255,0.5); }
 
   /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
      back the right way round go back to their own print look ── */
-  body[data-holo="paper"] .poster{ filter:none; }
+  /* brighter, crisper paper (set in public/_contact-tune.html, 2026-11-09) */
+  body[data-holo="paper"] .poster{ filter:hue-rotate(1deg) brightness(1.02) contrast(1.18); }
+  :root[data-theme="light"] body[data-holo="paper"] .poster{ filter:brightness(0.92) contrast(1.2); }
+  /* a little newer on the day sky: the paper 19% of the way from cream to the aged brown */
+  :root[data-theme="light"] body[data-holo="paper"] .form-panel{ --paper:#eae2d3; }
   body[data-holo="paper"] .poster-art img{ filter:grayscale(1) sepia(0.3) contrast(0.82) brightness(0.86); }
   body[data-holo="paper"] .poster-art::after{ display:block; }
-  body[data-holo="paper"] .attach img, body[data-holo="paper"] .tear-hole{ filter:none; }
+  body[data-holo="paper"] .tear-hole{ filter:none; }
+  /* the seal and the stamp in their own colours: red wax and gold, blue peonies */
+  body[data-holo="paper"] .seal{ filter:drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
+  body[data-holo="paper"] .pc-stamp{ filter:drop-shadow(0 1px 1.5px rgba(40,24,8,0.45)); }
   body[data-holo="paper"] .sky-life{ filter:grayscale(1) brightness(1.1); }
   /* day sky: screen blending only works on black, so the card prints solid */
   :root[data-theme="light"] body[data-tone="holo"]{ background:var(--c-bg); }
   :root[data-theme="light"] body[data-tone="holo"] .field-wrap{ mix-blend-mode:normal; }
   :root[data-theme="light"] body[data-tone="holo"] .poster::after{ display:none; }
   :root[data-theme="light"] body[data-tone="holo"] .poster{ animation:drift 16s ease-in-out infinite alternate; }
-  :root[data-theme="light"] body[data-tone="holo"] .pg-footer{ color:rgba(25,25,25,0.55); }
-  :root[data-theme="light"] body[data-tone="holo"] .pg-footer .f-links a{ color:rgba(25,25,25,0.7); }
-  :root[data-theme="light"] body[data-tone="holo"] .pg-footer .f-links a:hover{ color:#191919; }
   :root[data-theme="light"] body[data-tone="holo"] .holo-status:not(:empty):not(.bad){ color:#191919; text-shadow:none; }
   @media (prefers-reduced-motion: reduce){
     body[data-tone="holo"] .poster{ animation:none; opacity:0.92; }
     body[data-tone="holo"] .poster::after{ animation:none; }
   }
 
-  /* ── page footer: under the card, same width ── */
-  .pg-footer{ width:100%; max-width:648px; display:flex; align-items:center;
-    justify-content:space-between; flex-wrap:wrap; gap:10px 20px;
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em;
-    color:rgba(214,198,168,0.5); }
-  .pg-footer .f-links{ display:flex; align-items:center; gap:14px;
-    letter-spacing:.14em; text-transform:uppercase; }
-  .pg-footer .f-links a{ color:rgba(214,198,168,0.62); text-decoration:none;
-    transition:color .25s; display:inline-flex; align-items:center; gap:6px; }
-  .pg-footer .f-links a:hover{ color:#ece0c6; }
-  .pg-footer .f-links .fic{ width:12px; height:12px; fill:currentColor; opacity:0.9; flex:none; }
+  /* ── page footer: under the card, same width; type and colours from the home footer ── */
+  /* as wide as the card (900px, drawn at 80% on desktop), so the ends line up with its edges */
+  .pg-footer{ width:100%; max-width:900px; display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:wrap; gap:12px 20px;
+    font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:14px;
+    color:rgba(255,255,255,.6); }
+  @media (min-width:901px){ .pg-footer{ max-width:720px; } }
+  .pg-footer .f-social{ display:flex; align-items:center; gap:22px; }
+  .pg-footer .f-social a{ display:grid; place-items:center; width:18px; height:18px; color:rgba(255,255,255,.7); text-decoration:none; transition:color .2s; }
+  .pg-footer .f-social a:hover{ color:#fff; }
+  .pg-footer .f-social svg{ width:16px; height:16px; fill:currentColor; }
+  .pg-footer .f-h1{ font:700 13px/1 'Inter Tight', sans-serif; letter-spacing:-.04em; }
+  :root[data-theme="light"] .pg-footer, :root[data-theme="light"] .pg-footer .f-social a{ color:rgba(55,53,47,.65); }
+  :root[data-theme="light"] .pg-footer .f-social a:hover{ color:#191919; }
 
   /* keyboard users could not see where they were on this page at all */
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
@@ -595,9 +571,9 @@ window.SITE=window.SITE||{};
     .form-status{ text-align:center; }
     /* links on top, copyright under them, both centred with room to breathe */
     .pg-footer{ flex-direction:column-reverse; justify-content:center; gap:16px; text-align:center; }
-    .pg-footer .f-links{ flex-wrap:wrap; justify-content:center; gap:6px 10px; font-size:11px; }
+    .pg-footer .f-social a{ width:36px; height:36px; }
+    .pg-footer .f-social{ gap:8px; }
     /* links big enough to tap */
-    .pg-footer .f-links a{ padding:10px 8px; }
   }
 
 </style>
@@ -666,38 +642,8 @@ window.SITE=window.SITE||{};
   </svg>
   <!-- the wax seal over the join -->
   <img class="seal" src="/images/contact-seal.webp" alt="" width="260" height="264" decoding="async" />
-  <!-- an old book plate sent along with the card, tied on through the
-       second punch hole with a loop of twine -->
-  <div class="attach" aria-hidden="true">
-    <div class="xp-bar xp-small" aria-hidden="true">
-    <svg class="xp-icon" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1" fill="#e9f1ff" stroke="#3b5a8a"/><path d="M2.5 12l3.5-4 2.5 3 2-2 3 3z" fill="#4c8a3c"/><circle cx="11" cy="5.5" r="1.4" fill="#f2c94c"/></svg><span class="xp-title">ngc6611.jpg - Windows Picture and Fax Viewer</span>
-    <span class="xp-btn xp-min"></span><span class="xp-btn xp-max"></span><span class="xp-btn xp-close"></span>
-  </div>
-    <div class="xp-frame xp-frame-small"></div>
-    <img src="/images/contact-attachment.webp" alt="" width="330" height="514" decoding="async" loading="lazy" />
-    <!-- the picture's glitch, drawn over it now and then (contact-artifacts.js) -->
-    <canvas class="attach-glitch"></canvas>
-    <video class="wreck" data-wreck muted loop playsinline preload="none" aria-hidden="true"><source src="/videos/contact-wreck.webm" type="video/webm" /><source src="/videos/contact-wreck.mp4" type="video/mp4" /></video>
-  </div>
+
   <ContactArtifacts />
-  <svg class="twine" viewBox="0 0 100 110" aria-hidden="true">
-    <g fill="none" stroke-linecap="round">
-      <g stroke="#a88a5c" stroke-width="2.6">
-        <path d="M14 27 C34 28 58 42 76 58"/>
-        <path d="M14 29 C36 40 56 56 75 61"/>
-        <path d="M74 60 C77 70 72 80 76 92"/>
-        <path d="M75 60 C83 66 84 76 92 84"/>
-      </g>
-      <!-- the twist of the fibres -->
-      <g stroke="#6e5434" stroke-width="2.6" stroke-dasharray="1.1 1.9">
-        <path d="M14 27 C34 28 58 42 76 58"/>
-        <path d="M14 29 C36 40 56 56 75 61"/>
-        <path d="M74 60 C77 70 72 80 76 92"/>
-        <path d="M75 60 C83 66 84 76 92 84"/>
-      </g>
-    </g>
-    <ellipse cx="75" cy="60" rx="4.2" ry="3.4" fill="#9b7d50" stroke="#6e5434" stroke-width="1.2"/>
-  </svg>
   <div class="paper-shadow">
   <div class="form-panel" data-reveal>
     <!-- the slow broken-screen overlay, faint here and fading out while someone writes -->
@@ -768,11 +714,11 @@ window.SITE=window.SITE||{};
   <p class="holo-status" id="holo-status" aria-hidden="true"></p>
   <div class="pg-footer">
     <span>© 2026 Samuel Abhinav</span>
-    <div class="f-links">
-      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
-      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>
-      <a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener" aria-label="X"><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      <a href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener">HackerOne</a>
+    <div class="f-social">
+      <a href="https://www.linkedin.com/in/samuelabhinav/" target="_blank" rel="me noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://github.com/Samuelabhinav37" target="_blank" rel="me noopener" aria-label="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+      <a href="https://x.com/SamuelAbhinav37" target="_blank" rel="me noopener" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="f-h1" href="https://hackerone.com/sam142437?type=user" target="_blank" rel="me noopener" aria-label="HackerOne">h1</a>
     </div>
   </div>
 

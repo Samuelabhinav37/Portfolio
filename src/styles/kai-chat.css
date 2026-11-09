@@ -181,7 +181,7 @@ button.kc-go { display: flex; width: max-content; cursor: pointer; font: inherit
 
 /* ---- Kai in the corner (portfolio corner mode, extensions' tap mode) ---- */
 .kc-tapmode, .kc-cornermode { right: 24px; bottom: 20px; }
-.kc-launch { --kc-kai: 72px; position: relative; width: var(--kc-kai); }
+.kc-launch { --kc-kai: 80px; position: relative; width: var(--kc-kai); }
 .kc-kaibtn { display: block; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 18px; }
 .kc-kaibtn:focus-visible { outline: 2px solid var(--kc-blue-hi); outline-offset: 4px; }
 .kc-corner.kai { --kai-w: var(--kc-kai); }
