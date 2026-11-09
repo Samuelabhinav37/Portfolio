@@ -5,6 +5,7 @@ import SkyLife from '../components/SkyLife.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import KaiSite from '../components/KaiSite.astro';
+import ScrollToc from '../components/ScrollToc.astro';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
 const toolkit: [string, string[]][] = [
@@ -202,14 +203,14 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     <p class="en">For anyone thinking about working with me.</p>
   </div>
 
-  <section class="section">
+  <section class="section" data-toc="Intro">
     <div class="head"><h2 class="en" data-reveal="lines">Intro</h2><h3 data-reveal>(Hello)</h3></div>
     <div class="body" data-reveal-group>
       <p>Thanks for stopping by. This page covers who I am, what I work on and the tools I use. If you're hiring for blue-team work, I hope it helps you get to know me.</p>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" data-toc="About Me">
     <div class="head"><h2 class="en" data-reveal="lines">About Me</h2><h3 data-reveal>(Who I am)</h3></div>
     <div class="body" data-reveal-group>
       <!-- to add the photo: replace the .ph span with <img src=... alt=...> -->
@@ -221,7 +222,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" data-toc="What I Do">
     <div class="head"><h2 class="en" data-reveal="lines">What I Do</h2><h3 data-reveal>(Where I can help)</h3></div>
     <div class="body" data-reveal-group>
       <p>I work on the defending side. Most of my time goes into writing detections, triaging alerts and rebuilding attack chains from logs. I'm looking for SOC analyst, detection engineering and security engineering roles.</p>
@@ -236,7 +237,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" data-toc="Work">
     <div class="head"><h2 class="en" data-reveal="lines">Work</h2><h3 data-reveal>(Things I've built)</h3></div>
     <div class="body" data-reveal-group>
       <p>Each project solves a real problem and runs in the real world. The case studies explain how they work.</p>
@@ -253,7 +254,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" data-toc="Toolkit">
     <div class="head"><h2 class="en" data-reveal="lines">Toolkit</h2><h3 data-reveal>(What I use)</h3></div>
     <div class="body" data-reveal-group>
       <p>These are the tools I reach for most, and the projects are where they get real use.</p>
@@ -268,7 +269,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" data-toc="Certifications">
     <div class="head"><h2 class="en" data-reveal="lines">Certifications</h2><h3 data-reveal>(What I've passed)</h3></div>
     <div class="body" data-reveal-group>
       <ul data-reveal-group=".frame" class="tiles tiles--sm">
@@ -279,7 +280,7 @@ html.motion .game-stage:not(.on){ transform:scale(.4, .004); filter:brightness(4
     </div>
   </section>
 
-  <section class="section" id="arcade">
+  <section class="section" id="arcade" data-toc="Arcade">
     <div class="head"><h2 class="en" data-reveal="lines">Arcade</h2><h3 data-reveal>(Play a round)</h3></div>
     <div class="body" data-reveal-group>
       <p>Made it this far? Slip past the guards, collect the keys and find the exit.</p>
@@ -681,7 +682,7 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" data-toc="Contact">
     <div class="head"><h2 class="en" data-reveal="lines">Contact</h2><h3 data-reveal>(Get in touch)</h3></div>
     <div class="body" data-reveal-group>
       <p>Thanks for reading this far. Pick whichever way of reaching me suits you best.</p>
@@ -776,6 +777,7 @@ window.SITE._introFullyDone   = true;
 })();
 </script>
 
+<ScrollToc />
 <KaiSite />
 <script is:inline src="/scripts/luna-kb-base.js"></script>
 <script is:inline src="/scripts/about-luna-kb.js"></script>

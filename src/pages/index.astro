@@ -8,6 +8,7 @@ import ErrorReporter from '../components/ErrorReporter.astro';
 import SkyBackground from '../components/SkyBackground.astro';
 import SkyLife from '../components/SkyLife.astro';
 import KaiSite from '../components/KaiSite.astro';
+import ScrollToc from '../components/ScrollToc.astro';
 import { SITE } from '../config';
 import '../styles/tokens.css';
 import Fonts from '../components/Fonts.astro';
@@ -281,7 +282,7 @@ footer#site-footer{
      Sits at z-index 3: above the sky background (#sky) and its sea
      creatures, below Luna (999) and the chrome (1000+), so the navbar
      and Luna ride on top throughout. Revealed at body.intro-done (Beat 0). -->
-<div id="term-stage">
+<div id="term-stage" data-toc="Home">
   <div id="term-window" style="width:100%;height:100vh;height:100svh;border-radius:0;">
     <div id="term-screen">
       <div class="tcorner tl"></div><div class="tcorner tr"></div>
@@ -414,33 +415,33 @@ footer#site-footer{
 }
 @media (prefers-reduced-motion: reduce){ .pw-img > *{ transition:none; } }
 </style>
-<section id="projects-section" aria-labelledby="ps-title">
+<section id="projects-section" data-toc="Projects" aria-labelledby="ps-title">
   <div class="ps-inner">
     <header class="sec-head">
       <h2 class="sec-title" id="ps-title" data-reveal="lines">Projects<sup aria-hidden="true">(06)</sup></h2>
     </header>
     <div class="pw-grid" data-reveal-group>
-      <a class="pw-tile" id="sec-moat" href="/work/moat/">
+      <a class="pw-tile" id="sec-moat" href="/work/moat/" data-toc="Moat" data-toc-sub>
         <figure style="view-transition-name:work-moat" class="pw-img pw-img--shot"><img src="/images/projects/moat-tile.webp" srcset="/images/projects/moat-tile.w800.webp 800w, /images/projects/moat-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Moat logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Moat</span><span class="pw-tags">Ad blocker</span></div>
       </a>
-      <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/">
+      <a class="pw-tile" id="sec-sentinel" href="/work/sentinel/" data-toc="Sentinel" data-toc-sub>
         <figure style="view-transition-name:work-sentinel" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Sentinel</span><span class="pw-tags">SOC lab</span></div>
       </a>
-      <a class="pw-tile" id="sec-cluster" href="/work/cluster/">
+      <a class="pw-tile" id="sec-cluster" href="/work/cluster/" data-toc="Cluster" data-toc-sub>
         <figure style="view-transition-name:work-cluster" class="pw-img pw-img--shot"><img src="/images/projects/cluster-tile.webp" srcset="/images/projects/cluster-tile.w800.webp 800w, /images/projects/cluster-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Cluster logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Cluster</span><span class="pw-tags">Email organizer</span></div>
       </a>
-      <a class="pw-tile" id="sec-athena" href="/work/athena/">
+      <a class="pw-tile" id="sec-athena" href="/work/athena/" data-toc="Athena" data-toc-sub>
         <figure style="view-transition-name:work-athena" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Athena</span><span class="pw-tags">Access review</span></div>
       </a>
-      <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/">
+      <a class="pw-tile" id="sec-blue-streak" href="/work/blue-streak/" data-toc="Blue Streak" data-toc-sub>
         <figure style="view-transition-name:work-blue-streak" class="pw-img pw-img--shot"><img src="/images/projects/blue-streak-tile.webp" srcset="/images/projects/blue-streak-tile.w800.webp 800w, /images/projects/blue-streak-tile.webp 1500w" sizes="(max-width: 760px) 100vw, 50vw" alt="Blue Streak logo" width="1500" height="1000" loading="lazy" decoding="async"></figure>
         <div class="pw-cap"><span class="pw-name">Blue Streak</span><span class="pw-tags">Disk analyzer</span></div>
       </a>
-      <a class="pw-tile" id="sec-knot" href="/work/knot/">
+      <a class="pw-tile" id="sec-knot" href="/work/knot/" data-toc="Knot" data-toc-sub>
         <figure style="view-transition-name:work-knot" class="pw-img pw-img--todo"><span>Image coming soon</span></figure>
         <div class="pw-cap"><span class="pw-name">Knot</span><span class="pw-tags">Habit tracker</span></div>
       </a>
@@ -450,7 +451,7 @@ footer#site-footer{
 
 <div id="writing">
   <!-- Research log -->
-  <section class="ed-log" aria-label="From the research log">
+  <section class="ed-log" data-toc="Blog" aria-label="From the research log">
     <header class="sec-head">
       <h2 class="sec-title" data-reveal="lines">Blog<sup aria-hidden="true">({String(writingCards.length).padStart(2, '0')})</sup></h2>
       <a class="sec-link" href="/blog/" data-roll>Read more →</a>
@@ -487,7 +488,7 @@ footer#site-footer{
      footer's reveal (same pattern as #beat-tour driving the project cards). The footer
      itself is position:fixed and animates in place; you scroll through this spacer. -->
 <!-- beat-footer removed: footer is now a normal-flow section -->
-<footer id="site-footer">
+<footer id="site-footer" data-toc="Contact">
   <!-- Footer navigation, after micro1's: the name and social icons on the
        left, three columns of links (a dim group label over brighter links),
        then the copyright and small links on one line. -->
@@ -545,6 +546,7 @@ footer#site-footer{
   </div>
 </footer>
 <script is:inline defer src="/scripts/footer-wordmark.js"></script>
+<ScrollToc />
 <KaiSite hasIntro={true} />
 <script is:inline defer src="/scripts/index-luna-kb.js"></script>
 <script is:inline defer src="/scripts/index-footer-reveal.js"></script>
