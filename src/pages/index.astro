@@ -268,7 +268,7 @@ footer#site-footer{
 <body>
 <div class="page-grain" aria-hidden="true"></div>
 
-<SiteMenu currentPath="/" hasIntro={true} />
+<SiteMenu currentPath="/" />
 <h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
 
 
@@ -401,10 +401,15 @@ footer#site-footer{
 .pw-tile:nth-child(6n+5) .pw-img{ aspect-ratio:16/9; }
 .pw-tile:nth-child(6n){ grid-column:9 / span 3; margin-top:clamp(160px,28vh,320px); }
 .pw-tile:nth-child(6n) .pw-img{ aspect-ratio:4/5; }
-/* Hover: the picture fades and drifts in a little (Vantra zooms 1.05). `scale`
-   rather than transform, so it adds to the scroll-in settle animation. */
-.pw-img > *{ transition:opacity .15s ease, scale .9s var(--ease-out); }
-@media (hover:hover){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ opacity:.35; } }
+/* Hover: the frame you point at stays lit and drifts in a little; the others
+   dim (after krisztianeder.com). Dimming arrives over --dur-change and lifts
+   faster. `scale` rather than transform, so it adds to the scroll-in settle. */
+/* (dims the tile's children: the scroll reveal writes opacity on the tile itself) */
+.pw-tile > *{ transition:opacity var(--dur-change-out) var(--ease-in); }
+.pw-img > *{ transition:scale .9s var(--ease-out); }
+@media (hover:hover){
+  .pw-grid:has(.pw-tile:hover, .pw-tile:focus-visible) .pw-tile:not(:hover, :focus-visible) > *{ opacity:.35; transition:opacity var(--dur-change) var(--ease-out); }
+}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){ .pw-tile:hover .pw-img > *, .pw-tile:focus-visible .pw-img > *{ scale:1.04; } }
 /* Screenshots fill their frame; projects without one show a logo or a placeholder. */
 .pw-img--shot img{ display:block; width:100%; height:100%; object-fit:cover; }

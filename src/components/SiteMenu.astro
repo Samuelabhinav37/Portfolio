@@ -8,15 +8,11 @@
  *
  * Links other than the current page roll their letters up on hover, like
  * the footer links (data-roll, motion.js).
- *
- * `hasIntro` is only true on the home page, which fades the name and links
- * in with its intro (index-intro-sequence.js writes their opacity by id).
  */
 interface Props {
   currentPath: '/' | '/about' | '/blog' | '/contact' | '/work' | '/photos';
-  hasIntro?: boolean;
 }
-const { currentPath, hasIntro = false } = Astro.props;
+const { currentPath } = Astro.props;
 
 import NavTools from './NavTools.astro';
 
@@ -93,10 +89,4 @@ const here = (href: string) => (href === currentPath + '/' ? ('page' as const) :
   }
 </style>
 
-{hasIntro && (
-  <style>
-    #site-identity, #site-nav { opacity: 0; transition: opacity 0.55s cubic-bezier(0.22,1,0.36,1); }
-    body.intro-done #site-nav { opacity: 1; }
-  </style>
-)}
 
