@@ -1,28 +1,34 @@
 // Draws the day sky's pixel clouds into public/images/clouds as small PNGs,
 // shown at 2x with image-rendering:pixelated by public/scripts/pixel-clouds.js.
 //
-// Each cloud follows a few pixel-art rules, nothing random-looking:
-// - three flat colours only, no dithering: sunlit cream, pale blue, grey-blue
-// - a cauliflower dome of round lumps; every lump has a cream cap lit from
-//   the upper left over a pale-blue body, and a one-pixel pale seam where a
-//   lump in front overlaps it, which is what shows the lumps
-// - a flat grey-blue belly along the base, its top edge scalloped by the lumps
-// - a couple of one-pixel streaks of high cloud passing behind
+// The look follows hand-made cumulus sprites:
+// - the cloud is a pile of round lumps; lower lumps sit nearer the viewer and
+//   overlap the ones behind, so each lump shows as its own shaded ball
+// - each lump is lit like a sphere from the upper left: white on top, stepping
+//   through four blues to the lower right, with no outlines
+// - band edges break into small pixel clusters instead of clean curves
+// - a flat base with a thin grey shadow ledge under it that runs a little past
+//   the cloud, tapering to points
+// - a tall tower off centre, long low sides tapering out, a few chips at the rim
+// - thin streaks of high cloud passing behind
 // Run `node scripts/make-clouds.mjs` after changing a recipe.
 import sharp from 'sharp';
 import { mkdirSync } from 'node:fs';
 
 const OUT = 'public/images/clouds/';
-const PAL = [[253, 248, 236], [208, 226, 244], [180, 199, 225]]; // cream, pale blue, grey-blue (sky #8fb0e0)
+// white, ice, pale, light blue, mid blue (shade), ledge (day sky is about #8fb0e0)
+const PAL = [[255, 255, 255], [236, 244, 252], [213, 228, 244], [188, 208, 234], [164, 188, 222], [136, 160, 200]];
+const LEDGE = 5;
 
-// w, h: canvas in art px; dome: [centre x, half width, height] of the cloud body; base: belly bottom row;
-// streaks: [y, x0, x1, colour]; tail: a flat stratus shelf trailing off one side
+// w, h: canvas in art px; base: row of the flat bottom; tower: [x, half width, height];
+// body: [x0, x1, height] of the low part; streaks: [y, x0, x1, tone]
 const RECIPES = [
-  { name: 'cloud-1', seed: 4, w: 220, h: 70, dome: [112, 78, 52], base: 62, tail: -1,
-    streaks: [[22, 4, 70, 1], [27, 150, 214, 1], [48, 176, 218, 0]] },
-  { name: 'cloud-2', seed: 9, w: 140, h: 46, dome: [70, 46, 32], base: 40, tail: 1,
-    streaks: [[16, 92, 136, 1]] },
-  { name: 'cloud-3', seed: 2, w: 104, h: 36, dome: [52, 34, 24], base: 31, tail: 0, streaks: [[12, 70, 102, 1]] },
+  { name: 'cloud-1', seed: 7, w: 260, h: 96, base: 84, tower: [150, 34, 74], body: [14, 246, 30],
+    streaks: [[60, 0, 40, 2], [74, 230, 259, 2], [44, 205, 250, 1]] },
+  { name: 'cloud-2', seed: 3, w: 150, h: 56, base: 48, tower: [62, 22, 40], body: [8, 142, 18],
+    streaks: [[38, 120, 149, 2]] },
+  { name: 'cloud-3', seed: 12, w: 80, h: 32, base: 26, tower: [36, 13, 20], body: [6, 74, 9],
+    streaks: [] },
 ];
 
 function rng(seed) {
@@ -30,91 +36,79 @@ function rng(seed) {
   return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
+const hash = (x, y, s) => { let h = Math.imul(x * 374761393 + y * 668265263 + s * 2246822519, 1274126177); h ^= h >>> 13; return ((h >>> 0) % 1000) / 1000; };
 
 function draw(r) {
-  const rnd = rng(r.seed), [cx, hw, dh] = r.dome, W = r.w, H = r.h;
-  // dome height at x, peaking a little left of centre
-  const prof = (x) => { const u = (x - cx + hw * 0.12) / hw; return Math.pow(Math.max(0, 1 - u * u / 1.21), 0.75); };
+  const rnd = rng(r.seed), W = r.w, H = r.h, B = r.base;
+  const [tx, thw, th] = r.tower, [bx0, bx1, bh] = r.body;
+  // silhouette height above the base at x: a low body tapering to its ends, plus the tower
+  const top = (x) => {
+    const u = Math.min(1, Math.max(0, Math.min(x - bx0, bx1 - x) / ((bx1 - bx0) * 0.35)));
+    const body = bh * Math.pow(u, 0.6);
+    const g = (x - tx) / thw, tower = th * Math.exp(-g * g * 0.9);
+    return Math.max(body, tower);
+  };
 
-  // lumps in rows, back (top of the dome) to front (along the base)
+  // lumps along the silhouette and a few rows inside it; lower rows sit nearer (bigger z)
   const puffs = [];
-  const rows = [
-    { span: 0.5, y: 0.6, r: 0.36 },
-    { span: 0.78, y: 0.36, r: 0.27 },
-    { span: 0.98, y: 0.14, r: 0.18 },
-  ];
-  for (const row of rows) {
-    const x0 = cx - hw * row.span, x1 = cx + hw * row.span, step = dh * row.r * 1.7;
-    for (let x = x0; x <= x1; x += step * (0.8 + rnd() * 0.4)) {
-      const f = prof(x);
-      if (f < 0.15) continue;
-      const rad = dh * row.r * (0.65 + 0.45 * f) * (0.85 + rnd() * 0.3);
-      const y = r.base - dh * row.y * Math.sqrt(f) - rad * 0.2 + (rnd() - 0.5) * 2;
-      const P = { x: x + (rnd() - 0.5) * step * 0.3, y, r: rad };
-      // light per lump, so a whole cap is lit or in shade: the upper left of the cloud is lit
-      P.lit = (P.x - cx) / hw * 0.55 + (P.y - (r.base - dh)) / dh * 0.9 < 0.74 + (rnd() - 0.5) * 0.2;
-      // small bumps behind the top of each lump break its circle into a cauliflower edge
-      const nb = 2 + Math.floor(rnd() * 3);
-      for (let b = 0; b < nb; b++) {
-        const a = Math.PI * (1.1 + 0.8 * (b + 0.5 + (rnd() - 0.5) * 0.6) / nb);
-        puffs.push({ x: P.x + Math.cos(a) * P.r * 0.8, y: P.y + Math.sin(a) * P.r * 0.8, r: P.r * (0.34 + rnd() * 0.12), lit: P.lit });
-      }
-      puffs.push(P);
+  for (let layer = 0; layer < 6; layer++) {
+    const depth = layer / 5; // 0 = the rim at the top, 1 = the front row at the base
+    for (let x = bx0; x <= bx1;) {
+      const h = top(x);
+      if (h < 3) { x += 2; continue; }
+      const rad = Math.max(2.5, Math.min(h * 0.26 + 2, 13) * (0.75 + rnd() * 0.5));
+      const y = B - h * (1 - depth * 0.78) + rad * 0.85 + (rnd() - 0.5) * 2;
+      puffs.push({ x: x + (rnd() - 0.5) * rad * 0.5, y, r: rad, z: depth * 40 + rnd() * 4 });
+      x += rad * (1.05 + rnd() * 0.5);
     }
   }
 
-  const own = new Int16Array(W * H).fill(-1);
-  for (let y = 0; y <= r.base; y++) for (let x = 0; x < W; x++) {
-    for (let i = puffs.length - 1; i >= 0; i--) {
-      const P = puffs[i], dx = x + 0.5 - P.x, dy = y + 0.5 - P.y;
-      if (dx * dx + dy * dy <= P.r * P.r) { own[y * W + x] = i; break; }
+  const L = [-0.55, -0.7, 0.45], Ln = Math.hypot(...L);
+  const tone = new Int8Array(W * H).fill(-1);
+  for (let y = 0; y < B; y++) for (let x = 0; x < W; x++) {
+    let best = null, bz = -1e9, bn = null;
+    for (const P of puffs) {
+      const dx = x + 0.5 - P.x, dy = y + 0.5 - P.y;
+      // a ragged rim: each lump's radius loses up to a pixel here and there
+      const rr = P.r - hash(x >> 1, y >> 1, r.seed) * 1.2;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > rr * rr) continue;
+      const nz = Math.sqrt(rr * rr - d2), z = P.z + nz;
+      if (z > bz) { bz = z; best = P; bn = [dx / rr, dy / rr, nz / rr]; }
     }
-  }
-  const px = new Int8Array(W * H).fill(-1);
-  const O = (x, y) => (x < 0 || y < 0 || x >= W || y >= H ? -1 : own[y * W + x]);
-  // the belly: a flat band along the base, its top stepping with the lumps above
-  const belly = (x) => Math.round(dh * 0.2 + Math.sin(x / 9 + r.seed) * 1.6 + Math.sin(x / 3.7) * 0.8);
-
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const i = O(x, y);
-    if (i < 0) continue;
-    const P = puffs[i], nx = (x + 0.5 - P.x) / P.r, ny = (y + 0.5 - P.y) / P.r;
-    // cream cap: the upper-left part of each lump
-    // cream cap: the upper-left of each lump, and only on the sunlit side of the whole cloud
-    let c = ny < 0.1 - nx * 0.5 && P.lit ? 0 : 1;
-    // the seam: a lump in front just below or beside casts a one-pixel pale line on this one
-    if (c === 0 && (O(x, y + 1) > i || O(x + 1, y + 1) > i || O(x - 1, y + 1) > i)) c = 1;
-    if (y > r.base - belly(x)) c = 2;
-    px[y * W + x] = c;
+    if (!best) continue;
+    const lit = (bn[0] * L[0] + bn[1] * L[1] + bn[2] * L[2]) / Ln; // -1..1
+    const low = (y - (B - top(x))) / Math.max(1, top(x)); // 0 at the top of the cloud, 1 at the base
+    let v = 0.46 + lit * 0.66 - low * 0.45 - (x - tx) / (bx1 - bx0) * 0.18;
+    // clusters at the band edges: 2px blocks plus a little single-pixel grain
+    v += (hash((x + (y & 1)) >> 1, y >> 1, r.seed + 1) - 0.5) * 0.2;
+    tone[y * W + x] = Math.max(0, Math.min(4, Math.floor((1 - v) * 4.2)));
   }
 
-  // a flat stratus shelf trailing off one side at the base: stepped strips, grey under pale
-  if (r.tail) {
-    const from = r.tail < 0 ? cx - hw * 0.7 : cx + hw * 0.7, to = r.tail < 0 ? 2 : W - 3;
-    const len = Math.abs(to - from);
-    for (let k = 0; k <= len; k++) {
-      const x = Math.round(from + Math.sign(to - from) * k), t = k / len;
-      const thick = Math.max(1, Math.round(7 * Math.pow(1 - t, 0.7) + (rnd() < 0.3 ? -1 : 0)));
-      for (let j = 0; j < thick; j++) {
-        const y = r.base - j - Math.round(t * 2);
-        if (px[y * W + x] < 0) px[y * W + x] = j === thick - 1 && thick > 2 ? 1 : 2;
-      }
-    }
+  // the base: the bottom two rows of cloud go to shade, then the ledge runs past both ends
+  let L0 = W, L1 = -1;
+  for (let x = 0; x < W; x++) if (tone[(B - 1) * W + x] >= 0) { L0 = Math.min(L0, x); L1 = Math.max(L1, x); }
+  for (let x = L0; x <= L1; x++) for (let j = 1; j <= 2; j++) { const i = (B - j) * W + x; if (tone[i] >= 0) tone[i] = Math.max(tone[i], 4 - (j - 1)); }
+  const e0 = Math.max(0, L0 - 4), e1 = Math.min(W - 1, L1 + Math.round((L1 - L0) * 0.06) + 4);
+  for (let x = e0; x <= e1; x++) {
+    const t = Math.min(x - e0, e1 - x), thick = t < 3 ? 1 : t < 10 ? 2 : 3;
+    for (let j = 0; j < thick; j++) tone[(B + j) * W + x] = LEDGE;
   }
 
-  // high streaks behind the cloud, with a short second line under the start
-  for (const [y, x0, x1, col] of r.streaks) {
-    for (let x = x0; x <= x1; x++) if (px[y * W + x] < 0) px[y * W + x] = col;
-    for (let x = x0 + 3; x <= x0 + 12; x++) if (px[(y + 1) * W + x] < 0) px[(y + 1) * W + x] = col;
+  // high streaks behind the cloud, each with a short second line under one end
+  for (const [y, x0, x1, c] of r.streaks) {
+    for (let x = x0; x <= x1; x++) if (tone[y * W + x] < 0) tone[y * W + x] = c;
+    const a = x0 + Math.round((x1 - x0) * 0.3), b = a + Math.round((x1 - x0) * 0.35);
+    for (let x = a; x <= b; x++) if (tone[(y + 1) * W + x] < 0) tone[(y + 1) * W + x] = Math.min(4, c + 1);
   }
 
   const out = Buffer.alloc(W * H * 4);
-  for (let i = 0; i < px.length; i++) {
-    if (px[i] < 0) continue;
-    const c = PAL[px[i]];
+  for (let i = 0; i < tone.length; i++) {
+    if (tone[i] < 0) continue;
+    const c = PAL[tone[i]];
     out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
   }
-  return sharp(out, { raw: { width: W, height: H, channels: 4 } }).png({ palette: true, colours: 4 }).toFile(OUT + r.name + '.png');
+  return sharp(out, { raw: { width: W, height: H, channels: 4 } }).png({ palette: true, colours: 8 }).toFile(OUT + r.name + '.png');
 }
 
 mkdirSync(OUT, { recursive: true });
