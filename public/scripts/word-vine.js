@@ -1,144 +1,192 @@
-/* A creeper of words up the left edge (SiteSky.astro), behind the page.
-   After typographic plant posters: no strokes, the plant is only text.
-   Stems are columns of short word fragments ("detec / tion"), wider at the
-   foot; leaves are almond outlines filled row by row with overlapping words;
-   side shoots, a few small flowers and curled tendrils. Drawn once into a
-   fixed canvas (again on resize and theme change), grows up on load via a CSS
-   clip. Hidden on narrow screens and touch. */
+/* An ASCII plant up the left edge of the homepage (index.astro), behind the page.
+   The plant comes from a drawing: scripts/make-vine-mask.mjs turns a line
+   drawing into a mask (ink lines bright, closed petals and leaves dim). This
+   lays a fixed grid over it and puts one mark in every cell the plant covers,
+   brighter where the drawing's ink is: letters of a running text (words),
+   a glyph picked by brightness (ascii), a dot matrix (dots) or 1-bit
+   dithered squares (bits).
+   The grid is read once (again on resize, theme change or wordVine.set) and
+   redrawn at about 15fps with a slow living motion (off for reduced motion).
+   Arrives on load with a scramble reveal. Hidden on narrow screens and touch.
+   window.wordVine.set(options) changes the look live (/_vine-tune.html). */
 (function(){
-  if (matchMedia('(max-width:1000px), (pointer:coarse)').matches) return;
   var root = document.documentElement;
-  var FONT = "'Cormorant Garamond', Georgia, serif";
-  var WORDS = ('detection and response quiet networks reading logs at night packets alerts triage ' +
-    'signals in the noise threat hunting timelines evidence baseline anomaly honeypot telemetry ' +
-    'beacons lateral movement patching trust nothing verify everything sandbox hashes entropy ' +
-    'rules that fire incident notes coffee curiosity small tools careful hands open source ' +
-    'keeping people safe learning every day').split(' ');
-  var W = 220, cv, ctx, rnd, wi = 0, resizeT = 0;
+  var MONO = "ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace";
+  var CFG = {
+    vine: 'glory',      // public/images/vine/<name>.png
+    x: -140,            // px of the plant's left edge from the screen's left
+    y: 371,             // px the stacked plants are shifted down
+    zoom: 0.74,         // plant height as a share of the screen height
+    mirror: true,       // every other stacked copy mirrored
+    flip: false,        // mirror the whole plant
+    style: 'ascii',     // words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
+    size: 6,            // cell px (text size)
+    row: 1.1,           // row height, in sizes
+    cover: 0.45,        // share of a cell the plant must cover to get a mark
+    motion: 0.56,       // how much the plant moves (0 = still)
+    speed: 0.6,         // how fast it moves
+    weight: 500,
+    bright: 0.8,        // overall brightness
+    base: 0.3,          // brightness inside petals and leaves
+    ink: 1.3,           // how strongly the drawing's ink brightens a cell (contrast)
+    dark: '#9d9fa1',    // text colour on the dark sky
+    light: '#382a24',   // text colour on the day sky
+    words: 'detection and response quiet networks reading logs at night packets alerts triage ' +
+      'signals in the noise threat hunting timelines evidence baseline anomaly honeypot telemetry ' +
+      'beacons lateral movement patching trust nothing verify everything sandbox hashes entropy ' +
+      'rules that fire incident notes coffee curiosity small tools careful hands open source ' +
+      'keeping people safe learning every day'
+  };
 
-  function rng(seed){ var s = seed | 0; return function(){ s = (s + 0x6D2B79F5) | 0; var t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-  function word(){ var w = WORDS[wi % WORDS.length]; wi++; return w; }
-  // the next piece of the running text, at most n letters (words split as "detec", "tion")
-  var rest = '';
-  function frag(n){
-    if (!rest) rest = word();
-    var cut = rest.length <= n + 1 ? rest.length : n, f = rest.slice(0, cut);
-    rest = rest.slice(cut); return f;
-  }
-  // AM, SZ: alpha and size of the layer being drawn (a dim, blurred, larger one behind the sharp one)
-  var AM = 1, SZ = 1;
-  function light(){ return root.getAttribute('data-theme') === 'light'; }
-  // dark: a soft warm cream (the glow is set per layer); light: green ink
-  function ink(a){ a = Math.min(1, a * AM); return light() ? 'rgba(34,58,40,' + a + ')' : 'rgba(222,212,168,' + (a * 0.85).toFixed(3) + ')'; }
-  // every word a little bigger or smaller than its neighbours
-  function text(s, x, y, size, a){
-    ctx.font = (light() ? '500 ' : '400 ') + (size * SZ * (0.82 + rnd() * 0.36)).toFixed(1) + 'px ' + FONT;
-    ctx.fillStyle = ink(a); ctx.fillText(s, x, y);
-  }
+  function rgb(hex){ var n = parseInt(hex.slice(1), 16); return (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255); }
 
-  // a column of fragments along a path; n(t) = letters per piece, t from 0 (start) to 1
-  function stem(pt, len, n, size){
-    var step = size * 0.72;
-    for (var d = 0; d <= len; d += step){
-      var t = d / len, p = pt(t), f = frag(Math.max(1, Math.round(n(t))));
-      ctx.font = '500 ' + size + 'px ' + FONT;
-      text(f, p[0] - ctx.measureText(f).width / 2, p[1], size, 0.6 + rnd() * 0.3);
+  // width of the plant's image at this screen height
+  function plantW(img, H, c){ return Math.round(img.width * Math.round(H * c.zoom) / img.height); }
+
+  var RAMP = ' .,:;i1tfLCG08@';
+  var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+
+  // Reads the plant into grid cells. Everything sits on one grid, one mark per cell, and only
+  // in cells the plant covers, so the silhouette stays crisp (the trick in typographic flower
+  // posters and ASCII art). ox = x of the image's left edge on a W x H css px canvas.
+  function cells(ctx, img, W, H, ox, c, dpr){
+    var ph = Math.round(H * c.zoom), dw = plantW(img, H, c);
+    var off = document.createElement('canvas'); off.width = dw; off.height = H;
+    var o = off.getContext('2d');
+    var start = ((c.y % ph) + ph) % ph - ph;
+    for (var k = 0, y0 = start; y0 < H; k++, y0 += ph){
+      var m = c.flip !== (c.mirror && k % 2 === 1);
+      o.save(); if (m){ o.translate(dw, 0); o.scale(-1, 1); } o.drawImage(img, 0, y0, dw, ph); o.restore();
     }
-  }
-
-  // an almond leaf from (x, y) along angle a: rows of overlapping words inside its outline
-  function leaf(x, y, a, len, wid){
-    var size = 10 + rnd() * 2, step = size * 0.68, ca = Math.cos(a), sa = Math.sin(a);
-    var inside = function(px, py){
-      var dx = px - x, dy = py - y, u = dx * ca + dy * sa, v = -dx * sa + dy * ca;
-      if (u < 0 || u > len) return false;
-      return Math.abs(v) <= wid * Math.pow(Math.sin(Math.PI * u / len), 0.8) * (u < len * 0.5 ? 0.85 : 1);
-    };
-    var tipX = x + ca * len, tipY = y + sa * len, r = wid + 2;
-    var x0 = Math.min(x, tipX) - r, x1 = Math.max(x, tipX) + r, y0 = Math.min(y, tipY) - r, y1 = Math.max(y, tipY) + r;
-    ctx.font = '500 ' + size + 'px ' + FONT;
-    for (var yy = y0; yy <= y1; yy += step){
-      var a0 = null, b0 = null;
-      for (var xx = x0; xx <= x1; xx += 1) if (inside(xx, yy)) { if (a0 === null) a0 = xx; b0 = xx; }
-      if (a0 === null) continue;
-      var cx = a0 - rnd() * 3;
-      while (cx < b0){
-        var span = b0 - cx, w = word(), mw = ctx.measureText(w).width;
-        if (mw > span + 4){ var keep = Math.max(1, Math.floor(w.length * (span + 4) / mw)); w = w.slice(0, keep); mw = ctx.measureText(w).width; }
-        // brighter toward the tip
-        var uu = ((cx - x) * ca + (yy - y) * sa) / len;
-        text(w, cx, yy, size, 0.3 + uu * 0.35 + rnd() * 0.3);
-        cx += mw * (0.7 + rnd() * 0.2) + 1;
+    var px = o.getImageData(0, 0, dw, H).data, size = +c.size;
+    ctx.font = c.weight + ' ' + size + 'px ' + MONO;
+    // cell edges land on device pixels, so one cell can be cleared and redrawn without touching its neighbours
+    var snap = function(v){ return Math.max(1, Math.round(v * dpr)) / dpr; };
+    var cw = snap(c.style === 'words' || c.style === 'ascii' ? ctx.measureText('M').width : size * c.row), ch = snap(size * c.row);
+    var WORDS = String(c.words).split(/\s+/).filter(Boolean); if (!WORDS.length) WORDS = ['word'];
+    var stream = WORDS.join(' ') + ' ', si = 0, out = [];
+    for (var gy = 0, y = 0; y < H; gy++, y += ch){
+      for (var gx = 0, x = 0; x < dw; gx++, x += cw){
+        if (ox + x + cw < 0 || ox + x > W) continue;
+        // share of the cell the plant covers, and how dark the drawing's ink is there
+        // (mask: 80 = inside a petal or leaf, 150..255 = ink lines)
+        var n = 0, cov = 0, sum = 0;
+        for (var yy = y | 0; yy < Math.min(H, y + ch); yy++) for (var xx = x | 0; xx < Math.min(dw, x + cw); xx++){
+          var v = px[(yy * dw + xx) * 4]; n++; if (v){ cov++; sum += v; }
+        }
+        if (!n || cov / n < c.cover) continue;
+        var ink = Math.max(0, (sum / cov - 80) / 175), edge = 0.55 + 0.45 * cov / n;
+        var h = Math.abs(Math.sin(gx * 12.9898 + gy * 78.233) * 43758.5453) % 1;
+        out.push({ gx: gx, gy: gy, x: ox + x, y: y, ch: stream[si++ % stream.length],
+          t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h });
       }
     }
-    // a vein of short fragments down the middle
-    for (var d = 3; d < len * 0.85; d += size * 0.6) text(frag(2), x + ca * d - 3, y + sa * d, size * 0.8, 0.95);
+    return { list: out, cw: cw, ch: ch, w: W, h: H, keys: new Int32Array(out.length), rows: {} };
   }
 
-  // a small flower: five word petals around a knot of short fragments
-  function flower(x, y, s){
-    var turn = rnd() * Math.PI;
-    for (var k = 0; k < 5; k++) leaf(x, y, turn + k * Math.PI * 2 / 5, s, s * 0.32);
-    for (var j = 0; j < 4; j++) text(frag(3), x - 6 + rnd() * 4, y - 3 + j * 4, 9, 0.9);
-  }
-
-  // a tendril: single letters on a tightening spiral
-  function tendril(x, y, dir){
-    var ang = -Math.PI / 2, r = 16;
-    for (var k = 0; k < 22; k++){
-      x += Math.cos(ang) * 5; y += Math.sin(ang) * 5;
-      text(frag(1), x, y, 9, 0.75); ang += dir * (0.25 + k * 0.02); r *= 0.95;
+  // Draws the cells at time s (seconds of motion) and intro age i (seconds since the plant
+  // appeared, Infinity = settled). Motion is slow and layered, like living ASCII pieces: a band of
+  // light drifting up the plant like sap, a soft breath over the whole plant, a faint per-cell
+  // flicker, and rows swaying a pixel or two. Tone drives everything, so in ascii the glyphs
+  // themselves shift along the ramp.
+  // Intro: a scramble reveal. Cells arrive in random order, flicker through random tones for a
+  // moment, then lock to their own.
+  // Speed: tone is rounded to 20 steps and sway to device pixels, so most cells look the same as
+  // last frame. Unless full is set, only cells whose look changed are cleared and redrawn, and a
+  // row only when its sway moved.
+  var STEPS = 20, ARRIVE = 2.2, LOCK = 0.6;
+  function render(ctx, g, s, i, dark, c, full, dpr){
+    var mo = +c.motion, style = c.style, cw = g.cw, ch = g.ch, L = g.list, keys = g.keys, rows = g.rows;
+    var breath = Math.sin(s * 0.35), tick = Math.floor(i * 15), row = -1, rowNew = false, off = 0;
+    if (full){ ctx.clearRect(0, 0, g.w, g.h); keys.fill(-1); rows = g.rows = {}; }
+    ctx.fillStyle = 'rgb(' + rgb(dark ? c.dark : c.light) + ')'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.font = c.weight + ' ' + c.size + 'px ' + MONO;
+    for (var n = 0; n < L.length; n++){
+      var e = L[n];
+      if (e.gy !== row){
+        row = e.gy;
+        off = mo ? Math.round(mo * 3 * Math.sin(s * 0.45 + e.y * 0.005) * dpr) / dpr : 0;
+        rowNew = !full && rows[row] !== undefined && rows[row] !== off;
+        if (rowNew) ctx.clearRect(0, e.y, g.w, ch);
+        rows[row] = off;
+      }
+      var t = e.t, key = null;
+      if (mo) t = Math.max(0, Math.min(1, t * (1 + mo * (0.45 * Math.sin(e.gy * 0.09 + e.gx * 0.04 + s * 0.9) + 0.12 * breath + 0.1 * Math.sin(e.seed + s * 1.3)))));
+      var age = i - e.at * ARRIVE;
+      if (age < 0) key = -1;                                  // not arrived yet
+      else if (age < LOCK){                                   // scrambling: a random tone each tick, fading up
+        var r = Math.abs(Math.sin((n + 1) * 91.7 + tick * 13.1) * 43758.5453) % 1;
+        t = r * t * (0.4 + 0.6 * age / LOCK); key = -2 - tick;
+      }
+      var q = Math.round(t * STEPS);
+      if (key === null) key = q;
+      if (!rowNew && keys[n] === key) continue;
+      if (!rowNew && keys[n] !== -1) ctx.clearRect(e.x + rows[row], e.y, cw, ch);
+      keys[n] = key;
+      if (key === -1) continue;
+      t = q / STEPS;
+      var x = e.x + off;
+      ctx.globalAlpha = Math.min(1, t * c.bright);
+      if (style === 'bits'){
+        if (t * 16 <= BAYER[(e.gy % 4) * 4 + e.gx % 4]) continue;
+        ctx.globalAlpha = Math.min(1, c.bright);
+        ctx.fillRect(x, e.y, cw - 1 / dpr, ch - 1 / dpr);
+      } else if (style === 'dots'){
+        ctx.beginPath(); ctx.arc(x + cw / 2, e.y + ch / 2, cw * (0.16 + 0.26 * t), 0, 6.2832); ctx.fill();
+      } else {
+        var k = style === 'ascii' ? RAMP[Math.max(1, Math.round(t * (RAMP.length - 1)))] : e.ch;
+        if (k !== ' ') ctx.fillText(k, x + cw / 2, e.y + ch / 2);
+      }
     }
+    ctx.globalAlpha = 1;
   }
 
+  var cv, ctx, imgs = {}, t = 0, started = false, grid = null, raf = 0, last = 0, born = -1, full = true, dpr = 1;
+  var still = matchMedia('(prefers-reduced-motion: reduce)');
+  function image(name, done){
+    if (imgs[name] && imgs[name].complete) return done(imgs[name]);
+    var im = imgs[name] = new Image(); im.onload = function(){ done(im); }; im.src = '/images/vine/' + name + '.png';
+  }
+  function frame(now){
+    raf = 0;
+    var age = born < 0 || still.matches ? Infinity : (now - born) / 1000, intro = age < ARRIVE + LOCK;
+    if (full || now - last >= 1000 / 15){ // about 15fps: slow, stepped, and cheap
+      last = now;
+      render(ctx, grid, now / 1000 * CFG.speed, intro ? age : Infinity, root.getAttribute('data-theme') !== 'light', CFG, full, dpr);
+      full = false;
+    }
+    if (intro || (CFG.motion > 0 && !still.matches)) raf = requestAnimationFrame(frame);
+  }
   function draw(){
-    var H = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
-    cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'middle';
-    // the back layer: bigger, dimmer and out of focus, a little further left
-    ctx.save(); if ('filter' in ctx) ctx.filter = 'blur(1.6px)';
-    AM = light() ? 0.3 : 0.32; SZ = 1.3; plant(H, -18, 23, 1.25); ctx.restore();
-    // the front layer, sharp; in the dark a faint glow round the letters
-    ctx.save(); if (!light()){ ctx.shadowColor = 'rgba(230,214,150,.35)'; ctx.shadowBlur = 6; }
-    AM = 1; SZ = 1; plant(H, 12, 11, 1); ctx.restore();
+    image(CFG.vine, function(img){
+      var H = innerHeight, dw = plantW(img, H, CFG);
+      dpr = Math.min(2, devicePixelRatio || 1);
+      var ox = CFG.x == null ? Math.round(-dw * 0.38) : +CFG.x, W = Math.max(1, Math.min(innerWidth, Math.ceil(dw + ox + 4)));
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      grid = cells(ctx, img, W, H, ox, CFG, dpr);
+      if (born < 0) born = performance.now();
+      if (raf) cancelAnimationFrame(raf);
+      full = true; frame(performance.now());
+    });
   }
+  window.wordVine = {
+    paint: function(ctx, img, W, H, ox, dark, opts, s){ var c = {}, k; for (k in CFG) c[k] = CFG[k]; for (k in opts) c[k] = opts[k]; render(ctx, cells(ctx, img, W, H, ox, c, 2), s || 0, Infinity, dark, c, true, 2); },
+    intro: function(){ born = performance.now(); if (started) draw(); },
+    set: function(opts){ for (var k in opts) CFG[k] = opts[k]; if (started) draw(); },
+    config: CFG
+  };
 
-  // the creeper itself; ox = how far in from the edge the stem stands, k = scale of its leaves
-  function plant(H, ox, seed, k){
-    rnd = rng(seed); wi = seed; rest = '';
-    var sx = function(y){ return ox + 12 * Math.sin(y / 170) + 6 * Math.sin(y / 61 + 1); };
-    // main stem, bottom to top, 4 letters wide at the foot thinning to 1
-    stem(function(t){ var y = H + 10 - t * (H - 70); return [sx(y), y]; }, H - 70, function(t){ return 4 - t * 3; }, 12);
-    // a second, thinner stem winding round the first for the lower two thirds
-    stem(function(t){ var y = H + 10 - t * H * 0.66; return [sx(y) + 10 * Math.sin(y / 38), y]; }, H * 0.66, function(t){ return 2 - t; }, 11);
-    // side shoots, alternating right and left, each ending in a leaf; some carry a flower or a tendril
-    // small leaflets all the way up, alternating sides
-    for (var ly = H - 20, ls = 1; ly > 110; ly -= 26 + rnd() * 18, ls = -ls)
-      leaf(sx(ly), ly, ls > 0 ? -0.6 - rnd() * 0.5 : -Math.PI + 0.5 + rnd() * 0.5, (14 + rnd() * 10) * k, (4 + rnd() * 2) * k);
-    // side shoots, mostly to the right now the stem stands at the edge
-    var side = 1, n = 0;
-    for (var y = H - 60; y > 170; y -= (60 + rnd() * 40) * k, n++, side = n % 3 === 2 ? -1 : 1){
-      var bx = sx(y), dirA = side > 0 ? -0.5 - rnd() * 0.5 : -Math.PI + 0.6 + rnd() * 0.4;
-      var blen = side > 0 ? 30 + rnd() * 40 : 10 + rnd() * 10;
-      var ex = bx + Math.cos(dirA) * blen, ey = y + Math.sin(dirA) * blen;
-      stem(function(t){ return [bx + (ex - bx) * t, y + (ey - y) * t - Math.sin(Math.PI * t) * 8]; }, blen, function(){ return 1.5; }, 10);
-      leaf(ex, ey, dirA + (rnd() - 0.5) * 0.6, side > 0 ? 64 + rnd() * 40 : 40 + rnd() * 16, side > 0 ? 16 + rnd() * 8 : 11);
-      if (side > 0) leaf(bx + (ex - bx) * 0.5, y + (ey - y) * 0.5, dirA - 0.9, 34 + rnd() * 14, 9 + rnd() * 3);
-      // a second leaf straight off the main stem
-      leaf(bx, y + 22, side > 0 ? -Math.PI + 0.9 : -0.8, 34 + rnd() * 20, 9 + rnd() * 4);
-      if (side > 0 && n % 4 === 1) flower(ex + 20, ey - 34, 24 + rnd() * 8);
-      else if (n % 4 === 3) tendril(ex + 4, ey - 10, 1);
-    }
-  }
+  if (document.currentScript && document.currentScript.hasAttribute('data-preview')) return;
+  if (matchMedia('(max-width:1000px), (pointer:coarse)').matches) return;
 
   function start(){
     cv = document.createElement('canvas'); cv.id = 'word-vine'; cv.setAttribute('aria-hidden', 'true');
-    cv.style.width = W + 'px'; ctx = cv.getContext('2d');
+    ctx = cv.getContext('2d');
     var sky = document.getElementById('px-clouds') || document.getElementById('sky');
     (sky && sky.parentNode ? sky.parentNode : document.body).insertBefore(cv, sky ? sky.nextSibling : null);
-    draw();
-    addEventListener('resize', function(){ clearTimeout(resizeT); resizeT = setTimeout(draw, 150); });
+    started = true; draw();
+    addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(draw, 150); });
     document.addEventListener('theme:change', draw);
   }
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(start);
