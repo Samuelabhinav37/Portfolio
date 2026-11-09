@@ -65,18 +65,18 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
    visible on scroll like every other page. ── */
 #site-identity, #site-nav {
   position: fixed; top: 16px; z-index: 1002;
-  font: 500 1.15rem/1.2 'Cormorant Garamond', Georgia, serif;
+  font: 600 1.125rem/1.2 'Cormorant Garamond', Georgia, serif;
   letter-spacing: 0.01em;
 }
-#site-identity { left: 28px; }
+#site-identity { left: 28px; top: 17px; }
 .nav-name { color: rgba(var(--c-white),0.95); text-decoration: none; }
 /* Blog, Archive, About, Contact a little left of the middle (same as SiteMenu's), the
    tool strip (NavTools) at the right edge; Blog is bright, the rest dim */
-#site-nav { font-size: 1rem; top: 10px; left: 36%; right: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
+#site-nav { top: 10px; left: 36%; right: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; white-space: nowrap; color: rgba(var(--c-white),0.95); }
 #site-nav .nav-list { flex: none; }
 #site-nav .nav-list a { position: relative; color: inherit; text-decoration: none; transition: opacity 0.25s ease; }
 #site-nav .nav-list a::before { content: ''; position: absolute; inset: -12px -4px; }
-#site-nav .nav-list a:not([aria-current]), #site-nav .sep { opacity: 0.45; }
+#site-nav .nav-list a:not([aria-current]), #site-nav .sep { opacity: 0.6; }
 #site-nav .nav-list a:hover, #site-nav .nav-list a:focus-visible { opacity: 1; }
 
 /* ══════════ POST SYSTEM ══════════
