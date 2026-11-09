@@ -8,9 +8,14 @@ import ScrollToc from '../components/ScrollToc.astro';
 import '../styles/tokens.css';
 import { PROJECTS } from '../data/projects';
 import Fonts from '../components/Fonts.astro';
-const toolkit: [string, string[]][] = [
-  ['Detection', ['Splunk SPL', 'Microsoft Sentinel KQL', 'Elastic / Kibana', 'Wazuh / Security Onion', 'Sigma / MITRE ATT&CK']],
-  ['Code and cloud', ['Python / PowerShell', 'Ghidra', 'Terraform / Docker', 'AWS / Azure']],
+// logos: Simple Icons (CC0), Devicon (MIT) and each project's own mark, made one colour so they take the text colour
+const logos = import.meta.glob('../icons/toolkit/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const logo = (slug: string) => logos[`../icons/toolkit/${slug}.svg`];
+const toolkit: [string, string][] = [
+  ['Splunk', 'splunk'], ['Microsoft Sentinel', 'sentinel'], ['Elastic', 'elastic'], ['Kibana', 'kibana'],
+  ['Wazuh', 'wazuh'], ['Security Onion', 'securityonion'], ['Sigma', 'sigma'], ['ATT&CK', 'mitre'],
+  ['Python', 'python'], ['PowerShell', 'powershell'], ['Ghidra', 'ghidra'], ['Terraform', 'terraform'],
+  ['Docker', 'docker'], ['AWS', 'aws'], ['Azure', 'azure'],
 ];
 const certs = ['Security+', 'Network+', 'ISC2 CC', 'AWS CCP', 'AZ-900', 'HTB CJCA'];
 ---
@@ -89,8 +94,13 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 /* selected work: a plain table like the reference's client list */
 .work{ display:grid; grid-template-columns:110px 150px 170px; column-gap:20px; }
 .work > *{ display:contents; }
-.work > * > span, .tk{ white-space:nowrap; overflow:hidden; }
-.tk{ max-width:470px; }
+.work > * > span{ white-space:nowrap; overflow:hidden; }
+/* logo + name pairs after 21st.dev's client strip, scrolled by the marquee below */
+.tk{ white-space:nowrap; overflow:hidden; max-width:470px; font-size:14px; color:var(--ab-dim); }
+.tk .t{ display:inline-flex; align-items:center; gap:7px; margin-right:22px; vertical-align:middle; transition:color .25s; }
+.tk .t:hover{ color:var(--ab-ink); }
+.tk .mq > span{ padding-right:0; } /* items carry their own gap, so the loop seam matches */
+.tk svg{ height:16px; width:auto; flex:none; }
 /* a cell too long for its column scrolls sideways in a loop (the script below adds .mq) */
 .mq{ display:inline-flex; animation:mq var(--d, 12s) linear infinite; }
 .mq > span{ padding-right:2.5em; }
@@ -176,7 +186,11 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 
       <section class="row" data-toc="Toolkit">
         <h2>Toolkit</h2>
-        <p class="tk">{toolkit.flatMap(([, items]) => items).join(', ')}</p>
+        <p class="tk">
+          {toolkit.map(([name, slug]) => (
+            <span class="t"><Fragment set:html={logo(slug)} />{name}</span>
+          ))}
+        </p>
       </section>
 
       <section class="row" data-toc="Certifications">
