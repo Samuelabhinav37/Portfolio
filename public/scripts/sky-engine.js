@@ -164,18 +164,20 @@
     function clockT(){ return clock.seed + (Date.now() - clock.at) / 1000 * .55; }
     var sceneT = clock ? clockT() : 40 + Math.random()*400;
     /* hand-over to the next page: opts.drawn() after the first frame, and
-       opts.snap(blob) with a 96x60 JPEG of the sky every 1.5s, which the
-       next page shows until its own sky is up (sky.js, SkyBackground.astro) */
+       opts.snap(blob) with a JPEG of the sky every 1.5s, which the next page
+       shows until its own sky is up (sky.js, SkyBackground.astro). Full
+       canvas size (the sky renders at reduced resolution and is stretched),
+       so the stand-in is the same frame, stars included, not a blur of it. */
     var snapCv = null, lastSnap = 0, firstDrawn = false;
     function afterDraw(now){
       if(!firstDrawn){ firstDrawn = true; if(opts && opts.drawn) opts.drawn(); }
       if(!(opts && opts.snap) || typeof OffscreenCanvas === 'undefined' || now - lastSnap < 1500) return;
       lastSnap = now;
       try{
-        snapCv = snapCv || new OffscreenCanvas(96, 60);
-        var c2 = snapCv.getContext('2d');
-        c2.drawImage(skyCanvas, 0, 0, 96, 60);   /* same task as the draw, so the GL buffer is still there */
-        snapCv.convertToBlob({ type:'image/jpeg', quality:.7 }).then(opts.snap, function(){});
+        var sw = skyCanvas.width, sh = skyCanvas.height;
+        if(!snapCv || snapCv.width !== sw || snapCv.height !== sh) snapCv = new OffscreenCanvas(sw, sh);
+        snapCv.getContext('2d').drawImage(skyCanvas, 0, 0);   /* same task as the draw, so the GL buffer is still there */
+        snapCv.convertToBlob({ type:'image/jpeg', quality:.85 }).then(opts.snap, function(){});
       }catch(e){ opts.snap = null; }
     }
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };

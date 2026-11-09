@@ -16,7 +16,17 @@
   setTimeout(function(){ if (!h.classList.contains('motion-on')) h.classList.remove('motion'); }, 3000);
   // Arrived through a page transition: what's on screen comes in with the
   // transition itself, so motion.js skips its reveal (one entrance, not two).
-  addEventListener('pagereveal', function(e){ if (e.viewTransition) h.classList.add('vt-in'); });
+  addEventListener('pagereveal', function(e){
+    if (!e.viewTransition) return;
+    h.classList.add('vt-in', 'vt-bg');
+    e.viewTransition.finished.finally(function(){ h.classList.remove('vt-bg'); });
+  });
+  // The page snapshot carries the page's background colour, and it sits over
+  // the sky's own layer during a transition: clear it on both pages (just
+  // before the old one is captured, and until the new one has settled) so the
+  // sky shows through instead of a flat fill.
+  addEventListener('pageswap', function(e){ if (e.viewTransition) h.classList.add('vt-bg'); });
+  addEventListener('pageshow', function(e){ if (e.persisted) h.classList.remove('vt-bg'); });
 })();
 </script>
 <style is:global>
@@ -32,6 +42,7 @@
   }
   html.motion [data-reveal], html.motion [data-reveal-group]{ visibility:hidden; }
   html.motion.vt-in [data-reveal], html.motion.vt-in [data-reveal-group]{ visibility:visible; }
+  html.vt-bg, html.vt-bg body{ background:transparent !important; }
   [data-scroll-lit] .lit-w{ color:var(--lit-off, #3a3d4a); transition:color .35s var(--ease-out); }
   [data-scroll-lit] .lit-w.lit, [data-scroll-lit].is-static .lit-w{ color:var(--lit-on, #f3f5fb); }
 
@@ -54,12 +65,15 @@
   #site-identity{ view-transition-name:site-identity; }
   #site-nav{ view-transition-name:site-nav; }
   #sky{ view-transition-name:sky; }
-  #life-jellies{ view-transition-name:sky-jellies; }
+  .sky-life{ view-transition-name:sky-life; }
   #px-clouds{ view-transition-name:sky-clouds; }
   #word-vine{ view-transition-name:sky-vine; }
   /* named layers paint above the page by default; the (opaque) sky belongs under it */
-  ::view-transition-group(sky), ::view-transition-group(sky-jellies),
+  ::view-transition-group(sky), ::view-transition-group(sky-life),
   ::view-transition-group(sky-clouds), ::view-transition-group(sky-vine){ z-index:-1; }
+  /* the jellyfish clips have black grounds that the layer's screen blend
+     drops (SkyLife.astro); a snapshot loses that, so blend the group itself */
+  ::view-transition-group(sky-life){ mix-blend-mode:screen; }
   /* project frames: the one that has a partner on the next page morphs;
      the rest (:only-child below) leave and arrive with the content */
   .pw-img, .wk-img{ view-transition-class:work; }
