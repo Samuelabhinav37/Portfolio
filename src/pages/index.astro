@@ -272,7 +272,7 @@ footer#site-footer{
 <!-- the sky cast: jellyfish, between the sky and the page -->
 <SkyLife cast />
 <!-- halo for the jellyfish on the light day sky: the clip plus two blurred copies of itself -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 
 
 
@@ -492,7 +492,7 @@ footer#site-footer{
    night, brightened, with a blurred copy behind for a halo (#jelly-glow).
    --jb and the glow's blur are tuned in /_sky-tune.html */
 :root[data-theme="light"][data-light-sky="day"] .sky-life{ mix-blend-mode:screen; }
-:root[data-theme="light"][data-light-sky="day"] .sc-jelly{ mix-blend-mode:normal; filter:brightness(var(--jb, 2.2)) url(#jelly-glow); }
+:root[data-theme="light"][data-light-sky="day"] .sc-jelly{ mix-blend-mode:normal; filter:brightness(var(--jb, 4)) url(#jelly-glow); }
 /* the sky's scanlines only vanish on black */
 :root[data-theme="light"] #sky .sky-grain, :root[data-theme="light"] #sky::after{ display:none; }
 /* trial picker for the light sky, bottom left */
