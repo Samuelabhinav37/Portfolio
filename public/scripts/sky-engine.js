@@ -67,6 +67,23 @@
     '  vec3 tint=mix(vec3(.92,.95,1.), k<.5?vec3(.66,.78,1.):vec3(1.,.84,.66), abs(k-.5)*1.6);\n' +
     '  return tint*(core*(.35+.65*b)+glow)*tw;\n' +
     '}\n' +
+    /* day stars: on a light sky stars must stay lighter than the sky (dark
+       specks read as dust), so fewer, larger white points with a halo; the
+       brightest carry a four-point glint and twinkle more */
+    'vec3 dayLayer(vec2 p,float scale,float density,float t){\n' +
+    '  vec2 g=p*scale; vec2 id=floor(g); vec2 f=fract(g)-.5;\n' +
+    '  float h=h21(id); if(h>density) return vec3(0.);\n' +
+    '  vec2 o=(vec2(h21(id+11.3),h21(id+27.1))-.5)*.6; vec2 q=f-o; float d=length(q);\n' +
+    '  float b=h21(id+5.7); float tw=.55+.45*sin(t*(.6+b*1.8)+b*60.);\n' +
+    '  float core=smoothstep(.07,0.,d);\n' +
+    '  float halo=exp(-d*14.)*.55;\n' +
+    '  float arms=(exp(-abs(q.y)*90.)*exp(-abs(q.x)*9.)+exp(-abs(q.x)*90.)*exp(-abs(q.y)*9.))*step(.7,b)*.9;\n' +
+    '  float k=h21(id+41.9); vec3 tint=mix(vec3(1.,1.,1.),vec3(.86,.93,1.),k);\n' +
+    '  return tint*(core+halo+arms*tw)*(.45+.55*b)*mix(1.,tw,.6);\n' +
+    '}\n' +
+    'vec3 dayStars(vec2 st,float t){\n' +
+    '  return .8*dayLayer(st+vec2(t*.0065,0.),30.,.09,t)+1.1*dayLayer(st+vec2(t*.0130,0.),13.,.16,t);\n' +
+    '}\n' +
     'vec3 stars(vec2 st,float t){\n' +
     '  vec3 c=vec3(0.);\n' +
     '  c+=.55*starLayer(st+vec2(t*.0030,0.),95.,' + (.12*LOOK.starDen).toFixed(3) + ',t,0.);\n' +
@@ -88,9 +105,9 @@
     '  vec3 cl=mix(uCloud,uRim,smoothstep(.95,1.25,shade))*uCloudB;\n' +
     '  vec3 col=mix(sky,cl*clamp(shade,.45,1.25),c*.85)*' + LOOK.bright.toFixed(3) + ';\n' +
     '  vec2 v=uv-.5; col*=pow(clamp(1.-dot(v,v*' + LOOK.vign.toFixed(3) + '),0.,1.),.8);\n' +
-    '  vec3 s=stars(st,uTime)*uStarB*(1.-c);\n' +
-    /* on a light sky (uInk 1) the stars are dark specks instead of light */
-    '  col=mix(col+s,col-s*.7,uInk);\n' +
+    /* a light sky (uInk 1) gets the day stars, thinning toward the pale horizon */
+    '  if(uInk>.5) col+=dayStars(st,uTime)*uStarB*(1.-c)*smoothstep(.1,.8,uv.y);\n' +
+    '  else col+=stars(st,uTime)*uStarB*(1.-c);\n' +
     '  gl_FragColor=vec4(clamp(col,0.,1.),1.);\n' +
     '}';
   }

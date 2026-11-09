@@ -1,7 +1,7 @@
 /* Runs the site sky (sky-engine.js) off the main thread, on the two
    OffscreenCanvases sky.js transfers in, so typing and scrolling never
    wait on the background. */
-importScripts('/scripts/sky-engine.js?v=4');  // bump ?v= with sky-engine.js changes: scripts are cached 4h
+importScripts('/scripts/sky-engine.js?v=5');  // bump ?v= with sky-engine.js changes: scripts are cached 4h
 
 var engine = null;
 self.onmessage = function(e){
