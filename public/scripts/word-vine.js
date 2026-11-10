@@ -21,12 +21,12 @@
     mirror: true,       // every other stacked copy mirrored
     flip: false,        // mirror the whole plant
     style: 'digits',    // digits (coloured digits, glyph by brightness) | pixel (3-shade pixel art) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
-    size: 6,            // cell px (text size; pixel: square size)
+    size: 7,            // cell px (text size; pixel: square size)
     row: 1.1,           // row height, in sizes
     cover: 0.25,        // share of a cell the plant must cover to get a mark (lower keeps thin stems unbroken)
     motion: 0.56,       // how much the plant moves (0 = still)
     speed: 0.6,         // how fast it moves
-    weight: 500,
+    weight: 600,
     bright: 0.8,        // overall brightness
     base: 0.3,          // brightness inside petals and leaves
     ink: 1.3,           // how strongly the drawing's ink brightens a cell (contrast)
@@ -41,9 +41,10 @@
     colors: {
       day: { leaf: ['#a3bf63', '#6c9449', '#2f5843'], glory: ['#b48be0', '#7b4fc4', '#45277f'],
              bud: ['#f39ac9', '#d0609f', '#7d2f6b'], throat: ['#e27bb6', '#fdf6dc'] },
-      // night is black and white: grey leaves, mid-grey buds, the moonflowers the only whites
-      night: { leaf: ['#b4b4b4', '#6e6e6e', '#383838'], glory: ['#ffffff', '#d2d2d2', '#8c8c8c'],
-             bud: ['#9a9a9a', '#5e5e5e', '#303030'], throat: ['#e6e6e6', '#ffffff'] }
+      // night is black and white, and like the line drawing itself the lines are the brightest
+      // part (dark lines vanish on a black sky): [rim, body, line]; moonflowers the only whites
+      night: { leaf: ['#8a8a8a', '#4f4f4f', '#c4c4c4'], glory: ['#d8d8d8', '#9e9e9e', '#f4f4f4'],
+             bud: ['#7c7c7c', '#474747', '#adadad'], throat: ['#e2e2e2', '#ffffff'] }
     },
     // where the flowers are in glory.png (image px): glories [x0, y0, x1, y1, throat x, throat y], buds [x0, y0, x1, y1]
     parts: { glory: {
@@ -65,6 +66,52 @@
 
   var RAMP = ' .,:;i1tfLCG08@';
   var DIGITS = ' .:1742359608';  // digits from light to dense
+
+  // Sharper text art, after Alex Harri's "ASCII characters are not pixels": a glyph is chosen by
+  // its shape, not only its brightness. Each cell and each glyph is measured in the same 6 zones
+  // (2 across, 3 down); the cell gets the glyph whose 6 numbers are nearest, so a stem gets a 1,
+  // a cell inked along its top gets a 7, a ring gets a 0.
+  var ZX = 2, ZY = 3, SHAPES = ' 1742359608'; // digits only (and blank): every mark is a number
+  function glyphShapes(set, c, cw, ch){
+    var k = 8, cv = document.createElement('canvas'); cv.width = cw * k; cv.height = ch * k;
+    var g = cv.getContext('2d', { willReadFrequently: true }), out = [], peak = new Array(ZX * ZY).fill(1e-6);
+    g.font = c.weight + ' ' + c.size * k + 'px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (var i = 0; i < set.length; i++){
+      g.clearRect(0, 0, cv.width, cv.height); g.fillText(set[i], cv.width / 2, cv.height / 2);
+      var v = zones(g.getImageData(0, 0, cv.width, cv.height).data, cv.width, 0, 0, cv.width, cv.height, 3);
+      v.forEach(function(x, j){ peak[j] = Math.max(peak[j], x); });
+      out.push(v);
+    }
+    // each zone scaled by its peak over all glyphs, so no zone is dominated by one wide glyph
+    return out.map(function(v){ return v.map(function(x, j){ return x / peak[j]; }); });
+  }
+  // mean ink in each of the 6 zones of a box. ch 3: a glyph's alpha. ch 0: the plant mask, read as
+  // ink (fill inside petals and leaves counts 0.6, a drawn line 1), so filled shapes stay solid
+  function zones(px, rowW, x0, y0, w, h, ch){
+    var v = [];
+    for (var zy = 0; zy < ZY; zy++) for (var zx = 0; zx < ZX; zx++){
+      var ax = Math.floor(x0 + w * zx / ZX), bx = Math.floor(x0 + w * (zx + 1) / ZX);
+      var ay = Math.floor(y0 + h * zy / ZY), by = Math.floor(y0 + h * (zy + 1) / ZY), sum = 0, n = 0;
+      for (var yy = ay; yy < by; yy++) for (var xx = ax; xx < bx; xx++){
+        var a = px[(yy * rowW + xx) * 4 + ch]; n++;
+        sum += ch === 3 ? a / 255 : a ? (a < 120 ? 0.6 : 1) : 0;
+      }
+      v.push(n ? sum / n : 0);
+    }
+    return v;
+  }
+  function nearest(v, shapes){
+    // contrast: push each zone toward the cell's own peak, so edges snap instead of greying out
+    var m = Math.max.apply(null, v), best = 0, bd = Infinity;
+    if (m < 0.04) return 0;
+    var w = v.map(function(x){ return m * Math.pow(x / m, 2); });
+    for (var i = 0; i < shapes.length; i++){
+      var d = 0, s = shapes[i];
+      for (var j = 0; j < w.length; j++){ var e = w[j] - s[j]; d += e * e; }
+      if (d < bd){ bd = d; best = i; }
+    }
+    return best;
+  }
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
   // Reads the plant into grid cells. Everything sits on one grid, one mark per cell, and only
@@ -85,6 +132,9 @@
     var snap = function(v){ return Math.max(1, Math.round(v * dpr)) / dpr; };
     var text = c.style === 'words' || c.style === 'ascii' || c.style === 'digits';
     var cw = snap(text ? ctx.measureText('M').width : size * c.row), ch = snap(size * c.row);
+    // digits sit on whole css px so each glyph lands on the same device pixels every time (crisp)
+    if (c.style === 'digits'){ cw = Math.max(1, Math.round(cw)); ch = Math.max(1, Math.round(ch)); }
+    var shapes = c.style === 'digits' ? glyphShapes(SHAPES, c, cw, ch) : null;
     var parts = c.parts[c.vine];
     var WORDS = String(c.words).split(/\s+/).filter(Boolean); if (!WORDS.length) WORDS = ['word'];
     var stream = WORDS.join(' ') + ' ', si = 0, out = [];
@@ -102,7 +152,9 @@
         var h = Math.abs(Math.sin(gx * 12.9898 + gy * 78.233) * 43758.5453) % 1;
         out.push({ gx: gx, gy: gy, x: ox + x, y: y, ch: stream[si++ % stream.length],
           t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h, ink: ink,
-          part: parts ? part(parts, x + cw / 2, y + ch / 2) : 'leaf' });
+          part: parts ? part(parts, x + cw / 2, y + ch / 2) : 'leaf',
+          glyph: shapes ? SHAPES[nearest(zones(px, dw, x, y, Math.min(cw, dw - x), Math.min(ch, H - y), 0), shapes)] : null });
+        if (shapes && out[out.length - 1].glyph === ' ') out.pop();
       }
     }
     // which part of the drawing a cell's middle falls on, in glory.png's own pixels (undoing the stacking and mirroring)
@@ -168,7 +220,7 @@
         t = r * t * (0.4 + 0.6 * age / LOCK); key = -2 - tick;
       }
       var q = Math.round(t * STEPS);
-      if (style === 'digits' && key !== null) q = Math.max(1, Math.round(Math.random() * STEPS)); // scrambling: a random digit
+      if (style === 'digits') q = key !== null ? 1 + Math.floor(Math.random() * (DIGITS.length - 1)) : t > e.t * 1.25 ? 1 : 0; // scramble: a random digit; else 1 while the band of light passes
       if (style === 'pixel'){
         // the moving band of light lifts body cells to the lit shade; scrambling cells take a random shade
         q = key !== null ? 1 + (-key % 3) : e.shade === 2 && t > e.t * 1.3 ? 1 : e.shade;
@@ -188,10 +240,12 @@
         ctx.fillStyle = col;
         if (style === 'pixel'){ ctx.globalAlpha = 1; ctx.fillRect(x, e.y, cw, ch); }
         else {
-          // glyph by brightness, like the ascii plant: the band of light moving up still swaps digits
-          ctx.globalAlpha = Math.min(1, 0.32 + 0.4 * t);
-          var dg = DIGITS[Math.max(1, Math.round(t * (DIGITS.length - 1)))];
-          ctx.fillText(dg, x + cw / 2, e.y + ch / 2);
+          // solid colour (see-through glyphs blur on black); the passing band of light shows the
+          // brightest shade, a scrambling cell a random digit
+          ctx.globalAlpha = 1;
+          if (key < -1){ col = pal[e.part] ? pal[e.part][1] : col; ctx.fillStyle = col; }
+          else if (q === 1) ctx.fillStyle = dark ? pal[e.part] ? pal[e.part][2] : col : pal[e.part] ? pal[e.part][0] : col;
+          ctx.fillText(key < -1 ? DIGITS[q] : e.glyph, Math.round(x + cw / 2), Math.round(e.y + ch / 2));
         }
       } else if (style === 'bits'){
         if (t * 16 <= BAYER[(e.gy % 4) * 4 + e.gx % 4]) continue;
