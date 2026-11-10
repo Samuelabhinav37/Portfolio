@@ -1,7 +1,10 @@
 /* Kai's knowledge base for a blog post, built from the post itself:
    its description, FAQs and section headings (window.SITE.__LUNA_POST, set
    by KaiPost.astro), plus a few fixed entries. Kai's chat
-   (kai-site-chat.js) does the matching and drawing. */
+   (kai-site-chat.js) does the matching and drawing.
+   Runs again on every post the ClientRouter brings in (data-astro-rerun), so it
+   is wrapped to keep its names out of the global scope. */
+(function () {
 
 const LP = window.SITE.__LUNA_POST || {};
 const LP_faqs = LP.faqs || [];
@@ -96,3 +99,4 @@ window.SITE.initLunaDrawer(KB, null, {
   hello: { title: 'Hi, I’m Kai.', text: 'I read this post too. Ask me about it, or where to jump.' },
   placeholder: 'Ask about this post'
 });
+})();

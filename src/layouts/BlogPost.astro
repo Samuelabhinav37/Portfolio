@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import Motion from '../components/Motion.astro';
 import SiteSky from '../components/SiteSky.astro';
 import { getCollection } from 'astro:content';
@@ -209,6 +210,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <Fonts />
+    <ClientRouter fallback="swap" />
     <Motion />
 
     <script type="application/ld+json" set:html={jsonLd} />
@@ -223,10 +225,12 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       }
     </style>
     <script is:inline>
-    (function(){
-      document.addEventListener('copy', function(e){ e.preventDefault(); });
-      document.addEventListener('cut', function(e){ e.preventDefault(); });
-    })();
+    // posts only: the signal lifts it when the ClientRouter moves on to another page
+    onPage(function(signal){
+      if(!document.querySelector('.article-col')) return;
+      document.addEventListener('copy', function(e){ e.preventDefault(); }, { signal: signal });
+      document.addEventListener('cut', function(e){ e.preventDefault(); }, { signal: signal });
+    });
     </script>
     <ErrorReporter />
     <ClarityAnalytics />
@@ -328,7 +332,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <button class="post-share" type="button" id="shareBtn" data-share-open="x" title={i18n.shareDialogTitle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><span class="post-share-label">{lang === 'es' ? 'Compartir' : 'Share this story'}</span></button>
         </div>
         <script is:inline>
-          (function(){
+          onPage(function(){
             var btn = document.getElementById('shareBtn');
             if(!btn) return;
             btn.addEventListener('click', function(e){
@@ -338,7 +342,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
                 navigator.share({ title: document.title, url: location.href }).catch(function(){});
               }
             }, true);
-          })();
+          });
         </script>
         <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
           <!-- the summary, set apart as the piece's italic intro -->

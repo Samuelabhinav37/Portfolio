@@ -2,6 +2,10 @@
    at build time from the post's headings; this file only adds the dynamic
    pieces: scroll UI, scrollspy, anchors, copy actions, FAQ, collapsed menu. */
 
+// a module runs once per visit: onPage (Motion.astro) runs this again on each ClientRouter arrival
+window.onPage((signal) => {
+if (!document.querySelector('.article-col')) return;
+
 /* ── Scroll-driven UI: reading progress ring on the back-to-top button.
    Single rAF-throttled handler. ── */
 (() => {
@@ -31,7 +35,7 @@
       ticking = false;
     });
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true, signal });
   backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   onScroll();
 })();
@@ -85,7 +89,7 @@
   }
   window.addEventListener('scroll', () => {
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
-  }, { passive: true });
+  }, { passive: true, signal });
   update();
 
   if (strip) {
@@ -174,7 +178,7 @@
     setTab(key);
     lastFocused = document.activeElement;
     dialog.setAttribute('aria-hidden', 'false');
-    document.addEventListener('keydown', onKeydown);
+    document.addEventListener('keydown', onKeydown, { signal });
     if (key === 'copy') { urlInput.focus(); urlInput.select(); }
     else tabs.find((t) => t.dataset.shareTab === key).focus();
   }
@@ -249,7 +253,7 @@ document.addEventListener('click', (ev) => {
       faqBtn.setAttribute('aria-expanded', 'true');
     }
   }
-});
+}, { signal });
 
 /* ── Listen: read the post aloud with the browser's own voice ──
    The article is spoken a sentence at a time: Chrome's network voices stop
@@ -287,7 +291,7 @@ document.addEventListener('click', (ev) => {
     voice = vs.find((v) => /natural|neural/i.test(v.name)) || vs.find((v) => /google|samantha|daniel|aria|jenny/i.test(v.name)) || vs[0] || null;
   }
   pickVoice();
-  if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice);
+  if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice, { signal });
   box.hidden = false;
 
   const fmt = (sec) => { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); };
@@ -353,8 +357,11 @@ document.addEventListener('click', (ev) => {
     if (e.key === 'ArrowRight') { seekTo(pos() + 15 * CPS * rate); e.preventDefault(); }
     if (e.key === 'ArrowLeft') { seekTo(pos() - 15 * CPS * rate - 1); e.preventDefault(); }
   });
-  setInterval(() => { if (playing) show(); }, 250);
-  addEventListener('pagehide', () => { current = null; synth.cancel(); });
+  const tick = setInterval(() => { if (playing) show(); }, 250);
+  const stop = () => { current = null; synth.cancel(); };
+  addEventListener('pagehide', stop, { signal });
+  // leaving the post through the ClientRouter: stop reading it out
+  signal.addEventListener('abort', () => { clearInterval(tick); playing = false; stop(); });
   show();
 })();
 
@@ -384,6 +391,7 @@ document.addEventListener('click', (ev) => {
   prev.addEventListener('click', () => view.scrollBy({ left: -page(), behavior: 'smooth' }));
   next.addEventListener('click', () => view.scrollBy({ left: page(), behavior: 'smooth' }));
   view.addEventListener('scroll', ends, { passive: true });
-  addEventListener('resize', ends);
+  addEventListener('resize', ends, { signal });
   ends();
 })();
+});

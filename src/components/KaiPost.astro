@@ -31,7 +31,8 @@ const lunaPost = {
 ---
 
 <KaiSite />
-<script define:vars={{ lunaPost }}>
+<!-- data-astro-rerun: each post the ClientRouter brings in gives Kai its own knowledge -->
+<script define:vars={{ lunaPost }} data-astro-rerun>
   window.SITE.__LUNA_POST = lunaPost;
 </script>
-<script is:inline src="/scripts/blog-post-luna-kb.js"></script>
+<script is:inline src="/scripts/blog-post-luna-kb.js" data-astro-rerun></script>

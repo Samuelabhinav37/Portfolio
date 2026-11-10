@@ -14,7 +14,7 @@ window.SITE = window.SITE || {};
    calls swap in their page's knowledge, and arriving back on a page swaps its saved one in.
    shortcut: options (chips, hello, placeholder) stay the first page's; rebuild the chat if pages need their own. */
 var kaiLive = null, kaiKB = {};
-function kaiPage() { var p = location.pathname; return /^\/blog\/.+/.test(p) ? '/blog/*' : p; }
+function kaiPage() { return location.pathname; }
 document.addEventListener('astro:page-load', function () { var s = kaiKB[kaiPage()]; if (kaiLive && s) kaiLive(s[0], s[1]); });
 window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   'use strict';
