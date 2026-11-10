@@ -39,8 +39,10 @@
     // only, and the glories become white moonflowers (Ipomoea alba, the night-blooming
     // morning glory). Notes: docs/2026-11-10-kartik-andreas-research.md.
     colors: {
-      day: { leaf: ['#a3bf63', '#6c9449', '#2f5843'], glory: ['#b48be0', '#7b4fc4', '#45277f'],
-             bud: ['#f39ac9', '#d0609f', '#7d2f6b'], throat: ['#e27bb6', '#fdf6dc'] },
+      // day mirrors night in the old warm near-black ink (#382a24) and its greys: lines darkest,
+      // body mid, lit edge lightest; the glories are the darkest marks as the moonflowers are the whitest at night
+      day: { leaf: ['#8a817c', '#6b625d', '#2b211c'], glory: ['#564c47', '#3d332e', '#1a1310'],
+             bud: ['#958d88', '#7a726d', '#463e39'], throat: ['#5e544f', '#1a1310'] },
       // night is black and white, and like the line drawing itself the lines are the brightest
       // part (dark lines vanish on a black sky): [rim, body, line]; moonflowers the only whites
       night: { leaf: ['#8a8a8a', '#4f4f4f', '#c4c4c4'], glory: ['#d8d8d8', '#9e9e9e', '#f4f4f4'],
@@ -294,6 +296,8 @@
     paint: function(ctx, img, W, H, ox, dark, opts, s){ var c = {}, k; for (k in CFG) c[k] = CFG[k]; for (k in opts) c[k] = opts[k]; render(ctx, cells(ctx, img, W, H, ox, c, 2), s || 0, Infinity, dark, c, true, 2); },
     intro: function(){ born = performance.now(); if (started) draw(); },
     set: function(opts){ for (var k in opts) CFG[k] = opts[k]; if (started) draw(); },
+    // the shape-matched digits, for the falling leaves (vine-leaves.js)
+    shapes: function(o, cw, ch){ return glyphShapes(SHAPES, o, cw, ch); }, nearest: nearest, SHAPE_SET: SHAPES,
     config: CFG
   };
 
