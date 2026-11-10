@@ -20,3 +20,7 @@ Reference: a classic novel page (Sherlock Holmes, "Chapter 1 / Mr. Sherlock Holm
 - Measure: 660px column, about 66 characters a line (books run 60-70; the old 800px ran 90+). Line height 1.5, half a line between paragraphs, chapter headings with a line and more of room.
 - Intro set as an epigraph (narrow, italic, centred); the section list as a Contents page with roman numerals; `hr` as a three-star scene break; hanging punctuation where the browser has it.
 - A page number in the bottom bar (one page per screen of reading), like the folio at the foot of the reference page; a paper band at the top so text scrolls under paper, not the nav.
+
+## Third pass: white day page (user disliked the yellow)
+- Day is now the site's own day white (#fbfbfa) with near-black ink (25,25,25), no texture. Off-white rather than pure #fff, and near-black rather than pure black, is the common advice against glare on screens; print books are off-white too ([TypeDrawers on white glare](https://typedrawers.com/discussion/comment/70620), [SitePoint on contrast](https://www.sitepoint.com/focus-on-typography-part-1-contrast/), [UX Planet](https://uxplanet.org/basicdesign-never-use-pure-black-in-typography-36138a3327a6)). Butterick's Practical Typography leans to plain black text.
+- Night stays black paper with the faint speck texture.
