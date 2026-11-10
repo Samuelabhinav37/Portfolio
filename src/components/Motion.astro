@@ -57,6 +57,22 @@
     document.createElement = function(t){ var el = mk.apply(document, arguments); if (String(t).toLowerCase() === 'script') el.async = false; return el; };
   });
   document.addEventListener('astro:page-load', function(){ document.createElement = mk; });
+  /* The router announces the new page to screen readers by reading document.title
+     60ms after the swap, but title-manager.js is retyping the tab title by then
+     (it starts from the old page's). So keep the new page's real title from the
+     swap and put it in the announcer as soon as the router fills it in. */
+  var pageTitle = '';
+  document.addEventListener('astro:after-swap', function(){ pageTitle = document.title; }); // runs before title-manager's: this script is first in <head>
+  document.addEventListener('astro:page-load', function(){
+    if (!pageTitle) return;
+    setTimeout(function(){ // the router adds its announcer just after this event
+      var ann = document.querySelectorAll('.astro-route-announcer'), a = ann[ann.length - 1];
+      if (!a) return;
+      var mo = new MutationObserver(function(){ if (a.textContent && a.textContent !== pageTitle) { mo.disconnect(); a.textContent = pageTitle; } });
+      mo.observe(a, { childList: true, characterData: true, subtree: true });
+      setTimeout(function(){ mo.disconnect(); }, 1000);
+    });
+  });
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   h.classList.add('motion');

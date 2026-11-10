@@ -84,13 +84,14 @@ if (wantsSmooth()) {
   gsap.ticker.lagSmoothing(0);
   window.SITE = window.SITE || {};
   window.SITE.lenis = lenis;
-  // ClientRouter page change: hold still through the swap, then take up the
-  // scroll position the router set (top, or where you were on Back)
-  document.addEventListener('astro:before-swap', () => lenis.stop());
+  // ClientRouter page change: end any smooth scroll in flight at the swap, then
+  // take up the scroll position the router set (top, or where you were on Back).
+  // Not lenis.stop(): its lenis-stopped class clips the root's overflow, which
+  // crashed WebKit mid view transition (and hides the scrollbar, a 15px jump).
+  document.addEventListener('astro:before-swap', () => lenis.reset());
   document.addEventListener('astro:page-load', () => {
     lenis.resize();
     lenis.scrollTo(window.scrollY, { immediate: true, force: true });
-    lenis.start();
   });
 }
 
