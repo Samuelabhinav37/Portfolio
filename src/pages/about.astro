@@ -6,6 +6,7 @@ import SiteSky from '../components/SiteSky.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import ScrollToc from '../components/ScrollToc.astro';
+import KaiKeep from '../components/KaiKeep.astro';
 import '../styles/tokens.css';
 import { PROJECTS } from '../data/projects';
 import Fonts from '../components/Fonts.astro';
@@ -646,9 +647,7 @@ onPage(function(signal){
 </script>
 
 <ScrollToc />
-<!-- Kai isn't shown on this page, but stays alive across ClientRouter page changes (KaiSite) -->
-<div id="luna-wrap" class="kai-site" transition:persist="kai" aria-hidden="true"></div>
-<style is:global>#luna-wrap{ display:none; }</style>
+<KaiKeep />
 
 
 </body>

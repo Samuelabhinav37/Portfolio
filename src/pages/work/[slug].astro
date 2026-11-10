@@ -3,7 +3,9 @@
    matthieugivelet.com's project pages: the name, year, tags, a short
    description and links stay pinned on the left while the images scroll
    past on the right. Phones get one column. */
+import { ClientRouter } from 'astro:transitions';
 import Motion from '../../components/Motion.astro';
+import KaiKeep from '../../components/KaiKeep.astro';
 import SiteMenu from '../../components/SiteMenu.astro';
 import ClarityAnalytics from '../../components/ClarityAnalytics.astro';
 import ErrorReporter from '../../components/ErrorReporter.astro';
@@ -53,6 +55,7 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <Fonts />
+<ClientRouter fallback="swap" />
 <Motion />
 <ErrorReporter />
 <ClarityAnalytics />
@@ -94,6 +97,7 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
       : <figure class="wk-img wk-img--todo" style={`view-transition-name:work-${p.slug}`}><span>Image coming soon</span></figure>}
   </div>
 </main>
+<KaiKeep />
 
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }

@@ -1,0 +1,6 @@
+---
+/* For pages that don't show Kai: keeps Kai (KaiSite, #luna-wrap) alive and
+   hidden across ClientRouter page changes, so it isn't rebuilt on return. */
+---
+<div id="luna-wrap" class="kai-site" transition:persist="kai" aria-hidden="true"></div>
+<style is:global>#luna-wrap{ display:none; }</style>
