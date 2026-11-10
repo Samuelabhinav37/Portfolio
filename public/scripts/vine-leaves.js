@@ -1,34 +1,37 @@
 /* Leaves that come loose from the ASCII vine (word-vine.js) and fall across
    the homepage hero. The idea is kartik.to's falling leaves, rebuilt for this
    site in Canvas2D instead of a second WebGL context: each leaf is a shape
-   worked out per grid cell and drawn as 1-bit Bayer-dithered squares (bits)
-   or as the vine's own glyph ramp (ascii), so they read as bits of the vine.
+   worked out per 2px grid cell and drawn as small pixel art in three shades
+   (lit half, shadow half, outline and veins), like the pixel clouds; new
+   leaves come in pixel by pixel through a Bayer matrix. ?leaves=ascii draws
+   them in the vine's monospace glyphs instead.
 
    Per leaf, after kartik: it falls slower at each end of its swing, sways and
    drifts with the wind, and tumbles: turning about its length squashes it
-   across (cos of the turn), pitching squashes it along, its back face is
-   fainter. Nearer leaves are bigger, faster and denser. Leaves thin out
+   across (cos of the turn), pitching squashes it along, its back face swaps
+   the lit and shadow halves. Nearer leaves are bigger, faster and denser. Leaves thin out
    behind the hero sentence so it stays readable.
    Cost: about 30fps, only while the hero is on screen and the tab visible;
    one still frame for reduced motion; off where the vine is off (narrow
-   screens, touch). ?leaves=ascii|bits picks the look, window.vineLeaves.set()
+   screens, touch). ?leaves=ascii|pixel picks the look, window.vineLeaves.set()
    changes it live. */
 (window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   var host = document.getElementById('term-screen');
   if (!host || matchMedia('(max-width:1000px), (pointer:coarse)').matches) return;
   var root = document.documentElement;
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var pick = /[?&]leaves=(ascii|bits)/.exec(location.search);
+  var pick = /[?&]leaves=(ascii|pixel)/.exec(location.search);
 
   var CFG = window.vineLeaves && window.vineLeaves.config || {
-    style: pick ? pick[1] : 'bits', // bits = dithered squares, ascii = the vine's glyphs
-    cell: 4,          // bits: square size, css px
-    count: 9,         // leaves on a 1440px wide screen (fewer when narrower)
-    size: [30, 64],   // leaf length, far .. near, css px
-    fall: 34, sway: 26, wind: 20, // css px per second
-    tumble: 0.85,     // 0 flat .. 1 turns fully edge-on
-    dark: ['#9d9fa1', '#c4a77d'],  // inks on the night sky (the vine's grey, a dry-leaf tan)
-    light: ['#382a24', '#8a5a32']  // inks on the day sky
+    style: pick ? pick[1] : 'pixel', // pixel = shaded pixel-art leaves, ascii = the vine's glyphs
+    cell: 2,          // pixel: square size, css px
+    count: 11,        // leaves on a 1440px wide screen (fewer when narrower)
+    size: [14, 26],   // leaf length, far .. near, css px
+    fall: 26, sway: 20, wind: 15, // css px per second
+    tumble: 0.8,      // 0 flat .. 1 turns fully edge-on
+    // three shades per leaf [light, base, dark], like the pixel clouds: a dry tan, a sage, a rust
+    dark: [['#d8c09a', '#b0956b', '#776146'], ['#b9c1b1', '#8e9889', '#5f675c'], ['#cfa184', '#a87556', '#704a35']],
+    light: [['#b98b55', '#93693a', '#5f4121'], ['#8c9c7e', '#6b7a5e', '#46523d'], ['#b4704a', '#8d5032', '#5a321e']]
   };
   var RAMP = ' .,:;i1tfLCG08@';
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -56,7 +59,7 @@
   function spawn(first){
     var near = Math.random();
     return {
-      near: near, ink: Math.random() < 0.3 ? 1 : 0,
+      near: near, ink: Math.random() < 0.5 ? 0 : Math.random() < 0.5 ? 1 : 2,
       x: first ? rnd(0, W * 0.7) : rnd(vineW * 0.15, vineW * 0.85),
       y: first ? rnd(-0.1 * H, H * 0.9) : rnd(H * 0.02, H * 0.7),
       age: first ? 9 : 0,
@@ -78,17 +81,18 @@
     }
   }
 
-  // the leaf's tone at local point (u along it, -1 base .. 1 tip; v across), 0 = not on the leaf
+  // what a local point of the leaf is (u along it, -1 base .. 1 tip; v across):
+  // 0 off the leaf, 1 the half facing the light, 2 the other half, 3 outline, midrib, veins and stem
   function shape(u, v){
     var a = Math.abs(v);
-    if (u < -1) return u > -1.28 && a < 0.05 ? 0.9 : 0;         // stem
+    if (u < -1) return u > -1.3 && a < 0.07 ? 3 : 0;            // stem
     if (u > 1) return 0;
-    var w = 0.46 * Math.pow(1 - u * u, 0.65) * (1 - 0.2 * u);  // widest a little below the middle
+    var w = 0.48 * Math.pow(1 - u * u, 0.6) * (1 - 0.25 * u);  // widest a little below the middle, pointed tip
     if (a > w) return 0;
-    if (a < 0.05) return 1;                                     // midrib
-    var k = (u + a * 1.3) * 4.2;
-    if (k - Math.floor(k) < 0.16 && a < w * 0.86) return 0.85;  // side veins
-    return a > w * 0.8 ? 0.85 : 0.7;                            // rim, then blade
+    if (a < 0.06 || a > w * 0.8) return 3;                      // midrib, outline
+    var k = (u + a * 1.4) * 3.2;
+    if (k - Math.floor(k) < 0.14 && a < w * 0.7) return 3;      // side veins
+    return v < 0 ? 1 : 2;
   }
 
   function draw(){
@@ -99,30 +103,33 @@
     if (ascii){ ctx.font = '500 6px ' + MONO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; }
     var turn = Math.PI / 2 * CFG.tumble;
     for (var i = 0; i < leaves.length; i++){
-      var f = leaves[i];
+      var f = leaves[i], pal = inks[f.ink];
       var size = CFG.size[0] + (CFG.size[1] - CFG.size[0]) * f.near, R = size / 2;
       var ey = Math.cos(turn * Math.sin(f.yaw)), ep = Math.cos(0.6 * turn * Math.sin(f.pitch));
-      var sy = Math.max(0.1, Math.abs(ey)), sp = Math.max(0.3, Math.abs(ep));
-      var dens = (0.75 + 0.25 * f.near) * (0.7 + 0.3 * sy * sp) * (ey < 0 ? 0.8 : 1) * Math.min(1, f.age / 0.9);
+      var sy = Math.max(0.12, Math.abs(ey)), sp = Math.max(0.35, Math.abs(ep));
+      var flip = ey < 0, edgeOn = sy < 0.3;        // back face swaps the lit half; edge-on it is all shadow
+      var grow = Math.min(1, f.age / 0.9) * 16;    // arriving: pixels come in through the Bayer matrix
       var co = Math.cos(f.spin), si = Math.sin(f.spin);
-      ctx.fillStyle = inks[f.ink];
-      // cells on one fixed grid, so leaves snap to pixels like the vine does
-      var x0 = Math.floor((f.x - R * 1.35) / cw), x1 = Math.ceil((f.x + R * 1.35) / cw);
-      var y0 = Math.floor((f.y - R * 1.35) / ch), y1 = Math.ceil((f.y + R * 1.35) / ch);
+      var x0 = Math.floor((f.x - R * 1.4) / cw), x1 = Math.ceil((f.x + R * 1.4) / cw);
+      var y0 = Math.floor((f.y - R * 1.4) / ch), y1 = Math.ceil((f.y + R * 1.4) / ch);
+      // cells on one fixed grid, so leaves snap to pixels like the vine and the clouds do
       for (var gy = y0; gy <= y1; gy++) for (var gx = x0; gx <= x1; gx++){
+        if (grow < 16 && grow <= BAYER[(gy & 3) * 4 + (gx & 3)]) continue;
         var px = gx * cw + cw / 2, py = gy * ch + ch / 2, dx = px - f.x, dy = py - f.y;
-        var t = shape((dx * co + dy * si) / (R * sp), (-dx * si + dy * co) / (R * sy));
-        if (!t) continue;
-        t *= dens;
-        if (words && px > words.x && px < words.x + words.w && py > words.y && py < words.y + words.h) t *= 0.3;
+        var k = shape((dx * co + dy * si) / (R * sp), (-dx * si + dy * co) / (R * sy));
+        if (!k) continue;
+        if (k < 3 && (edgeOn || flip)) k = edgeOn ? 2 : 3 - k;
+        ctx.globalAlpha = words && px > words.x && px < words.x + words.w && py > words.y && py < words.y + words.h ? 0.25 : 1;
         if (ascii){
-          var k = RAMP[Math.round(t * (RAMP.length - 1))];
-          if (k !== ' ') ctx.fillText(k, px, py);
-        } else if (t * 16 > BAYER[(gy & 3) * 4 + (gx & 3)] + 0.5){
-          ctx.fillRect(gx * cw, gy * ch, cw - 1 / dpr, ch - 1 / dpr);
+          ctx.fillStyle = pal[1];
+          ctx.fillText(k === 3 ? '#' : k === 1 ? '*' : '+', px, py);
+        } else {
+          ctx.fillStyle = pal[k - 1];
+          ctx.fillRect(gx * cw, gy * ch, cw, ch);
         }
       }
     }
+    ctx.globalAlpha = 1;
   }
 
   window.vineLeaves = { config: CFG, set: function(o){ for (var k in o) CFG[k] = o[k]; measure(); draw(); } };

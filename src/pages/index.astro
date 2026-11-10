@@ -80,7 +80,7 @@ window.SITE=window.SITE||{};
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline src="/scripts/theme.js"></script>
 <!-- pixel intro gate (pixel-intro.js): cover the page before the first paint, once per visit -->
-<script is:inline>try{if(!sessionStorage.getItem('px-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('px-intro')}catch(e){}</script>
+<script is:inline>try{if(/[?&]intro\b/.test(location.search)||!sessionStorage.getItem('px-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('px-intro')}catch(e){}</script>
 <script is:inline defer src="/scripts/title-manager.js"></script>
 <Fonts />
 <ClientRouter fallback="swap" />
