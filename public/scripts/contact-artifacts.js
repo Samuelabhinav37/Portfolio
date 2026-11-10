@@ -179,7 +179,9 @@
         var q = window.playClip ? playClip(v) : v.play(); if(q && q.catch) q.catch(function(){}); // one download for all three (shared-clip.js)
       });
     };
-    if(document.readyState === 'complete') playW(); else addEventListener('load', playW, { once:true });
+    // not during an arriving page transition (Motion.astro): starting the clips there drops frames
+    var playLater = function(){ (window.afterPageChange || Promise.resolve()).then(playW); };
+    if(document.readyState === 'complete') playLater(); else addEventListener('load', playLater, { once:true });
     document.addEventListener('visibilitychange', function(){
       if(document.hidden) wrecks.forEach(function(v){ v.pause(); }); else playW();
     });

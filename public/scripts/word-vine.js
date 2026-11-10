@@ -189,5 +189,6 @@
     addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(draw, 150); });
     document.addEventListener('theme:change', draw);
   }
-  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(start);
+  // drawing it costs ~50ms: after an arriving page transition, not during it (Motion.astro)
+  Promise.all([document.fonts && document.fonts.ready, window.afterPageChange]).then(start);
 })();

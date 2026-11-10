@@ -169,6 +169,8 @@
     };
     requestAnimationFrame(frame);
   }
-  if (document.readyState === 'complete' || handed) start();
-  else addEventListener('load', start, { once: true });
+  // after a page change: the old page's cast stays on screen (Motion.astro) and this one takes over once it ends
+  const go = () => (window.afterPageChange || Promise.resolve()).then(start);
+  if (document.readyState === 'complete' || handed) go();
+  else addEventListener('load', go, { once: true });
 })();

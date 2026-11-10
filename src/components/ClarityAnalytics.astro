@@ -18,6 +18,8 @@
        up front rather than left gated with nothing to ungate it. */
     Clarity.consentV2();
   };
-  const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 4000 }) : setTimeout(go, 1500));
+  // and never during a page transition (Motion.astro's afterPageChange): it drops frames there
+  const idle = () => ((window as any).afterPageChange || Promise.resolve()).then(() =>
+    'requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 4000 }) : setTimeout(go, 1500));
   if (document.readyState === 'complete') idle(); else addEventListener('load', idle, { once: true });
 </script>
