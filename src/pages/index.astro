@@ -79,8 +79,6 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script is:inline src="/scripts/theme.js"></script>
-<!-- pixel intro gate (pixel-intro.js): cover the page before the first paint, once per visit -->
-<script is:inline>try{if(/[?&]intro\b/.test(location.search)||!sessionStorage.getItem('px-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('px-intro')}catch(e){}</script>
 <script is:inline defer src="/scripts/title-manager.js"></script>
 <Fonts />
 <ClientRouter fallback="swap" />
@@ -88,10 +86,6 @@ window.SITE=window.SITE||{};
 <style is:global>
 /* the ASCII plant up the left edge (/scripts/word-vine.js), behind the page; homepage only */
 #word-vine{ display:block; }
-/* pixel intro cover (pixel-intro.js); hides itself after 4s if the script never runs */
-#px-intro{ display:none; position:fixed; inset:0; width:100%; height:100%; z-index:950; pointer-events:none; image-rendering:pixelated; }
-html.px-intro #px-intro{ display:block; background:var(--c-bg); animation:px-intro-safety 0s linear 4s forwards; }
-@keyframes px-intro-safety{ to{ visibility:hidden; } }
 /* leaves falling off the vine (vine-leaves.js), over the sky, under the hero sentence */
 #vine-leaves{ position:absolute; inset:0; width:100%; height:100%; z-index:5; pointer-events:none; }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -287,10 +281,8 @@ footer#site-footer{
 
 
 <SiteSky />
-<canvas id="px-intro" aria-hidden="true"></canvas>
 <script is:inline defer src="/scripts/word-vine.js"></script>
 <script is:inline defer src="/scripts/vine-leaves.js"></script>
-<script is:inline defer src="/scripts/pixel-intro.js"></script>
 
 
 

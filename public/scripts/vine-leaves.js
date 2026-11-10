@@ -27,13 +27,12 @@
     cell: 2,          // pixel: square size, css px
     count: 11,        // leaves on a 1440px wide screen (fewer when narrower)
     size: [14, 26],   // leaf length, far .. near, css px
-    fall: 26, sway: 20, wind: 15, // css px per second
+    fall: 9, sway: 7, wind: 5, // css px per second: floating, not falling
     tumble: 0.8,      // 0 flat .. 1 turns fully edge-on
     // three shades per leaf [light, base, dark], like the pixel clouds: a dry tan, a sage, a rust.
-    // Night: the eye loses reds and greens first (Purkinje shift), so the leaves take the night
-    // pixel clouds' slate ramp (#68738c..#202637), tan and rust leaning mauve and plum, with a
-    // brighter moonlit rim on the lit side
-    dark: [['#b6b0cc', '#69647f', '#33304a'], ['#a6b8cc', '#5d6f85', '#2e3a4d'], ['#b8a5cf', '#655478', '#33284a']],
+    // Night is black and white (rod vision sees almost no colour): three grey leaves, dark
+    // bodies, only the lit side's outline catches the moon
+    dark: [['#d6d6d6', '#6a6a6a', '#333333'], ['#c2c2c2', '#5c5c5c', '#2c2c2c'], ['#e6e6e6', '#787878', '#3a3a3a']],
     light: [['#b98b55', '#93693a', '#5f4121'], ['#8c9c7e', '#6b7a5e', '#46523d'], ['#b4704a', '#8d5032', '#5a321e']]
   };
   var RAMP = ' .,:;i1tfLCG08@';
@@ -66,9 +65,9 @@
       x: first ? rnd(0, W * 0.7) : rnd(vineW * 0.15, vineW * 0.85),
       y: first ? rnd(-0.1 * H, H * 0.9) : rnd(H * 0.02, H * 0.7),
       age: first ? 9 : 0,
-      swing: rnd(0, 6.28), swingRate: rnd(0.8, 1.5) * (Math.random() < 0.5 ? -1 : 1),
-      yaw: rnd(0, 6.28), yawRate: rnd(1.1, 2.3), pitch: rnd(0, 6.28), pitchRate: rnd(0.5, 1.1),
-      spin: rnd(0, 6.28), spinRate: rnd(-0.6, 0.6)
+      swing: rnd(0, 6.28), swingRate: rnd(0.3, 0.55) * (Math.random() < 0.5 ? -1 : 1),
+      yaw: rnd(0, 6.28), yawRate: rnd(0.35, 0.8), pitch: rnd(0, 6.28), pitchRate: rnd(0.2, 0.45),
+      spin: rnd(0, 6.28), spinRate: rnd(-0.2, 0.2)
     };
   }
   function step(dt){

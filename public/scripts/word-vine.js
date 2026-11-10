@@ -15,7 +15,7 @@
   var MONO = "ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace";
   var CFG = {
     vine: 'glory',      // public/images/vine/<name>.png
-    x: -60,             // px of the plant's left edge from the screen's left (enough in for the flowers to show)
+    x: -130,            // px of the plant's left edge from the screen's left
     y: 371,             // px the stacked plants are shifted down
     zoom: 0.74,         // plant height as a share of the screen height
     mirror: true,       // every other stacked copy mirrored
@@ -23,7 +23,7 @@
     style: 'digits',    // digits (coloured digits, glyph by brightness) | pixel (3-shade pixel art) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
     size: 6,            // cell px (text size; pixel: square size)
     row: 1.1,           // row height, in sizes
-    cover: 0.45,        // share of a cell the plant must cover to get a mark
+    cover: 0.25,        // share of a cell the plant must cover to get a mark (lower keeps thin stems unbroken)
     motion: 0.56,       // how much the plant moves (0 = still)
     speed: 0.6,         // how fast it moves
     weight: 500,
@@ -35,15 +35,15 @@
     // digits/pixel colours, [lit, base, outline] per part of the plant; throat = [outer, centre].
     // Day: hue-shifted pixel art (highlights warmer, outlines cooler); the glories are the violet
     // Ipomoea purpurea with a pink throat (sky-blue Heavenly Blue vanishes on the blue day sky),
-    // pink buds. Night: rod vision (Purkinje shift) loses reds and greens first and keeps blues,
-    // so the leaves take the night pixel clouds' slate ramp (#68738c..#202637) with a cooler
-    // moonlit top, the buds go dusty violet, and the glories become white moonflowers (Ipomoea
-    // alba, the night-blooming morning glory). Notes: docs/2026-11-10-kartik-andreas-research.md.
+    // pink buds. Night: rod vision (Purkinje shift) sees almost no colour, so night is greys
+    // only, and the glories become white moonflowers (Ipomoea alba, the night-blooming
+    // morning glory). Notes: docs/2026-11-10-kartik-andreas-research.md.
     colors: {
       day: { leaf: ['#a3bf63', '#6c9449', '#2f5843'], glory: ['#b48be0', '#7b4fc4', '#45277f'],
              bud: ['#f39ac9', '#d0609f', '#7d2f6b'], throat: ['#e27bb6', '#fdf6dc'] },
-      night: { leaf: ['#93a3bf', '#5d6a85', '#363f57'], glory: ['#f3f6ff', '#c3cfe9', '#7f8fb8'],
-             bud: ['#b3a3cf', '#7a6c9c', '#463f66'], throat: ['#e8e2c8', '#fff8dc'] }
+      // night is black and white: grey leaves, mid-grey buds, the moonflowers the only whites
+      night: { leaf: ['#b4b4b4', '#6e6e6e', '#383838'], glory: ['#ffffff', '#d2d2d2', '#8c8c8c'],
+             bud: ['#9a9a9a', '#5e5e5e', '#303030'], throat: ['#e6e6e6', '#ffffff'] }
     },
     // where the flowers are in glory.png (image px): glories [x0, y0, x1, y1, throat x, throat y], buds [x0, y0, x1, y1]
     parts: { glory: {
@@ -189,7 +189,7 @@
         if (style === 'pixel'){ ctx.globalAlpha = 1; ctx.fillRect(x, e.y, cw, ch); }
         else {
           // glyph by brightness, like the ascii plant: the band of light moving up still swaps digits
-          ctx.globalAlpha = Math.min(1, 0.6 + 0.5 * t);
+          ctx.globalAlpha = Math.min(1, 0.32 + 0.4 * t);
           var dg = DIGITS[Math.max(1, Math.round(t * (DIGITS.length - 1)))];
           ctx.fillText(dg, x + cw / 2, e.y + ch / 2);
         }
