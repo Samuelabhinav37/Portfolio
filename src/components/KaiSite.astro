@@ -19,7 +19,7 @@ interface Props {
 const { hasIntro = false } = Astro.props;
 ---
 
-<div id="luna-wrap" class:list={['kai-site', { 'kai-site--intro': hasIntro }]}></div>
+<div id="luna-wrap" class:list={['kai-site', { 'kai-site--intro': hasIntro }]} transition:persist="kai"></div>
 <script is:inline src="/scripts/kai-life.js"></script>
 <script is:inline src="/scripts/kai-watch.js"></script>
 <script is:inline src="/scripts/kai-chat.js"></script>

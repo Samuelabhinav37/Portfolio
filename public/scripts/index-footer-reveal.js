@@ -3,7 +3,7 @@
    When the footer scrolls into view, add .fpin/.fenter to fire its staggered
    entrance and flip __fPinOn true so the map/oscilloscope loop renders. Remove
    them when it leaves so the entrance can replay and the loop idles off-screen. */
-(function(){
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   var f=document.getElementById('site-footer');
   if(!f) return;
   if(!('IntersectionObserver' in window)){
@@ -16,4 +16,5 @@
     f.classList.toggle('fenter',vis);
   },{threshold:0.12});
   io.observe(f);
-})();
+  signal.addEventListener('abort',function(){ io.disconnect(); window.SITE.__fPinOn=false; });
+});

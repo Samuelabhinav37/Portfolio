@@ -1,5 +1,6 @@
 ---
 import Motion from '../components/Motion.astro';
+import { ClientRouter } from 'astro:transitions';
 import Glitches from '../components/Glitches.astro';
 import { getCollection } from 'astro:content';
 import SiteMenu from '../components/SiteMenu.astro';
@@ -80,10 +81,11 @@ window.SITE=window.SITE||{};
 <script is:inline src="/scripts/theme.js"></script>
 <script is:inline defer src="/scripts/title-manager.js"></script>
 <Fonts />
+<ClientRouter fallback="swap" />
 <Motion />
 <style is:global>
 /* the ASCII plant up the left edge (/scripts/word-vine.js), behind the page; homepage only */
-#word-vine{ position:fixed; left:0; top:0; z-index:1; pointer-events:none; }
+#word-vine{ display:block; }
 * { margin:0; padding:0; box-sizing:border-box; }
 
 html, body {

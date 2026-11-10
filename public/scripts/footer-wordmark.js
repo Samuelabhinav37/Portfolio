@@ -3,7 +3,7 @@
    pointer while it is over the name, fading it in and out. On touch screens
    the light follows the finger. With reduced motion the light rests in the
    middle of the name. */
-(function () {
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   'use strict';
   var mark = document.getElementById('footerMark');
   if (!mark) return;
@@ -18,7 +18,7 @@
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
   fit();
-  addEventListener('resize', fit);
+  addEventListener('resize', fit, { signal: signal });
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     mark.style.setProperty('--mo', '0.6');
@@ -37,4 +37,4 @@
   mark.addEventListener('pointerenter', function (e) { move(e.clientX, e.clientY); mark.style.setProperty('--mo', '1'); });
   mark.addEventListener('pointermove', function (e) { move(e.clientX, e.clientY); });
   mark.addEventListener('pointerleave', function () { mark.style.setProperty('--mo', '0'); });
-})();
+});

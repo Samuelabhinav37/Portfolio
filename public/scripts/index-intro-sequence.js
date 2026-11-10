@@ -1,7 +1,9 @@
 /* Homepage settle: shows the page chrome (identity, menu, Kai, the CRT hero)
    at once and marks the intro as done, which other scripts wait on. The old
-   ~6.4s wordmark intro was removed. */
-(function(){
+   ~6.4s wordmark intro was removed. Runs on each visit to the homepage
+   (Motion.astro onPage). */
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
+  if(!document.getElementById('term-stage')) return;
   var identity = document.getElementById('site-identity');
   var nav      = document.getElementById('site-nav');
   var lunaWrap = document.getElementById('luna-wrap');
@@ -32,4 +34,4 @@
   }
 
   settleInstantly();
-})();
+});

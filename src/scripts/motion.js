@@ -84,6 +84,14 @@ if (wantsSmooth()) {
   gsap.ticker.lagSmoothing(0);
   window.SITE = window.SITE || {};
   window.SITE.lenis = lenis;
+  // ClientRouter page change: hold still through the swap, then take up the
+  // scroll position the router set (top, or where you were on Back)
+  document.addEventListener('astro:before-swap', () => lenis.stop());
+  document.addEventListener('astro:page-load', () => {
+    lenis.resize();
+    lenis.scrollTo(window.scrollY, { immediate: true, force: true });
+    lenis.start();
+  });
 }
 
 /* ── reveals ──────────────────────────────────────────────────────── */
@@ -94,10 +102,11 @@ function fadeUp(targets, trigger, extra = {}) {
       scrollTrigger: { trigger, start: MOTION.start, once: true }, ...extra });
 }
 
+const splits = []; // this page's SplitText instances, reverted when it is swapped out
 function lines(el) {
   // autoSplit re-splits when the web font swaps in or the width changes, so
   // lines never break in the wrong place; the tween is rebuilt each time.
-  SplitText.create(el, {
+  splits.push(SplitText.create(el, {
     type: 'lines',
     mask: 'lines',
     autoSplit: true,
@@ -108,7 +117,7 @@ function lines(el) {
         scrollTrigger: { trigger: el, start: MOTION.start, once: true },
       });
     },
-  });
+  }));
 }
 
 function media(el) {
@@ -125,6 +134,7 @@ function media(el) {
 // through the middle of the screen, then stay lit.
 function scrollLit(el) {
   const split = SplitText.create(el, { type: 'words', wordsClass: 'lit-w' });
+  splits.push(split);
   const words = split.words;
   let shown = -1;
   ScrollTrigger.create({
@@ -172,9 +182,11 @@ function roll(el) {
 // A button leans toward the pointer once it comes within ~60px, by a
 // fraction of the distance and never more than 10px, and springs back when it leaves (the CSS transition on
 // `translate` does the easing). Only measured while on screen and moving.
-function magnet(el) {
+function magnet(el, signal) {
   let on = false, raf = 0, px = 0, py = 0;
-  new IntersectionObserver(([e]) => { on = e.isIntersecting; if (!on) el.style.translate = ''; }).observe(el);
+  const io = new IntersectionObserver(([e]) => { on = e.isIntersecting; if (!on) el.style.translate = ''; });
+  io.observe(el);
+  signal.addEventListener('abort', () => io.disconnect());
   addEventListener('pointermove', (e) => {
     if (!on || e.pointerType !== 'mouse') return;
     px = e.clientX; py = e.clientY;
@@ -187,13 +199,13 @@ function magnet(el) {
       const lean = (d, k) => Math.max(-10, Math.min(10, d * k)).toFixed(1) + 'px';
       el.style.translate = near ? `${lean(dx, 0.15)} ${lean(dy, 0.2)}` : '';
     });
-  }, { passive: true });
+  }, { passive: true, signal });
 }
 
-function init() {
+function init(signal) {
   if (finePointer && !reduce) {
     document.querySelectorAll('[data-roll]').forEach(roll);
-    document.querySelectorAll('[data-magnet]').forEach(magnet);
+    document.querySelectorAll('[data-magnet]').forEach((el) => magnet(el, signal));
   }
   const lit = document.querySelectorAll('[data-scroll-lit]');
   if (reduce) {
@@ -220,20 +232,25 @@ function init() {
   });
 
   // Late layout shifts (fonts, lazy images, live feeds filling in) move
-  // trigger positions; re-measure once everything has loaded.
-  addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+  // trigger positions; re-measure once everything has loaded (after a
+  // ClientRouter swap: once the page change has settled).
+  if (document.readyState === 'complete') (window.afterPageChange || Promise.resolve()).then(() => signal.aborted || ScrollTrigger.refresh());
+  else addEventListener('load', () => ScrollTrigger.refresh(), { once: true, signal });
 }
 
-// Run after every other page script has had its first go at the DOM (the
-// blog index, for one, swaps in its first page of cards), so reveals bind
-// to the elements that are actually on screen. Module scripts always run
-// before DOMContentLoaded; the timer is only a backstop.
-let started = false;
-function start() {
-  if (started) return;
-  started = true;
-  root.classList.add('motion-on');
-  init();
-}
-addEventListener('DOMContentLoaded', start, { once: true });
-setTimeout(start, 1500);
+// Every page, including each one the ClientRouter swaps in (Motion.astro's
+// onPage). Runs after the other page scripts have had their first go at the
+// DOM (the blog index, for one, swaps in its first page of cards), so
+// reveals bind to the elements that are actually on screen. Leaving the
+// page drops its scroll triggers, split text and tweens.
+window.onPage((signal) => {
+  setTimeout(() => {
+    if (signal.aborted) return;
+    root.classList.add('motion-on');
+    init(signal);
+  });
+  signal.addEventListener('abort', () => {
+    ScrollTrigger.getAll().forEach((t) => t.kill());
+    splits.splice(0).forEach((s) => s.revert()); // autoSplit keeps watching the old elements otherwise
+  });
+});

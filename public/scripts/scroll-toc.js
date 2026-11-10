@@ -1,7 +1,7 @@
 /* Floating contents strip (ScrollToc.astro). Builds one dash + one link per
    [data-toc] element, tracks the current one on scroll, opens the card on
    hover after a short dwell and closes it 200ms after the pointer leaves. */
-(() => {
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   const nav = document.getElementById('stoc');
   const targets = [...document.querySelectorAll('[data-toc]')];
   if (!nav || targets.length < 2) return;
@@ -46,10 +46,11 @@
     nav.classList.toggle('is-shown', show);
     if (!show) close();
   }
-  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true, signal });
+  signal.addEventListener('abort', close);
   update();
 
   nav.addEventListener('mouseenter', () => { clearTimeout(closeT); openT = setTimeout(() => nav.classList.add('is-open'), 60); });
   nav.addEventListener('mouseleave', () => { clearTimeout(openT); closeT = setTimeout(() => nav.classList.remove('is-open'), 200); });
   nav.addEventListener('keydown', (e) => { if (e.key === 'Escape') { close(); document.activeElement && document.activeElement.blur(); } });
-})();
+});

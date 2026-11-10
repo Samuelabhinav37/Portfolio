@@ -2,8 +2,8 @@
    on the project tiles), after isablued.com. Mouse only. It writes one
    translate per frame and never reads layout; scrolling hides it until
    the pointer moves again. */
-(function () {
-  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches || !document.querySelector('[data-tip]')) return;
   var tip = document.createElement('span');
   tip.className = 'cursor-tip';
   tip.setAttribute('aria-hidden', 'true');
@@ -20,7 +20,7 @@
     x = e.clientX; y = e.clientY;
     set(e.target.closest ? e.target.closest('[data-tip]') : null);
     if (on && !raf) raf = requestAnimationFrame(place);
-  }, { passive: true });
-  addEventListener('scroll', function () { set(null); }, { passive: true });
-  document.documentElement.addEventListener('pointerleave', function () { set(null); });
-})();
+  }, { passive: true, signal: signal });
+  addEventListener('scroll', function () { set(null); }, { passive: true, signal: signal });
+  document.documentElement.addEventListener('pointerleave', function () { set(null); }, { signal: signal });
+});

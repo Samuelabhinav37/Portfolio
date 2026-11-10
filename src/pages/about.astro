@@ -1,5 +1,6 @@
 ---
 import Motion from '../components/Motion.astro';
+import { ClientRouter } from 'astro:transitions';
 import SiteMenu from '../components/SiteMenu.astro';
 import SiteSky from '../components/SiteSky.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
@@ -56,6 +57,7 @@ window.SITE=window.SITE||{};
 <script is:inline src="/scripts/theme.js"></script>
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
+<ClientRouter fallback="swap" />
 <Motion />
 <style is:global>
 /* Layout after angelaricciardi.com/information: one big statement with the key
@@ -603,7 +605,9 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
    in production the game showed its menu and never ran. The frame only ever
    holds this page's own srcdoc, so same-origin grants nothing to anyone else.
    The game lives in data-srcdoc so it never boots on phones (where the
-   section is hidden) and only boots on desktop once it is near the screen. */
+   section is hidden) and only boots on desktop once it is near the screen.
+   Runs on each visit to this page (Motion.astro onPage). */
+onPage(function(signal){
 (function(){
   var ifr = document.getElementById('game-iframe');
   var play = document.querySelector('.game-play');
@@ -624,11 +628,12 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
     try { ifr.contentWindow.focus(); } catch(e){}
   });
   // clicking back out to the page brings the cover back, so the page scrolls again
-  addEventListener('focus', function(){ play.classList.remove('gone'); });
+  addEventListener('focus', function(){ play.classList.remove('gone'); }, { signal: signal });
 })();
 
 /* a cell too long for its column scrolls sideways in a loop, like the reference's client list */
 (function(){
+  if(!document.querySelector('main.ab')) return; // this setup runs on every page: About's only
   document.querySelectorAll('.work > a > span, .tk').forEach(function(el){
     if(el.scrollWidth <= el.clientWidth + 1) return;
     var h = el.innerHTML;
@@ -637,16 +642,13 @@ canvas#tc{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transitio
     el.firstChild.style.setProperty('--d', (w / 28).toFixed(1) + 's'); // about 28px a second
   });
 })();
+});
 </script>
 
-
-
-
-
-
-
-
 <ScrollToc />
+<!-- Kai isn't shown on this page, but stays alive across ClientRouter page changes (KaiSite) -->
+<div id="luna-wrap" class="kai-site" transition:persist="kai" aria-hidden="true"></div>
+<style is:global>#luna-wrap{ display:none; }</style>
 
 
 </body>

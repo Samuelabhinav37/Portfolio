@@ -45,11 +45,21 @@
   // ── PAGE AUTO-DETECT ─────────────────────────────────────────────
   function detectPage(){
     var path = (window.location.pathname || '').toLowerCase();
-    if (/about/.test(path))   return 'about';
-    if (/blog/.test(path))    return 'blog';
-    if (/contact/.test(path)) return 'contact';
-    return 'home';
+    if (path === '/' || path === '/index.html') return 'home';
+    if (path.indexOf('/about') === 0)   return 'about';
+    if (path === '/blog' || path === '/blog/') return 'blog';
+    if (path.indexOf('/contact') === 0) return 'contact';
+    return path; // any other page (the ClientRouter can bring one in): titled from its own <title>
   }
+  var OTHER = {};
+  function titleFor(p){ return PAGES[p] || OTHER[p]; }
+  // 'Samuel Abhinav — Moat' -> 'Moat'; 'Field Notes — Samuel Abhinav' -> 'Field Notes'
+  function shortTitle(t){
+    var parts = t.split(' — ').join('\u0000').split(' · ').join('\u0000').split(' | ').join('\u0000').split('\u0000')
+      .filter(function(s){ return s && s !== 'Samuel Abhinav'; });
+    return parts[0] || t;
+  }
+  OTHER[detectPage()] = shortTitle(document.title);
 
   // ── STATE MACHINE ────────────────────────────────────────────────
   var VALID_TRANSITIONS = {
@@ -170,7 +180,7 @@
       await wait(T.boot.preDelay, myGen);
       setCursor(true);
       await wait(T.boot.preHoldMs, myGen);
-      await typeForward(PAGES[currentPage], 0, myGen);
+      await typeForward(titleFor(currentPage), 0, myGen);
       await wait(T.type.settledHold, myGen);
       enterRest(myGen);
     } catch (e){
@@ -179,14 +189,14 @@
   }
 
   async function navigateFlow(page){
-    if (!PAGES[page]) return;
+    if (!titleFor(page)) return;
     if (page === currentPage && state === 'resting') return;
     cancel();
     var myGen = gen;
     var prevPage = currentPage;
     var prevText = realTitle.indexOf(CURSOR) === realTitle.length - CURSOR.length
       ? realTitle.slice(0, -CURSOR.length) : realTitle;
-    var newText = PAGES[page];
+    var newText = titleFor(page);
     currentPage = page;
     var fromHome = (prevPage === 'home');
     var toHome   = (page === 'home');
@@ -209,7 +219,7 @@
   function enterRest(myGen){
     if (myGen !== gen) return;
     transition('resting');
-    setReal(PAGES[currentPage]);
+    setReal(titleFor(currentPage));
     setCursor(true);
     if (restStartedAt === 0) restStartedAt = Date.now();
     startRestBlink();
@@ -245,7 +255,7 @@
     transition('glitching');
     stopRestBlink();
     setCursor(true);
-    var original = PAGES[currentPage];
+    var original = titleFor(currentPage);
     setReal(original);
 
     var lettersOnly = (original.match(/[a-zA-Z]/g) || []).length;
@@ -301,7 +311,7 @@
       awayTimer = setTimeout(function(){
         if (isVisible) return;
         if (state === 'typing' || state === 'deleting'){
-          pausedTypingTarget = PAGES[currentPage];
+          pausedTypingTarget = titleFor(currentPage);
           cancel();
         }
         setCursor(true);
@@ -342,12 +352,12 @@
   // ── INIT ─────────────────────────────────────────────────────────
   function start(){
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      realTitle = PAGES[currentPage]; cursorOn = false; render();
+      realTitle = titleFor(currentPage); cursorOn = false; render();
       state = 'resting'; restStartedAt = Date.now();
       return;
     }
     if (document.hidden){
-      realTitle = PAGES[currentPage]; cursorOn = false; render();
+      realTitle = titleFor(currentPage); cursorOn = false; render();
       isVisible = false;
       transition('deferred');
     } else {
@@ -368,6 +378,13 @@
       return { state: state, realTitle: realTitle, cursorOn: cursorOn, currentPage: currentPage, isVisible: isVisible, gen: gen };
     }
   };
+
+  // ClientRouter page change (right after the swap, before our timers can type over it): the router has just set the new page's <title>; retype ours to match
+  document.addEventListener('astro:after-swap', function(){
+    var p = detectPage();
+    if (!PAGES[p]) OTHER[p] = shortTitle(document.title);
+    if (p !== currentPage) navigateFlow(p);
+  });
 
   start();
 })();

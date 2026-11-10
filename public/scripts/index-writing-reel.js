@@ -2,7 +2,7 @@
    slowly. Drag or swipe sideways to move it; it eases back to speed after.
    Hover or keyboard focus pauses it, reduced-motion keeps it still, and it
    only animates while on screen. */
-(function(){
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   "use strict";
   var reel = document.querySelector('#writing .wr-reel');
   if(!reel) return;
@@ -54,14 +54,16 @@
   }
 
   measure();
-  new IntersectionObserver(function(es){ onScreen = es[0].isIntersecting; start(); }).observe(reel);
-  document.addEventListener('visibilitychange', start);
+  var io = new IntersectionObserver(function(es){ onScreen = es[0].isIntersecting; start(); });
+  io.observe(reel);
+  signal.addEventListener('abort', function(){ io.disconnect(); onScreen = false; cancelAnimationFrame(raf); raf = 0; });
+  document.addEventListener('visibilitychange', start, { signal: signal });
   var resizeQueued = false;
   addEventListener('resize', function(){
     if(resizeQueued) return;
     resizeQueued = true;
     requestAnimationFrame(function(){ resizeQueued = false; measure(); wrap(); apply(); });
-  });
+  }, { signal: signal });
 
   reel.addEventListener('pointerenter', function(e){ if(e.pointerType === 'mouse') target = 0; });
   reel.addEventListener('pointerleave', function(e){ if(e.pointerType === 'mouse') target = 1; });
@@ -91,15 +93,15 @@
       reel.classList.add('is-drag');
     }
     if(moved){ pos = drag.pos + dx; wrap(); apply(); }
-  });
+  }, { signal: signal });
   function endDrag(){
     if(!drag) return;
     drag = null;
     reel.classList.remove('is-drag');
     v = 0; // ease back up to speed rather than snapping
   }
-  addEventListener('pointerup', endDrag);
-  addEventListener('pointercancel', endDrag);
+  addEventListener('pointerup', endDrag, { signal: signal });
+  addEventListener('pointercancel', endDrag, { signal: signal });
   // Links and images would start a native drag and cancel ours
   reel.addEventListener('dragstart', function(e){ e.preventDefault(); });
   // A drag that ends over a card must not open it
@@ -114,4 +116,4 @@
     pos -= e.deltaX; wrap(); apply();
     v = 0;
   }, { passive: false });
-})();
+});

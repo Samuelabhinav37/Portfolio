@@ -18,6 +18,42 @@
     addEventListener('pagereveal', function(e){ e.viewTransition ? e.viewTransition.finished.finally(done) : done(); }, { once: true });
     setTimeout(done, 3000);
   });
+
+  /* Pages with Astro's ClientRouter stay one document: a link swaps in the
+     next page's content while the sky and the nav tools carry on
+     (transition:persist). Every script sets itself up through
+     onPage(fn): fn runs for this page and again after each swap, with a
+     signal that aborts when its page is swapped out (pass it to window and
+     document listeners, stop loops and timers on it). fn must check its own
+     elements exist: it runs on every page. This script itself runs once. */
+  var fns = [], life = new AbortController(), swapping = false;
+  function call(fn){ try { fn(life.signal); } catch (err) { setTimeout(function(){ throw err; }); } }
+  window.onPage = function(fn){
+    fns.push(fn);
+    if (swapping) return; // a script new to this visit, run by the router mid-swap: astro:page-load calls it
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ call(fn); }, { once: true });
+    else call(fn);
+  };
+  // what scripts set on <html> that must outlive a swap (the router copies the new page's attributes over)
+  var KEEP_ATTRS = ['data-theme', 'data-cursor', 'data-vt'], DROP_CLASSES = /^(vt-bg|leaving|vt-early|vt-in)$/;
+  document.addEventListener('astro:before-swap', function(e){
+    life.abort(); life = new AbortController(); swapping = true;
+    var to = e.newDocument.documentElement;
+    KEEP_ATTRS.forEach(function(a){ h.hasAttribute(a) ? to.setAttribute(a, h.getAttribute(a)) : to.removeAttribute(a); });
+    h.classList.forEach(function(c){ if (!DROP_CLASSES.test(c)) to.classList.add(c); });
+    if (e.viewTransition) {
+      to.classList.add('vt-in', 'vt-bg');
+      if (h.classList.contains('leaving')) to.classList.add('vt-early');
+      // and after the photos' fade-in (vt-media-in), which outlasts the transition itself
+      window.afterPageChange = e.viewTransition.finished.then(null, function(){}).then(function(){
+        return Promise.all(document.getAnimations().filter(function(a){ return a.animationName === 'vt-media-in'; })
+          .map(function(a){ return a.finished.then(null, function(){}); }));
+      });
+      e.viewTransition.finished.finally(function(){ h.classList.remove('vt-bg'); });
+    } else window.afterPageChange = Promise.resolve();
+  });
+  document.addEventListener('astro:page-load', function(){ if (!swapping) return; swapping = false; fns.forEach(call); });
+
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   h.classList.add('motion');
   // shortcut: trial picker for page-change styles (?vt=lift|beat, remembered); delete once one is chosen
@@ -52,7 +88,18 @@
     var a = e.target.closest && e.target.closest('a[href]');
     if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download') || a.origin !== location.origin) return;
     if (a.pathname === location.pathname && a.search === location.search) return; // same page, or a #section on it
-    var keep = [].filter.call(document.querySelectorAll('#site-identity, #site-nav, #sky, #px-clouds, #word-vine, .sky-life, .page-grain, [style*="view-transition-name"]'),
+    leave(a);
+  });
+  // with the ClientRouter the router takes the click (and prevents it): leave as it starts loading the next page
+  document.addEventListener('astro:before-preparation', function(e){
+    var a = e.sourceElement && e.sourceElement.closest && e.sourceElement.closest('a[href]');
+    if (h.dataset.vt === 'beat' && e.to.pathname !== e.from.pathname) leave(a || document.createElement('a'));
+  });
+  // the old page is captured once the next one is fetched: clear its background first (see 'vt-bg' above)
+  document.addEventListener('astro:after-preparation', function(){ h.classList.add('vt-bg'); });
+  document.addEventListener('astro:page-load', function(){ stay(); if (!document.startViewTransition) h.classList.remove('vt-bg'); });
+  function leave(a){
+    var keep = [].filter.call(document.querySelectorAll('#site-identity, #site-nav, #sky-stage, #sky, #px-clouds, #word-vine, .sky-life, .page-grain, [style*="view-transition-name"]'),
       function(el){ return !el.classList.contains('pw-img') || a.contains(el); }); // Home: only the clicked project's picture travels
     (function walk(list){
       [].forEach.call(list, function(el){
@@ -62,7 +109,7 @@
     })(document.body.children);
     h.classList.add('leaving');
     clearTimeout(undo); undo = setTimeout(stay, 4000); // the navigation never happened
-  });
+  }
   addEventListener('pagehide', function(){ if (h.classList.contains('leaving')) try { sessionStorage.setItem('vt-left', Date.now()); } catch (e) {} });
   // the old page already left on the click: the new one needn't wait as long
   addEventListener('pagereveal', function(e){
@@ -119,6 +166,15 @@
      the old ones hold still on screen until then instead of fading out */
   ::view-transition-old(sky-life){ animation:none; }
   ::view-transition-new(sky-life){ animation:none; opacity:0; }
+  /* ClientRouter page change (Astro sets data-astro-transition): the sky
+     layers are the same live elements on both sides (transition:persist), so
+     show them live and drop the frozen copy of the old page's */
+  :root[data-astro-transition]::view-transition-old(sky), :root[data-astro-transition]::view-transition-old(sky-life),
+  :root[data-astro-transition]::view-transition-old(sky-clouds), :root[data-astro-transition]::view-transition-old(sky-vine){ display:none; }
+  :root[data-astro-transition]::view-transition-new(sky), :root[data-astro-transition]::view-transition-new(sky-life),
+  :root[data-astro-transition]::view-transition-new(sky-clouds), :root[data-astro-transition]::view-transition-new(sky-vine){ animation:none; opacity:1; }
+  :root[data-astro-transition]::view-transition-group(sky), :root[data-astro-transition]::view-transition-group(sky-life),
+  :root[data-astro-transition]::view-transition-group(sky-clouds), :root[data-astro-transition]::view-transition-group(sky-vine){ animation:none; }
   /* project frames: the one that has a partner on the next page morphs;
      the rest (:only-child below) leave and arrive with the content */
   .pw-img, .wk-img{ view-transition-class:work; }

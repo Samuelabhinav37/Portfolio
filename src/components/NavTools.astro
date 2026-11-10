@@ -21,7 +21,8 @@ const cursors = [
   ['pixel', 'Pixel arrow'], ['key', 'Key'], ['lens', 'Magnifying glass'],
 ];
 ---
-<div class="nt" id="nav-tools">
+<!-- kept alive across ClientRouter page changes, so the podcast keeps playing and the ticker keeps its place -->
+<div class="nt" id="nav-tools" transition:persist="nav-tools">
   <div class="nt-panel" id="nt-panel">
     <div class="nt-pane nt-news" data-pane="news">
       <div class="nt-track">

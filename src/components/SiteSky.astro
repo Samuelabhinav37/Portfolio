@@ -13,9 +13,14 @@
 import SkyBackground from './SkyBackground.astro';
 import SkyLife from './SkyLife.astro';
 ---
+<!-- one container, kept alive across ClientRouter page changes (transition:persist):
+     the sky, its clouds, the jellyfish and the vine (their scripts add their
+     layers beside #sky) carry on instead of starting over -->
+<div id="sky-stage" transition:persist="sky-stage">
 <SkyBackground tone="space" />
 <!-- the sky cast: jellyfish, between the sky and the page -->
 <SkyLife cast />
+</div>
 <!-- pixel-art clouds over the day sky only; built on first switch to light -->
 <script is:inline defer src="/scripts/pixel-clouds.js?v=3"></script>
 <!-- halo for the jellyfish in light mode: the clip plus two blurred copies of itself -->
@@ -36,4 +41,6 @@ html, body{ transition:background-color .4s ease; }
 /* pixel clouds (pixel-clouds.js): over the sky, under the jellyfish and the page */
 #px-clouds{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 #px-clouds .pxc{ position:absolute; left:0; top:0; image-rendering:pixelated; will-change:transform; }
+/* the ASCII vine (word-vine.js) is the homepage's; the sky carries its canvas to other pages, hidden */
+#word-vine{ position:fixed; left:0; top:0; z-index:1; pointer-events:none; display:none; }
 </style>

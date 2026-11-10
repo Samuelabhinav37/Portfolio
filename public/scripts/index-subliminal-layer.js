@@ -1,7 +1,7 @@
 /* Screen-glitch layer used on every main page (src/components/Glitches.astro).
    Tuned to be felt rather than watched: a hit every 6-12s, a second strike
    about 1 time in 7, and the whole-screen flash about 1 time in 12. */
-(function(){
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var layer = document.getElementById('subliminal-layer');
   var flash = document.getElementById('subliminal-flash');
@@ -78,7 +78,7 @@
   }
 
   var visible = !document.hidden;
-  document.addEventListener('visibilitychange', function(){ visible = !document.hidden; });
+  document.addEventListener('visibilitychange', function(){ visible = !document.hidden; }, { signal: signal });
 
   function hit(){
     var el = MAKERS[(Math.random()*MAKERS.length)|0]();
@@ -95,9 +95,12 @@
     }
     if (Math.random() < 0.15) setTimeout(hit, rnd(40,130));
   }
+  var next = 0;
   function loop(){
+    if (signal.aborted) return;
     spawn();
-    setTimeout(loop, 6000 + Math.random() * 6000);
+    next = setTimeout(loop, 6000 + Math.random() * 6000);
   }
-  setTimeout(loop, 2500);
-})();
+  next = setTimeout(loop, 2500);
+  signal.addEventListener('abort', function(){ clearTimeout(next); });
+});
