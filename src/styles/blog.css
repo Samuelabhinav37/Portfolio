@@ -739,3 +739,113 @@ a.social-icon { text-decoration: none; color: inherit; }
 :root[data-theme="light"] .dtable,
 :root[data-theme="light"] .article-col > table { background: #fff; }
 :root[data-theme="light"] :is(.code-inline, .article-col code:not(pre code)) { background: rgba(55,53,47,0.08); color: #b4332b; }
+
+/* ══════════ BOOK PAGES ══════════
+   Posts read like an old novel's page (see docs/2026-11-10-book-posts-research.md):
+   aged paper instead of the sky, off-white by day and black by night, one
+   ink; body justified and hyphenated in the Garamond, old-style figures;
+   section headings centred like "Chapter 1 / Mr. Sherlock Holmes"; the
+   first paragraph opens with a drop capital and a small-caps first line.
+   The layout itself is unchanged. */
+:root {
+  --paper: #0d0c0b;
+  --paper-ink: 236,231,221; /* the night ink, as rgb for the rgba() below */
+  --ink-strong: rgba(var(--paper-ink),0.95);
+  --ink: rgba(var(--paper-ink),0.84);
+  --ink-dim: rgba(var(--paper-ink),0.62);
+  --ink-faint: rgba(var(--paper-ink),0.46);
+  --rule: rgba(var(--paper-ink),0.14);
+  --rule-strong: rgba(var(--paper-ink),0.28);
+}
+:root[data-theme="light"] {
+  --paper: #f3eee3;
+  --paper-ink: 38,32,26;
+  --ink-strong: rgba(var(--paper-ink),0.96);
+  --ink: rgba(var(--paper-ink),0.88);
+  --ink-dim: rgba(var(--paper-ink),0.66);
+  --ink-faint: rgba(var(--paper-ink),0.5);
+}
+/* the paper covers the sky (kept alive underneath for the next page) */
+html, body, .post-bar { background-color: var(--paper); }
+#sky-stage, #px-clouds, #sky::after, .page-grain { visibility: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  /* the Contact postcard's aged-paper tile: stains, foxing, fibres, grain */
+  background: url('/images/contact-paper.svg') 0 0 / 720px 960px;
+  /* at night the same tile, turned to pale specks on the black */
+  filter: invert(1) grayscale(1); opacity: 0.1;
+}
+:root[data-theme="light"] body::before {
+  filter: grayscale(0.6); opacity: 0.42;
+  /* edges a shade darker, as a page goes with age */
+  box-shadow: inset 0 0 160px rgba(110,84,50,0.18);
+}
+
+/* headline and labels in the book face */
+.post-title { font-family: var(--font-body); font-weight: 600; font-size: 46px; line-height: 52px; letter-spacing: 0; }
+.post-cat, .post-series, .post-date { font-family: var(--font-body); font-variant: small-caps; text-transform: lowercase; letter-spacing: 1.4px; font-size: 16px; font-weight: 500; }
+.post-date { font-variant: normal; text-transform: none; letter-spacing: 0; font-style: italic; }
+.post-standfirst { font-style: italic; text-align: center; font-size: 22px; line-height: 33px; }
+
+/* the body: justified and hyphenated like a printed page */
+.article-col { font-variant-numeric: oldstyle-nums proportional-nums; font-kerning: normal; font-variant-ligatures: common-ligatures; counter-reset: chapter; }
+.body-text, .lead-list li, .article-col ol li {
+  text-align: justify; -webkit-hyphens: auto; hyphens: auto;
+  hyphenate-limit-chars: 6 3 2; text-wrap: pretty;
+}
+.body-text { line-height: 32px; margin-bottom: 20px; }
+/* chapter opening: a three-line drop capital, then the line in small caps */
+.body-text.opening::first-line { font-variant: small-caps; letter-spacing: 0.6px; }
+.dropcap {
+  float: left; font: 400 82px/66px var(--font-body); margin: 4px 10px 0 -2px; color: var(--ink-strong);
+}
+/* sections as chapters: "Chapter 1" over the heading, centred, in the Garamond */
+.heading-2 {
+  font-family: var(--font-body); font-weight: 600; font-size: 26px; line-height: 34px; letter-spacing: 0;
+  text-align: center; margin: 72px 0 24px;
+}
+.heading-2::before {
+  counter-increment: chapter; content: 'Chapter ' counter(chapter); display: block;
+  font-weight: 600; font-size: 22px; line-height: 30px;
+}
+:lang(es) .heading-2::before { content: 'Capítulo ' counter(chapter); }
+.heading-2 .hlink { position: absolute; margin-left: 10px; }
+.heading-3 {
+  font-family: var(--font-body); font-size: 19px; font-weight: 500; font-style: italic;
+  text-transform: none; letter-spacing: 0; text-align: center;
+}
+.pull-quote::before { color: var(--ink-faint); }
+.post-next-h, .faq-heading { font-family: var(--font-body); font-weight: 600; }
+/* tables sit on the page like a printed table, not a card */
+:root[data-theme="light"] .dtable, :root[data-theme="light"] .article-col > table { background: transparent; }
+:root[data-theme="light"] :is(.code-inline, .article-col code:not(pre code)) { color: inherit; }
+@media (--bp-760) {
+  .post-title { font-size: 36px; line-height: 42px; }
+  .heading-2 { font-size: 23px; line-height: 30px; }
+  .dropcap { font-size: 68px; line-height: 56px; }
+}
+/* diagrams printed on the page in the same ink, like a book's figures */
+.plate { background: transparent; }
+:root .plate, :root[data-theme="light"] .plate {
+  --ink-strong: rgba(var(--paper-ink),0.95); --ink: rgba(var(--paper-ink),0.84);
+  --ink-dim: rgba(var(--paper-ink),0.62); --ink-faint: rgba(var(--paper-ink),0.46);
+  --rule: rgba(var(--paper-ink),0.14); --rule-strong: rgba(var(--paper-ink),0.28);
+}
+.dg-box { fill: var(--paper); stroke: var(--ink-dim); }
+.dg-box.is-muted { fill: transparent; }
+.dg-t, .dg-t.is-muted { fill: var(--ink-strong); font-family: var(--font-body); font-size: 17px; }
+.dg-s, .dg-lbl, .dg-glbl { fill: var(--ink-dim); }
+.dg-s { font-family: var(--font-body); font-size: 14px; font-style: italic; }
+.dg-edge path { stroke: var(--ink-dim); }
+.dg-step circle { fill: var(--ink-strong); }
+.dg-step text { fill: var(--paper); }
+.dg-group { fill: transparent; stroke: var(--rule-strong); }
+.dg-life { stroke: var(--rule-strong); }
+.dg-note { fill: transparent; stroke: var(--rule-strong); }
+.dg-note-t { fill: var(--ink); }
+/* narrow columns: justified lines open wide gaps, so phones set ragged right */
+@media (--bp-600) {
+  .body-text, .lead-list li, .article-col ol li { text-align: left; }
+  .body-text.opening::first-line { letter-spacing: 0; }
+}
+:root[data-theme="light"] { --flaw: #9a5a16; } /* amber deep enough to read on paper */
