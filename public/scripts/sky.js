@@ -37,20 +37,6 @@
     return document.documentElement.getAttribute('data-theme') === 'light' ? 'day' : (tone || 'default');
   }
   document.addEventListener('theme:change', function(){ send({ type:'tone', name:currentTone() }); });
-  /* the snapshot hand-over (see SkyBackground.astro): keep the latest
-     frame for the next page, and fade out the one this page started with
-     once our own sky has drawn */
-  function keepSnap(blob){
-    var r = new FileReader();
-    r.onload = function(){ try{ sessionStorage.setItem('sky-snap', JSON.stringify({ at:Date.now(), tone:currentTone(), url:r.result })); }catch(e){} };
-    r.readAsDataURL(blob);
-  }
-  function drawn(){
-    var s = host.querySelector('.sky-snap');
-    if(!s) return;
-    s.style.opacity = '0';
-    setTimeout(function(){ s.remove(); }, 600);
-  }
   function greet(){ send(size()); running(); send({ type:'tone', name:currentTone() }); }  // the engine may be ready after theme:change fired
 
   // one sky per visit: a random start and the time it began, kept for this
@@ -66,14 +52,14 @@
   function runInline(){
     var c = canvases();
     function boot(){
-      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier, tone:tone, clock:clock, drawn:drawn, snap:keepSnap });
+      var engine = window.SiteSky.create(c.sky, c.fx, { tier:tier, tone:tone, clock:clock });
       if(!engine.hasGL) host.classList.add('no-gl');
       send = engine.handle;
       greet();
     }
     if(window.SiteSky) return boot();
     var s = document.createElement('script');
-    s.src = '/scripts/sky-engine.js?v=11';
+    s.src = '/scripts/sky-engine.js?v=12';
     s.addEventListener('load', boot);
     document.head.appendChild(s);
   }
@@ -82,15 +68,13 @@
     var c = canvases(), worker;
     try{
       var offSky = c.sky.transferControlToOffscreen(), offFx = c.fx.transferControlToOffscreen();
-      worker = new Worker('/scripts/sky-worker.js?v=11');
+      worker = new Worker('/scripts/sky-worker.js?v=12');
       worker.postMessage({ type:'init', sky:offSky, fx:offFx, tier:tier, tone:tone, clock:clock }, [offSky, offFx]);
     }catch(e){ return runInline(); }
     var settled = false;
     function fail(){ if(settled) return; settled = true; try{ worker.terminate(); }catch(e){} runInline(); }
     worker.addEventListener('error', fail);
     worker.addEventListener('message', function(e){
-      if(e.data.type === 'drawn') return drawn();
-      if(e.data.type === 'snap') return keepSnap(e.data.blob);
       if(e.data.type !== 'ready' || settled) return;
       if(!e.data.gl) return fail();
       settled = true;

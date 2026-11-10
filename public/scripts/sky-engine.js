@@ -163,23 +163,6 @@
     var clock = opts && opts.clock;
     function clockT(){ return clock.seed + (Date.now() - clock.at) / 1000 * .55; }
     var sceneT = clock ? clockT() : 40 + Math.random()*400;
-    /* hand-over to the next page: opts.drawn() after the first frame, and
-       opts.snap(blob) with a JPEG of the sky every 1.5s, which the next page
-       shows until its own sky is up (sky.js, SkyBackground.astro). Full
-       canvas size (the sky renders at reduced resolution and is stretched),
-       so the stand-in is the same frame, stars included, not a blur of it. */
-    var snapCv = null, lastSnap = 0, firstDrawn = false;
-    function afterDraw(now){
-      if(!firstDrawn){ firstDrawn = true; if(opts && opts.drawn) opts.drawn(); }
-      if(!(opts && opts.snap) || typeof OffscreenCanvas === 'undefined' || now - lastSnap < 1500) return;
-      lastSnap = now;
-      try{
-        var sw = skyCanvas.width, sh = skyCanvas.height;
-        if(!snapCv || snapCv.width !== sw || snapCv.height !== sh) snapCv = new OffscreenCanvas(sw, sh);
-        snapCv.getContext('2d').drawImage(skyCanvas, 0, 0);   /* same task as the draw, so the GL buffer is still there */
-        snapCv.convertToBlob({ type:'image/jpeg', quality:.85 }).then(opts.snap, function(){});
-      }catch(e){ opts.snap = null; }
-    }
     var raf = root.requestAnimationFrame ? root.requestAnimationFrame.bind(root) : function(f){ return setTimeout(function(){ f(Date.now()); }, 1000/30); };
 
     /* ── GL ── */
@@ -272,11 +255,11 @@
       if(tier.fps){ schedule(); if(last && now - last < frameMin - 1) return; }
       var dt = last ? Math.min((now - last)/1000, .1) : 0; last = now;
       sceneT = clock ? clockT() : sceneT + dt * .55;   /* the site's background pace */
-      drawSky(); afterDraw(now);
+      drawSky();
       if(tier.fps) stepMeteors(dt);
     }
     function schedule(){ if(!scheduled){ scheduled = true; raf(frame); } }
-    function renderOnce(){ drawSky(); afterDraw(0); if(ctx){ ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); } }
+    function renderOnce(){ drawSky(); if(ctx){ ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); } }
 
     function handle(m){
       if(m.type === 'size'){

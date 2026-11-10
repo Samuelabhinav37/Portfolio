@@ -7,6 +7,10 @@ export default defineConfig({
   // Canonical URLs, og:url and share links all derive from this one value.
   site: 'https://samuelabhinav.com',
   integrations: [mdx()],
+  // ClientRouter page changes: fetch a page while its link is hovered (about 200ms
+  // head start). The router's fetch reuses it; Chrome's Speculation-Rules prefetch
+  // could not be, since it only serves full page loads.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   markdown: {
     // css-variables theme lets blog.css own the code palette
     // (green strings, grey keywords) instead of a stock Shiki theme.

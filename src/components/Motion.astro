@@ -2,7 +2,7 @@
 /**
  * Shared motion layer for the main pages: Lenis smooth scroll, GSAP scroll
  * reveals and the scroll-lit statement (src/scripts/motion.js), the motion
- * tokens CSS uses, and cross-page view transitions.
+ * tokens CSS uses, and the page-to-page view transition (with Astro's ClientRouter).
  *
  * The inline script hides reveal targets only once we know JS is running;
  * if motion.js never arrives, the 3s fallback shows everything anyway.
@@ -11,13 +11,9 @@
 <script is:inline>
 (function(){
   var h = document.documentElement;
-  // Resolves once an arriving page transition has finished (at once without one).
+  // Resolves once an arriving page transition has finished (at once on a full load).
   // Heavy start-up work waits on it: run during the transition it drops frames.
-  window.afterPageChange = new Promise(function(done){
-    if (!('onpagereveal' in window)) return done();
-    addEventListener('pagereveal', function(e){ e.viewTransition ? e.viewTransition.finished.finally(done) : done(); }, { once: true });
-    setTimeout(done, 3000);
-  });
+  window.afterPageChange = Promise.resolve();
 
   /* Pages with Astro's ClientRouter stay one document: a link swaps in the
      next page's content while the sky and the nav tools carry on
@@ -35,7 +31,7 @@
     else call(fn);
   };
   // what scripts set on <html> that must outlive a swap (the router copies the new page's attributes over)
-  var KEEP_ATTRS = ['data-theme', 'data-cursor', 'data-vt'], DROP_CLASSES = /^(vt-bg|leaving|vt-early|vt-in)$/;
+  var KEEP_ATTRS = ['data-theme', 'data-cursor'], DROP_CLASSES = /^(vt-bg|leaving|vt-early|vt-in)$/;
   document.addEventListener('astro:before-swap', function(e){
     life.abort(); life = new AbortController(); swapping = true;
     var to = e.newDocument.documentElement;
@@ -64,46 +60,25 @@
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   h.classList.add('motion');
-  // shortcut: trial picker for page-change styles (?vt=lift|beat, remembered); delete once one is chosen
-  try {
-    var vt = new URLSearchParams(location.search).get('vt');
-    if (vt) localStorage.setItem('vt-style', vt); else vt = localStorage.getItem('vt-style');
-    if (vt) h.dataset.vt = vt;
-  } catch (e) {}
   setTimeout(function(){ if (!h.classList.contains('motion-on')) h.classList.remove('motion'); }, 3000);
-  // Arrived through a page transition: what's on screen comes in with the
-  // transition itself, so motion.js skips its reveal (one entrance, not two).
-  addEventListener('pagereveal', function(e){
-    if (!e.viewTransition) return;
-    h.classList.add('vt-in', 'vt-bg');
-    e.viewTransition.finished.finally(function(){ h.classList.remove('vt-bg'); });
-  });
-  // The page snapshot carries the page's background colour, and it sits over
-  // the sky's own layer during a transition: clear it on both pages (just
-  // before the old one is captured, and until the new one has settled) so the
-  // sky shows through instead of a flat fill.
-  addEventListener('pageswap', function(e){ if (e.viewTransition) h.classList.add('vt-bg'); });
+  // a page whose content left (below) can come back from the back/forward cache: the router
+  // hands a page without the ClientRouter (the 404, the tools) to a full load after leave()
   addEventListener('pageshow', function(e){ if (e.persisted) { h.classList.remove('vt-bg'); stay(); } });
 
-  // beat: the page starts leaving on the click, while the next one loads (as
+  // The page starts leaving as the router starts loading the next one (as
   // yuriroga.com and junothebakery.com do), instead of sitting still until it
   // arrives. Only the content goes: the sky, the nav and the project picture
   // that travels into the next page are kept.
   var undo = 0;
   function stay(){ clearTimeout(undo); h.classList.remove('leaving'); document.querySelectorAll('[data-leave]').forEach(function(el){ el.removeAttribute('data-leave'); }); }
-  addEventListener('click', function(e){
-    if (h.dataset.vt !== 'beat' || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    var a = e.target.closest && e.target.closest('a[href]');
-    if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download') || a.origin !== location.origin) return;
-    if (a.pathname === location.pathname && a.search === location.search) return; // same page, or a #section on it
-    leave(a);
-  });
-  // with the ClientRouter the router takes the click (and prevents it): leave as it starts loading the next page
   document.addEventListener('astro:before-preparation', function(e){
     var a = e.sourceElement && e.sourceElement.closest && e.sourceElement.closest('a[href]');
-    if (h.dataset.vt === 'beat' && e.to.pathname !== e.from.pathname) leave(a || document.createElement('a'));
+    if (e.to.pathname !== e.from.pathname) leave(a || document.createElement('a'));
   });
-  // the old page is captured once the next one is fetched: clear its background first (see 'vt-bg' above)
+  // The page snapshot carries the page's background colour, and it sits over
+  // the sky during a transition: clear it (once the next page is fetched, just
+  // before the old one is captured, until the new one settles) so the sky
+  // shows through instead of a flat fill.
   document.addEventListener('astro:after-preparation', function(){ h.classList.add('vt-bg'); });
   document.addEventListener('astro:page-load', function(){ stay(); if (!document.startViewTransition) h.classList.remove('vt-bg'); });
   function leave(a){
@@ -118,11 +93,6 @@
     h.classList.add('leaving');
     clearTimeout(undo); undo = setTimeout(stay, 4000); // the navigation never happened
   }
-  addEventListener('pagehide', function(){ if (h.classList.contains('leaving')) try { sessionStorage.setItem('vt-left', Date.now()); } catch (e) {} });
-  // the old page already left on the click: the new one needn't wait as long
-  addEventListener('pagereveal', function(e){
-    try { if (e.viewTransition && Date.now() - sessionStorage.getItem('vt-left') < 5000) h.classList.add('vt-early'); sessionStorage.removeItem('vt-left'); } catch (x) {}
-  });
 })();
 </script>
 <style is:global>
@@ -150,14 +120,13 @@
     transition:transform .5s var(--ease-out); transition-delay:calc(var(--i) * 14ms); }
   [data-roll]:hover .roll > span, [data-roll]:focus-visible .roll > span{ transform:translateY(-1.3em); }
 
-  /* Page to page: the frame stays put and only the content moves (after
-     junothebakery.com / hardholy.com). The nav is pulled out of the page
-     snapshot so it never moves; each sky layer crossfades in place, since
-     pages have different skies. The content lifts away fast and the new
-     page settles up into place. Named project frames (work-<slug>) grow
-     into their case-study hero. Chrome, Edge and Safari 18.2+; other
-     browsers just navigate normally. */
-  @view-transition{ navigation:auto; }
+  /* Page to page (ClientRouter, same document): the frame stays put and only
+     the content moves (after junothebakery.com / hardholy.com). The nav is
+     pulled out of the page snapshot so it never moves. The sky layers are the
+     same live elements on both sides (transition:persist), so they show live
+     and the frozen copy of the old page's is dropped. Named project frames
+     (work-<slug>) grow into their case-study hero. Chrome, Edge and Safari
+     18+; elsewhere the router swaps the page without an animation. */
   #site-identity{ view-transition-name:site-identity; }
   #site-nav{ view-transition-name:site-nav; }
   #sky{ view-transition-name:sky; }
@@ -166,48 +135,35 @@
   #word-vine{ view-transition-name:sky-vine; }
   /* named layers paint above the page by default; the (opaque) sky belongs under it */
   ::view-transition-group(sky), ::view-transition-group(sky-life),
-  ::view-transition-group(sky-clouds), ::view-transition-group(sky-vine){ z-index:-1; }
+  ::view-transition-group(sky-clouds), ::view-transition-group(sky-vine){ z-index:-1; animation:none; }
   /* the jellyfish clips have black grounds that the layer's screen blend
      drops (SkyLife.astro); a snapshot loses that, so blend the group itself */
   ::view-transition-group(sky-life){ mix-blend-mode:screen; }
-  /* the new page's jellyfish start after the transition (sky-cast-life.js), so
-     the old ones hold still on screen until then instead of fading out */
-  ::view-transition-old(sky-life){ animation:none; }
-  ::view-transition-new(sky-life){ animation:none; opacity:0; }
-  /* ClientRouter page change (Astro sets data-astro-transition): the sky
-     layers are the same live elements on both sides (transition:persist), so
-     show them live and drop the frozen copy of the old page's */
-  :root[data-astro-transition]::view-transition-old(sky), :root[data-astro-transition]::view-transition-old(sky-life),
-  :root[data-astro-transition]::view-transition-old(sky-clouds), :root[data-astro-transition]::view-transition-old(sky-vine){ display:none; }
-  :root[data-astro-transition]::view-transition-new(sky), :root[data-astro-transition]::view-transition-new(sky-life),
-  :root[data-astro-transition]::view-transition-new(sky-clouds), :root[data-astro-transition]::view-transition-new(sky-vine){ animation:none; opacity:1; }
-  :root[data-astro-transition]::view-transition-group(sky), :root[data-astro-transition]::view-transition-group(sky-life),
-  :root[data-astro-transition]::view-transition-group(sky-clouds), :root[data-astro-transition]::view-transition-group(sky-vine){ animation:none; }
+  ::view-transition-old(sky), ::view-transition-old(sky-life),
+  ::view-transition-old(sky-clouds), ::view-transition-old(sky-vine){ display:none; }
+  ::view-transition-new(sky), ::view-transition-new(sky-life),
+  ::view-transition-new(sky-clouds), ::view-transition-new(sky-vine){ animation:none; opacity:1; }
   /* project frames: the one that has a partner on the next page morphs;
      the rest (:only-child below) leave and arrive with the content */
   .pw-img, .wk-img{ view-transition-class:work; }
+  /* The beat (measured on yuriroga.com, aspaceabout.com, junothebakery.com):
+     the old page leaves fast (160ms, starting as the next one loads), the
+     sky holds alone for a beat, the text rises in (320ms from 30px), and
+     pictures fade in last. */
   @media (prefers-reduced-motion: no-preference){
     ::view-transition-group(*){ animation-duration:var(--dur-travel); animation-timing-function:var(--ease-inout); }
     ::view-transition-group(site-identity), ::view-transition-group(site-nav){ animation:none; }
     ::view-transition-old(site-identity), ::view-transition-old(site-nav){ animation:none; display:none; }
     ::view-transition-new(site-identity), ::view-transition-new(site-nav){ animation:none; }
-    ::view-transition-old(root), ::view-transition-old(*.work):only-child{ animation:vt-out var(--dur-travel-out) var(--ease-in) both; }
-    ::view-transition-new(root), ::view-transition-new(*.work):only-child{ animation:vt-in var(--dur-travel) var(--ease-out) 60ms both; }
-  }
-  /* Trial style (data-vt from the ?vt= picker above); 'lift' or none = the rule above.
-     beat (measured on yuriroga.com, aspaceabout.com, junothebakery.com): the old
-     page leaves fast (160ms), the sky holds alone for a beat, the text rises in
-     (320ms from 30px), and pictures fade in last. */
-  @media (prefers-reduced-motion: no-preference){
-    :root[data-vt=beat]::view-transition-old(root), :root[data-vt=beat]::view-transition-old(*.work):only-child{ animation:vt-beat-out 160ms cubic-bezier(.4,0,1,1) both; }
-    :root[data-vt=beat]::view-transition-new(root), :root[data-vt=beat]::view-transition-new(*.work):only-child{ animation:vt-beat-in 320ms cubic-bezier(0,0,.2,1) 360ms both; }
+    ::view-transition-old(root), ::view-transition-old(*.work):only-child{ animation:vt-beat-out 160ms cubic-bezier(.4,0,1,1) both; }
+    ::view-transition-new(root), ::view-transition-new(*.work):only-child{ animation:vt-beat-in 320ms cubic-bezier(0,0,.2,1) 360ms both; }
     /* pictures that aren't travelling (named frames) fade in on their own, after the text */
-    :root[data-vt=beat].vt-in main img:not([style*="view-transition-name"] img){ animation:vt-media-in 450ms cubic-bezier(0,0,.2,1) 560ms both; }
-    /* the old page started leaving on the click (Motion's click handler) */
-    :root[data-vt=beat] [data-leave]{ transition:opacity 160ms cubic-bezier(.4,0,1,1), translate 160ms cubic-bezier(.4,0,1,1) !important; }
-    :root[data-vt=beat].leaving [data-leave]{ opacity:0 !important; translate:0 12px; }
-    :root[data-vt=beat].vt-early::view-transition-new(root), :root[data-vt=beat].vt-early::view-transition-new(*.work):only-child{ animation-delay:160ms; }
-    :root[data-vt=beat].vt-early.vt-in main img:not([style*="view-transition-name"] img){ animation-delay:360ms; }
+    .vt-in main img:not([style*="view-transition-name"] img){ animation:vt-media-in 450ms cubic-bezier(0,0,.2,1) 560ms both; }
+    /* the old page started leaving as the next one loaded (leave() above) */
+    [data-leave]{ transition:opacity 160ms cubic-bezier(.4,0,1,1), translate 160ms cubic-bezier(.4,0,1,1) !important; }
+    .leaving [data-leave]{ opacity:0 !important; translate:0 12px; }
+    .vt-early::view-transition-new(root), .vt-early::view-transition-new(*.work):only-child{ animation-delay:160ms; }
+    .vt-early.vt-in main img:not([style*="view-transition-name"] img){ animation-delay:360ms; }
   }
   @keyframes vt-beat-out{ to{ opacity:0; transform:translateY(12px); } }
   @keyframes vt-beat-in{ from{ opacity:0; transform:translateY(30px); } }
@@ -215,8 +171,6 @@
   @media (prefers-reduced-motion: reduce){
     ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){ animation:none !important; }
   }
-  @keyframes vt-out{ to{ opacity:0; transform:translateY(-14px); } }
-  @keyframes vt-in{ from{ opacity:0; transform:translateY(18px); } }
 </style>
 <script>
   import '../scripts/motion.js';

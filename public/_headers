@@ -20,14 +20,6 @@
   # to the canonical origin, which is a no-op for same-origin requests (they
   # never needed a CORS header) and closes the wildcard off for everyone else.
   Access-Control-Allow-Origin: https://samuelabhinav.com
-  # Instant page changes: Chrome fetches a page's HTML while you hover its link
-  # (about 200ms). Prefetch only, not prerender: a prerendered page would run
-  # its scripts early and miss the sky handover (sky-cast-life.js), and count
-  # visits nobody made. Served as a header so CSP needs no inline script.
-  Speculation-Rules: "/speculationrules.json"
-
-/speculationrules.json
-  Content-Type: application/speculationrules+json
 
 # Astro fingerprints every filename in here with a content hash, so the URL
 # itself changes whenever the content does — safe to cache for a year as
