@@ -102,6 +102,34 @@
     }
     return v;
   }
+  // Line art, the way text artists and edge-aware renderers (Acerola, p2ascii) draw outlines: a
+  // cell on the plant's outer edge (or a bare stem) gets a character that runs the way the edge
+  // runs; everything inside stays digits, so the outline is clean and the body is quiet. The
+  // direction comes from the structure tensor of the ink's gradients inside the cell; coherence
+  // says whether there is one clear direction (a junction or a blob has none and keeps a digit).
+  // After Rowan Crawford's line-art rules, near-vertical snaps to | and the shallow diagonals are
+  // narrow, since slight angles break into dotted runs.
+  function lineGlyph(px, rowW, rowH, x0, y0, w, h){
+    var X0 = Math.floor(x0), Y0 = Math.floor(y0), X1 = Math.min(rowW, Math.floor(x0 + w)), Y1 = Math.min(rowH, Math.floor(y0 + h));
+    // the silhouette (anything drawn), not the inner veins: only the plant's outer edge and its bare stems become lines
+    var I = function(x, y){ return x < 0 || y < 0 || x >= rowW || y >= rowH ? 0 : px[(y * rowW + x) * 4] ? 1 : 0; };
+    var n = 0, ink = 0, cy = 0, jxx = 0, jyy = 0, jxy = 0;
+    for (var y = Y0; y < Y1; y++) for (var x = X0; x < X1; x++){
+      n++; if (I(x, y)){ ink++; cy += y - Y0; }
+      var gx = I(x + 1, y) - I(x - 1, y), gy = I(x, y + 1) - I(x, y - 1);
+      jxx += gx * gx; jyy += gy * gy; jxy += gx * gy;
+    }
+    var tr = jxx + jyy;
+    if (!n || ink / n < 0.12 || ink / n > 0.7 || !tr) return null;  // a part-filled cell: on the edge
+    if (Math.sqrt((jxx - jyy) * (jxx - jyy) + 4 * jxy * jxy) / tr < 0.6) return null;
+    var th = 0.5 * Math.atan2(2 * jxy, jxx - jyy);                       // across the line (y down)
+    var a = (Math.atan2(-Math.cos(th), -Math.sin(th)) * 180 / Math.PI + 360) % 180; // along it, y up
+    if (a >= 60 && a < 120) return '|';
+    if (a >= 25 && a < 60) return '/';
+    if (a >= 120 && a < 155) return '\\';
+    return cy / ink > (Y1 - Y0) * 0.62 ? '_' : '-';
+  }
+
   function nearest(v, shapes){
     // contrast: push each zone toward the cell's own peak, so edges snap instead of greying out
     var m = Math.max.apply(null, v), best = 0, bd = Infinity;
@@ -155,8 +183,11 @@
         out.push({ gx: gx, gy: gy, x: ox + x, y: y, ch: stream[si++ % stream.length],
           t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h, ink: ink,
           part: parts ? part(parts, x + cw / 2, y + ch / 2) : 'leaf',
+          line: shapes ? lineGlyph(px, dw, H, x, y, Math.min(cw, dw - x), Math.min(ch, H - y)) : null,
           glyph: shapes ? SHAPES[nearest(zones(px, dw, x, y, Math.min(cw, dw - x), Math.min(ch, H - y), 0), shapes)] : null });
-        if (shapes && out[out.length - 1].glyph === ' ') out.pop();
+        var last = out[out.length - 1];
+        if (last.line) last.glyph = last.line;
+        else if (shapes && last.glyph === ' ') out.pop();
       }
     }
     // which part of the drawing a cell's middle falls on, in glory.png's own pixels (undoing the stacking and mirroring)
@@ -181,7 +212,7 @@
       for (var j = 0; j < out.length; j++) on[out[j].gx + ',' + out[j].gy] = 1;
       for (j = 0; j < out.length; j++){
         var q = out[j];
-        q.shade = q.ink > 0.35 ? 3 : !on[q.gx + ',' + (q.gy - 1)] || !on[(q.gx - 1) + ',' + q.gy] ? 1 : 2;
+        q.shade = q.line || q.ink > 0.35 ? 3 : !on[q.gx + ',' + (q.gy - 1)] || !on[(q.gx - 1) + ',' + q.gy] ? 1 : 2;
       }
     }
     return { list: out, cw: cw, ch: ch, w: W, h: H, keys: new Int32Array(out.length), rows: {} };
