@@ -23,19 +23,17 @@
   var pick = /[?&]leaves=(ascii|pixel)/.exec(location.search);
 
   var CFG = window.vineLeaves && window.vineLeaves.config || {
-    style: pick ? pick[1] : 'digits', // digits = shape-matched digits like the vine, pixel = shaded pixel art, ascii = simple glyphs
+    style: pick ? pick[1] : 'pixel', // pixel = shaded pixel-art leaves, ascii = the vine's glyphs
     cell: 2,          // pixel: square size, css px
     count: 11,        // leaves on a 1440px wide screen (fewer when narrower)
-    size: [14, 26],   // leaf length, far .. near, css px (digits: 1.6x, so a leaf is more than a few digits)
+    size: [14, 26],   // leaf length, far .. near, css px
     fall: 9, sway: 7, wind: 5, // css px per second: floating, not falling
     tumble: 0.8,      // 0 flat .. 1 turns fully edge-on
     // three shades per leaf [light, base, dark], like the pixel clouds: a dry tan, a sage, a rust.
     // Night is black and white (rod vision sees almost no colour): three grey leaves, dark
     // bodies, only the lit side's outline catches the moon
-    // [moonlit rim, body, line]: lines brighter than the body, like the vine at night
-    dark: [['#e2e2e2', '#5a5a5a', '#a8a8a8'], ['#d0d0d0', '#4e4e4e', '#9a9a9a'], ['#ececec', '#666666', '#b4b4b4']],
-    // day: the vine's warm near-black ink and greys [lit, body, line]
-    light: [['#8a817c', '#6b625d', '#2b211c'], ['#9a918c', '#776e69', '#382a24'], ['#7c736e', '#5d544f', '#1f1714']]
+    dark: [['#d6d6d6', '#6a6a6a', '#333333'], ['#c2c2c2', '#5c5c5c', '#2c2c2c'], ['#e6e6e6', '#787878', '#3a3a3a']],
+    light: [['#b98b55', '#93693a', '#5f4121'], ['#8c9c7e', '#6b7a5e', '#46523d'], ['#b4704a', '#8d5032', '#5a321e']]
   };
   var RAMP = ' .,:;i1tfLCG08@';
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -44,7 +42,7 @@
   var cv = document.createElement('canvas');
   cv.id = 'vine-leaves'; cv.setAttribute('aria-hidden', 'true');
   host.appendChild(cv);
-  var ctx = cv.getContext('2d'), W = 0, H = 0, dpr = 1, words = null, leaves = [], vineW = 260, glyphs = null;
+  var ctx = cv.getContext('2d'), W = 0, H = 0, dpr = 1, words = null, leaves = [], vineW = 260;
 
   function rnd(a, b){ return a + Math.random() * (b - a); }
   function measure(){
@@ -104,15 +102,13 @@
   function draw(){
     ctx.clearRect(0, 0, W, H);
     var dark = root.getAttribute('data-theme') !== 'light', inks = dark ? CFG.dark : CFG.light;
-    var ascii = CFG.style === 'ascii', digits = CFG.style === 'digits' && window.wordVine && window.wordVine.shapes;
-    var cw = ascii ? 3.6 : digits ? 4 : CFG.cell, ch = ascii ? 6.6 : digits ? 7 : CFG.cell;
-    if (ascii || digits){ ctx.font = (digits ? '600 6px ' : '500 6px ') + MONO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; }
-    if (digits && !glyphs) glyphs = window.wordVine.shapes({ weight: 600, size: 6 }, cw, ch);
-    var grow0 = digits ? 1.6 : 1;
+    var ascii = CFG.style === 'ascii';
+    var cw = ascii ? 3.6 : CFG.cell, ch = ascii ? 6.6 : CFG.cell;
+    if (ascii){ ctx.font = '500 6px ' + MONO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; }
     var turn = Math.PI / 2 * CFG.tumble;
     for (var i = 0; i < leaves.length; i++){
       var f = leaves[i], pal = inks[f.ink];
-      var size = (CFG.size[0] + (CFG.size[1] - CFG.size[0]) * f.near) * grow0, R = size / 2;
+      var size = CFG.size[0] + (CFG.size[1] - CFG.size[0]) * f.near, R = size / 2;
       var ey = Math.cos(turn * Math.sin(f.yaw)), ep = Math.cos(0.6 * turn * Math.sin(f.pitch));
       var sy = Math.max(0.12, Math.abs(ey)), sp = Math.max(0.35, Math.abs(ep));
       var flip = ey < 0, edgeOn = sy < 0.3;        // back face swaps the lit half; edge-on it is all shadow
@@ -125,34 +121,14 @@
         if (grow < 16 && grow <= BAYER[(gy & 3) * 4 + (gx & 3)]) continue;
         var px = gx * cw + cw / 2, py = gy * ch + ch / 2, dx = px - f.x, dy = py - f.y;
         var k = shape((dx * co + dy * si) / (R * sp), (-dx * si + dy * co) / (R * sy));
-        var dg = null;
-        if (digits){
-          // the vine's method: measure the leaf in the cell's 6 zones (2 across, 3 down, 2x2 samples
-          // each; a line counts 1, the blade 0.6) and take the digit with the nearest shape
-          var zv = [];
-          for (var zy = 0; zy < 3; zy++) for (var zx = 0; zx < 2; zx++){
-            var sum = 0;
-            for (var sy2 = 0; sy2 < 2; sy2++) for (var sx2 = 0; sx2 < 2; sx2++){
-              var qx = gx * cw + (zx + (sx2 + 0.5) / 2) * cw / 2 - f.x, qy = gy * ch + (zy + (sy2 + 0.5) / 2) * ch / 3 - f.y;
-              var kk = shape((qx * co + qy * si) / (R * sp), (-qx * si + qy * co) / (R * sy));
-              sum += kk === 1 || kk === 2 ? 0.6 : kk ? 1 : 0;
-            }
-            zv.push(sum / 4);
-          }
-          dg = window.wordVine.SHAPE_SET[window.wordVine.nearest(zv, glyphs)];
-          if (dg === ' ') continue;
-          if (!k) k = 3;
-        } else if (!k) continue;
+        if (!k) continue;
         // the back face (flip) swaps which half faces the light; edge-on nothing does
         var lit = !edgeOn && k === (flip ? 2 : 1), rim = !edgeOn && k === (flip ? 5 : 4), body = k === 1 || k === 2;
         // shade 0 light, 1 base, 2 dark. Day: lit half light, outlines and veins dark.
         // Night: dark body, outlines and veins darker, only the lit side's outline moonlit
         var shade = dark ? (rim ? 0 : body ? 1 : 2) : (lit ? 0 : body ? 1 : 2);
         ctx.globalAlpha = words && px > words.x && px < words.x + words.w && py > words.y && py < words.y + words.h ? 0.25 : 1;
-        if (digits){
-          ctx.fillStyle = pal[shade];
-          ctx.fillText(dg, gx * cw + cw / 2, gy * ch + ch / 2);
-        } else if (ascii){
+        if (ascii){
           ctx.fillStyle = pal[1];
           ctx.fillText(shade === 2 ? '#' : shade === 0 ? '*' : '+', px, py);
         } else {
