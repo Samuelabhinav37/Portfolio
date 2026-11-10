@@ -758,7 +758,7 @@ a.social-icon { text-decoration: none; color: inherit; }
   --rule-strong: rgba(var(--paper-ink),0.28);
 }
 :root[data-theme="light"] {
-  --paper: #f3eee3;
+  --paper: #f5efe3;
   --paper-ink: 38,32,26;
   --ink-strong: rgba(var(--paper-ink),0.96);
   --ink: rgba(var(--paper-ink),0.88);
@@ -849,3 +849,45 @@ body::before {
   .body-text.opening::first-line { letter-spacing: 0; }
 }
 :root[data-theme="light"] { --flaw: #9a5a16; } /* amber deep enough to read on paper */
+
+/* ── Book measure and spacing, after the reference page ──
+   About 66 characters a line (a book's measure, not the web's 90+), line
+   height 1.5, half a line between paragraphs, a chapter's heading given
+   room above and below. */
+:root { --w-text: 660px; }
+.article-col, .body-text, .lead-list li, .article-col ol li { line-height: 30px; }
+.body-text { margin: 0 0 15px; text-rendering: optimizeLegibility; hanging-punctuation: first allow-end last; }
+.lead-list, .article-col ol { margin: 0 0 15px; padding-left: 28px; }
+.heading-2 { margin: 80px 0 30px; }
+.heading-3 { margin: 40px 0 15px; }
+/* the intro as an epigraph: narrower, italic, centred */
+.post-standfirst { max-width: 540px; margin: 0 auto 56px; font-size: 21px; line-height: 31px; color: var(--ink); }
+/* the contents list as a book's contents page: a centred title, chapters numbered */
+.toc-inline { margin: 0 auto 72px; max-width: 420px; counter-reset: toc; }
+.toc-inline::before {
+  content: attr(data-contents); display: block; text-align: center; margin-bottom: 18px;
+  font: 600 22px/30px var(--font-body); color: var(--ink-strong);
+}
+.toc-inline ul { list-style: none; padding: 0; }
+.toc-inline li { display: flex; gap: 14px; line-height: 32px; }
+.toc-inline li:not(.sub)::before { counter-increment: toc; content: counter(toc, upper-roman) '.'; flex: none; width: 34px; text-align: right; color: var(--ink-dim); }
+.toc-inline li.sub { margin-left: 0; list-style: none; }
+.toc-inline li.sub::before { content: ''; flex: none; width: 34px; }
+.toc-inline a { text-decoration: none; border-bottom: 1px dotted var(--rule-strong); }
+.toc-inline li.sub a { font-style: italic; }
+/* a scene break: three stars, as in a novel */
+.article-col hr { border: 0; height: auto; margin: 40px 0; text-align: center; }
+.article-col hr::before { content: '*\2003*\2003*'; color: var(--ink-dim); }
+/* the page number, as at the foot of the reference page */
+.post-page { font-family: var(--font-body); font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-dim); font-variant-numeric: oldstyle-nums; min-width: 2ch; text-align: center; }
+.post-bar { gap: 28px; }
+@media (--bp-760) {
+  .post-standfirst { font-size: 19px; line-height: 28px; margin-bottom: 40px; }
+  .toc-inline { margin-bottom: 48px; }
+  .heading-2 { margin-top: 56px; }
+}
+/* the page's top margin: text scrolls away under paper, not under the nav */
+body::after {
+  content: ''; position: fixed; left: 0; right: 0; top: 0; height: 64px; z-index: 1001; pointer-events: none;
+  background: linear-gradient(var(--paper) 72%, transparent);
+}

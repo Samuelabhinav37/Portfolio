@@ -15,3 +15,8 @@ Reference: a classic novel page (Sherlock Holmes, "Chapter 1 / Mr. Sherlock Holm
 - Sections as chapters: "Chapter N" over each H2, centred, bold (CSS counter; "Capítulo" in Spanish). H3s centred italic.
 - Opening: the Dropcap component draws a drop capital again, with the first line in small caps.
 - Headline, labels and date in the book face; diagrams printed in the page ink instead of dark panels. Code blocks stay dark.
+
+## Second pass: measure, spacing and book parts
+- Measure: 660px column, about 66 characters a line (books run 60-70; the old 800px ran 90+). Line height 1.5, half a line between paragraphs, chapter headings with a line and more of room.
+- Intro set as an epigraph (narrow, italic, centred); the section list as a Contents page with roman numerals; `hr` as a three-star scene break; hanging punctuation where the browser has it.
+- A page number in the bottom bar (one page per screen of reading), like the folio at the foot of the reference page; a paper band at the top so text scrolls under paper, not the nav.

@@ -348,7 +348,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           <!-- the summary, set apart as the piece's italic intro -->
           <p class="post-standfirst">{d.description}</p>
           {toc.length > 1 && (
-            <nav class="toc-inline" aria-label={i18n.onThisPage}>
+            <nav class="toc-inline" aria-label={i18n.onThisPage} data-contents={lang === 'es' ? 'Índice' : 'Contents'}>
               <ul>{toc.map((h) => <li class:list={[h.sub && 'sub']}><a href={'#' + h.slug}>{h.text}</a></li>)}</ul>
             </nav>
           )}
@@ -379,6 +379,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
          published before or after this one -->
     <nav class="post-bar" aria-label={lang === 'es' ? 'Artículos' : 'Stories'}>
       <a href={SITE.links.blogIndex}>{lang === 'es' ? 'Todos los artículos' : 'All stories'}</a>
+      <span class="post-page" id="postPage" aria-hidden="true">1</span>
       <span class="post-bar-pn">
         {prevPost ? <a href={`/blog/${prevPost.id}/`} title={prevPost.data.title} rel="prev">{lang === 'es' ? 'Anterior' : 'Previous'}</a> : <span aria-disabled="true">{lang === 'es' ? 'Anterior' : 'Previous'}</span>}
         {nextPost ? <a href={`/blog/${nextPost.id}/`} title={nextPost.data.title} rel="next">{lang === 'es' ? 'Siguiente' : 'Next'}</a> : <span aria-disabled="true">{lang === 'es' ? 'Siguiente' : 'Next'}</span>}
