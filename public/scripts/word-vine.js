@@ -15,15 +15,15 @@
   var MONO = "ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace";
   var CFG = {
     vine: 'glory',      // public/images/vine/<name>.png
-    x: -140,            // px of the plant's left edge from the screen's left
+    x: -60,             // px of the plant's left edge from the screen's left (enough in for the flowers to show)
     y: 371,             // px the stacked plants are shifted down
     zoom: 0.74,         // plant height as a share of the screen height
     mirror: true,       // every other stacked copy mirrored
     flip: false,        // mirror the whole plant
-    style: 'pixel',     // pixel (3-shade pixel art, like the falling leaves) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
-    size: 2,            // cell px (text size; pixel: square size)
-    row: 1,             // row height, in sizes
-    cover: 0.3,         // share of a cell the plant must cover to get a mark
+    style: 'digits',    // digits (coloured digits, glyph by brightness) | pixel (3-shade pixel art) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
+    size: 6,            // cell px (text size; pixel: square size)
+    row: 1.1,           // row height, in sizes
+    cover: 0.45,        // share of a cell the plant must cover to get a mark
     motion: 0.56,       // how much the plant moves (0 = still)
     speed: 0.6,         // how fast it moves
     weight: 500,
@@ -32,9 +32,25 @@
     ink: 1.3,           // how strongly the drawing's ink brightens a cell (contrast)
     dark: '#9d9fa1',    // text colour on the dark sky
     light: '#382a24',   // text colour on the day sky
-    // pixel: [lit, base, outline] shades, the sage of the falling leaves (vine-leaves.js)
-    pixelDark: ['#9aa293', '#737c6f', '#4d544a'],  // a step dimmer than the leaves at night, so the falling ones read in front
-    pixelLight: ['#8c9c7e', '#6b7a5e', '#46523d'],
+    // digits/pixel colours, [lit, base, outline] per part of the plant; throat = [outer, centre].
+    // Day: hue-shifted pixel art (highlights warmer, outlines cooler); the glories are the violet
+    // Ipomoea purpurea with a pink throat (sky-blue Heavenly Blue vanishes on the blue day sky),
+    // pink buds. Night: rod vision (Purkinje shift) loses reds and greens first and keeps blues,
+    // so the leaves take the night pixel clouds' slate ramp (#68738c..#202637) with a cooler
+    // moonlit top, the buds go dusty violet, and the glories become white moonflowers (Ipomoea
+    // alba, the night-blooming morning glory). Notes: docs/2026-11-10-kartik-andreas-research.md.
+    colors: {
+      day: { leaf: ['#a3bf63', '#6c9449', '#2f5843'], glory: ['#b48be0', '#7b4fc4', '#45277f'],
+             bud: ['#f39ac9', '#d0609f', '#7d2f6b'], throat: ['#e27bb6', '#fdf6dc'] },
+      night: { leaf: ['#93a3bf', '#5d6a85', '#363f57'], glory: ['#f3f6ff', '#c3cfe9', '#7f8fb8'],
+             bud: ['#b3a3cf', '#7a6c9c', '#463f66'], throat: ['#e8e2c8', '#fff8dc'] }
+    },
+    // where the flowers are in glory.png (image px): glories [x0, y0, x1, y1, throat x, throat y], buds [x0, y0, x1, y1]
+    parts: { glory: {
+      glory: [[315, 68, 462, 190, 362, 152], [178, 545, 285, 722, 233, 618], [280, 948, 467, 1060, 372, 1018], [340, 1030, 395, 1120, 368, 1040]],
+      bud: [[236, 72, 292, 112], [252, 128, 302, 178], [280, 193, 332, 246], [352, 428, 408, 488], [344, 532, 396, 578],
+            [286, 676, 332, 726], [236, 726, 286, 782], [252, 900, 312, 948], [352, 1166, 396, 1214], [250, 1326, 302, 1368]]
+    } },
     words: 'detection and response quiet networks reading logs at night packets alerts triage ' +
       'signals in the noise threat hunting timelines evidence baseline anomaly honeypot telemetry ' +
       'beacons lateral movement patching trust nothing verify everything sandbox hashes entropy ' +
@@ -48,6 +64,7 @@
   function plantW(img, H, c){ return Math.round(img.width * Math.round(H * c.zoom) / img.height); }
 
   var RAMP = ' .,:;i1tfLCG08@';
+  var DIGITS = ' .:1742359608';  // digits from light to dense
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
   // Reads the plant into grid cells. Everything sits on one grid, one mark per cell, and only
@@ -66,7 +83,9 @@
     ctx.font = c.weight + ' ' + size + 'px ' + MONO;
     // cell edges land on device pixels, so one cell can be cleared and redrawn without touching its neighbours
     var snap = function(v){ return Math.max(1, Math.round(v * dpr)) / dpr; };
-    var cw = snap(c.style === 'words' || c.style === 'ascii' ? ctx.measureText('M').width : size * c.row), ch = snap(size * c.row);
+    var text = c.style === 'words' || c.style === 'ascii' || c.style === 'digits';
+    var cw = snap(text ? ctx.measureText('M').width : size * c.row), ch = snap(size * c.row);
+    var parts = c.parts[c.vine];
     var WORDS = String(c.words).split(/\s+/).filter(Boolean); if (!WORDS.length) WORDS = ['word'];
     var stream = WORDS.join(' ') + ' ', si = 0, out = [];
     for (var gy = 0, y = 0; y < H; gy++, y += ch){
@@ -82,10 +101,26 @@
         var ink = Math.max(0, (sum / cov - 80) / 175), edge = 0.55 + 0.45 * cov / n;
         var h = Math.abs(Math.sin(gx * 12.9898 + gy * 78.233) * 43758.5453) % 1;
         out.push({ gx: gx, gy: gy, x: ox + x, y: y, ch: stream[si++ % stream.length],
-          t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h, ink: ink });
+          t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h, ink: ink,
+          part: parts ? part(parts, x + cw / 2, y + ch / 2) : 'leaf' });
       }
     }
-    if (c.style === 'pixel'){
+    // which part of the drawing a cell's middle falls on, in glory.png's own pixels (undoing the stacking and mirroring)
+    function part(P, cx, cy){
+      var yl = cy - start, k = Math.floor(yl / ph);
+      var iy = (yl - k * ph) / ph * img.height, ix = cx / dw * img.width;
+      if (c.flip !== (c.mirror && k % 2 === 1)) ix = img.width - ix;
+      for (var a = 0; a < P.glory.length; a++){
+        var b = P.glory[a];
+        if (ix >= b[0] && ix <= b[2] && iy >= b[1] && iy <= b[3]){
+          var d = Math.hypot(ix - b[4], iy - b[5]);
+          return d < 9 ? 'throat1' : d < 20 ? 'throat0' : 'glory';
+        }
+      }
+      for (a = 0; a < P.bud.length; a++){ b = P.bud[a]; if (ix >= b[0] && ix <= b[2] && iy >= b[1] && iy <= b[3]) return 'bud'; }
+      return 'leaf';
+    }
+    if (c.style === 'pixel' || c.style === 'digits'){
       // pixel art shading: the drawing's ink lines are the outline (3), petals and leaves are the
       // body (2), and body cells with open space above or to the left catch the light (1)
       var on = {};
@@ -133,6 +168,7 @@
         t = r * t * (0.4 + 0.6 * age / LOCK); key = -2 - tick;
       }
       var q = Math.round(t * STEPS);
+      if (style === 'digits' && key !== null) q = Math.max(1, Math.round(Math.random() * STEPS)); // scrambling: a random digit
       if (style === 'pixel'){
         // the moving band of light lifts body cells to the lit shade; scrambling cells take a random shade
         q = key !== null ? 1 + (-key % 3) : e.shade === 2 && t > e.t * 1.3 ? 1 : e.shade;
@@ -145,10 +181,18 @@
       t = q / STEPS;
       var x = e.x + off;
       ctx.globalAlpha = Math.min(1, t * c.bright);
-      if (style === 'pixel'){
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = (dark ? c.pixelDark : c.pixelLight)[q - 1];
-        ctx.fillRect(x, e.y, cw, ch);
+      if (style === 'pixel' || style === 'digits'){
+        var pal = c.colors[dark ? 'night' : 'day'], col;
+        if (e.part === 'throat0' || e.part === 'throat1') col = pal.throat[e.part === 'throat1' ? 1 : 0];
+        else col = pal[e.part][(style === 'pixel' ? q : e.shade) - 1];
+        ctx.fillStyle = col;
+        if (style === 'pixel'){ ctx.globalAlpha = 1; ctx.fillRect(x, e.y, cw, ch); }
+        else {
+          // glyph by brightness, like the ascii plant: the band of light moving up still swaps digits
+          ctx.globalAlpha = Math.min(1, 0.6 + 0.5 * t);
+          var dg = DIGITS[Math.max(1, Math.round(t * (DIGITS.length - 1)))];
+          ctx.fillText(dg, x + cw / 2, e.y + ch / 2);
+        }
       } else if (style === 'bits'){
         if (t * 16 <= BAYER[(e.gy % 4) * 4 + e.gx % 4]) continue;
         ctx.globalAlpha = Math.min(1, c.bright);

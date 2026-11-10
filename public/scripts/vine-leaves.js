@@ -29,8 +29,11 @@
     size: [14, 26],   // leaf length, far .. near, css px
     fall: 26, sway: 20, wind: 15, // css px per second
     tumble: 0.8,      // 0 flat .. 1 turns fully edge-on
-    // three shades per leaf [light, base, dark], like the pixel clouds: a dry tan, a sage, a rust
-    dark: [['#d8c09a', '#b0956b', '#776146'], ['#b9c1b1', '#8e9889', '#5f675c'], ['#cfa184', '#a87556', '#704a35']],
+    // three shades per leaf [light, base, dark], like the pixel clouds: a dry tan, a sage, a rust.
+    // Night: the eye loses reds and greens first (Purkinje shift), so the leaves take the night
+    // pixel clouds' slate ramp (#68738c..#202637), tan and rust leaning mauve and plum, with a
+    // brighter moonlit rim on the lit side
+    dark: [['#b6b0cc', '#69647f', '#33304a'], ['#a6b8cc', '#5d6f85', '#2e3a4d'], ['#b8a5cf', '#655478', '#33284a']],
     light: [['#b98b55', '#93693a', '#5f4121'], ['#8c9c7e', '#6b7a5e', '#46523d'], ['#b4704a', '#8d5032', '#5a321e']]
   };
   var RAMP = ' .,:;i1tfLCG08@';
@@ -82,14 +85,16 @@
   }
 
   // what a local point of the leaf is (u along it, -1 base .. 1 tip; v across):
-  // 0 off the leaf, 1 the half facing the light, 2 the other half, 3 outline, midrib, veins and stem
+  // 0 off the leaf, 1 the half facing the light, 2 the other half, 3 midrib, veins and stem,
+  // 4 the outline on half 1's side, 5 the outline on half 2's side
   function shape(u, v){
     var a = Math.abs(v);
     if (u < -1) return u > -1.3 && a < 0.07 ? 3 : 0;            // stem
     if (u > 1) return 0;
     var w = 0.48 * Math.pow(1 - u * u, 0.6) * (1 - 0.25 * u);  // widest a little below the middle, pointed tip
     if (a > w) return 0;
-    if (a < 0.06 || a > w * 0.8) return 3;                      // midrib, outline
+    if (a > w * 0.8) return v < 0 ? 4 : 5;                      // outline, on each side
+    if (a < 0.06) return 3;                                     // midrib
     var k = (u + a * 1.4) * 3.2;
     if (k - Math.floor(k) < 0.14 && a < w * 0.7) return 3;      // side veins
     return v < 0 ? 1 : 2;
@@ -118,13 +123,17 @@
         var px = gx * cw + cw / 2, py = gy * ch + ch / 2, dx = px - f.x, dy = py - f.y;
         var k = shape((dx * co + dy * si) / (R * sp), (-dx * si + dy * co) / (R * sy));
         if (!k) continue;
-        if (k < 3 && (edgeOn || flip)) k = edgeOn ? 2 : 3 - k;
+        // the back face (flip) swaps which half faces the light; edge-on nothing does
+        var lit = !edgeOn && k === (flip ? 2 : 1), rim = !edgeOn && k === (flip ? 5 : 4), body = k === 1 || k === 2;
+        // shade 0 light, 1 base, 2 dark. Day: lit half light, outlines and veins dark.
+        // Night: dark body, outlines and veins darker, only the lit side's outline moonlit
+        var shade = dark ? (rim ? 0 : body ? 1 : 2) : (lit ? 0 : body ? 1 : 2);
         ctx.globalAlpha = words && px > words.x && px < words.x + words.w && py > words.y && py < words.y + words.h ? 0.25 : 1;
         if (ascii){
           ctx.fillStyle = pal[1];
-          ctx.fillText(k === 3 ? '#' : k === 1 ? '*' : '+', px, py);
+          ctx.fillText(shade === 2 ? '#' : shade === 0 ? '*' : '+', px, py);
         } else {
-          ctx.fillStyle = pal[k - 1];
+          ctx.fillStyle = pal[shade];
           ctx.fillRect(gx * cw, gy * ch, cw, ch);
         }
       }

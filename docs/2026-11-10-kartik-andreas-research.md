@@ -71,3 +71,9 @@ Base: `@paper-design/shaders` (Apache-2.0, v0.0.82, zero deps, vanilla `ShaderMo
 4. **Pixel seam.** Where the sky meets the content on Home, use a broken pixel edge instead of a gradient. Cheap, and it ties the sky to the page.
 
 Risks: the pixel-art PNG clouds and a noise pixel sky could clash. Pick one pixel size and one palette. Running a second WebGL context on Home next to the sky costs GPU, and first-visit raster stalls are already 250-590ms on some pages.
+
+## Colour for the vine and leaves (built 2026-11-10)
+- Morning glories: *Ipomoea tricolor* 'Heavenly Blue' is sky blue with a white/yellow throat; *I. purpurea* ('Grandpa Ott') is violet with a pink throat. Blue vanished on the day sky (#8fb0e0), so day glories are violet, pink-throated; buds pink. Sources: [NC State Extension](https://plants.ces.ncsu.edu/plants/ipomoea-tricolor/), [Gardenia](https://www.gardenia.net/plants/genera/ipomoea-morning-glory).
+- Night: the moonflower *Ipomoea alba* is the morning glory's night-blooming relative, opening white at dusk, so night glories turn white. Source: [Wikipedia](https://en.wikipedia.org/wiki/Ipomoea_alba), [UF/IFAS](https://gardeningsolutions.ifas.ufl.edu/plants/ornamentals/moonflower/).
+- Night colour: the Purkinje shift moves the eye's sensitivity toward blue in low light, so reds and greens darken first ([Wikipedia](https://en.wikipedia.org/wiki/Purkinje_effect)). Pixel-art practice: value first, then hue-shift; shadows cooler, highlights warmer ([Lospec hue-shift palettes](https://lospec.com/palette-list/tag/hue%20shift), [pixnote shading](https://pixnote.net/en/learn/shading)).
+- So at night everything takes the night pixel clouds' own slate ramp (#68738c, #56617a, #444e66, #30384d, #202637), leaves tinted slightly mauve or plum, with a brighter moonlit rim on the lit side. Day leaves: warm yellow-green highlights, cool blue-green outlines.
