@@ -1,8 +1,9 @@
-/* An ASCII plant up the left edge of the homepage (index.astro), behind the page.
+/* A plant up the left edge of the homepage (index.astro), behind the page.
    The plant comes from a drawing: scripts/make-vine-mask.mjs turns a line
    drawing into a mask (ink lines bright, closed petals and leaves dim). This
-   lays a fixed grid over it and puts one mark in every cell the plant covers,
-   brighter where the drawing's ink is: letters of a running text (words),
+   lays a fixed grid over it and puts one mark in every cell the plant covers:
+   2px pixel art in three shades (pixel, the default, matching vine-leaves.js),
+   or, brighter where the drawing's ink is: letters of a running text (words),
    a glyph picked by brightness (ascii), a dot matrix (dots) or 1-bit
    dithered squares (bits).
    The grid is read once (again on resize, theme change or wordVine.set) and
@@ -19,10 +20,10 @@
     zoom: 0.74,         // plant height as a share of the screen height
     mirror: true,       // every other stacked copy mirrored
     flip: false,        // mirror the whole plant
-    style: 'ascii',     // words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
-    size: 6,            // cell px (text size)
-    row: 1.1,           // row height, in sizes
-    cover: 0.45,        // share of a cell the plant must cover to get a mark
+    style: 'pixel',     // pixel (3-shade pixel art, like the falling leaves) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
+    size: 2,            // cell px (text size; pixel: square size)
+    row: 1,             // row height, in sizes
+    cover: 0.3,         // share of a cell the plant must cover to get a mark
     motion: 0.56,       // how much the plant moves (0 = still)
     speed: 0.6,         // how fast it moves
     weight: 500,
@@ -31,6 +32,9 @@
     ink: 1.3,           // how strongly the drawing's ink brightens a cell (contrast)
     dark: '#9d9fa1',    // text colour on the dark sky
     light: '#382a24',   // text colour on the day sky
+    // pixel: [lit, base, outline] shades, the sage of the falling leaves (vine-leaves.js)
+    pixelDark: ['#9aa293', '#737c6f', '#4d544a'],  // a step dimmer than the leaves at night, so the falling ones read in front
+    pixelLight: ['#8c9c7e', '#6b7a5e', '#46523d'],
     words: 'detection and response quiet networks reading logs at night packets alerts triage ' +
       'signals in the noise threat hunting timelines evidence baseline anomaly honeypot telemetry ' +
       'beacons lateral movement patching trust nothing verify everything sandbox hashes entropy ' +
@@ -78,7 +82,17 @@
         var ink = Math.max(0, (sum / cov - 80) / 175), edge = 0.55 + 0.45 * cov / n;
         var h = Math.abs(Math.sin(gx * 12.9898 + gy * 78.233) * 43758.5453) % 1;
         out.push({ gx: gx, gy: gy, x: ox + x, y: y, ch: stream[si++ % stream.length],
-          t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h });
+          t: (c.base + (1 - c.base) * Math.min(1, ink * c.ink)) * edge, seed: h * 6.2832, at: h, ink: ink });
+      }
+    }
+    if (c.style === 'pixel'){
+      // pixel art shading: the drawing's ink lines are the outline (3), petals and leaves are the
+      // body (2), and body cells with open space above or to the left catch the light (1)
+      var on = {};
+      for (var j = 0; j < out.length; j++) on[out[j].gx + ',' + out[j].gy] = 1;
+      for (j = 0; j < out.length; j++){
+        var q = out[j];
+        q.shade = q.ink > 0.35 ? 3 : !on[q.gx + ',' + (q.gy - 1)] || !on[(q.gx - 1) + ',' + q.gy] ? 1 : 2;
       }
     }
     return { list: out, cw: cw, ch: ch, w: W, h: H, keys: new Int32Array(out.length), rows: {} };
@@ -119,6 +133,10 @@
         t = r * t * (0.4 + 0.6 * age / LOCK); key = -2 - tick;
       }
       var q = Math.round(t * STEPS);
+      if (style === 'pixel'){
+        // the moving band of light lifts body cells to the lit shade; scrambling cells take a random shade
+        q = key !== null ? 1 + (-key % 3) : e.shade === 2 && t > e.t * 1.3 ? 1 : e.shade;
+      }
       if (key === null) key = q;
       if (!rowNew && keys[n] === key) continue;
       if (!rowNew && keys[n] !== -1) ctx.clearRect(e.x + rows[row], e.y, cw, ch);
@@ -127,7 +145,11 @@
       t = q / STEPS;
       var x = e.x + off;
       ctx.globalAlpha = Math.min(1, t * c.bright);
-      if (style === 'bits'){
+      if (style === 'pixel'){
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = (dark ? c.pixelDark : c.pixelLight)[q - 1];
+        ctx.fillRect(x, e.y, cw, ch);
+      } else if (style === 'bits'){
         if (t * 16 <= BAYER[(e.gy % 4) * 4 + e.gx % 4]) continue;
         ctx.globalAlpha = Math.min(1, c.bright);
         ctx.fillRect(x, e.y, cw - 1 / dpr, ch - 1 / dpr);
