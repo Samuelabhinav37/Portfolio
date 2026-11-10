@@ -6,6 +6,9 @@
    (window.__FIELD_NOTES__) whenever any of those change, building the same
    markup as the page. Frames are empty: posts carry no pictures. */
 
+// a module runs once per visit: onPage (Motion.astro) runs this again on each ClientRouter arrival
+window.onPage((signal) => {
+if (!document.getElementById('fn-grid')) return;
 const cards = window.__FIELD_NOTES__ || [];
 const PER_PAGE = 12;
 // Same ratio cycle as index.astro, so tiles keep their uneven heights after a search
@@ -192,7 +195,7 @@ if (index && overviewBtn && indexBtn && main) {
     clearTimeout(hoverTimer);
     light(+a.dataset.i, true);
   });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !index.hidden) setView(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !index.hidden) setView(false); }, { signal });
 }
 
 if (q && filter && grid) {
@@ -205,3 +208,4 @@ if (q && filter && grid) {
   render();
   animate = true;
 }
+});

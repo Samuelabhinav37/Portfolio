@@ -53,6 +53,14 @@
     } else window.afterPageChange = Promise.resolve();
   });
   document.addEventListener('astro:page-load', function(){ if (!swapping) return; swapping = false; fns.forEach(call); });
+  /* The router re-adds a page's new <script src> tags with createElement, which makes
+     them async: they then run in whatever order they load (a page's knowledge base before
+     the base file it builds on). async = false keeps them in page order, as on a full load. */
+  var mk = document.createElement;
+  document.addEventListener('astro:after-swap', function(){
+    document.createElement = function(t){ var el = mk.apply(document, arguments); if (String(t).toLowerCase() === 'script') el.async = false; return el; };
+  });
+  document.addEventListener('astro:page-load', function(){ document.createElement = mk; });
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   h.classList.add('motion');

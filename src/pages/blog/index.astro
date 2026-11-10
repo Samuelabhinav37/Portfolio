@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import Motion from '../../components/Motion.astro';
 import Glitches from '../../components/Glitches.astro';
 import { getCollection } from 'astro:content';
@@ -92,6 +93,7 @@ window.SITE=window.SITE||{};
 <script is:inline src="/scripts/theme.js"></script>
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
+<ClientRouter fallback="swap" />
 <Motion />
 <script type="application/ld+json" set:html={jsonLd} />
 <style is:global>

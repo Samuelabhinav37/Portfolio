@@ -9,8 +9,17 @@
    options: { chips: [{ label, topic }], related: { id: [ids] },
               guesses: [ids], hello: { title, text }, placeholder } */
 window.SITE = window.SITE || {};
+/* Pages on the ClientRouter keep one Kai (transition:persist), and each knowledge-base
+   script runs only on its page's first visit. So the first call builds the chat, later
+   calls swap in their page's knowledge, and arriving back on a page swaps its saved one in.
+   shortcut: options (chips, hello, placeholder) stay the first page's; rebuild the chat if pages need their own. */
+var kaiLive = null, kaiKB = {};
+function kaiPage() { var p = location.pathname; return /^\/blog\/.+/.test(p) ? '/blog/*' : p; }
+document.addEventListener('astro:page-load', function () { var s = kaiKB[kaiPage()]; if (kaiLive && s) kaiLive(s[0], s[1]); });
 window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   'use strict';
+  kaiKB[kaiPage()] = [KB, extraTargetHandler];
+  if (kaiLive) { kaiLive(KB, extraTargetHandler); return kaiLive.chat; }
   options = options || {};
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var byId = function (id) { return KB.find(function (t) { return t.id === id; }); };
@@ -196,6 +205,8 @@ window.SITE.initLunaDrawer = function (KB, extraTargetHandler, options) {
   });
   // The site menu closes the chat when it opens (SiteMenu.astro, blog-client.js).
   window.SITE.LunaChat = { open: chat.open, close: function () { chat.close(true); }, isOpen: chat.isOpen };
+  kaiLive = function (kb, extra) { KB = kb; extraTargetHandler = extra; };
+  kaiLive.chat = chat;
   return chat;
 };
 

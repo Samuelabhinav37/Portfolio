@@ -10,7 +10,7 @@
    functions/api/contact.js), which relays via Resend. Sends JSON and treats
    any 2xx as success; on failure it falls back to showing FALLBACK so the
    visitor still has a way to reach out.                                       */
-(function(){
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   "use strict";
 
   var ENDPOINT = '/api/contact';
@@ -36,6 +36,10 @@
   function loadTurnstile(){
     if(turnstileRequested) return;
     turnstileRequested = true;
+    // back on this page after a ClientRouter swap: api.js is already here, so draw the new widget
+    var w = document.getElementById('turnstile-widget');
+    if(window.turnstile){ if(w && !w.childElementCount) window.turnstile.render(w); return; }
+    if(document.querySelector('script[src^="https://challenges.cloudflare.com/turnstile/"]')) return;
     var s = document.createElement('script');
     s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
     s.async = true;
@@ -126,4 +130,4 @@
       done(false, 'Didn\u2019t get through \u2014 mail ' + FALLBACK);
     });
   });
-})();
+});

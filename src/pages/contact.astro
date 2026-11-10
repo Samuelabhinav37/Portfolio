@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import Motion from '../components/Motion.astro';
 import Glitches from '../components/Glitches.astro';
 import SiteMenu from '../components/SiteMenu.astro';
@@ -72,6 +73,7 @@ window.SITE=window.SITE||{};
 <link rel="preload" as="image" href="/images/contact-emboss-top.webp">
 <link rel="preload" as="image" href="/images/contact-emboss-bottom.webp">
 <Fonts />
+<ClientRouter fallback="swap" />
 <Motion />
 <script is:inline src="/scripts/title-manager.js"></script>
 <style is:global>

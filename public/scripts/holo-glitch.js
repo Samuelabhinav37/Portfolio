@@ -4,7 +4,7 @@
    card glitches. Mark an element with data-holo-glitch; its offsetParent
    must be positioned, since the copies are placed against it.
    Skipped for reduced motion. */
-(function(){
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var rnd = function(a, b){ return a + Math.random() * (b - a); };
 
@@ -41,7 +41,9 @@
       clearTimeout(timer);
       timer = setTimeout(function(){ if(inView && !document.hidden) glitch(); idle(); }, rnd(8000, 15000));
     };
-    new IntersectionObserver(function(e){ inView = e[0].isIntersecting; }).observe(st);
+    var io = new IntersectionObserver(function(e){ inView = e[0].isIntersecting; });
+    io.observe(st);
+    signal.addEventListener('abort', function(){ io.disconnect(); clearTimeout(timer); });
     idle();
   });
-})();
+});

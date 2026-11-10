@@ -3,6 +3,7 @@ import SiteMenu from '../components/SiteMenu.astro';
 import ClarityAnalytics from '../components/ClarityAnalytics.astro';
 import ErrorReporter from '../components/ErrorReporter.astro';
 import SiteSky from '../components/SiteSky.astro';
+import { ClientRouter } from 'astro:transitions';
 import Motion from '../components/Motion.astro';
 import KaiSite from '../components/KaiSite.astro';
 import Fonts from '../components/Fonts.astro';
@@ -49,6 +50,7 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <Fonts />
+<ClientRouter fallback="swap" />
 <Motion />
 <style is:global>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -111,8 +113,10 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 
 <script is:inline>
 /* open a photo large; click anywhere, Esc closes; arrow keys step through */
-(function(){
-  var lb = document.querySelector('.lb'), fig = lb.querySelector('.lb-fig');
+onPage(function(signal){
+  var lb = document.querySelector('.lb');
+  if(!lb) return;
+  var fig = lb.querySelector('.lb-fig');
   var btns = Array.prototype.slice.call(document.querySelectorAll('.ph-btn')), cur = -1;
   function show(i){
     if(cur >= 0) btns[cur].parentNode.classList.remove('is-open');
@@ -138,8 +142,8 @@ body { font-family:'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     if(e.key === 'Escape') close();
     else if(e.key === 'ArrowRight') show((cur + 1) % btns.length);
     else if(e.key === 'ArrowLeft') show((cur - 1 + btns.length) % btns.length);
-  });
-})();
+  }, { signal: signal });
+});
 </script>
 <script is:inline>
 /* no intro choreography here: mark the page settled so Kai's greet runs */

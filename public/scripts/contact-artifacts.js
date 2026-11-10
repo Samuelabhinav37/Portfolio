@@ -16,9 +16,11 @@
 
    Each piece checks it exists first, so any of the markup can be removed
    on its own. */
-(function(){
+(window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   'use strict';
   var $ = function(id){ return document.getElementById(id); };
+  var ros = [];
+  signal.addEventListener('abort', function(){ ros.forEach(function(r){ r.disconnect(); }); });
 
   /* ── intercept console ── */
   var body = $('ic-body'), ms = $('ms');
@@ -184,10 +186,10 @@
     if(document.readyState === 'complete') playLater(); else addEventListener('load', playLater, { once:true });
     document.addEventListener('visibilitychange', function(){
       if(document.hidden) wrecks.forEach(function(v){ v.pause(); }); else playW();
-    });
+    }, { signal: signal });
     /* a window resized wider can bring hidden overlays into view */
     var wreckResize = 0;
-    addEventListener('resize', function(){ clearTimeout(wreckResize); wreckResize = setTimeout(playW, 400); });
+    addEventListener('resize', function(){ clearTimeout(wreckResize); wreckResize = setTimeout(playW, 400); }, { signal: signal });
   }
 
   /* ── the tear the console shows through ── */
@@ -235,8 +237,8 @@
       var w = tw, h = th; measure();
       if(tw && (tw !== w || th !== h) && !busy) settle();
     };
-    if(window.ResizeObserver) new ResizeObserver(resized).observe(tear);
-    else addEventListener('resize', resized);
+    if(window.ResizeObserver){ var tro = new ResizeObserver(resized); tro.observe(tear); ros.push(tro); }
+    else addEventListener('resize', resized, { signal: signal });
     if(ms) ms.addEventListener('input', function(){ if(Date.now() - lastGlitch > 700) glitch(0.5, 2); });
   }
 
@@ -332,9 +334,9 @@
     };
 
     cardSettle();
-    if(window.ResizeObserver) new ResizeObserver(function(){ if(!cardBusy) cardSettle(); }).observe(poster);
+    if(window.ResizeObserver){ var pro = new ResizeObserver(function(){ if(!cardBusy) cardSettle(); }); pro.observe(poster); ros.push(pro); }
     if(aImg && !aImg.complete) aImg.addEventListener('load', function(){ if(!cardBusy) cardSettle(); }, { once:true });
-    if(!still) (function next(){ setTimeout(function(){ cardGlitch(); next(); }, rnd(13000, 22000)); })();
+    if(!still) (function next(){ setTimeout(function(){ if(signal.aborted) return; cardGlitch(); next(); }, rnd(13000, 22000)); })();
   }
 
   /* ── the form status, mirrored under the card for the hologram tone ── */
@@ -392,4 +394,4 @@
       if(ms) ms.focus();
     });
   }
-})();
+});
