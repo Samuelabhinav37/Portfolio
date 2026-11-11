@@ -1,9 +1,7 @@
 ---
 /**
- * Opening paragraph. Used to render a boxed drop capital; the post type
- * system dropped it (a one-off 38px glyph), so it now renders the letter
- * back into an ordinary first paragraph. Kept as a component so existing
- * posts don't need editing:
+ * Opening paragraph, set like a novel's chapter opening: a drop capital
+ * and the rest of the first line in small caps (blog.css, "Book pages").
  *   <Dropcap letter="I">n March 2026, a routine dependency update...</Dropcap>
  */
 interface Props {
@@ -12,4 +10,4 @@ interface Props {
 const { letter } = Astro.props;
 ---
 
-<p class="body-text">{letter}<slot /></p>
+<p class="body-text opening"><span class="dropcap">{letter}</span><slot /></p>

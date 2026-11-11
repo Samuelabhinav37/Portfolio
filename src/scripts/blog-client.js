@@ -22,6 +22,8 @@ if (!document.querySelector('.article-col')) return;
     ring.style.strokeDashoffset = String(ringC);
   }
 
+  // the page number in the bottom bar, as in a book: one page per screen of reading
+  const pageNo = document.getElementById('postPage');
   let ticking = false;
   function onScroll() {
     if (ticking) return;
@@ -32,6 +34,7 @@ if (!document.querySelector('.article-col')) return;
       const pct = docH > 0 ? scrollTop / docH : 0;
       if (ring) ring.style.strokeDashoffset = String(ringC * (1 - pct));
       backTop.classList.toggle('visible', scrollTop > 400);
+      if (pageNo) pageNo.textContent = String(Math.floor(scrollTop / window.innerHeight) + 1);
       ticking = false;
     });
   }

@@ -384,13 +384,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .etoc-card a { display: block; padding: 7px 10px; border-radius: 6px; font-size: var(--t-small); line-height: 1.35; color: var(--ink-dim); text-decoration: none; }
 .etoc-card a:hover { background: rgba(var(--c-white),0.05); color: var(--ink-strong); }
 .etoc-card a.is-active { color: var(--ink-strong); background: rgba(200,206,218,0.08); box-shadow: inset 2px 0 0 #c8ceda; }
-/* ── and a plain list of section links near the top ── */
-.toc-inline { margin: 0 0 32px; }
-.toc-inline ul { list-style: disc; margin: 0; padding: 0 0 0 64px; }
-.toc-inline li { font-size: var(--t-body); line-height: 30px; }
-.toc-inline li.sub { margin-left: 24px; list-style: circle; }
-.toc-inline a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 4px; }
-.toc-inline a:hover { color: var(--ink-strong); text-decoration-color: var(--ink-dim); }
 
 /* ── FAQ: centred on the text column ── */
 .faq-section { max-width: var(--w-text); margin: 80px auto 0; scroll-margin-top: 96px; }
@@ -739,3 +732,126 @@ a.social-icon { text-decoration: none; color: inherit; }
 :root[data-theme="light"] .dtable,
 :root[data-theme="light"] .article-col > table { background: #fff; }
 :root[data-theme="light"] :is(.code-inline, .article-col code:not(pre code)) { background: rgba(55,53,47,0.08); color: #b4332b; }
+
+/* ══════════ BOOK PAGES ══════════
+   Posts read like an old novel's page (see docs/2026-11-10-book-posts-research.md):
+   paper instead of the sky, white by day and black by night, one
+   ink; body justified and hyphenated in the Garamond, old-style figures;
+   section headings in the bold Garamond; the
+   first paragraph opens with a drop capital and a small-caps first line.
+   The layout itself is unchanged. */
+:root {
+  --paper: #0d0c0b;
+  --paper-ink: 236,231,221; /* the night ink, as rgb for the rgba() below */
+  --ink-strong: rgba(var(--paper-ink),0.95);
+  --ink: rgba(var(--paper-ink),0.84);
+  --ink-dim: rgba(var(--paper-ink),0.62);
+  --ink-faint: rgba(var(--paper-ink),0.46);
+  --rule: rgba(var(--paper-ink),0.14);
+  --rule-strong: rgba(var(--paper-ink),0.28);
+}
+:root[data-theme="light"] {
+  --paper: #fbfbfa;  /* the site's own day white: off-white against glare, no yellow */
+  --paper-ink: 25,25,25;
+  --ink-strong: rgba(var(--paper-ink),0.96);
+  --ink: rgba(var(--paper-ink),0.88);
+  --ink-dim: rgba(var(--paper-ink),0.66);
+  --ink-faint: rgba(var(--paper-ink),0.5);
+}
+/* the paper covers the sky (kept alive underneath for the next page) */
+html, body, .post-bar { background-color: var(--paper); }
+#sky-stage, #px-clouds, #sky::after, .page-grain { visibility: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  /* the Contact postcard's aged-paper tile: stains, foxing, fibres, grain */
+  background: url('/images/contact-paper.svg') 0 0 / 720px 960px;
+  /* at night the same tile, turned to pale specks on the black */
+  filter: invert(1) grayscale(1); opacity: 0.1;
+}
+:root[data-theme="light"] body::before { display: none; } /* day: plain white page */
+
+/* headline and labels in the book face */
+.post-title { font-family: var(--font-body); font-weight: 600; font-size: 46px; line-height: 52px; letter-spacing: 0; }
+.post-cat, .post-series, .post-date { font-family: var(--font-body); font-variant: small-caps; text-transform: lowercase; letter-spacing: 1.4px; font-size: 16px; font-weight: 500; }
+.post-date { font-variant: normal; text-transform: none; letter-spacing: 0; font-style: italic; }
+.post-standfirst { font-style: italic; text-align: center; font-size: 22px; line-height: 33px; }
+
+/* the body: justified and hyphenated like a printed page */
+.article-col { font-variant-numeric: oldstyle-nums proportional-nums; font-kerning: normal; font-variant-ligatures: common-ligatures; }
+.body-text, .lead-list li, .article-col ol li {
+  text-align: justify; -webkit-hyphens: auto; hyphens: auto;
+  hyphenate-limit-chars: 6 3 2; text-wrap: pretty;
+}
+.body-text { line-height: 32px; margin-bottom: 20px; }
+/* chapter opening: a three-line drop capital, then the line in small caps */
+.body-text.opening::first-line { font-variant: small-caps; letter-spacing: 0.6px; }
+.dropcap {
+  float: left; font: 400 82px/66px var(--font-body); margin: 4px 10px 0 -2px; color: var(--ink-strong);
+}
+.heading-3 {
+  font-family: var(--font-body); font-size: 19px; font-weight: 500; font-style: italic;
+  text-transform: none; letter-spacing: 0;
+}
+.pull-quote::before { color: var(--ink-faint); }
+.post-next-h, .faq-heading { font-family: var(--font-body); font-weight: 600; }
+/* tables sit on the page like a printed table, not a card */
+:root[data-theme="light"] .dtable, :root[data-theme="light"] .article-col > table { background: transparent; }
+:root[data-theme="light"] :is(.code-inline, .article-col code:not(pre code)) { color: inherit; }
+@media (--bp-760) {
+  .post-title { font-size: 36px; line-height: 42px; }
+  .heading-2 { font-size: 23px; line-height: 30px; }
+  .dropcap { font-size: 68px; line-height: 56px; }
+}
+/* diagrams printed on the page in the same ink, like a book's figures */
+.plate { background: transparent; }
+:root .plate, :root[data-theme="light"] .plate {
+  --ink-strong: rgba(var(--paper-ink),0.95); --ink: rgba(var(--paper-ink),0.84);
+  --ink-dim: rgba(var(--paper-ink),0.62); --ink-faint: rgba(var(--paper-ink),0.46);
+  --rule: rgba(var(--paper-ink),0.14); --rule-strong: rgba(var(--paper-ink),0.28);
+}
+.dg-box { fill: var(--paper); stroke: var(--ink-dim); }
+.dg-box.is-muted { fill: transparent; }
+.dg-t, .dg-t.is-muted { fill: var(--ink-strong); font-family: var(--font-body); font-size: 17px; }
+.dg-s, .dg-lbl, .dg-glbl { fill: var(--ink-dim); }
+.dg-s { font-family: var(--font-body); font-size: 14px; font-style: italic; }
+.dg-edge path { stroke: var(--ink-dim); }
+.dg-step circle { fill: var(--ink-strong); }
+.dg-step text { fill: var(--paper); }
+.dg-group { fill: transparent; stroke: var(--rule-strong); }
+.dg-life { stroke: var(--rule-strong); }
+.dg-note { fill: transparent; stroke: var(--rule-strong); }
+.dg-note-t { fill: var(--ink); }
+/* narrow columns: justified lines open wide gaps, so phones set ragged right */
+@media (--bp-600) {
+  .body-text, .lead-list li, .article-col ol li { text-align: left; }
+  .body-text.opening::first-line { letter-spacing: 0; }
+}
+:root[data-theme="light"] { --flaw: #9a5a16; } /* amber deep enough to read on paper */
+
+/* ── Book measure and spacing, after the reference page ──
+   About 66 characters a line (a book's measure, not the web's 90+), line
+   height 1.5, half a line between paragraphs, headings given
+   room above and below. */
+:root { --w-text: 660px; }
+.article-col, .body-text, .lead-list li, .article-col ol li { line-height: 30px; }
+.body-text { margin: 0 0 15px; text-rendering: optimizeLegibility; hanging-punctuation: first allow-end last; }
+.lead-list, .article-col ol { margin: 0 0 15px; padding-left: 28px; }
+.heading-2 { font-family: var(--font-body); font-weight: 600; font-size: 26px; line-height: 34px; letter-spacing: 0; margin: 64px 0 20px; }
+.heading-3 { margin: 40px 0 15px; }
+/* the intro as an epigraph: narrower, italic, centred */
+.post-standfirst { max-width: 540px; margin: 0 auto 56px; font-size: 21px; line-height: 31px; color: var(--ink); }
+/* a scene break: three stars, as in a novel */
+.article-col hr { border: 0; height: auto; margin: 40px 0; text-align: center; }
+.article-col hr::before { content: '*\2003*\2003*'; color: var(--ink-dim); }
+/* the page number, as at the foot of the reference page */
+.post-page { font-family: var(--font-body); font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-dim); font-variant-numeric: oldstyle-nums; min-width: 2ch; text-align: center; }
+.post-bar { gap: 28px; }
+@media (--bp-760) {
+  .post-standfirst { font-size: 19px; line-height: 28px; margin-bottom: 40px; }
+  .heading-2 { margin-top: 56px; }
+}
+/* the page's top margin: text scrolls away under paper, not under the nav */
+body::after {
+  content: ''; position: fixed; left: 0; right: 0; top: 0; height: 64px; z-index: 1001; pointer-events: none;
+  background: linear-gradient(var(--paper) 72%, transparent);
+}
