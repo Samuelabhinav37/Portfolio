@@ -175,6 +175,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {d.draft && <meta name="robots" content="noindex, nofollow" />}
     <title>{d.title}</title>
+    <script is:inline src="/scripts/title-manager.js"></script>
 
     <meta name="description" content={d.description} />
     <meta property="og:type" content="article" />
