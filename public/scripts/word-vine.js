@@ -221,22 +221,49 @@
   }
 
   // serif: set like a typographic flower poster. One running line of serif digits flows along
-  // each row, and each digit's size follows the plant's brightness under it, so the drawn lines
-  // swell into big overlapping numerals and the insides of petals and leaves shrink to fine print.
+  // each row, and each digit's size follows the light on the plant, so lit petals swell into big
+  // overlapping numerals and creases and shadows shrink to fine print.
+  // The drawing is flat (outline + fill), so the light is made up: each closed petal or leaf
+  // bulges like a dome (height from its distance to its own outline), lit from the upper left.
+  // The drawn lines become dark seams between petals; bare stems stay mid tone.
   var SERIF = "'Times New Roman', Times, serif", SEQ = '2816340597', EM = 40;
+  var LX = -0.55, LY = -0.75, LZ = 0.65; // light from the upper left (y down)
   function typeCells(off, px, dw, W, H, ox, c){
-    // brightness from the mask softened, so sizes swell and shrink smoothly instead of per pixel
+    var N = dw * H, D = new Float32Array(N), R = c.size * 4, i, x, y, gy;
+    // chamfer distance from every plant pixel to the nearest empty one: each leaf or flower is one
+    // shape (its veins and inner lines don't split it into little pieces)
+    for (i = 0; i < N; i++) D[i] = px[i * 4] ? 1e6 : 0;
+    function relax(i, j, d){ if (D[j] + d < D[i]) D[i] = D[j] + d; }
+    for (y = 1; y < H; y++) for (x = 1; x < dw - 1; x++){ i = y * dw + x; if (D[i]){ relax(i, i - 1, 1); relax(i, i - dw, 1); relax(i, i - dw - 1, 1.41); relax(i, i - dw + 1, 1.41); } }
+    for (y = H - 2; y >= 0; y--) for (x = dw - 2; x > 0; x--){ i = y * dw + x; if (D[i]){ relax(i, i + 1, 1); relax(i, i + dw, 1); relax(i, i + dw + 1, 1.41); relax(i, i + dw - 1, 1.41); } }
+    // dome height in px: rises off the outline, rounds over on top
+    var Z = function(x, y){ x = Math.max(0, Math.min(dw - 1, x)); y = Math.max(0, Math.min(H - 1, y)); var h = Math.min(1, D[y * dw + x] / R); return R * Math.sqrt(1 - (1 - h) * (1 - h)); };
+    // light at every plant pixel, then softened so the tone flows across a shape instead of
+    // flickering digit to digit; the drawn veins and inner lines darken it a little (creases)
+    var LN = Math.hypot(LX, LY, LZ), img = new ImageData(dw, H);
+    for (y = 0; y < H; y++) for (x = 0; x < dw; x++){
+      i = y * dw + x; var v = px[i * 4];
+      if (!v) continue;
+      var gx = (Z(x + 3, y) - Z(x - 3, y)) / 6, gyy = (Z(x, y + 3) - Z(x, y - 3)) / 6;
+      var d = Math.max(0, (-gx * LX - gyy * LY + LZ) / (Math.hypot(gx, gyy, 1) * LN));
+      var L = d * (v >= 150 && D[i] > 2 ? 0.55 : 1);
+      img.data[i * 4] = Math.round(255 * Math.min(1, L)); img.data[i * 4 + 3] = 255;
+    }
     var b = document.createElement('canvas'); b.width = dw; b.height = H;
-    var bc = b.getContext('2d', { willReadFrequently: true });
-    bc.filter = 'blur(' + c.size * 0.5 + 'px)'; bc.drawImage(off, 0, 0);
-    var lum = bc.getImageData(0, 0, dw, H).data, out = [], si = 0, lh = c.size * c.row;
-    for (var y = lh / 2, gy = 0; y < H; y += lh, gy++){
-      for (var x = 0; x < dw;){
-        var i = ((y | 0) * dw + (x | 0)) * 4;
+    var bc = b.getContext('2d', { willReadFrequently: true }); bc.putImageData(img, 0, 0);
+    var b2 = document.createElement('canvas'); b2.width = dw; b2.height = H;
+    var b2c = b2.getContext('2d', { willReadFrequently: true });
+    b2c.filter = 'blur(' + c.size * 0.35 + 'px)'; b2c.drawImage(b, 0, 0);
+    var lum = b2c.getImageData(0, 0, dw, H).data;
+    // getImageData is un-premultiplied, so the outline keeps its own tone though the blur fades its alpha
+    function light(x, y){ return lum[((y | 0) * dw + (x | 0)) * 4] / 255; }
+    var out = [], si = 0, lh = c.size * c.row;
+    for (y = lh / 2, gy = 0; y < H; y += lh, gy++){
+      for (x = 0; x < dw;){
+        i = ((y | 0) * dw + (x | 0)) * 4;
         if (!px[i] || ox + x > W){ x += 1; continue; }
-        // mask: petal/leaf fill reads ~0.31, drawn lines up to 1
-        var t = Math.max(0, Math.min(1, (lum[i] / 255 - 0.25) * c.ink * 1.6));
-        var s = c.size * (0.55 + 2 * t * t), h = Math.abs(Math.sin(x * 12.9898 + gy * 78.233) * 43758.5453) % 1;
+        var t = Math.pow(light(x, y), c.ink);
+        var s = c.size * (0.85 + 0.5 * t + 1.1 * t * t * t * t), h = Math.abs(Math.sin(x * 12.9898 + gy * 78.233) * 43758.5453) % 1;
         if (ox + x + s > 0) out.push({ x: ox + x, y: y, s: s, ch: SEQ[si % SEQ.length], t: t, gy: gy, seed: h * 6.2832, at: h });
         si++; x += s * 0.5; // a serif digit is half an em wide
       }
@@ -255,7 +282,7 @@
       if (age < 0) continue;
       // a slow band of light rising up the plant swells the digits it passes, like sap
       var w = mo ? 0.5 + 0.5 * Math.sin(e.gy * 0.09 - s * 0.9) : 0, k = e.s * (1 + mo * 0.35 * w * w * w * e.t) / EM;
-      ctx.globalAlpha = Math.min(1, age / LOCK) * c.bright * (0.55 + 0.45 * Math.max(e.t, w * w * mo * 0.5));
+      ctx.globalAlpha = Math.min(1, age / LOCK) * Math.min(1, (c.bright + 0.2) * (0.7 + 0.3 * Math.max(e.t, w * w * mo * 0.5)));
       var off = mo ? mo * 2 * Math.sin(s * 0.45 + e.y * 0.005) : 0;
       ctx.setTransform(dpr * k, 0, 0, dpr * k, (e.x + off) * dpr, e.y * dpr);
       ctx.fillText(e.ch, 0, 0);
