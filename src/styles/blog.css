@@ -384,13 +384,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .etoc-card a { display: block; padding: 7px 10px; border-radius: 6px; font-size: var(--t-small); line-height: 1.35; color: var(--ink-dim); text-decoration: none; }
 .etoc-card a:hover { background: rgba(var(--c-white),0.05); color: var(--ink-strong); }
 .etoc-card a.is-active { color: var(--ink-strong); background: rgba(200,206,218,0.08); box-shadow: inset 2px 0 0 #c8ceda; }
-/* ── and a plain list of section links near the top ── */
-.toc-inline { margin: 0 0 32px; }
-.toc-inline ul { list-style: disc; margin: 0; padding: 0 0 0 64px; }
-.toc-inline li { font-size: var(--t-body); line-height: 30px; }
-.toc-inline li.sub { margin-left: 24px; list-style: circle; }
-.toc-inline a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 4px; }
-.toc-inline a:hover { color: var(--ink-strong); text-decoration-color: var(--ink-dim); }
 
 /* ── FAQ: centred on the text column ── */
 .faq-section { max-width: var(--w-text); margin: 80px auto 0; scroll-margin-top: 96px; }
@@ -744,7 +737,7 @@ a.social-icon { text-decoration: none; color: inherit; }
    Posts read like an old novel's page (see docs/2026-11-10-book-posts-research.md):
    paper instead of the sky, white by day and black by night, one
    ink; body justified and hyphenated in the Garamond, old-style figures;
-   section headings centred like "Chapter 1 / Mr. Sherlock Holmes"; the
+   section headings in the bold Garamond; the
    first paragraph opens with a drop capital and a small-caps first line.
    The layout itself is unchanged. */
 :root {
@@ -784,7 +777,7 @@ body::before {
 .post-standfirst { font-style: italic; text-align: center; font-size: 22px; line-height: 33px; }
 
 /* the body: justified and hyphenated like a printed page */
-.article-col { font-variant-numeric: oldstyle-nums proportional-nums; font-kerning: normal; font-variant-ligatures: common-ligatures; counter-reset: chapter; }
+.article-col { font-variant-numeric: oldstyle-nums proportional-nums; font-kerning: normal; font-variant-ligatures: common-ligatures; }
 .body-text, .lead-list li, .article-col ol li {
   text-align: justify; -webkit-hyphens: auto; hyphens: auto;
   hyphenate-limit-chars: 6 3 2; text-wrap: pretty;
@@ -795,20 +788,9 @@ body::before {
 .dropcap {
   float: left; font: 400 82px/66px var(--font-body); margin: 4px 10px 0 -2px; color: var(--ink-strong);
 }
-/* sections as chapters: "Chapter 1" over the heading, centred, in the Garamond */
-.heading-2 {
-  font-family: var(--font-body); font-weight: 600; font-size: 26px; line-height: 34px; letter-spacing: 0;
-  text-align: center; margin: 72px 0 24px;
-}
-.heading-2::before {
-  counter-increment: chapter; content: 'Chapter ' counter(chapter); display: block;
-  font-weight: 600; font-size: 22px; line-height: 30px;
-}
-:lang(es) .heading-2::before { content: 'Capítulo ' counter(chapter); }
-.heading-2 .hlink { position: absolute; margin-left: 10px; }
 .heading-3 {
   font-family: var(--font-body); font-size: 19px; font-weight: 500; font-style: italic;
-  text-transform: none; letter-spacing: 0; text-align: center;
+  text-transform: none; letter-spacing: 0;
 }
 .pull-quote::before { color: var(--ink-faint); }
 .post-next-h, .faq-heading { font-family: var(--font-body); font-weight: 600; }
@@ -848,29 +830,16 @@ body::before {
 
 /* ── Book measure and spacing, after the reference page ──
    About 66 characters a line (a book's measure, not the web's 90+), line
-   height 1.5, half a line between paragraphs, a chapter's heading given
+   height 1.5, half a line between paragraphs, headings given
    room above and below. */
 :root { --w-text: 660px; }
 .article-col, .body-text, .lead-list li, .article-col ol li { line-height: 30px; }
 .body-text { margin: 0 0 15px; text-rendering: optimizeLegibility; hanging-punctuation: first allow-end last; }
 .lead-list, .article-col ol { margin: 0 0 15px; padding-left: 28px; }
-.heading-2 { margin: 80px 0 30px; }
+.heading-2 { font-family: var(--font-body); font-weight: 600; font-size: 26px; line-height: 34px; letter-spacing: 0; margin: 64px 0 20px; }
 .heading-3 { margin: 40px 0 15px; }
 /* the intro as an epigraph: narrower, italic, centred */
 .post-standfirst { max-width: 540px; margin: 0 auto 56px; font-size: 21px; line-height: 31px; color: var(--ink); }
-/* the contents list as a book's contents page: a centred title, chapters numbered */
-.toc-inline { margin: 0 auto 72px; max-width: 420px; counter-reset: toc; }
-.toc-inline::before {
-  content: attr(data-contents); display: block; text-align: center; margin-bottom: 18px;
-  font: 600 22px/30px var(--font-body); color: var(--ink-strong);
-}
-.toc-inline ul { list-style: none; padding: 0; }
-.toc-inline li { display: flex; gap: 14px; line-height: 32px; }
-.toc-inline li:not(.sub)::before { counter-increment: toc; content: counter(toc, upper-roman) '.'; flex: none; width: 34px; text-align: right; color: var(--ink-dim); }
-.toc-inline li.sub { margin-left: 0; list-style: none; }
-.toc-inline li.sub::before { content: ''; flex: none; width: 34px; }
-.toc-inline a { text-decoration: none; border-bottom: 1px dotted var(--rule-strong); }
-.toc-inline li.sub a { font-style: italic; }
 /* a scene break: three stars, as in a novel */
 .article-col hr { border: 0; height: auto; margin: 40px 0; text-align: center; }
 .article-col hr::before { content: '*\2003*\2003*'; color: var(--ink-dim); }
@@ -879,7 +848,6 @@ body::before {
 .post-bar { gap: 28px; }
 @media (--bp-760) {
   .post-standfirst { font-size: 19px; line-height: 28px; margin-bottom: 40px; }
-  .toc-inline { margin-bottom: 48px; }
   .heading-2 { margin-top: 56px; }
 }
 /* the page's top margin: text scrolls away under paper, not under the nav */

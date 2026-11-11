@@ -347,11 +347,6 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
         <main class="article-col" id="main-content" tabindex="-1" data-label-anchor={i18n.linkToSection}>
           <!-- the summary, set apart as the piece's italic intro -->
           <p class="post-standfirst">{d.description}</p>
-          {toc.length > 1 && (
-            <nav class="toc-inline" aria-label={i18n.onThisPage} data-contents={lang === 'es' ? 'Índice' : 'Contents'}>
-              <ul>{toc.map((h) => <li class:list={[h.sub && 'sub']}><a href={'#' + h.slug}>{h.text}</a></li>)}</ul>
-            </nav>
-          )}
           <slot />
         </main>
       </div>
