@@ -37,7 +37,7 @@
       inks: [['#d6d6d6', '#6a6a6a', '#333333'], ['#c2c2c2', '#5c5c5c', '#2c2c2c'], ['#e6e6e6', '#787878', '#3a3a3a']] },
     spring: { kind: 'petal', count: 18, size: [16, 26], fall: 11, sway: 16, wind: 10, tumble: 0.55,
       inks: [['#e8e8e8', '#9a9a9a', '#5a5a5a'], ['#f2f2f2', '#b0b0b0', '#666666'], ['#ffffff', '#c4c4c4', '#707070']] },
-    winter: { kind: 'snow', count: 16, size: [22, 46], fall: [10, 24], sway: 5, wind: 3,
+    winter: { kind: 'snow', count: 20, size: [12, 26], fall: [10, 24], sway: 5, wind: 3,
       inks: ['#ffffff', '#d4deec', '#8d9bb0'] },                      // [arms, branches, far crystals]
     summer: { kind: 'firefly', count: 30, fall: [6, 14],
       inks: ['#fbf6b4', '#c9c35a'] }                                  // [core, glow]
@@ -76,7 +76,8 @@
     { arm: branches([[0.38, 0.3], [0.62, 0.24], [0.82, 0.14]]) },                                 // stellar dendrite
     { arm: branches([[0.25, 0.2], [0.38, 0.28], [0.51, 0.26], [0.64, 0.21], [0.77, 0.15], [0.88, 0.09]]) }, // fernlike dendrite
     { arm: branches([[0.8, 0.16]]), ring: 0.5 },                                                  // sectored plate
-    { arm: branches([[0.62, 0.32]]) }                                                             // simple star, forked arms
+    { arm: branches([[0.62, 0.32]]) },                                                            // simple star, forked arms
+    { arm: [[0, 1, 0]] }                                                                          // plain six arms
   ];
 
   // first=true scatters the opening set across the hero
@@ -92,8 +93,9 @@
       b.pitch = rnd(0, 6.28); b.pitchRate = rnd(0.2, 0.45); b.spin = rnd(0, 6.28); b.spinRate = rnd(-0.2, 0.2) * (k === 'petal' ? 3 : 1);
     } else if (k === 'snow'){
       b.x = rnd(-0.05 * W, W); b.y = first ? rnd(0, H) : rnd(-40, -16);
-      // far (small) crystals get the plain forked star: finer designs clump into a blob when small
-      b.design = near < 0.35 ? CRYSTALS[3] : CRYSTALS[Math.floor(Math.random() * CRYSTALS.length)];
+      // finer designs clump into a blob when small: far crystals are plain six arms, middle ones
+      // forked stars, only the nearest (biggest) get the branched designs
+      b.design = near < 0.35 ? CRYSTALS[4] : near < 0.7 ? CRYSTALS[3] : CRYSTALS[Math.floor(Math.random() * 3)];
       b.spin = rnd(0, A); b.spinRate = rnd(0.08, 0.25) * (Math.random() < 0.5 ? -1 : 1);
       b.rock = rnd(0, 6.28); b.rockRate = rnd(0.4, 0.8);            // a falling plate rocks a little, so it foreshortens
     } else {
