@@ -1,4 +1,4 @@
-/* Leaves that come loose from the ASCII vine (word-vine.js) and fall across
+/* Leaves that come loose from the left edge and fall across
    the homepage hero. The idea is kartik.to's falling leaves, rebuilt for this
    site in Canvas2D instead of a second WebGL context: each leaf is a shape
    worked out per 2px grid cell and drawn as small pixel art in three shades
@@ -50,9 +50,8 @@
     W = r.width; H = r.height; dpr = Math.min(2, devicePixelRatio || 1);
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var line = host.querySelector('.hero-line'), vine = document.getElementById('word-vine');
+    var line = host.querySelector('.hero-line');
     if (line){ var l = line.getBoundingClientRect(), m = 14; words = { x: l.left - r.left - m, y: l.top - r.top - m, w: l.width + 2 * m, h: l.height + 2 * m }; }
-    if (vine && vine.offsetWidth) vineW = vine.offsetWidth;
     var n = Math.round(CFG.count * Math.min(1, Math.max(0.55, W / 1440)));
     while (leaves.length < n) leaves.push(spawn(true));
     leaves.length = n;

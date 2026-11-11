@@ -98,7 +98,7 @@
   document.addEventListener('astro:after-preparation', function(){ h.classList.add('vt-bg'); });
   document.addEventListener('astro:page-load', function(){ stay(); if (!document.startViewTransition) h.classList.remove('vt-bg'); });
   function leave(a){
-    var keep = [].filter.call(document.querySelectorAll('#site-identity, #site-nav, #sky-stage, #sky, #px-clouds, #word-vine, .sky-life, .page-grain, [style*="view-transition-name"]'),
+    var keep = [].filter.call(document.querySelectorAll('#site-identity, #site-nav, #sky-stage, #sky, #px-clouds, .sky-life, .page-grain, [style*="view-transition-name"]'),
       function(el){ return !el.classList.contains('pw-img') || a.contains(el); }); // Home: only the clicked project's picture travels
     (function walk(list){
       [].forEach.call(list, function(el){
@@ -148,17 +148,16 @@
   #sky{ view-transition-name:sky; }
   .sky-life{ view-transition-name:sky-life; }
   #px-clouds{ view-transition-name:sky-clouds; }
-  #word-vine{ view-transition-name:sky-vine; }
   /* named layers paint above the page by default; the (opaque) sky belongs under it */
   ::view-transition-group(sky), ::view-transition-group(sky-life),
-  ::view-transition-group(sky-clouds), ::view-transition-group(sky-vine){ z-index:-1; animation:none; }
+  ::view-transition-group(sky-clouds){ z-index:-1; animation:none; }
   /* the jellyfish clips have black grounds that the layer's screen blend
      drops (SkyLife.astro); a snapshot loses that, so blend the group itself */
   ::view-transition-group(sky-life){ mix-blend-mode:screen; }
   ::view-transition-old(sky), ::view-transition-old(sky-life),
-  ::view-transition-old(sky-clouds), ::view-transition-old(sky-vine){ display:none; }
+  ::view-transition-old(sky-clouds){ display:none; }
   ::view-transition-new(sky), ::view-transition-new(sky-life),
-  ::view-transition-new(sky-clouds), ::view-transition-new(sky-vine){ animation:none; opacity:1; }
+  ::view-transition-new(sky-clouds){ animation:none; opacity:1; }
   /* project frames: the one that has a partner on the next page morphs;
      the rest (:only-child below) leave and arrive with the content */
   .pw-img, .wk-img{ view-transition-class:work; }

@@ -84,9 +84,7 @@ window.SITE=window.SITE||{};
 <ClientRouter fallback="swap" />
 <Motion />
 <style is:global>
-/* the ASCII plant up the left edge (/scripts/word-vine.js), behind the page; homepage only */
-#word-vine{ display:block; }
-/* leaves falling off the vine (vine-leaves.js), over the sky, under the hero sentence */
+/* falling leaves (vine-leaves.js), over the sky, under the hero sentence */
 #vine-leaves{ position:absolute; inset:0; width:100%; height:100%; z-index:5; pointer-events:none; }
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -281,7 +279,6 @@ footer#site-footer{
 
 
 <SiteSky />
-<script is:inline defer src="/scripts/word-vine.js"></script>
 <script is:inline defer src="/scripts/vine-leaves.js"></script>
 
 
