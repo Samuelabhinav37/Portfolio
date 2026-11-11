@@ -52,6 +52,13 @@
 .kai.blushing .kai-face .blush { opacity: .32; }
 .kai.dim .kai-face { opacity: .55; }
 .kai.lite .kai-face .glowing { filter: none; }
+/* the theme switch: a sun or moon replaces the face for a moment (screenIcon in kai-life.js) */
+.kai-face .kai-icon { fill: var(--kai-eye); opacity: 0; transform: scale(.6); transform-origin: 500px 480px; transition: opacity .35s ease, transform .45s cubic-bezier(.2, 1.4, .4, 1); }
+.kai-face .glowing:not(.kai-icons), .kai-face .bar { transition: opacity .25s ease; }
+/* !important: render() sets each mouth bar's opacity inline every frame */
+.kai.showing-icon .kai-face .glowing:not(.kai-icons), .kai.showing-icon .kai-face .bar { opacity: 0 !important; }
+.kai.showing-icon[data-screen="sun"] .kai-icon[data-icon="sun"],
+.kai.showing-icon[data-screen="moon"] .kai-icon[data-icon="moon"] { opacity: 1; transform: none; }
 .kai-shadow {
   position: absolute;
   left: 18cqw; width: 64cqw;
@@ -74,7 +81,7 @@
 }
 .kai-emote.small { font-size: 9cqw; }
 @media (prefers-reduced-motion: reduce) {
-  .kai-ant, .kai-face, .kai-face .blush { transition: none; }
+  .kai-ant, .kai-face, .kai-face .blush, .kai-face .kai-icon { transition: none; }
 }
 /* confetti bits from Kai.prototype.confetti (kai-life.js) */
 .kai-bit {

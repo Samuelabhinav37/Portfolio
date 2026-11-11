@@ -219,6 +219,13 @@
     this.ant = root.querySelector('.kai-ant');
     this.shadow = root.querySelector('.kai-shadow');
     this.buildFace(root.querySelector('.kai-head'));
+    // when someone flips the site's theme (theme.js sends 'theme:change'), the screen shows a sun or a
+    // moon for a moment. The event also fires on load, so only a real change of theme counts
+    var self0 = this, theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'sun' : 'moon';
+    document.addEventListener('theme:change', function () {
+      var now = document.documentElement.getAttribute('data-theme') === 'light' ? 'sun' : 'moon';
+      if (now !== theme){ theme = now; self0.screenIcon(now); }
+    });
 
     // state
     this.mood = 'neutral'; this.moodUntil = 0; this.base = 'neutral';
@@ -297,8 +304,29 @@
     });
     // mouth: three bars
     this.bars = [0, 1, 2].map(function (i) { return el('rect', { class: 'bar', width: MOUTH.w, height: MOUTH.h, rx: MOUTH.h / 2 }, svg); });
+    // a sun and a moon for the screen (screenIcon), glowing like the eyes; hidden until shown
+    var icons = el('g', { class: 'glowing kai-icons', filter: 'url(#' + id + 'glow)' }, svg);
+    var sun = el('g', { class: 'kai-icon', 'data-icon': 'sun' }, icons);
+    el('circle', { cx: 500, cy: 480, r: 105 }, sun);
+    for (var r = 0; r < 8; r++)
+      el('rect', { x: 484, y: 260, width: 32, height: 70, rx: 16, transform: 'rotate(' + r * 45 + ' 500 480)' }, sun);
+    var moon = el('g', { class: 'kai-icon', 'data-icon': 'moon' }, icons);
+    // a crescent: a disc with an offset disc cut out of it
+    var cut = el('mask', { id: id + 'moon', maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 1000, height: 969 }, defs);
+    el('rect', { x: 0, y: 0, width: 1000, height: 969, fill: '#fff' }, cut);
+    el('circle', { cx: 585, cy: 405, r: 165, fill: '#000' }, cut);
+    el('circle', { cx: 500, cy: 480, r: 190, mask: 'url(#' + id + 'moon)' }, moon);
     this.face = svg;
     head.appendChild(svg);
+  };
+
+  // swap the face for a sun or moon on the screen for ms, then back
+  Kai.prototype.screenIcon = function (kind, ms) {
+    var root = this.root;
+    root.setAttribute('data-screen', kind);
+    root.classList.add('showing-icon');
+    clearTimeout(this.iconTimer);
+    this.iconTimer = setTimeout(function () { root.classList.remove('showing-icon'); }, ms || 1800);
   };
 
   Kai.prototype.start = function () {

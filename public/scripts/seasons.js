@@ -1,10 +1,9 @@
 /* What falls across the homepage hero changes with the season, all drawn as
-   small pixel art on one 2px grid like the pixel clouds. Night sky only,
-   except winter's snow, which falls on the day sky too:
+   small pixel art on one 2px grid like the pixel clouds, in day and night colours:
      autumn  leaves come loose from the left edge and tumble (Sep-Nov)
      winter  snow crystals, slowly turning (Dec-Feb)
      spring  petals, lighter than leaves, fluttering more (Mar-May)
-     summer  fireflies wandering and blinking (Jun-Aug)
+     summer  fireflies at night, dandelion seeds rising by day (Jun-Aug)
    The season comes from the date (northern seasons). ?season=winter etc.
    forces one; ?seasons shows a small switch (preview only, not linked).
 
@@ -18,8 +17,8 @@
    rock while they fall. No single-pixel flakes: those read as stars.
    Nearer pieces are bigger, faster and brighter. Everything thins out behind
    the hero sentence so it stays readable.
-   Cost: about 30fps, only while the hero is on screen, the tab visible and the
-   season shows in this theme; one still frame for reduced motion; off on narrow screens
+   Cost: about 30fps, only while the hero is on screen and the tab visible;
+   one still frame for reduced motion; off on narrow screens
    and touch. window.seasons.set({ season: 'winter' }) changes it live. */
 (window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   var host = document.getElementById('term-screen');
@@ -27,23 +26,25 @@
   var root = document.documentElement;
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function night(){ return root.getAttribute('data-theme') !== 'light'; }
-  // only seasons with day colours (winter) draw on the day sky
-  function shows(){ return night() || !!CFG.day; }
 
   // per season: kind of piece, how many on a 1440px wide screen, sizes far .. near (css px),
-  // css px per second, and colours. Night is nearly colourless (rod vision), so greys,
-  // except the fireflies' own light and the crystals' faint ice blue.
+  // css px per second, and colours [night, day]. Night is nearly colourless (rod vision), so
+  // greys, except the fireflies' own light and the crystals' faint ice blue.
   var SEASONS = {
     autumn: { kind: 'leaf', count: 11, size: [14, 26], fall: 9, sway: 7, wind: 5, tumble: 0.8,
       // [moonlit rim, body, veins and outline] per leaf: only the lit side's outline catches the moon
-      inks: [['#d6d6d6', '#6a6a6a', '#333333'], ['#c2c2c2', '#5c5c5c', '#2c2c2c'], ['#e6e6e6', '#787878', '#3a3a3a']] },
+      inks: [['#d6d6d6', '#6a6a6a', '#333333'], ['#c2c2c2', '#5c5c5c', '#2c2c2c'], ['#e6e6e6', '#787878', '#3a3a3a']],
+      // day [lit half, body, veins and outline]: a dry tan, a sage, a rust
+      day: [['#b98b55', '#93693a', '#5f4121'], ['#8c9c7e', '#6b7a5e', '#46523d'], ['#b4704a', '#8d5032', '#5a321e']] },
     spring: { kind: 'petal', count: 18, size: [16, 26], fall: 11, sway: 16, wind: 10, tumble: 0.55,
-      inks: [['#e8e8e8', '#9a9a9a', '#5a5a5a'], ['#f2f2f2', '#b0b0b0', '#666666'], ['#ffffff', '#c4c4c4', '#707070']] },
-    winter: { kind: 'snow', count: 24, size: [8, 18], fall: [10, 24], sway: 5, wind: 3,
+      inks: [['#e8e8e8', '#9a9a9a', '#5a5a5a'], ['#f2f2f2', '#b0b0b0', '#666666'], ['#ffffff', '#c4c4c4', '#707070']],
+      day: [['#ffe4ee', '#f2a7c3', '#b8607f'], ['#fff0f5', '#f6c3d5', '#c47f97'], ['#ffffff', '#f6e9ee', '#b98f9e']] }, // cherry pink, blush, white
+    winter: { kind: 'snow', count: 24, size: [10, 22], fall: [10, 24], sway: 5, wind: 3,
       inks: ['#ffffff', '#d4deec', '#8d9bb0'],                        // [arms, branches, far crystals]
       day: ['#ffffff', '#f1f6fd', '#dce7f5'] },                       // white on the blue sky, far ones paler
-    summer: { kind: 'firefly', count: 30, fall: [6, 14],
-      inks: ['#fbf6b4', '#c9c35a'] }                                  // [core, glow]
+    summer: { kind: 'firefly', count: 30, fall: [6, 14], sway: 8, wind: 6,
+      inks: ['#fbf6b4', '#c9c35a'],                                   // fireflies [core, glow]
+      day: ['#ffffff', '#c9bfa4'] }                                   // seeds [tuft, stem]
   };
   var MONTH = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
   var pick = /[?&]season=(autumn|winter|spring|summer)/.exec(location.search);
@@ -101,9 +102,13 @@
       b.design = near < 0.4 ? CRYSTALS[4] : near < 0.8 ? CRYSTALS[3] : CRYSTALS[Math.floor(Math.random() * 3)];
       b.spin = rnd(0, A); b.spinRate = rnd(0.08, 0.25) * (Math.random() < 0.5 ? -1 : 1);
       b.rock = rnd(0, 6.28); b.rockRate = rnd(0.4, 0.8);            // a falling plate rocks a little, so it foreshortens
-    } else {
+    } else if (night()){
+      // summer night: fireflies wander the lower sky
       b.x = rnd(0, W); b.y = rnd(H * 0.15, H);
       b.dx = rnd(-1, 1); b.dy = rnd(-1, 1); b.blink = rnd(0, 6.28); b.blinkRate = rnd(0.6, 1.3);
+    } else {
+      // summer day: dandelion seeds rise from the bottom left
+      b.x = first ? rnd(0, W) : rnd(-20, W * 0.4); b.y = first ? rnd(H * 0.1, H) : H + 10;
     }
     return b;
   }
@@ -124,6 +129,11 @@
         f.y += (CFG.fall[0] + (CFG.fall[1] - CFG.fall[0]) * f.near) * dt;
         f.spin += f.spinRate * dt; f.rock += f.rockRate * dt;
         if (f.y - CFG.size[1] > H || f.x - CFG.size[1] > W) bits[i] = spawn(false);
+      } else if (!night()){
+        // seeds: rise on warm air, sway, drift right
+        f.x += (CFG.wind * e + CFG.sway * Math.cos(f.swing)) * dt;
+        f.y -= (CFG.fall[0] + (CFG.fall[1] - CFG.fall[0]) * f.near) * (0.6 + 0.4 * Math.abs(Math.cos(f.swing))) * dt;
+        if (f.y < -20 || f.x > W + 20) bits[i] = spawn(false);
       } else {
         // fireflies: a slow wander that turns gently, and a blink
         f.dx += rnd(-0.6, 0.6) * dt; f.dy += rnd(-0.6, 0.6) * dt;
@@ -163,7 +173,7 @@
     var x = gx * CELL, y = gy * CELL;
     ctx.globalAlpha = behindWords(x, y) ? 0.25 : 1; ctx.fillStyle = col; ctx.fillRect(x, y, CELL, CELL);
   }
-  function drawTumbler(f, pal, shape){
+  function drawTumbler(f, pal, shape, dark){
     var size = CFG.size[0] + (CFG.size[1] - CFG.size[0]) * f.near, R = size / 2, turn = Math.PI / 2 * CFG.tumble;
     var ey = Math.cos(turn * Math.sin(f.yaw)), ep = Math.cos(0.6 * turn * Math.sin(f.pitch));
     var sy = Math.max(0.12, Math.abs(ey)), sp = Math.max(0.35, Math.abs(ep));
@@ -177,9 +187,10 @@
       var dx = gx * CELL + 1 - f.x, dy = gy * CELL + 1 - f.y;
       var k = shape((dx * co + dy * si) / (R * sp), (-dx * si + dy * co) / (R * sy));
       if (!k) continue;
-      var rim = !edgeOn && k === (flip ? 5 : 4), body = k === 1 || k === 2;
-      // dark body, outlines and veins darker, only the lit side's outline moonlit
-      cell(gx, gy, pal[rim ? 0 : body ? 1 : 2]);
+      var lit = !edgeOn && k === (flip ? 2 : 1), rim = !edgeOn && k === (flip ? 5 : 4), body = k === 1 || k === 2;
+      // shade 0 light, 1 base, 2 dark. Day: lit half light, outlines and veins dark.
+      // Night: dark body, outlines and veins darker, only the lit side's outline moonlit
+      cell(gx, gy, pal[dark ? (rim ? 0 : body ? 1 : 2) : (lit ? 0 : body ? 1 : 2)]);
     }
   }
   // a crystal: every segment of its six arms walked in half-cell steps onto the grid; each cell
@@ -223,17 +234,25 @@
     }
     ctx.globalAlpha = b; ctx.fillStyle = pal[0]; ctx.fillRect(gx * CELL, gy * CELL, CELL * 2, CELL * 2);
   }
+  // a dandelion seed: a fan of fine hairs over a short stem
+  var TUFT = [[-2, -1], [-1, -2], [0, -2], [1, -2], [2, -1], [-3, 0], [3, 0], [0, -1]];
+  function drawSeed(f, pal){
+    var gx = Math.round(f.x / CELL), gy = Math.round(f.y / CELL);
+    for (var a = 0; a < TUFT.length; a++) if (f.near > 0.5 || a % 2 === 0) cell(gx + TUFT[a][0], gy + TUFT[a][1], pal[0]);
+    cell(gx, gy, pal[1]); cell(gx, gy + 1, pal[1]);
+  }
 
   function draw(){
     ctx.clearRect(0, 0, W, H);
-    if (!shows() || paused) return;
-    var k = CFG.kind, inks = night() ? CFG.inks : CFG.day;
+    if (paused) return;
+    var k = CFG.kind, dark = night(), inks = dark ? CFG.inks : CFG.day;
     for (var i = 0; i < bits.length; i++){
       var f = bits[i];
-      if (k === 'leaf') drawTumbler(f, inks[f.ink], leafShape);
-      else if (k === 'petal') drawTumbler(f, inks[f.ink], petalShape);
+      if (k === 'leaf') drawTumbler(f, inks[f.ink], leafShape, dark);
+      else if (k === 'petal') drawTumbler(f, inks[f.ink], petalShape, dark);
       else if (k === 'snow') drawCrystal(f, inks);
-      else drawFirefly(f, inks);
+      else if (dark) drawFirefly(f, inks);
+      else drawSeed(f, inks);
     }
     ctx.globalAlpha = 1;
   }
@@ -248,24 +267,25 @@
   var raf = 0, last = 0, seen = true;
   function frame(now){
     raf = 0;
-    if (signal.aborted || document.hidden || !seen || paused || !shows()) return;
+    if (signal.aborted || document.hidden || !seen || paused) return;
     raf = requestAnimationFrame(frame);
     if (now - last < 1000 / 30 - 2) return; // about 30fps
     var dt = last ? Math.min(0.1, (now - last) / 1000) : 0; last = now;
     step(dt); draw();
   }
-  function run(){ if (!raf && !still && !paused && shows()){ last = 0; raf = requestAnimationFrame(frame); } }
+  function run(){ if (!raf && !still && !paused){ last = 0; raf = requestAnimationFrame(frame); } }
 
   // preview switch (?seasons): pick a season, pause. Not linked anywhere yet.
   function switcher(){
     var bar = document.createElement('div'); bar.id = 'season-switch';
     var s = bar.style; s.position = 'fixed'; s.left = '16px'; s.bottom = '16px'; s.zIndex = '9999'; s.display = 'flex'; s.gap = '4px';
     s.padding = '6px'; s.borderRadius = '10px'; s.background = 'rgba(15,17,24,.82)'; s.font = '500 12px Inter Tight, system-ui, sans-serif';
-    ['spring', 'summer', 'autumn', 'winter', 'pause'].forEach(function(name){
+    ['spring', 'summer', 'autumn', 'winter', 'pause', 'rays'].forEach(function(name){
       var b = document.createElement('button'); b.type = 'button'; b.textContent = name[0].toUpperCase() + name.slice(1);
       var t = b.style; t.border = '0'; t.borderRadius = '6px'; t.padding = '6px 10px'; t.cursor = 'pointer'; t.font = 'inherit';
       b.addEventListener('click', function(){
         if (name === 'pause'){ set({ paused: !paused }); b.textContent = paused ? 'Play' : 'Pause'; }
+        else if (name === 'rays'){ var r = window.lightRays; if (r){ r.set({ on: !r.on }); b.textContent = r.on ? 'Rays' : 'No rays'; } }
         else set({ season: name });
         paint();
       });
@@ -275,12 +295,6 @@
       b.style.background = on ? '#e9ecf7' : 'transparent'; b.style.color = on ? '#141722' : '#e9ecf7'; }); }
     paint(); document.body.appendChild(bar);
     document.addEventListener('season:change', paint, { signal: signal });
-    // seasons only draw at night: say so on the day sky, or every button looks dead
-    var note = document.createElement('span'); note.textContent = 'This season is night only: switch to the moon';
-    note.style.color = '#e9ecf7'; note.style.padding = '6px 8px'; note.style.opacity = '.75';
-    bar.appendChild(note);
-    function hint(){ note.style.display = shows() ? 'none' : ''; }
-    hint(); document.addEventListener('theme:change', hint, { signal: signal }); document.addEventListener('season:change', hint, { signal: signal });
     signal.addEventListener('abort', function(){ bar.remove(); });
   }
 
@@ -294,7 +308,8 @@
     var rt = 0;
     addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ measure(); draw(); }, 150); }, { signal: signal });
     document.addEventListener('visibilitychange', run, { signal: signal });
-    document.addEventListener('theme:change', function(){ draw(); run(); }, { signal: signal });
+    // summer swaps fireflies for seeds: they live in different places, so start that set over
+    document.addEventListener('theme:change', function(){ if (CFG.kind === 'firefly'){ bits = []; measure(); } draw(); run(); }, { signal: signal });
     signal.addEventListener('abort', function(){ io.disconnect(); if (raf) cancelAnimationFrame(raf); cv.remove(); });
     run();
   });

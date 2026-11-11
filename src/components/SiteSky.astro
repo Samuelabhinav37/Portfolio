@@ -23,6 +23,8 @@ import SkyLife from './SkyLife.astro';
 </div>
 <!-- pixel-art clouds over the day sky only; built on first switch to light -->
 <script is:inline defer src="/scripts/pixel-clouds.js?v=3"></script>
+<!-- sunbeams by day, moonbeams by night, dithered like the pixel clouds -->
+<script is:inline defer src="/scripts/light-rays.js"></script>
 <!-- halo for the jellyfish in light mode: the clip plus two blurred copies of itself -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 
