@@ -55,15 +55,12 @@ file; set `season = MONTH[new Date().getMonth()]` and drop `byTheme()`.
 - Moonbeams: cool and fainter (`TONE.night`). Lunar crepuscular rays are real: moonlight
   through gaps in cloud, made visible by haze, and they come and go as clouds cross the
   moon ([Atmospheric Optics](https://atoptics.co.uk/blog/lunar-rays/)).
-- Small motion (2026-11-11):
-  - each beam breathes (strength) and sways (angle) on its own slow clock;
-  - a passing cloud: every 45s a soft shadow sweeps across the beams in 30s, dimming them
-    one after another;
-  - dust motes (Tyndall effect): specks drift down and sway, and only light up inside a
-    beam, brighter in a stronger one. The usual "floating dust in a light shaft" touch in
-    game VFX ([Foundry animated light rays](https://foundryvtt.com/packages/animated-light-rays-by-mattm),
-    [Unreal forum](https://forums.unrealengine.com/t/stylized-fake-animated-light-shafts-with-fireflies/1941111)).
-    About 8 of 56 are lit at a time.
+- Tried and removed (2026-11-11, user preferred the plain breathing beams): a passing
+  cloud's shadow sweeping across the beams every 45s, and dust motes lit only inside a
+  beam (Tyndall effect; the usual touch in game VFX:
+  [Foundry animated light rays](https://foundryvtt.com/packages/animated-light-rays-by-mattm),
+  [Unreal forum](https://forums.unrealengine.com/t/stylized-fake-animated-light-shafts-with-fireflies/1941111)).
+  Code in commit c510dff.
 
 ## Still open
 
