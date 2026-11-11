@@ -1,6 +1,6 @@
 /* What falls across the homepage hero changes with the season, all drawn as
-   small pixel art on one 2px grid like the pixel clouds. Night sky only (the
-   day sky stays clear):
+   small pixel art on one 2px grid like the pixel clouds. Night sky only,
+   except winter's snow, which falls on the day sky too:
      autumn  leaves come loose from the left edge and tumble (Sep-Nov)
      winter  snow crystals, slowly turning (Dec-Feb)
      spring  petals, lighter than leaves, fluttering more (Mar-May)
@@ -19,7 +19,7 @@
    Nearer pieces are bigger, faster and brighter. Everything thins out behind
    the hero sentence so it stays readable.
    Cost: about 30fps, only while the hero is on screen, the tab visible and the
-   night theme on; one still frame for reduced motion; off on narrow screens
+   season shows in this theme; one still frame for reduced motion; off on narrow screens
    and touch. window.seasons.set({ season: 'winter' }) changes it live. */
 (window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   var host = document.getElementById('term-screen');
@@ -27,6 +27,8 @@
   var root = document.documentElement;
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function night(){ return root.getAttribute('data-theme') !== 'light'; }
+  // only seasons with day colours (winter) draw on the day sky
+  function shows(){ return night() || !!CFG.day; }
 
   // per season: kind of piece, how many on a 1440px wide screen, sizes far .. near (css px),
   // css px per second, and colours. Night is nearly colourless (rod vision), so greys,
@@ -37,8 +39,9 @@
       inks: [['#d6d6d6', '#6a6a6a', '#333333'], ['#c2c2c2', '#5c5c5c', '#2c2c2c'], ['#e6e6e6', '#787878', '#3a3a3a']] },
     spring: { kind: 'petal', count: 18, size: [16, 26], fall: 11, sway: 16, wind: 10, tumble: 0.55,
       inks: [['#e8e8e8', '#9a9a9a', '#5a5a5a'], ['#f2f2f2', '#b0b0b0', '#666666'], ['#ffffff', '#c4c4c4', '#707070']] },
-    winter: { kind: 'snow', count: 20, size: [12, 26], fall: [10, 24], sway: 5, wind: 3,
-      inks: ['#ffffff', '#d4deec', '#8d9bb0'] },                      // [arms, branches, far crystals]
+    winter: { kind: 'snow', count: 24, size: [8, 18], fall: [10, 24], sway: 5, wind: 3,
+      inks: ['#ffffff', '#d4deec', '#8d9bb0'],                        // [arms, branches, far crystals]
+      day: ['#ffffff', '#f1f6fd', '#dce7f5'] },                       // white on the blue sky, far ones paler
     summer: { kind: 'firefly', count: 30, fall: [6, 14],
       inks: ['#fbf6b4', '#c9c35a'] }                                  // [core, glow]
   };
@@ -95,7 +98,7 @@
       b.x = rnd(-0.05 * W, W); b.y = first ? rnd(0, H) : rnd(-40, -16);
       // finer designs clump into a blob when small: far crystals are plain six arms, middle ones
       // forked stars, only the nearest (biggest) get the branched designs
-      b.design = near < 0.35 ? CRYSTALS[4] : near < 0.7 ? CRYSTALS[3] : CRYSTALS[Math.floor(Math.random() * 3)];
+      b.design = near < 0.4 ? CRYSTALS[4] : near < 0.8 ? CRYSTALS[3] : CRYSTALS[Math.floor(Math.random() * 3)];
       b.spin = rnd(0, A); b.spinRate = rnd(0.08, 0.25) * (Math.random() < 0.5 ? -1 : 1);
       b.rock = rnd(0, 6.28); b.rockRate = rnd(0.4, 0.8);            // a falling plate rocks a little, so it foreshortens
     } else {
@@ -223,8 +226,8 @@
 
   function draw(){
     ctx.clearRect(0, 0, W, H);
-    if (!night() || paused) return;
-    var k = CFG.kind, inks = CFG.inks;
+    if (!shows() || paused) return;
+    var k = CFG.kind, inks = night() ? CFG.inks : CFG.day;
     for (var i = 0; i < bits.length; i++){
       var f = bits[i];
       if (k === 'leaf') drawTumbler(f, inks[f.ink], leafShape);
@@ -245,13 +248,13 @@
   var raf = 0, last = 0, seen = true;
   function frame(now){
     raf = 0;
-    if (signal.aborted || document.hidden || !seen || paused || !night()) return;
+    if (signal.aborted || document.hidden || !seen || paused || !shows()) return;
     raf = requestAnimationFrame(frame);
     if (now - last < 1000 / 30 - 2) return; // about 30fps
     var dt = last ? Math.min(0.1, (now - last) / 1000) : 0; last = now;
     step(dt); draw();
   }
-  function run(){ if (!raf && !still && !paused && night()){ last = 0; raf = requestAnimationFrame(frame); } }
+  function run(){ if (!raf && !still && !paused && shows()){ last = 0; raf = requestAnimationFrame(frame); } }
 
   // preview switch (?seasons): pick a season, pause. Not linked anywhere yet.
   function switcher(){
@@ -273,11 +276,11 @@
     paint(); document.body.appendChild(bar);
     document.addEventListener('season:change', paint, { signal: signal });
     // seasons only draw at night: say so on the day sky, or every button looks dead
-    var note = document.createElement('span'); note.textContent = 'Night only: switch to the moon';
+    var note = document.createElement('span'); note.textContent = 'This season is night only: switch to the moon';
     note.style.color = '#e9ecf7'; note.style.padding = '6px 8px'; note.style.opacity = '.75';
     bar.appendChild(note);
-    function hint(){ note.style.display = night() ? 'none' : ''; }
-    hint(); document.addEventListener('theme:change', hint, { signal: signal });
+    function hint(){ note.style.display = shows() ? 'none' : ''; }
+    hint(); document.addEventListener('theme:change', hint, { signal: signal }); document.addEventListener('season:change', hint, { signal: signal });
     signal.addEventListener('abort', function(){ bar.remove(); });
   }
 
