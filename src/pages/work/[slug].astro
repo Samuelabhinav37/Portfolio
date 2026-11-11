@@ -38,6 +38,8 @@ window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(
 <meta name="color-scheme" content="dark">
 <meta name="darkreader-lock">
 <title>{title}</title>
+<!-- the tab types the project's name ("Moat") behind a blinking cursor, as the other pages do; <title> keeps the full name for search and shares -->
+<script is:inline src="/scripts/title-manager.js"></script>
 <meta name="description" content={p.line}>
 <link rel="canonical" href={url}>
 <meta property="og:type" content="website">
