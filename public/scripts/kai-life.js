@@ -326,7 +326,7 @@
     root.setAttribute('data-screen', kind);
     root.classList.add('showing-icon');
     clearTimeout(this.iconTimer);
-    this.iconTimer = setTimeout(function () { root.classList.remove('showing-icon'); }, ms || 1800);
+    this.iconTimer = setTimeout(function () { root.classList.remove('showing-icon'); }, ms || 2800);
   };
 
   Kai.prototype.start = function () {

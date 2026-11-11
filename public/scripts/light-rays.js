@@ -1,4 +1,5 @@
-/* Light rays over the sky (SiteSky.astro): sunbeams by day, moonbeams by night.
+/* Light rays over the sky (SiteSky.astro): sunbeams on the day sky. Moonbeams
+   (TONE.night) are kept for later but off: the night sky has its fireflies.
    Crepuscular rays fan out from a light just off the top right of the screen
    (where the nav's sun/moon switch sits), slowly drifting and breathing.
 
@@ -86,12 +87,14 @@
   var raf = 0, last = 0, t0 = performance.now();
   function frame(now){
     raf = 0;
-    if (document.hidden || !on) return;
+    if (document.hidden || !on || !day()) return;
     raf = requestAnimationFrame(frame);
     if (now - last < 1000 / 12) return;   // slow light needs few frames
     last = now; draw((now - t0) / 1000);
   }
-  function run(){ if (!on){ ctx.clearRect(0, 0, gw, gh); return; } draw((performance.now() - t0) / 1000); if (!raf && !still) raf = requestAnimationFrame(frame); }
+  // day only for now: the night sky keeps its fireflies to itself (TONE.night kept for later)
+  function day(){ return root.getAttribute('data-theme') === 'light'; }
+  function run(){ if (!on || !day()){ ctx.clearRect(0, 0, gw, gh); return; } draw((performance.now() - t0) / 1000); if (!raf && !still) raf = requestAnimationFrame(frame); }
 
   function start(){
     var anchor = document.getElementById('px-clouds') || document.getElementById('sky');

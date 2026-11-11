@@ -4,8 +4,9 @@
      winter  snow crystals, slowly turning (Dec-Feb)
      spring  petals, lighter than leaves, fluttering more (Mar-May)
      summer  fireflies at night, dandelion seeds rising by day (Jun-Aug)
-   The season comes from the date (northern seasons). ?season=winter etc.
-   forces one; ?seasons shows a small switch (preview only, not linked).
+   For now the theme picks: spring petals by day, summer fireflies by night
+   (MONTH, northern seasons, is kept for later). ?season=winter etc. forces
+   one; ?seasons shows a small switch (preview only, not linked).
 
    Leaves and petals, after kartik.to: each falls slower at each end of its
    swing, sways and drifts with the wind, and tumbles: turning about its length
@@ -48,8 +49,11 @@
   };
   var MONTH = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
   var pick = /[?&]season=(autumn|winter|spring|summer)/.exec(location.search);
-  var season = pick ? pick[1] : MONTH[new Date().getMonth()];
-  var CFG = SEASONS[season], paused = false;
+  // for now the theme picks, not the month: spring petals on the day sky, summer fireflies at night.
+  // The other seasons stay here for later (docs/2026-11-11-seasons-research.md); ?season= forces one
+  function byTheme(){ return night() ? 'summer' : 'spring'; }
+  var season = pick ? pick[1] : byTheme();
+  var CFG = SEASONS[season], paused = false, manual = false; // manual: picked on the preview switch
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5], CELL = 2;
 
   var cv = document.createElement('canvas');
@@ -286,7 +290,7 @@
       b.addEventListener('click', function(){
         if (name === 'pause'){ set({ paused: !paused }); b.textContent = paused ? 'Play' : 'Pause'; }
         else if (name === 'rays'){ var r = window.lightRays; if (r){ r.set({ on: !r.on }); b.textContent = r.on ? 'Rays' : 'No rays'; } }
-        else set({ season: name });
+        else { manual = true; set({ season: name }); }
         paint();
       });
       bar.appendChild(b);
@@ -309,7 +313,11 @@
     addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ measure(); draw(); }, 150); }, { signal: signal });
     document.addEventListener('visibilitychange', run, { signal: signal });
     // summer swaps fireflies for seeds: they live in different places, so start that set over
-    document.addEventListener('theme:change', function(){ if (CFG.kind === 'firefly'){ bits = []; measure(); } draw(); run(); }, { signal: signal });
+    document.addEventListener('theme:change', function(){
+      if (!pick && !manual) return set({ season: byTheme() });  // petals by day, fireflies by night
+      if (CFG.kind === 'firefly'){ bits = []; measure(); }      // fireflies and seeds live in different places
+      draw(); run();
+    }, { signal: signal });
     signal.addEventListener('abort', function(){ io.disconnect(); if (raf) cancelAnimationFrame(raf); cv.remove(); });
     run();
   });
