@@ -21,7 +21,7 @@
   var CELL = matchMedia('(max-width:900px)').matches ? 4 : 3;
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   // [r, g, b, alpha of the faint tone, alpha of the bright core]: warm sunlight, cool moonlight
-  var TONE = { day: [255, 246, 222, 0.16, 0.28], night: [196, 212, 255, 0.09, 0.16] };
+  var TONE = { day: [255, 246, 222, 0.16, 0.28], night: [196, 212, 255, 0.06, 0.11] };
   var on = true;
 
   var cv = document.createElement('canvas'); cv.id = 'light-rays'; cv.setAttribute('aria-hidden', 'true');
