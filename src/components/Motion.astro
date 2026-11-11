@@ -125,9 +125,13 @@
   html.motion [data-reveal], html.motion [data-reveal-group]{ visibility:hidden; }
   html.motion.vt-in [data-reveal], html.motion.vt-in [data-reveal-group]{ visibility:visible; }
   html.vt-bg, html.vt-bg body{ background:transparent !important; }
-  /* dithered picture reveal and scramble labels (motion.js) */
-  /* the frame's own ground until its reveal starts, so the sharp picture never shows first */
-  .dz{ position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; pointer-events:none; z-index:2; background:inherit; }
+  /* typed labels (motion.js): letters keep their place and appear in turn behind a thin caret
+     that takes no width; once done it blinks twice and fades */
+  .type-ch{ opacity:0; } .type-ch.on{ opacity:1; }
+  .type-caret{ display:inline-block; width:0; height:1em; vertical-align:-.12em; border-left:1px solid currentColor; margin-right:-1px; }
+  .type-caret.done{ animation:type-blink 1.06s steps(1) 2, type-gone .3s ease-out 2.12s forwards; }
+  @keyframes type-blink{ 50%{ opacity:0; } }
+  @keyframes type-gone{ to{ opacity:0; } }
   .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   [data-scroll-lit] .lit-w{ color:var(--lit-off, #3a3d4a); transition:color .35s var(--ease-out); }
   [data-scroll-lit] .lit-w.lit, [data-scroll-lit].is-static .lit-w{ color:var(--lit-on, #f3f5fb); }
@@ -165,30 +169,26 @@
   /* project frames: the one that has a partner on the next page morphs;
      the rest (:only-child below) leave and arrive with the content */
   .pw-img, .wk-img{ view-transition-class:work; }
-  /* The beat (measured on yuriroga.com, aspaceabout.com, junothebakery.com):
-     the old page leaves fast (160ms, starting as the next one loads), the
-     sky holds alone for a beat, the text rises in (320ms from 30px), and
-     pictures fade in last. */
+  /* A plain crossfade (oliverdupuy.com's 0.6s, cubic-bezier(.1,0,0,1)): the old
+     page fades out fast (200ms, starting as the next one loads), the new one
+     fades in over it with a strong ease-out (450ms), pictures a beat later. */
   @media (prefers-reduced-motion: no-preference){
     ::view-transition-group(*){ animation-duration:var(--dur-travel); animation-timing-function:var(--ease-inout); }
     ::view-transition-group(site-identity), ::view-transition-group(site-nav){ animation:none; }
     ::view-transition-old(site-identity), ::view-transition-old(site-nav){ animation:none; display:none; }
     ::view-transition-new(site-identity), ::view-transition-new(site-nav){ animation:none; }
-    ::view-transition-old(root), ::view-transition-old(*.work):only-child{ animation:vt-beat-out 160ms cubic-bezier(.4,0,1,1) both; }
-    ::view-transition-new(root), ::view-transition-new(*.work):only-child{ animation:vt-beat-in 320ms cubic-bezier(0,0,.2,1) 360ms both; }
+    ::view-transition-old(root), ::view-transition-old(*.work):only-child{ animation:vt-beat-out 200ms cubic-bezier(.4,0,1,1) both; }
+    ::view-transition-new(root), ::view-transition-new(*.work):only-child{ animation:vt-beat-in 450ms cubic-bezier(.1,0,0,1) 120ms both; }
     /* pictures that aren't travelling (named frames) fade in on their own, after the text */
-    .vt-in main img:not([style*="view-transition-name"] img){ animation:vt-media-in 450ms cubic-bezier(0,0,.2,1) 560ms both; }
+    .vt-in main img:not([style*="view-transition-name"] img){ animation:vt-media-in 450ms cubic-bezier(.1,0,0,1) 240ms both; }
     /* the old page started leaving as the next one loaded (leave() above) */
     [data-leave]{ transition:opacity 160ms cubic-bezier(.4,0,1,1), translate 160ms cubic-bezier(.4,0,1,1) !important; }
-    .leaving [data-leave]{ opacity:0 !important; translate:0 12px; }
-    .vt-early::view-transition-new(root), .vt-early::view-transition-new(*.work):only-child{ animation-delay:160ms; }
-    .vt-early.vt-in main img:not([style*="view-transition-name"] img){ animation-delay:360ms; }
+    .leaving [data-leave]{ opacity:0 !important; }
+    .vt-early::view-transition-new(root), .vt-early::view-transition-new(*.work):only-child{ animation-delay:40ms; }
+    .vt-early.vt-in main img:not([style*="view-transition-name"] img){ animation-delay:160ms; }
   }
-  /* under the pixel cover (motion.js) the swap is instant: the blocks are the transition */
-  html.covering::view-transition-group(*), html.covering::view-transition-new(*){ animation:none !important; }
-  html.covering::view-transition-old(*){ display:none !important; }
-  @keyframes vt-beat-out{ to{ opacity:0; transform:translateY(12px); } }
-  @keyframes vt-beat-in{ from{ opacity:0; transform:translateY(30px); } }
+  @keyframes vt-beat-out{ to{ opacity:0; } }
+  @keyframes vt-beat-in{ from{ opacity:0; } }
   @keyframes vt-media-in{ from{ opacity:0; } }
   @media (prefers-reduced-motion: reduce){
     ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){ animation:none !important; }
