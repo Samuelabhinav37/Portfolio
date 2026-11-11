@@ -40,9 +40,9 @@
     if (e.viewTransition) {
       to.classList.add('vt-in', 'vt-bg');
       if (h.classList.contains('leaving')) to.classList.add('vt-early');
-      // and after the photos' fade-in (vt-media-in), which outlasts the transition itself
+      // and after the content's fade-in (page-in), which outlasts the transition itself
       window.afterPageChange = e.viewTransition.finished.then(null, function(){}).then(function(){
-        return Promise.all(document.getAnimations().filter(function(a){ return a.animationName === 'vt-media-in'; })
+        return Promise.all(document.getAnimations().filter(function(a){ return a.animationName === 'page-in'; })
           .map(function(a){ return a.finished.then(null, function(){}); }));
       });
       e.viewTransition.finished.finally(function(){ h.classList.remove('vt-bg'); });
@@ -89,7 +89,16 @@
   function stay(){ clearTimeout(undo); h.classList.remove('leaving'); document.querySelectorAll('[data-leave]').forEach(function(el){ el.removeAttribute('data-leave'); }); }
   document.addEventListener('astro:before-preparation', function(e){
     var a = e.sourceElement && e.sourceElement.closest && e.sourceElement.closest('a[href]');
-    if (e.to.pathname !== e.from.pathname) leave(a || document.createElement('a'));
+    if (e.to.pathname === e.from.pathname) return;
+    leave(a || document.createElement('a'));
+    // let the content finish fading out (200ms) before the swap, however fast the next page loads
+    var load = e.loader, faded = new Promise(function(r){ setTimeout(r, 200); });
+    e.loader = function(){ return Promise.all([load(), faded]); };
+  });
+  // the arriving page's content fades in live (CSS [data-arrive]); the sky never stops
+  document.addEventListener('astro:after-swap', function(){
+    mark(document.createElement('a'), 'data-arrive');
+    setTimeout(function(){ document.querySelectorAll('[data-arrive]').forEach(function(el){ el.removeAttribute('data-arrive'); }); }, 700);
   });
   // The page snapshot carries the page's background colour, and it sits over
   // the sky during a transition: clear it (once the next page is fetched, just
@@ -98,16 +107,20 @@
   document.addEventListener('astro:after-preparation', function(){ h.classList.add('vt-bg'); });
   document.addEventListener('astro:page-load', function(){ stay(); if (!document.startViewTransition) h.classList.remove('vt-bg'); });
   function leave(a){
+    mark(a, 'data-leave');
+    h.classList.add('leaving');
+    clearTimeout(undo); undo = setTimeout(stay, 4000); // the navigation never happened
+  }
+  // set attr on the page's content: everything but the sky, the nav and a travelling picture
+  function mark(a, attr){
     var keep = [].filter.call(document.querySelectorAll('#site-identity, #site-nav, #sky-stage, #sky, #px-clouds, .sky-life, .page-grain, [style*="view-transition-name"]'),
       function(el){ return !el.classList.contains('pw-img') || a.contains(el); }); // Home: only the clicked project's picture travels
     (function walk(list){
       [].forEach.call(list, function(el){
         if (/^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(el.tagName) || keep.indexOf(el) > -1) return;
-        if (keep.some(function(k){ return el.contains(k); })) walk(el.children); else el.setAttribute('data-leave', '');
+        if (keep.some(function(k){ return el.contains(k); })) walk(el.children); else el.setAttribute(attr, '');
       });
     })(document.body.children);
-    h.classList.add('leaving');
-    clearTimeout(undo); undo = setTimeout(stay, 4000); // the navigation never happened
   }
 })();
 </script>
@@ -153,43 +166,30 @@
      18+; elsewhere the router swaps the page without an animation. */
   #site-identity{ view-transition-name:site-identity; }
   #site-nav{ view-transition-name:site-nav; }
-  #sky{ view-transition-name:sky; }
-  .sky-life{ view-transition-name:sky-life; }
-  #px-clouds{ view-transition-name:sky-clouds; }
-  /* named layers paint above the page by default; the (opaque) sky belongs under it */
-  ::view-transition-group(sky), ::view-transition-group(sky-life),
-  ::view-transition-group(sky-clouds){ z-index:-1; animation:none; }
-  /* the jellyfish clips have black grounds that the layer's screen blend
-     drops (SkyLife.astro); a snapshot loses that, so blend the group itself */
-  ::view-transition-group(sky-life){ mix-blend-mode:screen; }
-  ::view-transition-old(sky), ::view-transition-old(sky-life),
-  ::view-transition-old(sky-clouds){ display:none; }
-  ::view-transition-new(sky), ::view-transition-new(sky-life),
-  ::view-transition-new(sky-clouds){ animation:none; opacity:1; }
   /* project frames: the one that has a partner on the next page morphs;
      the rest (:only-child below) leave and arrive with the content */
   .pw-img, .wk-img{ view-transition-class:work; }
-  /* A plain crossfade (oliverdupuy.com's 0.6s, cubic-bezier(.1,0,0,1)): the old
-     page fades out fast (200ms, starting as the next one loads), the new one
-     fades in over it with a strong ease-out (450ms), pictures a beat later. */
+  /* A plain crossfade (oliverdupuy.com: opacity, cubic-bezier(.1,0,0,1)), done on
+     the live page rather than on view-transition snapshots, so the sky, jellyfish,
+     clouds and rays never stop or change look: the content fades out as the next
+     page loads (leave(), 200ms), the swap itself is instant, and the new content
+     fades in (450ms). Only a project picture with a partner on the next page
+     morphs through the view transition. */
+  ::view-transition-old(root), ::view-transition-old(*.work):only-child{ display:none; }
+  ::view-transition-new(root), ::view-transition-new(*.work):only-child{ animation:none; }
   @media (prefers-reduced-motion: no-preference){
     ::view-transition-group(*){ animation-duration:var(--dur-travel); animation-timing-function:var(--ease-inout); }
+    ::view-transition-group(root){ animation:none; }
     ::view-transition-group(site-identity), ::view-transition-group(site-nav){ animation:none; }
     ::view-transition-old(site-identity), ::view-transition-old(site-nav){ animation:none; display:none; }
     ::view-transition-new(site-identity), ::view-transition-new(site-nav){ animation:none; }
-    ::view-transition-old(root), ::view-transition-old(*.work):only-child{ animation:vt-beat-out 200ms cubic-bezier(.4,0,1,1) both; }
-    ::view-transition-new(root), ::view-transition-new(*.work):only-child{ animation:vt-beat-in 450ms cubic-bezier(.1,0,0,1) 120ms both; }
-    /* pictures that aren't travelling (named frames) fade in on their own, after the text */
-    .vt-in main img:not([style*="view-transition-name"] img){ animation:vt-media-in 450ms cubic-bezier(.1,0,0,1) 240ms both; }
-    /* the old page started leaving as the next one loaded (leave() above) */
-    [data-leave]{ transition:opacity 160ms cubic-bezier(.4,0,1,1), translate 160ms cubic-bezier(.4,0,1,1) !important; }
+    [data-leave]{ transition:opacity 200ms cubic-bezier(.4,0,1,1) !important; }
     .leaving [data-leave]{ opacity:0 !important; }
-    .vt-early::view-transition-new(root), .vt-early::view-transition-new(*.work):only-child{ animation-delay:40ms; }
-    .vt-early.vt-in main img:not([style*="view-transition-name"] img){ animation-delay:160ms; }
+    [data-arrive]{ animation:page-in 450ms cubic-bezier(.1,0,0,1) both; }
+    /* a page's own tint on the live sky (Contact greys the jellyfish) eases in with the content instead of snapping */
+    .sky-life{ transition:filter 450ms cubic-bezier(.1,0,0,1); }
   }
-  @keyframes vt-beat-out{ to{ opacity:0; } }
-  @keyframes vt-beat-in{ from{ opacity:0; } }
-  @keyframes vt-media-in{ from{ opacity:0; } }
+  @keyframes page-in{ from{ opacity:0; } }
   @media (prefers-reduced-motion: reduce){
     ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){ animation:none !important; }
   }

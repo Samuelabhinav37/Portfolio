@@ -166,6 +166,8 @@ function typed(el) {
   const real = document.createElement('span'), shown = document.createElement('span'), caret = document.createElement('span');
   real.className = 'sr-only'; real.textContent = text;
   shown.setAttribute('aria-hidden', 'true'); caret.className = 'type-caret';
+  // a one-line label stays one line: split into letters, Safari can come out a fraction wider and break at the space
+  if (el.getClientRects().length === 1) shown.style.whiteSpace = 'nowrap';
   const chars = [...text].map((ch) => { const c = document.createElement('span'); c.textContent = ch; c.className = 'type-ch'; return c; });
   shown.append(caret, ...chars);
   el.replaceChildren(real, shown);
