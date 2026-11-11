@@ -19,6 +19,12 @@
  *   data-magnet            leans a few px toward a nearby mouse pointer
  *                          (moves the `translate` property; give it a
  *                          translate transition in CSS)
+ *
+ * After lamalama.com (docs/2026-11-11-lamalama-alitwotimes-motion.md):
+ *   page cover             big pixel blocks fill the screen by ordered dither
+ *                          between pages, then dissolve onto the new one
+ *   DITHER frames          pictures arrive coarse and dithered, then sharpen
+ *   SCRAMBLE labels        small labels decode from symbols, left to right
  */
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -130,6 +136,161 @@ function media(el) {
   });
 }
 
+/* ── dithered picture reveal (lamalama) ───────────────────────────── */
+// The picture is drawn into a canvas over it at a few coarse resolutions,
+// each quantised through a 4x4 Bayer matrix (the sky's rays and clouds use
+// the same one): one-bit light and dark first, then a few colours, sharper
+// every step, then the canvas fades off the real image.
+// Frames without a picture dissolve from blocks of a lighter tone instead.
+const DITHER = '.pw-img, .wk-img, .fn-pic';
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+function dither(frame) {
+  const img = frame.querySelector('img');
+  const cv = document.createElement('canvas');
+  cv.className = 'dz';
+  cv.setAttribute('aria-hidden', 'true');
+  frame.appendChild(cv);
+  const go = () => {
+    const w = frame.clientWidth, h = frame.clientHeight;
+    if (!w || !h || (img && !img.naturalWidth)) return cv.remove();
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    const steps = img ? [24, 12, 8, 4] : [24, 12];
+    const light = root.dataset.theme === 'light';
+    const tone = light ? [55, 53, 47, 30] : [200, 215, 245, 34];
+    const ink = light ? [[241, 241, 239], [55, 53, 47]] : [[10, 12, 20], [222, 230, 246]]; // frame ground, lit pixel
+    let k = 0;
+    const tick = () => {
+      if (!cv.isConnected) return;
+      if (k === steps.length) return gsap.to(cv, { autoAlpha: 0, duration: 0.3, ease: 'power1.out', onComplete: () => cv.remove() });
+      const b = steps[k++], gw = Math.ceil(w / b), gh = Math.ceil(h / b);
+      cv.width = gw; cv.height = gh;
+      if (img) {
+        // object-fit: cover crop
+        const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / sc, sh = h / sc;
+        ctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, gw, gh);
+      }
+      const im = img ? ctx.getImageData(0, 0, gw, gh) : ctx.createImageData(gw, gh), d = im.data;
+      const mono = k <= 2, lv = k === 3 ? 6 : 12; // then 6, 12 levels a channel
+      for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+        const o = (y * gw + x) * 4, th = (BAYER4[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+        if (img && mono) {
+          const l = (0.3 * d[o] + 0.59 * d[o + 1] + 0.11 * d[o + 2]) / 255, c = ink[(light ? 1 - l : l) > th ? 1 : 0];
+          d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
+        } else if (img) for (let c = 0; c < 3; c++) d[o + c] = Math.min(255, Math.floor((d[o + c] / 255) * (lv - 1) + th) * 255 / (lv - 1));
+        else if (th > k / (steps.length + 1)) { d[o] = tone[0]; d[o + 1] = tone[1]; d[o + 2] = tone[2]; d[o + 3] = tone[3]; }
+      }
+      ctx.putImageData(im, 0, 0);
+      gsap.delayedCall(0.12, tick);
+    };
+    tick();
+  };
+  ScrollTrigger.create({
+    trigger: frame, start: MOTION.start, once: true,
+    onEnter: () => {
+      if (!img) return go();
+      (img.complete ? Promise.resolve() : img.decode()).then(go, () => cv.remove());
+    },
+  });
+}
+
+/* ── scramble labels (lamalama) ───────────────────────────────────── */
+// Each letter shows random symbols, then locks in, left to right. Screen
+// readers get the real text throughout (a hidden copy), not the symbols.
+const SCRAMBLE = '.pw-tags, .fn-cap > span, .wk-no, .wk-year';
+const GLYPHS = '#@$%&*+=<>/?!';
+function scramble(el) {
+  const text = el.textContent;
+  if (!text.trim() || el.children.length > 1) return;
+  ScrollTrigger.create({
+    trigger: el, start: MOTION.start, once: true,
+    onEnter: () => {
+      const real = document.createElement('span'), shown = document.createElement('span');
+      real.className = 'sr-only'; real.textContent = text;
+      shown.setAttribute('aria-hidden', 'true');
+      const html = el.innerHTML;
+      el.replaceChildren(real, shown);
+      const t0 = performance.now(), per = 32, lead = 160;
+      const step = () => {
+        const n = Math.floor((performance.now() - t0 - lead) / per);
+        if (n >= text.length || !el.isConnected) { gsap.ticker.remove(step); el.innerHTML = html; return; }
+        let out = '';
+        for (let i = 0; i < text.length; i++) out += i < n || text[i] === ' ' ? text[i] : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        shown.textContent = out;
+      };
+      gsap.ticker.add(step);
+    },
+  });
+}
+
+/* ── page cover (lamalama) ────────────────────────────────────────── */
+// On a ClientRouter page change, a canvas of big blocks (one canvas pixel a
+// block, scaled up unsmoothed) fills the screen in ordered-dither order while
+// the next page loads: a sparse lattice, a checker, then solid. The swap
+// happens under it with the view transition made instant (html.covering,
+// Motion.astro), and the blocks dissolve the
+// same way onto the new page, whose reveals then play as on a first load.
+// It lives on <html>, outside the <body> the router swaps.
+function pageCover() {
+  const B8 = [0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 44, 4, 36, 14, 46, 6, 38, 60, 28, 52, 20, 62, 30, 54, 22,
+    3, 35, 11, 43, 1, 33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21];
+  const cv = document.createElement('canvas');
+  cv.id = 'page-cover';
+  cv.setAttribute('aria-hidden', 'true');
+  const s = cv.style;
+  s.position = 'fixed'; s.inset = '0'; s.width = '100%'; s.height = '100%'; s.zIndex = '2147483001';
+  s.pointerEvents = 'none'; s.imageRendering = 'pixelated'; s.display = 'none';
+  root.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  let gw = 0, gh = 0, order = null, run = 0;
+  function size() {
+    const b = innerWidth <= 760 ? 24 : 36;
+    gw = Math.ceil(innerWidth / b); gh = Math.ceil(innerHeight / b);
+    cv.width = gw; cv.height = gh;
+    order = new Float32Array(gw * gh);
+    // mostly the dither order, leaning a little from the top right (where the light is)
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++)
+      order[y * gw + x] = 0.8 * (B8[(y & 7) * 8 + (x & 7)] + 0.5) / 64 + 0.2 * ((gw - 1 - x) / gw + y / gh) / 2;
+  }
+  function paint(p) {
+    ctx.clearRect(0, 0, gw, gh);
+    ctx.fillStyle = root.dataset.theme === 'light' ? '#fbfbfa' : '#05060c';
+    for (let i = 0; i < order.length; i++) if (order[i] < p) ctx.fillRect(i % gw, (i / gw) | 0, 1, 1);
+  }
+  // in 8 visible steps, like the original, rather than a smooth sweep; resolves true unless cut off by a newer one
+  function tween(from, to, ms) {
+    const id = ++run;
+    return new Promise((done) => {
+      const t0 = performance.now();
+      const f = (now) => {
+        if (id !== run) return done(false);
+        const k = Math.min(1, Math.max(0, now - t0) / ms);
+        paint(from + (to - from) * Math.ceil(k * 8) / 8);
+        if (k < 1) requestAnimationFrame(f); else done(true);
+      };
+      requestAnimationFrame(f);
+    });
+  }
+  document.addEventListener('astro:before-preparation', (e) => {
+    if (e.to.pathname === e.from.pathname) return;
+    size(); s.display = 'block'; root.classList.add('covering');
+    const filled = tween(0, 1.01, 360), load = e.loader;
+    e.loader = async () => { await Promise.all([load(), filled]); };
+  });
+  // runs after Motion.astro's handler (registered first, in <head>)
+  document.addEventListener('astro:before-swap', (e) => {
+    if (s.display === 'none') return;
+    e.newDocument.documentElement.classList.remove('vt-in', 'vt-bg', 'vt-early');
+  });
+  document.addEventListener('astro:page-load', () => {
+    if (s.display === 'none') return;
+    tween(1.01, 0, 480).then((done) => { if (done) off(); });
+  });
+  function off() { s.display = 'none'; root.classList.remove('covering'); }
+  // a navigation that never happened (cancelled, or handed to a full load) leaves no cover behind
+  addEventListener('pageshow', () => { run++; off(); });
+}
+if (!reduce) pageCover();
+
 /* ── scroll-lit statement ─────────────────────────────────────────── */
 // Words start dim and light up in reading order as the block scrolls
 // through the middle of the screen, then stay lit.
@@ -226,6 +387,8 @@ function init(signal) {
     else if (kind === 'media') media(el);
     else fadeUp(el, el);
   });
+  document.querySelectorAll(DITHER).forEach((el) => { if (!onScreen(el)) dither(el); });
+  if (finePointer) document.querySelectorAll(SCRAMBLE).forEach((el) => { if (!onScreen(el)) scramble(el); });
   document.querySelectorAll('[data-reveal-group]').forEach((group) => {
     gsap.set(group, { autoAlpha: 1 });
     const later = [...group.children].filter((c) => !onScreen(c));

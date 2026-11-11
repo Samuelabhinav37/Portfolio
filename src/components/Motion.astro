@@ -125,6 +125,10 @@
   html.motion [data-reveal], html.motion [data-reveal-group]{ visibility:hidden; }
   html.motion.vt-in [data-reveal], html.motion.vt-in [data-reveal-group]{ visibility:visible; }
   html.vt-bg, html.vt-bg body{ background:transparent !important; }
+  /* dithered picture reveal and scramble labels (motion.js) */
+  /* the frame's own ground until its reveal starts, so the sharp picture never shows first */
+  .dz{ position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; pointer-events:none; z-index:2; background:inherit; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   [data-scroll-lit] .lit-w{ color:var(--lit-off, #3a3d4a); transition:color .35s var(--ease-out); }
   [data-scroll-lit] .lit-w.lit, [data-scroll-lit].is-static .lit-w{ color:var(--lit-on, #f3f5fb); }
 
@@ -180,6 +184,9 @@
     .vt-early::view-transition-new(root), .vt-early::view-transition-new(*.work):only-child{ animation-delay:160ms; }
     .vt-early.vt-in main img:not([style*="view-transition-name"] img){ animation-delay:360ms; }
   }
+  /* under the pixel cover (motion.js) the swap is instant: the blocks are the transition */
+  html.covering::view-transition-group(*), html.covering::view-transition-new(*){ animation:none !important; }
+  html.covering::view-transition-old(*){ display:none !important; }
   @keyframes vt-beat-out{ to{ opacity:0; transform:translateY(12px); } }
   @keyframes vt-beat-in{ from{ opacity:0; transform:translateY(30px); } }
   @keyframes vt-media-in{ from{ opacity:0; } }
