@@ -270,6 +270,12 @@
       b.style.background = on ? '#e9ecf7' : 'transparent'; b.style.color = on ? '#141722' : '#e9ecf7'; }); }
     paint(); document.body.appendChild(bar);
     document.addEventListener('season:change', paint, { signal: signal });
+    // seasons only draw at night: say so on the day sky, or every button looks dead
+    var note = document.createElement('span'); note.textContent = 'Night only: switch to the moon';
+    note.style.color = '#e9ecf7'; note.style.padding = '6px 8px'; note.style.opacity = '.75';
+    bar.appendChild(note);
+    function hint(){ note.style.display = night() ? 'none' : ''; }
+    hint(); document.addEventListener('theme:change', hint, { signal: signal });
     signal.addEventListener('abort', function(){ bar.remove(); });
   }
 
