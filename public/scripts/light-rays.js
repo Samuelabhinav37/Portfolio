@@ -13,21 +13,44 @@
    Cost: each cell's angle and distance from the light are worked out once per
    resize; a frame sums the beams (6) into a table by angle, then looks each
    cell up into an ImageData, at about 12fps while the tab is visible. Reduced motion: one still frame.
-   window.lightRays.set({ on: false }) turns it off (the ?seasons preview switch). */
+   window.lightRays.set({ on: false }) turns it off (the ?seasons preview switch).
+
+   Style trial (2026-11-11): ?rays shows a switch to try other looks on the real
+   site. 'pixel' is the above; 'smooth' is the same beams without the dither;
+   soft/shafts/haze/grain/painted are CSS layers (styles in SiteSky.astro), plus
+   CSS animations sway/breathe/shimmer/both/scroll/point. The pick is kept for the
+   tab (sessionStorage). shortcut: trial code, drop the losers once one is chosen. */
 (function(){
   if (document.getElementById('light-rays')) return;   // kept across ClientRouter page changes
   var root = document.documentElement;
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // phones have 2-3x screens, so 2px cells there already look as fine as 3px on a desktop
-  var CELL = matchMedia('(max-width:900px)').matches ? 2 : 3;
+  var STYLES = ['pixel', 'smooth', 'soft', 'shafts', 'haze', 'grain', 'painted'];
+  var ANIMS = ['none', 'sway', 'breathe', 'shimmer', 'both', 'scroll', 'point'];
+  var qs = new URLSearchParams(location.search), mem = {};
+  try { mem = JSON.parse(sessionStorage.getItem('rays-trial') || '{}'); } catch (e) {}
+  var STYLE = STYLES.indexOf(qs.get('rays')) >= 0 ? qs.get('rays') : mem.style || 'pixel';
+  var ANIM = ANIMS.indexOf(qs.get('raysanim')) >= 0 ? qs.get('raysanim') : mem.anim || 'none';
+  var trial = qs.has('rays') || !!mem.style;
+  var CELL;
+  function cellSize(){ CELL = STYLE === 'smooth' ? 10 : matchMedia('(max-width:900px)').matches ? 2 : 3; }
+  cellSize();
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   // [r, g, b, alpha of the faint tone, alpha of the bright core]: warm sunlight, cool moonlight
   var TONE = { day: [255, 246, 222, 0.16, 0.28], night: [196, 212, 255, 0.06, 0.11] };
   var on = true;
 
-  var cv = document.createElement('canvas'); cv.id = 'light-rays'; cv.setAttribute('aria-hidden', 'true');
-  var s = cv.style; s.position = 'fixed'; s.inset = '0'; s.width = '100%'; s.height = '100%';
-  s.zIndex = '1'; s.pointerEvents = 'none'; s.imageRendering = 'pixelated';
+  // #light-rays holds the canvas (pixel, smooth) and three CSS layers (the other styles)
+  var wrap = document.createElement('div'); wrap.id = 'light-rays'; wrap.setAttribute('aria-hidden', 'true');
+  wrap.innerHTML = '<i class="r-l"></i><i class="r-l"></i><i class="r-l"></i>';
+  var cv = document.createElement('canvas'); wrap.appendChild(cv);
+  var s = cv.style; s.position = 'absolute'; s.inset = '0'; s.width = '100%'; s.height = '100%';
+  function apply(){
+    wrap.className = 'rs-' + STYLE + ' ra-' + ANIM;
+    var canvas = STYLE === 'pixel' || STYLE === 'smooth';
+    s.display = canvas ? '' : 'none'; s.imageRendering = STYLE === 'pixel' ? 'pixelated' : 'auto';
+  }
+  apply();
   var ctx = cv.getContext('2d'), img, gw = 0, gh = 0, BIN, FADE, beams = [], amin = 0, amax = 1, NB = 2048, LUT = new Float32Array(NB);
 
   function rnd(a, b){ return a + Math.random() * (b - a); }
@@ -78,7 +101,7 @@
       v = LUT[BIN[i]] * f;
       var x = i % gw, y = (i / gw) | 0, th = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
       // ordered dither: the faint tone where the beam beats the matrix, the bright tone where it beats it twice over
-      var al = v > th ? (v * 0.55 > th ? hi : lo) : 0;
+      var al = STYLE === 'smooth' ? Math.min(255, v * hi * 1.4) : v > th ? (v * 0.55 > th ? hi : lo) : 0;
       d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = al;
     }
     ctx.putImageData(img, 0, 0);
@@ -92,16 +115,48 @@
     if (now - last < 1000 / 12) return;   // slow light needs few frames
     last = now; draw((now - t0) / 1000);
   }
-  function run(){ if (!on){ ctx.clearRect(0, 0, gw, gh); return; } draw((performance.now() - t0) / 1000); if (!raf && !still) raf = requestAnimationFrame(frame); }
+  function run(){
+    wrap.style.display = on ? '' : 'none';
+    if (!on || (STYLE !== 'pixel' && STYLE !== 'smooth')){ ctx.clearRect(0, 0, gw, gh); return; } draw((performance.now() - t0) / 1000); if (!raf && !still) raf = requestAnimationFrame(frame); }
 
   function start(){
     var anchor = document.getElementById('px-clouds') || document.getElementById('sky');
-    (anchor && anchor.parentNode ? anchor.parentNode : document.body).insertBefore(cv, anchor ? anchor.nextSibling : null);
+    (anchor && anchor.parentNode ? anchor.parentNode : document.body).insertBefore(wrap, anchor ? anchor.nextSibling : null);
     measure(); run();
     var rt = 0;
     addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ measure(); run(); }, 150); });
     document.addEventListener('visibilitychange', run);
     document.addEventListener('theme:change', run);
+    if (trial){ switcher(); document.addEventListener('astro:after-swap', switcher); }
+    addEventListener('scroll', function(){ if (ANIM === 'scroll') wrap.style.setProperty('--s', Math.min(1, scrollY / 1200).toFixed(3)); }, { passive: true });
+    addEventListener('pointermove', function(e){ if (ANIM === 'point') wrap.style.setProperty('--p', (e.clientX / innerWidth - 0.5).toFixed(3)); }, { passive: true });
+  }
+
+  // the ?rays trial switch: two rows of buttons, under the nav; re-added after each page change
+  function switcher(){
+    var old = document.getElementById('rays-switch'); if (old) old.remove();
+    var bar = document.createElement('div'); bar.id = 'rays-switch';
+    var b = bar.style; b.position = 'fixed'; b.left = '50%'; b.top = '72px'; b.translate = '-50% 0'; b.zIndex = '9999';
+    b.display = 'flex'; b.flexDirection = 'column'; b.gap = '4px'; b.padding = '6px'; b.borderRadius = '10px';
+    b.background = 'rgba(15,17,24,.86)'; b.font = '500 12px Inter Tight, system-ui, sans-serif'; b.maxWidth = 'calc(100vw - 24px)';
+    [[STYLES, 'style'], [ANIMS, 'anim']].forEach(function(row){
+      var r = document.createElement('div'); r.style.display = 'flex'; r.style.flexWrap = 'wrap'; r.style.gap = '2px';
+      row[0].forEach(function(name){
+        var btn = document.createElement('button'); btn.type = 'button'; btn.textContent = name;
+        var cur = row[1] === 'style' ? STYLE : ANIM, t = btn.style;
+        t.border = '0'; t.borderRadius = '6px'; t.padding = '5px 8px'; t.cursor = 'pointer'; t.font = 'inherit';
+        t.background = name === cur ? '#e9ecf7' : 'transparent'; t.color = name === cur ? '#141722' : '#e9ecf7';
+        btn.addEventListener('click', function(){
+          if (row[1] === 'style') STYLE = name; else ANIM = name;
+          try { sessionStorage.setItem('rays-trial', JSON.stringify({ style: STYLE, anim: ANIM })); } catch (e) {}
+          wrap.style.removeProperty('--s'); wrap.style.removeProperty('--p');
+          apply(); cellSize(); measure(); run(); switcher();
+        });
+        r.appendChild(btn);
+      });
+      bar.appendChild(r);
+    });
+    document.body.appendChild(bar);
   }
   window.lightRays = { set: function(o){ if ('on' in o) on = !!o.on; run(); }, get on(){ return on; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
