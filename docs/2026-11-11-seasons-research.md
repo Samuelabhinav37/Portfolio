@@ -9,7 +9,7 @@ pixel clouds. Code: `public/scripts/seasons.js` (one engine, one entry per seaso
 | Sky | Shows |
 |---|---|
 | Day | spring petals + sunbeams |
-| Night | summer fireflies, no rays |
+| Night | summer fireflies + moonbeams |
 
 The theme picks the season (`byTheme()`), not the month.
 
@@ -52,7 +52,18 @@ file; set `season = MONTH[new Date().getMonth()]` and drop `byTheme()`.
   pixel shaders dither god rays ([Pixelated God Rays](https://godotshaders.com/shader/pixelated-god-rays/)).
 - Speed: strength only depends on the angle from the light, so a frame fills one
   2048-entry table by angle and each cell looks itself up (18ms -> 6ms a frame, 12fps).
-- Moonbeams (cool, fainter: `TONE.night`) built but off; night keeps the fireflies.
+- Moonbeams: cool and fainter (`TONE.night`). Lunar crepuscular rays are real: moonlight
+  through gaps in cloud, made visible by haze, and they come and go as clouds cross the
+  moon ([Atmospheric Optics](https://atoptics.co.uk/blog/lunar-rays/)).
+- Small motion (2026-11-11):
+  - each beam breathes (strength) and sways (angle) on its own slow clock;
+  - a passing cloud: every 45s a soft shadow sweeps across the beams in 30s, dimming them
+    one after another;
+  - dust motes (Tyndall effect): specks drift down and sway, and only light up inside a
+    beam, brighter in a stronger one. The usual "floating dust in a light shaft" touch in
+    game VFX ([Foundry animated light rays](https://foundryvtt.com/packages/animated-light-rays-by-mattm),
+    [Unreal forum](https://forums.unrealengine.com/t/stylized-fake-animated-light-shafts-with-fireflies/1941111)).
+    About 8 of 56 are lit at a time.
 
 ## Still open
 
