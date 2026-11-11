@@ -15,14 +15,14 @@
   var MONO = "ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace";
   var CFG = {
     vine: 'glory',      // public/images/vine/<name>.png
-    x: -130,            // px of the plant's left edge from the screen's left
+    x: -200,            // px of the plant's left edge from the screen's left
     y: 371,             // px the stacked plants are shifted down
-    zoom: 0.74,         // plant height as a share of the screen height
+    zoom: 1.6,          // plant height as a share of the screen height
     mirror: true,       // every other stacked copy mirrored
     flip: false,        // mirror the whole plant
-    style: 'digits',    // digits (coloured digits, glyph by brightness) | pixel (3-shade pixel art) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
-    size: 7,            // cell px (text size; pixel: square size)
-    row: 1.1,           // row height, in sizes
+    style: 'serif',     // serif (running serif digits sized by brightness, after typographic flower posters) | digits (coloured digits, glyph by brightness) | pixel (3-shade pixel art) | words (letters flow through the shape) | ascii (glyph by brightness) | dots (dot matrix) | bits (1-bit dither)
+    size: 8,            // cell px (text size; pixel: square size)
+    row: 1.05,          // row height, in sizes
     cover: 0.25,        // share of a cell the plant must cover to get a mark (lower keeps thin stems unbroken)
     motion: 0.56,       // how much the plant moves (0 = still)
     speed: 0.6,         // how fast it moves
@@ -32,6 +32,7 @@
     ink: 1.3,           // how strongly the drawing's ink brightens a cell (contrast)
     dark: '#9d9fa1',    // text colour on the dark sky
     light: '#382a24',   // text colour on the day sky
+    serifDark: '#f2f2f2', serifLight: '#2b211c', // serif style: one colour, like the poster
     // digits/pixel colours, [lit, base, outline] per part of the plant; throat = [outer, centre].
     // Day: hue-shifted pixel art (highlights warmer, outlines cooler); the glories are the violet
     // Ipomoea purpurea with a pink throat (sky-blue Heavenly Blue vanishes on the blue day sky),
@@ -157,6 +158,7 @@
       o.save(); if (m){ o.translate(dw, 0); o.scale(-1, 1); } o.drawImage(img, 0, y0, dw, ph); o.restore();
     }
     var px = o.getImageData(0, 0, dw, H).data, size = +c.size;
+    if (c.style === 'serif') return typeCells(off, px, dw, W, H, ox, c);
     ctx.font = c.weight + ' ' + size + 'px ' + MONO;
     // cell edges land on device pixels, so one cell can be cleared and redrawn without touching its neighbours
     var snap = function(v){ return Math.max(1, Math.round(v * dpr)) / dpr; };
@@ -218,6 +220,49 @@
     return { list: out, cw: cw, ch: ch, w: W, h: H, keys: new Int32Array(out.length), rows: {} };
   }
 
+  // serif: set like a typographic flower poster. One running line of serif digits flows along
+  // each row, and each digit's size follows the plant's brightness under it, so the drawn lines
+  // swell into big overlapping numerals and the insides of petals and leaves shrink to fine print.
+  var SERIF = "'Times New Roman', Times, serif", SEQ = '2816340597', EM = 40;
+  function typeCells(off, px, dw, W, H, ox, c){
+    // brightness from the mask softened, so sizes swell and shrink smoothly instead of per pixel
+    var b = document.createElement('canvas'); b.width = dw; b.height = H;
+    var bc = b.getContext('2d', { willReadFrequently: true });
+    bc.filter = 'blur(' + c.size * 0.5 + 'px)'; bc.drawImage(off, 0, 0);
+    var lum = bc.getImageData(0, 0, dw, H).data, out = [], si = 0, lh = c.size * c.row;
+    for (var y = lh / 2, gy = 0; y < H; y += lh, gy++){
+      for (var x = 0; x < dw;){
+        var i = ((y | 0) * dw + (x | 0)) * 4;
+        if (!px[i] || ox + x > W){ x += 1; continue; }
+        // mask: petal/leaf fill reads ~0.31, drawn lines up to 1
+        var t = Math.max(0, Math.min(1, (lum[i] / 255 - 0.25) * c.ink * 1.6));
+        var s = c.size * (0.55 + 2 * t * t), h = Math.abs(Math.sin(x * 12.9898 + gy * 78.233) * 43758.5453) % 1;
+        if (ox + x + s > 0) out.push({ x: ox + x, y: y, s: s, ch: SEQ[si % SEQ.length], t: t, gy: gy, seed: h * 6.2832, at: h });
+        si++; x += s * 0.5; // a serif digit is half an em wide
+      }
+    }
+    return { type: true, list: out, w: W, h: H };
+  }
+  // full redraw every frame (glyphs overlap, so no per-cell clearing). One font at EM px, each
+  // glyph scaled by the transform: cheaper than switching ctx.font thousands of times a frame
+  function renderType(ctx, g, s, i, dark, c, dpr){
+    var mo = +c.motion, L = g.list;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, g.w, g.h);
+    ctx.font = '400 ' + EM + 'px ' + SERIF; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillStyle = dark ? c.serifDark : c.serifLight;
+    for (var n = 0; n < L.length; n++){
+      var e = L[n], age = i - e.at * ARRIVE;
+      if (age < 0) continue;
+      // a slow band of light rising up the plant swells the digits it passes, like sap
+      var w = mo ? 0.5 + 0.5 * Math.sin(e.gy * 0.09 - s * 0.9) : 0, k = e.s * (1 + mo * 0.35 * w * w * w * e.t) / EM;
+      ctx.globalAlpha = Math.min(1, age / LOCK) * c.bright * (0.55 + 0.45 * Math.max(e.t, w * w * mo * 0.5));
+      var off = mo ? mo * 2 * Math.sin(s * 0.45 + e.y * 0.005) : 0;
+      ctx.setTransform(dpr * k, 0, 0, dpr * k, (e.x + off) * dpr, e.y * dpr);
+      ctx.fillText(e.ch, 0, 0);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1;
+  }
+
   // Draws the cells at time s (seconds of motion) and intro age i (seconds since the plant
   // appeared, Infinity = settled). Motion is slow and layered, like living ASCII pieces: a band of
   // light drifting up the plant like sap, a soft breath over the whole plant, a faint per-cell
@@ -230,6 +275,7 @@
   // row only when its sway moved.
   var STEPS = 20, ARRIVE = 2.2, LOCK = 0.6;
   function render(ctx, g, s, i, dark, c, full, dpr){
+    if (g.type) return renderType(ctx, g, s, i, dark, c, dpr);
     var mo = +c.motion, style = c.style, cw = g.cw, ch = g.ch, L = g.list, keys = g.keys, rows = g.rows;
     var breath = Math.sin(s * 0.35), tick = Math.floor(i * 15), row = -1, rowNew = false, off = 0;
     if (full){ ctx.clearRect(0, 0, g.w, g.h); keys.fill(-1); rows = g.rows = {}; }
