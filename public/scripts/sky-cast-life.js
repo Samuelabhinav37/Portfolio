@@ -16,6 +16,7 @@
   const play = (v) => (window.playClip ? playClip(v) : v.play()).catch(() => {}); // one download for all the jellyfish (shared-clip.js)
   const rnd = (a, b) => a + Math.random() * (b - a);
   let W = 0, H = 0;
+  const vw = () => document.documentElement.clientWidth;
   const KEY = 'sky-cast';
   let handed = null;
   try { handed = JSON.parse(sessionStorage.getItem(KEY)); } catch (e) {}
@@ -118,7 +119,7 @@
 
   function setup() {
     const wasNarrow = jel.length ? narrowSky() : null;
-    W = sky.clientWidth; H = sky.clientHeight;
+    W = vw(); H = innerHeight; // .sky-life has no box (display:contents)
     placeStars();
     if (wasNarrow !== narrowSky()) makeJellies(); // keep the jellyfish where they are unless the layout changes
   }
@@ -128,8 +129,8 @@
     // a phone's address bar changes the height while scrolling: only a new width redraws the cast
     let resizeTimer = 0;
     addEventListener('resize', () => {
-      H = sky.clientHeight;
-      if (sky.clientWidth === W) return;
+      H = innerHeight;
+      if (vw() === W) return;
       clearTimeout(resizeTimer); resizeTimer = setTimeout(setup, 300);
     });
     document.addEventListener('visibilitychange', () => {

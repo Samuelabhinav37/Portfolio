@@ -36,7 +36,7 @@ import SkyLife from './SkyLife.astro';
 /* the jellyfish stay screened onto the sky as at night, brightened, with a
    blurred copy behind for a halo (#jelly-glow); --jb and the glow's blur
    are tuned in /_sky-tune.html */
-:root[data-theme="light"] .sc-jelly{ filter:brightness(var(--jb, 4)) url(#jelly-glow); }
+:root[data-theme="light"] .sc-jelly{ filter:brightness(var(--jb, 4)) url(#jelly-glow) var(--jt, grayscale(0) sepia(0) hue-rotate(0deg) saturate(1) brightness(1)); }
 /* the sky's scanlines only vanish on black */
 :root[data-theme="light"] #sky .sky-grain, :root[data-theme="light"] #sky::after{ display:none; }
 html, body{ transition:background-color .4s ease; }

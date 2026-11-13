@@ -187,7 +187,7 @@
     .leaving [data-leave]{ opacity:0 !important; }
     [data-arrive]{ animation:page-in 450ms cubic-bezier(.1,0,0,1) both; }
     /* a page's own tint on the live sky (Contact greys the jellyfish) eases in with the content instead of snapping */
-    .sky-life{ transition:filter 450ms cubic-bezier(.1,0,0,1); }
+    .sc-jelly, .sc-star{ transition:filter 450ms cubic-bezier(.1,0,0,1); }
   }
   @keyframes page-in{ from{ opacity:0; } }
   @media (prefers-reduced-motion: reduce){
