@@ -139,7 +139,7 @@ function media(el) {
 // A picture shows only its bottom quarter as it comes up the screen and
 // opens upward to full as it scrolls in, settling from a slight zoom; tied
 // to the scroll, so it moves only while you do (studiochen / oliverdupuy).
-const CROP = '.pw-img, .wk-img, .fn-pic';
+const CROP = '.wk-img, .fn-pic';
 function crop(frame) {
   const r = getComputedStyle(frame).borderRadius || '0px';
   const img = frame.querySelector('img');
@@ -147,6 +147,33 @@ function crop(frame) {
   gsap.fromTo(frame, { clipPath: `inset(75% 0% 0% 0% round ${r})` },
     { clipPath: `inset(0% 0% 0% 0% round ${r})`, ease: 'none', scrollTrigger: st });
   if (img) gsap.fromTo(img, { scale: 1.06 }, { scale: 1, ease: 'none', scrollTrigger: { ...st } });
+}
+
+/* ── project frames on Home (after noth.in) ──────────────────────── */
+// Three movements, all tied to the scroll with a short lag (scrub), which is
+// what makes it read as fluid: the frame opens from its outer bottom corner
+// as it comes up the screen (fast at first, a long gentle finish); the
+// picture inside is taller than the frame and travels slower than the page;
+// and each tile rides a little faster than the page, by a different amount,
+// so neighbours slip past each other. Only transforms and clip-path change.
+const SLIDE = 9.68;                    // % of the picture's height = 12% of the frame (index.astro: top -12%, height 124%)
+const DRIFT = [0, 70, 24, 90, 0, 56];  // px a tile gains while crossing the screen, by its place in the spread
+function spread(frame, i, reveal) {
+  const tile = frame.closest('.pw-tile') || frame;
+  if (reveal) {
+    const r = frame.getBoundingClientRect();
+    const rad = getComputedStyle(frame).borderRadius || '0px';
+    const from = r.left + r.width / 2 > innerWidth / 2 ? '100% 0% 0% 100%' : '100% 100% 0% 0%';
+    gsap.fromTo(frame, { clipPath: `inset(${from} round ${rad})` },
+      { clipPath: `inset(0% 0% 0% 0% round ${rad})`, ease: 'power3.out',
+        scrollTrigger: { trigger: tile, start: 'top 115%', end: 'top 35%', scrub: 0.8 } });
+  }
+  const pass = { trigger: tile, start: 'top bottom', end: 'bottom top', scrub: 0.8 };
+  const img = frame.querySelector('img');
+  if (img) gsap.fromTo(img, { yPercent: -SLIDE }, { yPercent: SLIDE, ease: 'none', scrollTrigger: { ...pass } });
+  const d = DRIFT[i % DRIFT.length];
+  const cap = tile.querySelector('.pw-cap');
+  if (d) gsap.fromTo(cap ? [frame, cap] : frame, { y: d / 2 }, { y: -d / 2, ease: 'none', scrollTrigger: { ...pass } });
 }
 
 /* ── typed labels ─────────────────────────────────────────────────── */
@@ -288,6 +315,7 @@ function init(signal) {
     else fadeUp(el, el);
   });
   document.querySelectorAll(CROP).forEach((el) => { if (!onScreen(el)) crop(el); });
+  document.querySelectorAll('.pw-img').forEach((el, i) => spread(el, i, !onScreen(el)));
   document.querySelectorAll(TYPE).forEach((el) => { if (!onScreen(el)) typed(el); });
   document.querySelectorAll('[data-reveal-group]').forEach((group) => {
     gsap.set(group, { autoAlpha: 1 });

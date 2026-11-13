@@ -83,16 +83,17 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 .ab-lede{ font-size:clamp(22px, 1.95vw, 28px); line-height:1.02; font-weight:600; letter-spacing:-.02em;
   color:var(--ab-dim); max-width:1400px; margin-bottom:56px; }
 .ab-lede b{ font-weight:600; color:var(--ab-ink); }
-/* Covered facts (after denormalized.co's dossier): a black bar over a phrase
-   lifts when the pointer crosses it and stays lifted (.open, set by the
-   script below, so a fast pass still finishes). The words stay in the page for
-   screen readers, search and copy. Keyboard focus anywhere lifts them all;
-   with no pointer to hover (phones) they lift by themselves, one by one. */
-.ab-lede .bar{ color:transparent; background:linear-gradient(var(--ab-bar), var(--ab-bar)) no-repeat 0 55% / 100% 80%;
+/* Covered facts (after denormalized.co's dossier): ink bars over a few
+   phrases, drawn by one WebGL canvas laid over the statement (script below).
+   Pointing at a bar makes the ink bleed away from where the pointer touched;
+   it floods back when the pointer leaves. The words stay in the page, under
+   the canvas, for screen readers, search and copy. Until the canvas is
+   drawing (.gl), or if WebGL is missing, plain flat bars stand in. */
+.ab-ink{ position:absolute; z-index:1; pointer-events:none; }
+.ab-lede:not(.gl) .bar{ color:transparent; background:linear-gradient(var(--ab-bar), var(--ab-bar)) no-repeat 0 55% / 100% 80%;
   -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background-size .5s var(--ease-out), color .25s .1s; }
-.ab-lede .bar.open, :root:has(:focus-visible) .ab-lede .bar{ color:var(--ab-ink); background-size:0 80%; }
-@media (hover:none){ .ab-lede .bar{ animation:barLift .5s var(--ease-out) calc(1.4s + var(--n, 0) * .22s) forwards; } }
-@keyframes barLift{ to{ color:var(--ab-ink); background-size:0 80%; } }
+.ab-lede:not(.gl) .bar:hover, .ab-lede:not(.gl) .bar:focus{ color:var(--ab-ink); background-size:0 80%; }
+.ab-lede .bar:focus-visible{ outline:1px solid currentColor; outline-offset:2px; }
 @media (prefers-reduced-motion: reduce){ .ab-lede .bar{ transition:none; } }
 
 .ab-info{ display:grid; grid-template-columns:minmax(0, 1fr) 460px; gap:40px; align-items:start; }
@@ -187,12 +188,13 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 <main class="ab">
   <h1 class="ab-lede" data-reveal="lines">
     <b>Samuel Abhinav</b> is a <b>security engineer</b> working on <b>detection, incident response</b> and <b>network security</b>.
-    It started with a master's in Cybersecurity at <b class="bar" style="--n:0">Iowa State University</b> and a habit of finding out how things break, then making sure they don't.
+    It started with a master's in Cybersecurity at <b class="bar" data-g="0">Iowa State University</b> and a habit of finding out how things break, then making sure they don't.
     Most days go into writing detections, triaging alerts and rebuilding attack chains from logs.
-    The work so far includes <b class="bar" style="--n:1">Moat</b>, an ad blocker that runs entirely in the browser, <b class="bar" style="--n:2">Cluster</b>, which catches impersonation in Gmail from the headers alone, and <b class="bar" style="--n:3">Sentinel</b>, a SOC lab where every rule has to fire on a real attack before it counts.
-    Outside of that there are accepted bug bounty findings on <b class="bar" style="--n:4">HackerOne</b> and six certifications.
-    Currently looking for <b class="bar" style="--n:5">SOC analyst</b><b>,</b> <b class="bar" style="--n:6">detection engineering</b> and <b class="bar" style="--n:7">security engineering</b> roles.
+    The work so far includes <b class="bar" data-g="1">Moat</b>, an ad blocker that runs entirely in the browser, <b class="bar" data-g="2">Cluster</b>, which catches impersonation in Gmail from the headers alone, and <b class="bar" data-g="3">Sentinel</b>, a SOC lab where every rule has to fire on a real attack before it counts.
+    Outside of that there are accepted bug bounty findings on <b class="bar" data-g="4">HackerOne</b> and six certifications.
+    Currently looking for <b class="bar" data-g="5">SOC analyst</b><b>,</b> <b class="bar" data-g="6">detection engineering</b> and <b class="bar" data-g="7">security engineering</b> roles.
   </h1>
+  <canvas class="ab-ink" aria-hidden="true"></canvas>
 
   <div class="ab-info">
     <div class="ab-rows" data-reveal-group>
@@ -666,11 +668,173 @@ onPage(function(signal){
   addEventListener('focus', close, { signal: signal });
 })();
 
-/* a covered phrase opens when the pointer crosses it (on the statement, so it
-   still works after the line splitter rebuilds the words inside) */
+/* Covered facts: ink bars over the .bar phrases of the statement.
+   One transparent WebGL canvas sits over the statement; a fragment shader
+   paints every bar with an uneven, soaked-in edge. Pointing at a phrase lands
+   solvent where the pointer touched: it spreads as a wandering, frayed front,
+   more drops land along the bar, and the ink is gone in about 1.7s. Leaving
+   floods it back in 0.65s. On touch a tap clears a phrase and a second tap
+   covers it; keyboard focus clears it too.
+   Cheap by design: nothing is drawn unless a bar is changing, bars are only
+   re-measured when the statement's lines are rebuilt or resized, and the
+   canvas is never sharper than 2x. */
 (function(){
-  var lede = document.querySelector('.ab-lede');
-  if(lede) lede.addEventListener('pointerover', function(e){ var b = e.target.closest('.bar'); if(b) b.classList.add('open'); });
+  var lede = document.querySelector('.ab-lede'), cv = document.querySelector('.ab-ink');
+  if(!lede || !cv) return;
+  var gl = cv.getContext('webgl', { premultipliedAlpha:false, antialias:false });
+  if(!gl) return; // the flat CSS bars stay
+  var N = 16, PAD = 14;
+  var FRAG = [
+    'precision highp float;',
+    'uniform vec2 uRes; uniform float uT; uniform float uPx;',
+    'uniform vec4 uBar[' + N + '];', // x, y, w, h in canvas px from the top left
+    'uniform vec3 uHit[' + N + '];', // where the pointer touched, and how far the ink has cleared (0 to just over 1)
+    'float rnd(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }',
+    'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3. - 2.*f);',
+    '  return mix(mix(rnd(i), rnd(i + vec2(1., 0.)), f.x), mix(rnd(i + vec2(0., 1.)), rnd(i + vec2(1., 1.)), f.x), f.y); }',
+    'float fbm(vec2 p){ float s = 0., a = .5; for(int i = 0; i < 4; i++){ s += a*noise(p); p = p*2.03 + 19.; a *= .5; } return s; }',
+    'void main(){',
+    '  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);',
+    '  float ink = 0.;',
+    '  for(int i = 0; i < ' + N + '; i++){',
+    '    vec4 b = uBar[i];',
+    '    if(b.z < 1.) continue;',
+    '    vec2 q = px - b.xy;',
+    '    float pad = 10.*uPx;',
+    '    if(q.x < -pad || q.y < -pad || q.x > b.z + pad || q.y > b.w + pad) continue;',
+    '    vec2 s = q/b.w;', // in bar heights, so the grain of the ink keeps its size against the words
+    // the edge: soaked in and uneven, never a ruled rectangle
+    '    vec2 inside = min(q, b.zw - q)/uPx;',
+    '    float body = smoothstep(-1., 3., min(inside.x, inside.y) + (fbm(s*2.4 + b.xy*.013) - .5)*.2*b.w/uPx);',
+    '    float k = uHit[i].z, gone = 0.;',
+    '    if(k > 0.){',
+    '      float len = b.z/b.w;', // everything below is in bar heights
+    '      vec2 u = s;',
+    '      u += (vec2(fbm(s*.62 + uT*.07), fbm(s*.62 + 31. - uT*.05)) - .5)*.24;', // the front wanders as it spreads
+    '      vec2 c = (clamp(uHit[i].xy, b.xy, b.xy + b.zw) - b.xy)/b.w;',
+    '      float reach = k*(len*.16 + .6) - distance(u, c);', // the splash under the pointer: first and largest
+    '      for(int d = 1; d < 7; d++){', // later drops, spread along the bar
+    '        float fd = float(d); vec2 seed = b.xy*.021 + fd*5.7;',
+    '        float t0 = .12 + .7*rnd(seed + 3.);',
+    '        float g = (k - t0)/max(1. - t0, .15);',
+    '        if(g > 0.){',
+    '          vec2 dc = vec2(((fd - .5)/6. + (rnd(seed) - .5)*.1)*len, .5 + (rnd(seed + 9.) - .5)*.8);',
+    '          reach = max(reach, g*(len/6. + .6) - distance(u, dc));',
+    '        }',
+    '      }',
+    // frayed only at the moving front: clear behind it, solid ahead of it
+    '      float fray = (fbm(s*.6 + uT*.22) - .5) + (fbm(s*1.4 + 5.) - .5)*.5 + (noise(s*3.2) - .5)*.25;',
+    '      float on = min(1., k*8.);',
+    '      reach += fray*.85*(1. - smoothstep(0., 1.4, reach))*on - .25*(1. - on);',
+    '      reach += max(0., k - 1.)*12.;', // the last of the run lifts whatever is left
+    '      gone = smoothstep(-.04, .04, reach);',
+    '    }',
+    '    ink = max(ink, body*(1. - gone));',
+    '  }',
+    '  if(ink < .004) discard;',
+    '  gl_FragColor = vec4(0., 0., 0., ink);',
+    '}'
+  ].join('\n');
+  function shader(type, src){
+    var sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh);
+    return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+  }
+  var vs = shader(gl.VERTEX_SHADER, 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }');
+  var fs = shader(gl.FRAGMENT_SHADER, FRAG);
+  var pr = gl.createProgram();
+  if(!vs || !fs) return;
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.bindAttribLocation(pr, 0, 'p'); gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+  gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); // one triangle over the canvas
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  var U = {}; ['uRes', 'uT', 'uPx', 'uBar', 'uHit'].forEach(function(n){ U[n] = gl.getUniformLocation(pr, n); });
+
+  var bars = new Float32Array(N*4), hit = new Float32Array(N*3), barG = new Int8Array(N), count = 0, dpr = 1;
+  var groups = lede.querySelectorAll('.bar[data-g]').length;
+  var prog = [], open = [], anim = [];
+  for(var g = 0; g < groups; g++){ prog.push(0); open.push(false); anim.push({ t0:-1e9, from:0, to:0, dur:1 }); }
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function draw(t){
+    for(var i = 0; i < N; i++) hit[i*3 + 2] = i < count ? prog[barG[i]] : 0;
+    gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform1f(U.uT, (t || 0)/1000); gl.uniform1f(U.uPx, dpr);
+    gl.uniform4fv(U.uBar, bars); gl.uniform3fv(U.uHit, hit);
+    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  // one bar per line of each phrase, measured with the line-reveal's transforms
+  // set aside so bars land where the words will rest, not where they are mid-rise
+  function layout(){
+    var moved = lede.querySelectorAll('div'), was = [];
+    moved.forEach(function(d){ was.push(d.style.transform); d.style.transform = 'none'; });
+    var hb = lede.getBoundingClientRect();
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    var w = Math.round(hb.width) + PAD*2, h = Math.round(hb.height) + PAD*2;
+    cv.style.left = (lede.offsetLeft - PAD) + 'px'; cv.style.top = (lede.offsetTop - PAD) + 'px';
+    cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); gl.viewport(0, 0, cv.width, cv.height);
+    var bh = parseFloat(getComputedStyle(lede).fontSize)*0.92;
+    count = 0; bars.fill(0);
+    lede.querySelectorAll('.bar').forEach(function(el){
+      var rs = el.getClientRects(), shown = false;
+      for(var j = 0; j < rs.length; j++){
+        var r = rs[j];
+        if(r.width < 2 || count >= N) continue;
+        shown = true;
+        var x = (r.left - hb.left + PAD - 2)*dpr, y = (r.top - hb.top + PAD + r.height/2 - bh/2)*dpr, bw = (r.width + 4)*dpr;
+        bars.set([x, y, bw, bh*dpr], count*4); hit.set([x + bw/2, y + bh*dpr/2], count*3);
+        barG[count++] = +el.dataset.g;
+      }
+      // the line splitter leaves empty copies at line starts: only real ones take keyboard focus
+      if(shown) el.tabIndex = 0; else el.removeAttribute('tabindex');
+    });
+    moved.forEach(function(d, i){ d.style.transform = was[i]; });
+    lede.classList.add('gl');
+    draw(performance.now());
+  }
+
+  var raf = 0;
+  function loop(t){
+    var busy = false;
+    for(var g = 0; g < groups; g++){
+      var a = anim[g], k = Math.min(1, Math.max(0, (t - a.t0)/a.dur));
+      prog[g] = a.from + (a.to - a.from)*(a.to > a.from ? 1 - Math.pow(1 - k, 3) : k*k);
+      if(k < 1) busy = true;
+    }
+    draw(t);
+    raf = busy ? requestAnimationFrame(loop) : 0;
+  }
+  function kick(){ if(!raf) raf = requestAnimationFrame(loop); }
+  function set(g, on){
+    var a = anim[g]; open[g] = on;
+    a.from = prog[g]; a.to = on ? 1.15 : 0; a.t0 = performance.now(); a.dur = still ? 1 : on ? 1700 : 650;
+    kick();
+  }
+  function at(node){ var b = node && node.closest && node.closest('.bar'); return b && lede.contains(b) ? +b.dataset.g : -1; }
+  function aim(g, e){
+    var cb = cv.getBoundingClientRect(), x = (e.clientX - cb.left)*dpr, y = (e.clientY - cb.top)*dpr;
+    for(var i = 0; i < count; i++) if(barG[i] === g){ hit[i*3] = x; hit[i*3 + 1] = y; }
+  }
+  var on = { signal: signal };
+  if(matchMedia('(hover: none)').matches){
+    lede.addEventListener('click', function(e){ var g = at(e.target); if(g < 0) return; aim(g, e); set(g, !open[g]); }, on);
+  } else {
+    lede.addEventListener('pointerover', function(e){ var g = at(e.target); if(g < 0 || open[g]) return; aim(g, e); set(g, true); }, on);
+    lede.addEventListener('pointermove', function(e){ var g = at(e.target); if(g < 0 || prog[g] >= 1) return; aim(g, e); kick(); }, on);
+    lede.addEventListener('pointerout', function(e){ var g = at(e.target); if(g < 0 || at(e.relatedTarget) === g) return; set(g, false); }, on);
+  }
+  lede.addEventListener('focusin', function(e){ var g = at(e.target); if(g >= 0 && e.target.matches(':focus-visible')) set(g, true); }, on);
+  lede.addEventListener('focusout', function(e){ var g = at(e.target); if(g >= 0 && open[g] && !e.target.matches(':hover')) set(g, false); }, on);
+
+  var due = 0;
+  function relayout(){ clearTimeout(due); due = setTimeout(layout, 80); }
+  var mo = new MutationObserver(relayout); mo.observe(lede, { childList:true, subtree:true });
+  var ro = new ResizeObserver(relayout); ro.observe(lede);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  layout();
+  signal.addEventListener('abort', function(){ cancelAnimationFrame(raf); clearTimeout(due); mo.disconnect(); ro.disconnect(); });
 })();
 
 /* a cell too long for its column scrolls sideways in a loop, like the reference's client list */
