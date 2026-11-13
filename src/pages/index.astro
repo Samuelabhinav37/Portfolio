@@ -370,10 +370,18 @@ footer#site-footer{
   @media (prefers-reduced-motion:no-preference){
         .pw-img{ animation:frame-open linear both; animation-timeline:view(); animation-range:entry 0% cover 30%; }
     .pw-img > *{ animation:frame-settle linear both; animation-timeline:view(); animation-range:entry 0% cover 45%; }
+    /* the picture is taller than its frame and drifts down inside it the whole
+       way across the screen, so it moves slower than the page (after noth.in) */
+    /* the frame clips, which makes it the picture's scroller: the drift has to
+       follow the frame's own trip across the screen, by name */
+    .pw-img--shot{ view-timeline:--frame block; }
+    .pw-grid .pw-img--shot img{ height:118%; animation:frame-settle linear both, frame-drift linear both; animation-timeline:view(), --frame;
+      animation-range:entry 0% cover 45%, cover 0% cover 100%; }
   }
 }
 @keyframes frame-open{ from{ clip-path:inset(18% 0 0 0); } to{ clip-path:inset(0 0 0 0); } }
 @keyframes frame-settle{ from{ transform:scale(1.12); } to{ transform:scale(1); } }
+@keyframes frame-drift{ from{ translate:0 -15.2%; } to{ translate:0 0; } }
 @media (--bp-760){
   .sec-head{ grid-template-columns:1fr; row-gap:16px; }
   .sec-link{ justify-self:start; }

@@ -67,7 +67,7 @@ window.SITE=window.SITE||{};
    (SiteSky) shows behind everything. */
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { background:var(--c-bg); overflow-x:hidden; }
-:root{ --ab-ink:#f4f6fa; --ab-dim:rgba(244,246,250,.42); }
+:root{ --ab-ink:#f4f6fa; --ab-dim:rgba(244,246,250,.42); --ab-bar:#000; }
 :root[data-theme="light"]{ --ab-ink:#191919; --ab-dim:rgba(25,25,25,.45); }
 body { color:var(--ab-ink); font-family:'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing:antialiased; }
@@ -83,6 +83,17 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 .ab-lede{ font-size:clamp(22px, 1.95vw, 28px); line-height:1.02; font-weight:600; letter-spacing:-.02em;
   color:var(--ab-dim); max-width:1400px; margin-bottom:56px; }
 .ab-lede b{ font-weight:600; color:var(--ab-ink); }
+/* Covered facts (after denormalized.co's dossier): a black bar over a phrase
+   lifts when the pointer crosses it and stays lifted (.open, set by the
+   script below, so a fast pass still finishes). The words stay in the page for
+   screen readers, search and copy. Keyboard focus anywhere lifts them all;
+   with no pointer to hover (phones) they lift by themselves, one by one. */
+.ab-lede .bar{ color:transparent; background:linear-gradient(var(--ab-bar), var(--ab-bar)) no-repeat 0 55% / 100% 80%;
+  -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background-size .5s var(--ease-out), color .25s .1s; }
+.ab-lede .bar.open, :root:has(:focus-visible) .ab-lede .bar{ color:var(--ab-ink); background-size:0 80%; }
+@media (hover:none){ .ab-lede .bar{ animation:barLift .5s var(--ease-out) calc(1.4s + var(--n, 0) * .22s) forwards; } }
+@keyframes barLift{ to{ color:var(--ab-ink); background-size:0 80%; } }
+@media (prefers-reduced-motion: reduce){ .ab-lede .bar{ transition:none; } }
 
 .ab-info{ display:grid; grid-template-columns:minmax(0, 1fr) 460px; gap:40px; align-items:start; }
 .ab-rows{ display:flex; flex-direction:column; gap:40px; font-size:13px; line-height:16px; font-weight:600; letter-spacing:-.01em; }
@@ -138,7 +149,19 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 .game-stage:not(.on) .game-play{ background:#000 url(/images/arcade-poster.webp) 0 0 / 100% 100% no-repeat; }
 .game-play:focus-visible{ outline:2px solid #f4f6fa; outline-offset:-4px; }
 .game-play.gone{ opacity:0; pointer-events:none; }
-@media (prefers-reduced-motion: reduce){ .game-stage.on{ animation:none; } }
+.game-play span{ padding:10px 14px; background:#000; font:400 10px/1 'Press Start 2P', monospace; letter-spacing:.14em; text-transform:uppercase;
+  animation:playBlink 1.1s step-start infinite; }
+@keyframes playBlink{ 50%{ opacity:.25; } }
+/* playing: the game leaves the column and sits full size in the middle of the
+   screen (--gs, set by the script below, fits it to the window) over a dark
+   backdrop; ::after keeps its place in the column */
+.game-back{ display:none; position:fixed; inset:0; z-index:4; padding-top:14px; text-align:center; background:rgba(2,4,12,.78); color:rgba(244,246,250,.6); cursor:pointer; }
+.ab-game:has(.game-stage.big) .game-back{ display:block; }
+.ab-game:has(.game-stage.big)::after{ content:""; aspect-ratio:7 / 6; }
+.ab:has(.game-stage.big){ z-index:1500; } /* above the nav (1002) */
+.game-stage.big{ position:fixed; inset:0; margin:auto; z-index:5; aspect-ratio:auto; width:calc(760px * var(--gs)); height:calc(652px * var(--gs)); }
+.game-stage.big #game-iframe{ transform:scale(var(--gs)); }
+@media (prefers-reduced-motion: reduce){ .game-stage.on, .game-play span{ animation:none; } }
 
 @media (--bp-900){
   .ab{ padding:96px 16px 40px; }
@@ -164,11 +187,11 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 <main class="ab">
   <h1 class="ab-lede" data-reveal="lines">
     <b>Samuel Abhinav</b> is a <b>security engineer</b> working on <b>detection, incident response</b> and <b>network security</b>.
-    It started with a master's in Cybersecurity at <b>Iowa State University</b> and a habit of finding out how things break, then making sure they don't.
+    It started with a master's in Cybersecurity at <b class="bar" style="--n:0">Iowa State University</b> and a habit of finding out how things break, then making sure they don't.
     Most days go into writing detections, triaging alerts and rebuilding attack chains from logs.
-    The work so far includes <b>Moat</b>, an ad blocker that runs entirely in the browser, <b>Cluster</b>, which catches impersonation in Gmail from the headers alone, and <b>Sentinel</b>, a SOC lab where every rule has to fire on a real attack before it counts.
-    Outside of that there are accepted bug bounty findings on <b>HackerOne</b> and six certifications.
-    Currently looking for <b>SOC analyst, detection engineering</b> and <b>security engineering</b> roles.
+    The work so far includes <b class="bar" style="--n:1">Moat</b>, an ad blocker that runs entirely in the browser, <b class="bar" style="--n:2">Cluster</b>, which catches impersonation in Gmail from the headers alone, and <b class="bar" style="--n:3">Sentinel</b>, a SOC lab where every rule has to fire on a real attack before it counts.
+    Outside of that there are accepted bug bounty findings on <b class="bar" style="--n:4">HackerOne</b> and six certifications.
+    Currently looking for <b class="bar" style="--n:5">SOC analyst</b><b>,</b> <b class="bar" style="--n:6">detection engineering</b> and <b class="bar" style="--n:7">security engineering</b> roles.
   </h1>
 
   <div class="ab-info">
@@ -209,8 +232,9 @@ html.motion .ab{ animation:abIn .7s ease-in-out both; }
 
     <figure class="ab-game" id="arcade" data-toc="Arcade">
       <p><b>INFILTRATE // DEFEND</b><span>Play a round</span></p>
+      <div class="game-back">Esc to close</div>
       <div class="game-stage">
-        <button class="game-play" type="button" aria-label="Play INFILTRATE // DEFEND"></button>
+        <button class="game-play" type="button" aria-label="Play INFILTRATE // DEFEND"><span>Click to play</span></button>
 <iframe id="game-iframe" title="INFILTRATE // DEFEND (playable arcade game)" data-srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
@@ -615,11 +639,21 @@ onPage(function(signal){
   if(!ifr) return;
   if(window.SITE && window.SITE.LOW_POWER){ ifr.remove(); if(play) play.remove(); return; }
   var stage = document.querySelector('.game-stage');
-  // nothing loads or moves until the first click: then the game boots and the screen powers on
+  function fit(){ stage.style.setProperty('--gs', Math.min(1.25, (innerWidth - 48) / 760, (innerHeight - 72) / 652).toFixed(3)); }
+  // back to the small screen in the column; the game pauses itself when it loses focus
+  function close(){ if(!stage.classList.contains('big')) return; stage.classList.remove('big'); play.classList.remove('gone'); play.focus(); }
+  document.querySelector('.game-back').addEventListener('click', close);
+  addEventListener('resize', fit, { signal: signal });
+  // nothing loads or moves until the first click: then the game boots, full size, and the screen powers on
   play.addEventListener('click', function(){
     play.classList.add('gone');
+    fit(); stage.classList.add('big');
     if(ifr.hasAttribute('data-srcdoc')){
-      ifr.addEventListener('load', function(){ ifr.focus(); try { ifr.contentWindow.focus(); } catch(e){} }, { once:true });
+      ifr.addEventListener('load', function(){ ifr.focus(); try {
+        ifr.contentWindow.focus();
+        // the keyboard is inside the frame while playing, so Esc is heard there
+        ifr.contentWindow.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+      } catch(e){} }, { once:true });
       ifr.srcdoc = ifr.getAttribute('data-srcdoc');
       ifr.removeAttribute('data-srcdoc');
       stage.classList.add('on');
@@ -629,7 +663,14 @@ onPage(function(signal){
     try { ifr.contentWindow.focus(); } catch(e){}
   });
   // clicking back out to the page brings the cover back, so the page scrolls again
-  addEventListener('focus', function(){ play.classList.remove('gone'); }, { signal: signal });
+  addEventListener('focus', close, { signal: signal });
+})();
+
+/* a covered phrase opens when the pointer crosses it (on the statement, so it
+   still works after the line splitter rebuilds the words inside) */
+(function(){
+  var lede = document.querySelector('.ab-lede');
+  if(lede) lede.addEventListener('pointerover', function(e){ var b = e.target.closest('.bar'); if(b) b.classList.add('open'); });
 })();
 
 /* a cell too long for its column scrolls sideways in a loop, like the reference's client list */

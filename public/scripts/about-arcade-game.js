@@ -1366,3 +1366,7 @@ document.addEventListener('click',e=>{
   else if(el.dataset.act==='launch')launchGame();
   else if(el.dataset.act==='restart')restartGame();
 });
+
+// The About page opens straight into a round, so one click is enough to be
+// playing. Roles, maps and rules stay reachable from MAIN MENU.
+selMode='attacker';selTheme='server';goTo(4);
