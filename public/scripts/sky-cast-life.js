@@ -1,7 +1,5 @@
 /* What lives in the homepage sky (SkyLife.astro with `cast`): jellyfish
-   (a looping sprite: the clip's 75 frames on one transparent sheet, made by
-   scripts/make-jelly-sprite.mjs; a playing <video> held the whole page at
-   half the screen's frame rate, and needed a blend and a filter each) drifting up, with soft stars and the odd rising bubble
+   (a looping clip) drifting up, with soft stars and the odd rising bubble
    as CSS animations. Nothing starts until the page has loaded (unless the
    last page handed its cast over), nothing runs while the tab is hidden, and
    reduced motion holds everything still.
@@ -15,6 +13,7 @@
   if (!sky) return;
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const TAU = Math.PI * 2;
+  const play = (v) => (window.playClip ? playClip(v) : v.play()).catch(() => {}); // one download for all the jellyfish (shared-clip.js)
   const rnd = (a, b) => a + Math.random() * (b - a);
   let W = 0, H = 0;
   const vw = () => document.documentElement.clientWidth;
@@ -51,11 +50,11 @@
   }
 
   /* ── jellyfish ──
-     The looping sprite of a jellyfish in serif digits, pulsing once every
-     PULSE seconds. The frame shown and the squeeze come from the same phase,
-     so the squeeze you see is what pushes it along a slow diagonal; between
+     The looping clip of a jellyfish in serif digits, pulsing once every
+     PULSE seconds. Its squeeze is read from the video's clock, so the
+     squeeze you see is what pushes it along a slow diagonal; between
      pulses it drifts, leaning the way it travels. */
-  const PULSE = 5, BELL_Y = 110 / 240, ASPECT = 420 / 240, FRAMES = 75, COLS = 15, ROWS = 5;
+  const PULSE = 5, BELL_Y = 110 / 240, ASPECT = 420 / 240;
   function squeeze(p) { // the squeeze the clip was drawn with: quick in, slow out, a rest
     if (p < 0.2) return Math.sin(Math.PI / 2 * p / 0.2) ** 2;
     if (p < 0.75) return 0.5 + 0.5 * Math.cos(Math.PI * (p - 0.2) / 0.55);
@@ -72,9 +71,17 @@
     jel = idx.map((i) => {
       const was = prev && prev[i];
       const w = was ? was.w : narrowSky() ? rnd(34, 40) : [rnd(70, 84), rnd(56, 66), rnd(44, 52)][i];
-      const v = document.createElement('i');
-      v.className = 'sc-jelly'; v.style.width = w.toFixed(0) + 'px';
+      const v = document.createElement('video');
+      v.className = 'sc-jelly'; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+      v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+      v.poster = '/images/contact-jelly-poster.webp'; v.style.width = w.toFixed(0) + 'px';
+      for (const [ext, type] of [['webm', 'video/webm'], ['mp4', 'video/mp4']]) {
+        const src = document.createElement('source'); src.src = '/videos/contact-jelly.' + ext; src.type = type; v.appendChild(src);
+      }
+      const start = was ? was.vt : rnd(0, PULSE);
+      v.addEventListener('loadedmetadata', () => { v.currentTime = start; }, { once: true });
       layer.appendChild(v);
+      if (!still) play(v);
       // desktop: the two bigger ones always open as a pair in the top right, one above the other, leaning right
       const START = [[0.875, 0.13], [0.855, 0.32]];
       const pair = !narrowSky() && START[i];
@@ -91,9 +98,8 @@
   }
   function stepJellies(t, dt) {
     for (const j of jel) {
-      j.ph = (j.ph + dt / PULSE) % 1;
-      const f = Math.floor(j.ph * FRAMES);
-      if (f !== j.f) { j.f = f; j.v.style.backgroundPosition = `${(f % COLS) / (COLS - 1) * 100}% ${Math.floor(f / COLS) / (ROWS - 1) * 100}%`; }
+      const playing = j.v.readyState >= 2 && !j.v.paused;
+      j.ph = playing ? (j.v.currentTime % PULSE) / PULSE : (j.ph + dt / PULSE) % 1;
       const speed = (1.4 + 6 * squeeze(j.ph)) * j.w / 70;
       const heading = j.dir + 0.18 * Math.sin(t * 0.07 + j.seed);
       j.x += Math.sin(heading) * speed * dt; j.y -= Math.cos(heading) * speed * dt;
@@ -127,15 +133,21 @@
       if (vw() === W) return;
       clearTimeout(resizeTimer); resizeTimer = setTimeout(setup, 300);
     });
+    document.addEventListener('visibilitychange', () => {
+      jel.forEach((j) => { if (document.hidden) j.v.pause(); else if (!still && !covered) play(j.v); });
+    });
     // The jellyfish drift a few pixels a second, so 30 frames a second looks the
     // same as the screen's full rate; on a 120-240Hz screen that is 4-8x less
     // redrawing.
     const FRAME_MS = 1000 / 30;
 
     // while the page covers the whole sky (sky.js sends 'sky:covered') nobody
-    // can see the cast: it holds where it is
+    // can see the cast: it holds where it is and the jellyfish clips pause
     let covered = false;
-    document.addEventListener('sky:covered', (e) => { covered = e.detail; });
+    document.addEventListener('sky:covered', (e) => {
+      covered = e.detail;
+      jel.forEach((j) => { if (covered) j.v.pause(); else if (!still && !document.hidden) play(j.v); });
+    });
     let last = 0, clock = handed ? handed.clock + (Date.now() - handed.at) / 1000 : 0;
     handed = null; // used once; a later resize builds a fresh cast
     addEventListener('pagehide', () => {
@@ -143,7 +155,7 @@
         sessionStorage.setItem(KEY, JSON.stringify({
           at: Date.now(), clock,
           stars: [...layer.querySelectorAll('.sc-star')].map((s) => s.style.cssText),
-          jel: jel.map((j) => ({ x: j.x / W, y: j.y / H, w: j.w, dir: j.dir, lean: j.lean, seed: j.seed, ph: j.ph })),
+          jel: jel.map((j) => ({ x: j.x / W, y: j.y / H, w: j.w, dir: j.dir, lean: j.lean, seed: j.seed, ph: j.ph, vt: j.v.currentTime || 0 })),
         }));
       } catch (e) {}
     });

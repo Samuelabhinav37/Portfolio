@@ -404,7 +404,7 @@ window.SITE=window.SITE||{};
   body[data-tone="cool"] .poster{
     filter:grayscale(1) sepia(0.2) hue-rotate(180deg) saturate(1.5) brightness(1.03)
       drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
-  body[data-tone="cool"]{ --jt:grayscale(1) brightness(1.08); }
+  body[data-tone="cool"]{ --jt:grayscale(1) sepia(0) hue-rotate(0deg) saturate(1) brightness(1.08); }
   body[data-tone="cool"] .xp-balloon{ filter:none; }
 
   /* ── the mono tone: everything in black and white, like a photocopy of
@@ -414,7 +414,7 @@ window.SITE=window.SITE||{};
   body[data-tone="mono"] .poster{
     filter:grayscale(1) contrast(1.06)
       drop-shadow(0 46px 50px rgba(0,0,0,0.6)) drop-shadow(0 6px 10px rgba(0,0,0,0.4)); }
-  body[data-tone="mono"]{ --jt:grayscale(1) brightness(1.08); }
+  body[data-tone="mono"]{ --jt:grayscale(1) sepia(0) hue-rotate(0deg) saturate(1) brightness(1.08); }
   body[data-tone="mono"] .xp-balloon{ filter:grayscale(1); }
 
   /* ── the holo tone: the print as a hologram. The card is inverted, so its
@@ -488,7 +488,7 @@ window.SITE=window.SITE||{};
   body[data-holo="mono"] .poster{
     filter:invert(1) grayscale(1) contrast(2.4) brightness(0.9) brightness(1.2)
       drop-shadow(1px 0 0 rgba(255,255,255,0.18)) drop-shadow(0 0 8px rgba(255,255,255,0.1)); }
-  body[data-holo="mono"]{ --jt:grayscale(1) brightness(1.1); }
+  body[data-holo="mono"]{ --jt:grayscale(1) sepia(0) hue-rotate(0deg) saturate(1) brightness(1.1); }
   body[data-holo="mono"] .holo-status:not(:empty):not(.bad){ color:#f2f4f8; text-shadow:0 0 10px rgba(255,255,255,0.5); }
 
   /* ── paper (tone 'paper'): no inversion, so the pieces the hologram turned
@@ -504,7 +504,7 @@ window.SITE=window.SITE||{};
   /* the seal and the stamp in their own colours: red wax and gold, blue peonies */
   body[data-holo="paper"] .seal{ filter:drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
   body[data-holo="paper"] .pc-stamp{ filter:drop-shadow(0 1px 1.5px rgba(40,24,8,0.45)); }
-  body[data-holo="paper"]{ --jt:grayscale(1) brightness(1.1); }
+  body[data-holo="paper"]{ --jt:grayscale(1) sepia(0) hue-rotate(0deg) saturate(1) brightness(1.1); }
   /* day sky: screen blending only works on black, so the card prints solid */
   :root[data-theme="light"] body[data-tone="holo"]{ background:var(--c-bg); }
   :root[data-theme="light"] body[data-tone="holo"] .field-wrap{ mix-blend-mode:normal; }

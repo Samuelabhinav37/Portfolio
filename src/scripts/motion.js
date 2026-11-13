@@ -40,7 +40,7 @@ window.gsap = window.gsap || gsap;
 // to try the site without it in one browser, open any page with ?lenis=0.
 const SMOOTH_SCROLL = true;
 const SCROLL = {
-  lerp: 0.2,           // share of the remaining distance covered per frame; higher = snappier
+  lerp: 0.14,          // share of the remaining distance covered per frame; higher = snappier
   wheelMultiplier: 1,  // one notch moves the page as far as it does natively
 };
 export const MOTION = {
