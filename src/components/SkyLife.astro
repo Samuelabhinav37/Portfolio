@@ -33,7 +33,7 @@ const { cast, jellies } = Astro.props;
   <>
     <div class="sky-life" aria-hidden="true"></div>
     <script is:inline defer src="/scripts/shared-clip.js"></script>
-    <script is:inline defer src="/scripts/sky-cast-life.js?v=5"></script>
+    <script is:inline defer src="/scripts/sky-cast-life.js?v=6"></script>
   </>
 ) : jellies ? (
   <>
@@ -76,10 +76,11 @@ const { cast, jellies } = Astro.props;
   /* the homepage sky cast (sky-cast-life.js builds these) */
   :global(.sc-layer){ display:contents; }
   :global(.sc-jelly), :global(.sc-star), :global(.sc-bubble){ z-index:2; pointer-events:none; }
-  /* --jt: a page's own tint (Contact greys the cast); always the same five functions so it can ease */
+  /* --jt: a page's own tint (Contact greys the cast) */
   :global(.sc-star){ filter:var(--jt, none); }
+  /* a transparent sprite sheet (15 x 5 frames), so no blend mode and, unless a page tints it (--jt), no filter */
   :global(.sc-jelly){ position:fixed; left:0; top:0; display:block; height:auto; aspect-ratio:240 / 420;
-    background:#000; mix-blend-mode:screen; opacity:0; will-change:transform, opacity; filter:brightness(2.5) var(--jt, grayscale(0) sepia(0) hue-rotate(0deg) saturate(1) brightness(1)); }
+    background:url(/images/jelly-sprite.webp) 0 0 / 1500% 500% no-repeat; opacity:0; will-change:transform, opacity; filter:var(--jt, none); }
   /* soft points of light that brighten and dim, each at its own pace */
   :global(.sc-star){ position:fixed; border-radius:50%;
     background:radial-gradient(circle, rgba(255,249,236,1) 0, rgba(255,246,228,.45) 25%, rgba(255,246,228,0) 70%);

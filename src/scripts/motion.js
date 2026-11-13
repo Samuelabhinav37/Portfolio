@@ -40,7 +40,7 @@ window.gsap = window.gsap || gsap;
 // to try the site without it in one browser, open any page with ?lenis=0.
 const SMOOTH_SCROLL = true;
 const SCROLL = {
-  lerp: 0.14,          // share of the remaining distance covered per frame; higher = snappier
+  lerp: 0.2,           // share of the remaining distance covered per frame; higher = snappier
   wheelMultiplier: 1,  // one notch moves the page as far as it does natively
 };
 export const MOTION = {
@@ -140,12 +140,20 @@ function media(el) {
 // opens upward to full as it scrolls in, settling from a slight zoom; tied
 // to the scroll, so it moves only while you do (studiochen / oliverdupuy).
 const CROP = '.wk-img, .fn-pic';
+// Once a frame is fully open its clip comes off for good (it does not close
+// again on the way back up): a clip left on a frame whose picture is moving
+// costs the graphics card an offscreen pass per frame, every frame.
+function opened() {
+  const el = this.targets()[0];
+  if (this.scrollTrigger) this.scrollTrigger.kill();
+  gsap.set(el, { clearProps: 'clipPath' });
+}
 function crop(frame) {
   const r = getComputedStyle(frame).borderRadius || '0px';
   const img = frame.querySelector('img');
   const st = { trigger: frame, start: 'top 98%', end: 'top 50%', scrub: 0.6 };
   gsap.fromTo(frame, { clipPath: `inset(75% 0% 0% 0% round ${r})` },
-    { clipPath: `inset(0% 0% 0% 0% round ${r})`, ease: 'none', scrollTrigger: st });
+    { clipPath: `inset(0% 0% 0% 0% round ${r})`, ease: 'none', scrollTrigger: st, onComplete: opened });
   if (img) gsap.fromTo(img, { scale: 1.06 }, { scale: 1, ease: 'none', scrollTrigger: { ...st } });
 }
 
@@ -165,7 +173,7 @@ function spread(frame, i, reveal) {
     const rad = getComputedStyle(frame).borderRadius || '0px';
     const from = r.left + r.width / 2 > innerWidth / 2 ? '100% 0% 0% 100%' : '100% 100% 0% 0%';
     gsap.fromTo(frame, { clipPath: `inset(${from} round ${rad})` },
-      { clipPath: `inset(0% 0% 0% 0% round ${rad})`, ease: 'power3.out',
+      { clipPath: `inset(0% 0% 0% 0% round ${rad})`, ease: 'power3.out', onComplete: opened,
         scrollTrigger: { trigger: tile, start: 'top 115%', end: 'top 35%', scrub: 0.8 } });
   }
   const pass = { trigger: tile, start: 'top bottom', end: 'bottom top', scrub: 0.8 };

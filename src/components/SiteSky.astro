@@ -22,27 +22,29 @@ import SkyLife from './SkyLife.astro';
 <SkyLife cast />
 </div>
 <!-- pixel-art clouds over the day sky only; built on first switch to light -->
-<script is:inline defer src="/scripts/pixel-clouds.js?v=3"></script>
+<script is:inline defer src="/scripts/pixel-clouds.js?v=4"></script>
 <!-- sunbeams by day, moonbeams by night, soft beams that shimmer and sway -->
 <script is:inline defer src="/scripts/light-rays.js?v=4"></script>
-<!-- halo for the jellyfish in light mode: the clip plus two blurred copies of itself -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
+<!-- the jellyfish in light mode: a more solid sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="jelly-glow" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="1.6"/></feComponentTransfer></filter></svg>
 
 <style is:global>
 :root[data-theme="light"]{ --c-white:25,25,25; --c-bg:#fbfbfa; color-scheme:light; }
 :root[data-theme="light"] #chrome-damp, :root[data-theme="light"] #subliminal-layer,
 :root[data-theme="light"] #subliminal-flash, :root[data-theme="light"] .page-grain{ display:none; }
 :root[data-theme="light"] #sky{ background:#8fb0e0; }
-/* the jellyfish stay screened onto the sky as at night, brightened, with a
-   blurred copy behind for a halo (#jelly-glow); --jb and the glow's blur
-   are tuned in /_sky-tune.html */
-:root[data-theme="light"] .sc-jelly{ filter:brightness(var(--jb, 4)) url(#jelly-glow) var(--jt, grayscale(0) sepia(0) hue-rotate(0deg) saturate(1) brightness(1)); }
+/* the jellyfish by day: made more solid (alpha x1.6 in #jelly-glow, what the old
+   brightness(4) on the screened clip gave) */
+:root[data-theme="light"] .sc-jelly{ filter:url(#jelly-glow) var(--jt, grayscale(0)); }
 /* the sky's scanlines only vanish on black */
 :root[data-theme="light"] #sky .sky-grain, :root[data-theme="light"] #sky::after{ display:none; }
 html, body{ transition:background-color .4s ease; }
 /* pixel clouds (pixel-clouds.js): over the sky, under the jellyfish and the page */
 #px-clouds{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
-#px-clouds .pxc{ position:absolute; left:0; top:0; image-rendering:pixelated; will-change:transform; }
+#px-clouds .pxc{ position:absolute; left:0; top:0; image-rendering:pixelated; will-change:transform; animation:pxSway 15s linear infinite alternate; }
+/* the sway: +-60px at 8px/s, on the compositor (pixel-clouds.js sets where in the swing each cloud starts) */
+@keyframes pxSway{ from{ translate:-60px } to{ translate:60px } }
+@media (prefers-reduced-motion:reduce){ #px-clouds .pxc{ animation:none; } }
 /* light rays (light-rays.js): a small canvas stretched smooth over the screen,
    swaying slowly around the light off the top right (each beam shimmers in the script) */
 /* 40px past every edge so the sway never shows the canvas edge */

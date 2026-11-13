@@ -41,8 +41,8 @@ const { calm, tone } = Astro.props;
      a level or two: a blend mode over a canvas that redraws 30 times a second
      made the graphics card re-blend the whole screen every frame (~35% fewer
      frames on the homepage). */
-  #sky .sky-grain{ position:absolute; inset:0; opacity:.06; filter:brightness(.4);
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  #sky .sky-grain{ position:absolute; inset:0; opacity:.06; /* darkened inside the SVG (slope .4), not with a CSS filter: a full-screen filter is an extra offscreen pass every frame */
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeComponentTransfer color-interpolation-filters='sRGB'%3E%3CfeFuncR type='linear' slope='.4'/%3E%3CfeFuncG type='linear' slope='.4'/%3E%3CfeFuncB type='linear' slope='.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   /* the site's CRT scanlines, over the whole page */
   #sky::after{ content:''; position:fixed; inset:0; z-index:200;
     background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.05) 3px 4px); }

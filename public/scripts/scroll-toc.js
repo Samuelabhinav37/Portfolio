@@ -31,18 +31,35 @@
 
   let current = -1, openT, closeT, ticking = false;
   function close() { clearTimeout(openT); clearTimeout(closeT); nav.classList.remove('is-open'); }
+  // Section positions are measured when the page's size changes, not on every
+  // scroll frame: reading layout mid-scroll, after the scroll effects have
+  // moved things, made the browser lay the page out twice a frame.
+  let tops = null, pageH = 0, viewH = 0;
+  function measure() {
+    const y = scrollY;
+    tops = targets.map((t) => t.getBoundingClientRect().top + y);
+    pageH = document.documentElement.scrollHeight; viewH = innerHeight;
+  }
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => { tops = null; if (!ticking) { ticking = true; requestAnimationFrame(update); } });
+    ro.observe(document.body);
+    addEventListener('resize', () => { tops = null; }, { signal });
+    signal.addEventListener('abort', () => ro.disconnect());
+  }
   function update() {
     ticking = false;
-    const line = innerHeight * 0.35;
+    if (!tops) measure();
+    const L = window.SITE && window.SITE.lenis;
+    const y = L ? L.scroll : scrollY, line = y + viewH * 0.35; // Lenis's own number when it drives the page: reading scrollY after the scroll effects have moved things makes the browser recalculate the whole page
     let idx = 0;
-    targets.forEach((t, i) => { if (t.getBoundingClientRect().top <= line) idx = i; });
-    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) idx = targets.length - 1; // a short last section never reaches the line
+    tops.forEach((top, i) => { if (top <= line) idx = i; });
+    if (viewH + y >= pageH - 4) idx = targets.length - 1; // a short last section never reaches the line
     if (idx !== current) {
       if (current >= 0) { dashes[current].classList.remove('is-active'); links[current].classList.remove('is-active'); links[current].removeAttribute('aria-current'); }
       current = idx;
       dashes[idx].classList.add('is-active'); links[idx].classList.add('is-active'); links[idx].setAttribute('aria-current', 'location');
     }
-    const show = scrollY > innerHeight * 0.4;
+    const show = y > viewH * 0.4;
     nav.classList.toggle('is-shown', show);
     if (!show) close();
   }

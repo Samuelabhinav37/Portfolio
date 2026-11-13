@@ -5,8 +5,10 @@
 
    Motion, after vega.io: each cloud sways sideways (+-60px at 8px/s), leans
    up to 6px toward the pointer, and moves slower than the page on scroll
-   (bigger = nearer = faster), looping through two screens. The loop only
-   runs while the tab is visible; reduced motion keeps them still. */
+   (bigger = nearer = faster), looping through two screens. The sway is a CSS
+   animation (pxSway in SiteSky.astro), so nothing runs here while the page
+   sits still: the script only places the clouds while you scroll or move the
+   pointer. Reduced motion keeps them still. */
 (function(){
   var root = document.documentElement;
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -30,7 +32,7 @@
     var p = (((Date.now() - t0) / 1000 * 8 + c.phase) % 240 + 240) % 240;
     return p < 120 ? p - 60 : 180 - p;
   }
-  var mx = 0, my = 0, tx = 0, ty = 0, last = 0, raf = 0;
+  var mx = 0, my = 0, tx = 0, ty = 0, raf = 0;
 
   function build(){
     layer = document.createElement('div');
@@ -40,18 +42,19 @@
       el.alt = ''; el.decoding = 'async'; el.className = 'pxc';
       layer.appendChild(el);
       var c = { el: el, name: p[0], x: p[3], y: p[4], w: p[1] * SCALE, depth: p[5], phase: i * 70 };
-      c.drift = sway(c); clouds.push(c);
+      c.drift = reduce ? sway(c) : 0; clouds.push(c); // moving: the CSS animation sways it, picked up at the visit's clock
+      if(!reduce) el.style.animationDelay = (-(((Date.now() - t0) / 1000 + c.phase / 8) % 30)).toFixed(2) + 's';
     });
     var sky = document.getElementById('sky');
     (sky && sky.parentNode ? sky.parentNode : document.body).insertBefore(layer, sky ? sky.nextSibling : null);
   }
 
-  function place(dt){
-    var sy = scrollY, field = H * 2;
+  function place(){
+    var L = window.SITE && window.SITE.lenis;
+    var sy = L ? L.scroll : scrollY, field = H * 2; // Lenis's own number when it drives the page: reading scrollY after the scroll effects have moved things makes the browser recalculate the whole page
     tx += (mx * 6 - tx) * 0.08; ty += (my * 6 - ty) * 0.08;
     for(var i = 0; i < clouds.length; i++){
       var c = clouds[i];
-      if(dt) c.drift = sway(c);
       var x = c.x / 100 * W + c.drift + tx - c.w / 2;
       var y = c.y / 100 * H - sy * c.depth + ty;
       y = (((y + H * 0.3) % field) + field) % field - H * 0.3; // loops, and may sit a little above the top
@@ -65,21 +68,21 @@
     var suffix = root.getAttribute('data-theme') === 'light' ? '' : '-night';
     for(var i = 0; i < clouds.length; i++){ var src = '/images/clouds/' + clouds[i].name + suffix + '.png'; if(clouds[i].el.getAttribute('src') !== src) clouds[i].el.src = src; }
   }
-  function tick(t){
-    var dt = last ? Math.min((t - last) / 1000, 0.05) : 0; last = t;
-    place(dt); raf = requestAnimationFrame(tick);
+  function tick(){ // runs only until the lean toward the pointer has settled
+    raf = 0; place();
+    if(Math.abs(mx * 6 - tx) > 0.05 || Math.abs(my * 6 - ty) > 0.05) kick();
   }
+  function kick(){ if(layer && !raf && on()) raf = requestAnimationFrame(tick); }
   function sync(){
     if(on() && !layer) build();
     if(!layer) return;
     art();
-    if(on() && !reduce){ if(!raf){ last = 0; raf = requestAnimationFrame(tick); } }
-    else { cancelAnimationFrame(raf); raf = 0; if(on()) place(0); }
+    kick();
   }
 
-  addEventListener('resize', function(){ H = innerHeight; W = innerWidth; if(layer && !raf) place(0); });
-  if(reduce) addEventListener('scroll', function(){ if(layer) place(0); }, { passive: true });
-  if(!small) addEventListener('pointermove', function(e){ mx = e.clientX / W * 2 - 1; my = e.clientY / H * 2 - 1; }, { passive: true });
+  addEventListener('resize', function(){ H = innerHeight; W = innerWidth; kick(); });
+  addEventListener('scroll', kick, { passive: true });
+  if(!small && !reduce) addEventListener('pointermove', function(e){ mx = e.clientX / W * 2 - 1; my = e.clientY / H * 2 - 1; kick(); }, { passive: true });
   document.addEventListener('visibilitychange', sync);
   document.addEventListener('theme:change', sync);
   sync();

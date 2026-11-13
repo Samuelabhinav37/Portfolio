@@ -284,7 +284,8 @@
       last = e.target && e.target.nodeType === 1 ? e.target : null;
       // read the position here, where layout is clean: read inside the frame
       // callback, after other scripts have moved things, it forces a relayout
-      lastY = last ? last.scrollTop : win.scrollY;
+      var L = win.SITE && win.SITE.lenis; // the page under Lenis: its own number, no layout read
+      lastY = last ? last.scrollTop : L ? L.scroll : win.scrollY;
       if (ticking) return;
       ticking = true;
       win.requestAnimationFrame(function () {

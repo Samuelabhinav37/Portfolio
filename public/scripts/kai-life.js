@@ -625,8 +625,9 @@
 
     var lastY = scrollY, lastScrollT = performance.now();
     addEventListener('scroll', function () {
-      var now = performance.now(), dy = scrollY - lastY, dt = Math.max(16, now - lastScrollT);
-      lastY = scrollY; lastScrollT = now;
+      var L = window.SITE && window.SITE.lenis, y = L ? L.scroll : scrollY; // Lenis's number: no layout read
+      var now = performance.now(), dy = y - lastY, dt = Math.max(16, now - lastScrollT);
+      lastY = y; lastScrollT = now;
       var v = clamp(dy / dt, -4, 4);
       kai.leanTarget = clamp(-v * 2.4, -6, 6);
       kai.squash = clamp(Math.abs(v) * .02, 0, .05);

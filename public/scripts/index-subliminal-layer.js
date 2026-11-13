@@ -90,8 +90,8 @@
     if (!visible) return;
     hit();
     if (flash && Math.random() < 0.08){
-      flash.style.opacity = '.045';
-      setTimeout(function(){ flash.style.opacity = '0'; }, rnd(14,32));
+      flash.classList.add('on');
+      setTimeout(function(){ flash.classList.remove('on'); }, rnd(14,32));
     }
     if (Math.random() < 0.15) setTimeout(hit, rnd(40,130));
   }

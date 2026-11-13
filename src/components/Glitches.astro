@@ -9,7 +9,9 @@
 ---
 <style is:global>
   #subliminal-layer{ position:fixed; inset:0; z-index:650; pointer-events:none; overflow:hidden; }
-  #subliminal-flash{ position:fixed; inset:0; z-index:649; pointer-events:none; opacity:0; background:#e6ebf6; mix-blend-mode:difference; transition:none; }
+  #subliminal-flash{ position:fixed; inset:0; z-index:649; pointer-events:none; opacity:.045; background:#e6ebf6; mix-blend-mode:difference; }
+  /* only in the page for the 14-32ms it flashes: a full-screen blend layer, even invisible, makes every frame an extra offscreen pass */
+  #subliminal-flash:not(.on){ display:none; }
   .subliminal-mark{ position:absolute; opacity:0; transition:none; will-change:opacity,transform; }
 
   /* small rectangular tear with a chromatic fringe */
@@ -42,4 +44,4 @@
 </style>
 <div id="subliminal-layer" aria-hidden="true"></div>
 <div id="subliminal-flash" aria-hidden="true"></div>
-<script is:inline defer src="/scripts/index-subliminal-layer.js"></script>
+<script is:inline defer src="/scripts/index-subliminal-layer.js?v=2"></script>
