@@ -102,10 +102,36 @@
     var data = validate();
     if(!data) return;
     if(data.company){ done(true, 'Received.'); return; }   /* honeypot: silent no-op */
-    if(!data.turnstileToken){ loadTurnstile(); say('Please complete the verification check.', 'bad'); return; }
 
     busy = true;
     btn.disabled = true;
+    if(!data.turnstileToken){
+      /* the check usually finishes on its own a moment later: wait for it and send, rather than make them press again */
+      loadTurnstile();
+      btn.textContent = 'Checking\u2026';
+      say('Checking you\u2019re not a bot\u2026');
+      var tries = 0;
+      (function wait(){
+        if(signal.aborted) return;  /* left the page */
+        var t = (window.turnstile && window.turnstile.getResponse) ? window.turnstile.getResponse() : '';
+        if(t){ data.turnstileToken = t; post(data); return; }
+        if(++tries > 60){  /* ~18s: an interactive challenge is waiting for them */
+          busy = false; btn.disabled = false; btn.textContent = 'Send Message';
+          say('Tick the check box above, then send.', 'bad'); return;
+        }
+        setTimeout(wait, 300);
+      })();
+      return;
+    }
+    post(data);
+  });
+
+  /* Ctrl/Cmd + Enter sends from anywhere in the form, like most mail and chat apps */
+  form.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); form.requestSubmit(btn); }
+  });
+
+  function post(data){
     btn.textContent = 'Sending\u2026';
     say('Sending\u2026');
 
@@ -129,5 +155,5 @@
     }).catch(function(){
       done(false, 'Didn\u2019t get through \u2014 mail ' + FALLBACK);
     });
-  });
+  }
 });
