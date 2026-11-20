@@ -139,7 +139,7 @@ function media(el) {
 // A picture shows only its bottom quarter as it comes up the screen and
 // opens upward to full as it scrolls in, settling from a slight zoom; tied
 // to the scroll, so it moves only while you do (studiochen / oliverdupuy).
-const CROP = '.fn-pic';
+const CROP = '.wk-img, .fn-pic';
 // Once a frame is fully open its clip comes off for good (it does not close
 // again on the way back up): a clip left on a frame whose picture is moving
 // costs the graphics card an offscreen pass per frame, every frame.
@@ -157,74 +157,23 @@ function crop(frame) {
   if (img) gsap.fromTo(img, { scale: 1.06 }, { scale: 1, ease: 'none', scrollTrigger: { ...st } });
 }
 
-/* ── puzzle reveal (after planhat.com/frontier) ───────────────────── */
-// A picture comes in as a grid of pieces that snap on one at a time as it
-// scrolls up the screen: a sweep from one edge or corner, a little out of
-// order, with a few strays well ahead of the rest. Tied to the scroll, so it
-// runs back while you scroll up, until every piece is in: then the mask
-// comes off for good (a mask on a moving picture costs an offscreen pass
-// per frame, as the clip in opened() does).
-const PUZZLE = {
-  rows: 4,        // pieces down the picture; across follows its shape
-  main: 0.12,     // share of the scroll before the sweep starts
-  jitter: 0.22,   // how far a piece can jump its place in the sweep, either way
-  strays: 0.08,   // share of pieces that come in early...
-  ahead: 0.25,    // ...and by how much
-};
-// the same "random" pattern on every visit (Planhat's hash)
-const noise = (n) => { const t = Math.sin(n * 12.9898) * 43758.5453; return t - Math.floor(t); };
-function puzzle(frame, rect, from, seed, trigger, start, end) {
-  const rows = PUZZLE.rows;
-  const cols = Math.max(2, Math.round((rows * rect.width) / Math.max(1, rect.height)));
-  const pieces = [];
-  for (let i = 0; i < cols * rows; i++) {
-    const c = i % cols, r = Math.floor(i / cols), x = c / (cols - 1), y = r / (rows - 1);
-    // 0 at the edge or corner it opens from, 1 at the far side
-    const d = from === 'bottom' ? 1 - y
-      : from === 'bottom-left' ? Math.hypot(x, 1 - y) / Math.SQRT2
-      : Math.hypot(1 - x, 1 - y) / Math.SQRT2;
-    const stray = noise(i + seed * 17) < PUZZLE.strays;
-    const at = PUZZLE.main + (1 - PUZZLE.main) * d + (noise(i + seed * 17 + 1000) - 0.5) * PUZZLE.jitter - (stray ? PUZZLE.ahead : 0);
-    pieces.push({ at: Math.min(at, 0.97), pos: `${x * 100}% ${y * 100}%` });
-  }
-  pieces.sort((a, b) => a.at - b.at); // so the pieces in at progress p are always the first n
-  const s = frame.style;
-  const size = `calc(${100 / cols}% + 1px) calc(${100 / rows}% + 1px)`; // +1px: no hairline seams between pieces
-  let shown = -1;
-  const show = (p, st) => {
-    let n = 0;
-    while (n < pieces.length && pieces[n].at <= p) n++;
-    if (n === shown) return;
-    shown = n;
-    if (n === pieces.length) {
-      st.kill();
-      s.maskImage = s.webkitMaskImage = s.maskPosition = s.webkitMaskPosition = s.maskSize = s.webkitMaskSize = s.maskRepeat = s.webkitMaskRepeat = '';
-      return;
-    }
-    const on = pieces.slice(0, n);
-    s.maskImage = s.webkitMaskImage = n ? on.map(() => 'linear-gradient(#000,#000)').join(',') : 'linear-gradient(transparent,transparent)';
-    s.maskPosition = s.webkitMaskPosition = n ? on.map((q) => q.pos).join(',') : '0 0';
-    s.maskSize = s.webkitMaskSize = size;
-    s.maskRepeat = s.webkitMaskRepeat = 'no-repeat';
-  };
-  const st = ScrollTrigger.create({ trigger, start, end, onUpdate: (self) => show(self.progress, self), onRefresh: (self) => show(self.progress, self) });
-  show(st.progress, st);
-}
-
 /* ── project frames on Home (after noth.in) ──────────────────────── */
-// Three movements, all tied to the scroll: the frame comes in as a puzzle
-// from its outer bottom corner as it comes up the screen (above); the
+// Three movements, all tied to the scroll with a short lag (scrub), which is
+// what makes it read as fluid: the frame opens from its outer bottom corner
+// as it comes up the screen (fast at first, a long gentle finish); the
 // picture inside is taller than the frame and travels slower than the page;
 // and each tile rides a little faster than the page, by a different amount,
-// so neighbours slip past each other (these two with a short lag, scrub,
-// which is what makes them read as fluid). Only transforms and the mask change.
+// so neighbours slip past each other. Only transforms and clip-path change.
 const SLIDE = 9.68;                    // % of the picture's height = 12% of the frame (index.astro: top -12%, height 124%)
 const DRIFT = [0, 70, 24, 90, 0, 56];  // px a tile gains while crossing the screen, by its place in the spread
-function spread(frame, i, rect) {
+function spread(frame, i, r) {
   const tile = frame.closest('.pw-tile') || frame;
-  if (rect) {
-    const from = rect.left + rect.width / 2 > innerWidth / 2 ? 'bottom-right' : 'bottom-left';
-    puzzle(frame, rect, from, i + 1, tile, 'top 100%', 'top 35%');
+  if (r) {
+    const rad = getComputedStyle(frame).borderRadius || '0px';
+    const from = r.left + r.width / 2 > innerWidth / 2 ? '100% 0% 0% 100%' : '100% 100% 0% 0%';
+    gsap.fromTo(frame, { clipPath: `inset(${from} round ${rad})` },
+      { clipPath: `inset(0% 0% 0% 0% round ${rad})`, ease: 'power3.out', onComplete: opened,
+        scrollTrigger: { trigger: tile, start: 'top 115%', end: 'top 35%', scrub: 0.8 } });
   }
   const pass = { trigger: tile, start: 'top bottom', end: 'bottom top', scrub: 0.8 };
   const img = frame.querySelector('img');
@@ -361,12 +310,11 @@ function init(signal) {
   // again on the spot, once per element (Lighthouse's "forced reflow").
   const reveals = [...document.querySelectorAll('[data-reveal]')];
   const crops = [...document.querySelectorAll(CROP)];
-  const shots = [...document.querySelectorAll('.wk-img')];
   const frames = [...document.querySelectorAll('.pw-img')];
   const labels = [...document.querySelectorAll(TYPE)];
   const groups = [...document.querySelectorAll('[data-reveal-group]')];
   const box = new Map();
-  [...reveals, ...crops, ...shots, ...frames, ...labels, ...groups.flatMap((g) => [...g.children])]
+  [...reveals, ...crops, ...frames, ...labels, ...groups.flatMap((g) => [...g.children])]
     .forEach((el) => box.has(el) || box.set(el, el.getBoundingClientRect()));
   const oneLine = new Map(labels.map((el) => [el, el.getClientRects().length === 1]));
   // After a page transition, things already on screen arrived with it
@@ -381,16 +329,13 @@ function init(signal) {
   }
   lit.forEach(scrollLit);
   reveals.forEach((el) => {
-    // puzzle pictures only snap in; a fade on top would blur the pieces' edges
-    if (onScreen(el) || el.matches('.wk-img')) { gsap.set(el, { autoAlpha: 1 }); return; }
+    if (onScreen(el)) { gsap.set(el, { autoAlpha: 1 }); return; }
     const kind = el.getAttribute('data-reveal');
     if (kind === 'lines') lines(el);
     else if (kind === 'media') media(el);
     else fadeUp(el, el);
   });
   crops.forEach((el) => { if (!onScreen(el)) crop(el); });
-  // project pictures on a project page come in as a puzzle from the bottom edge
-  shots.forEach((el, i) => { if (!onScreen(el)) puzzle(el, box.get(el), 'bottom', i + 7, el, 'top 98%', 'top 40%'); });
   frames.forEach((el, i) => spread(el, i, onScreen(el) ? null : box.get(el)));
   labels.forEach((el) => { if (!onScreen(el)) typed(el, oneLine.get(el)); });
   groups.forEach((group) => {

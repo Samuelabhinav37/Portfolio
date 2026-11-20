@@ -1,10 +1,7 @@
 /* "Recent writing" reel: the post cards drift left in an endless loop, very
-   slowly. Speed model after 4wide.jp's work strip: scrolling the page pushes
-   the reel along (backwards when you scroll up) and the push glides out,
-   most of it gone within a second; a drag throws it the same way. The cards
-   lean a little with the speed. A mouse over the reel slows it to a crawl,
-   keyboard focus stops it, reduced-motion keeps it still, and it only
-   animates while on screen. */
+   slowly. Drag or swipe sideways to move it; it eases back to speed after.
+   Hover or keyboard focus pauses it, reduced-motion keeps it still, and it
+   only animates while on screen. */
 (window.onPage || function (f) { f(new AbortController().signal); })(function (signal) {
   "use strict";
   var reel = document.querySelector('#writing .wr-reel');
@@ -13,18 +10,11 @@
   var originals = [].slice.call(track.children);
   if(!originals.length) return;
 
-  var SPEED = 14;     // px a second when left alone
-  var PUSH = 3;       // px/s added per px the page scrolls: a steady scroll moves the reel about as fast as the page
-  var MAX = 2000;     // px/s cap on the push
-  var FRICTION = 3;   // the push fades as e^(-3t): ~95% gone in a second
-  var HOVER = 0.15;   // share of SPEED under a mouse
-  var LEAN = 3;       // deg the cards lean at full speed...
-  var FULL = 1500;    // ...which is this many px/s
+  var SPEED = 14; // px per second
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var setW = 0, pos = 0, scale = 1, target = 1, vel = 0, lean = 0, lastY = 0;
+  var setW = 0, pos = 0, v = 1, target = 1;
   var onScreen = false, raf = 0, last = 0;
   var drag = null, moved = false;
-  function clamp(n, m){ return Math.max(-m, Math.min(m, n)); }
 
   // Width of one full set of cards, plus enough copies to cover the screen
   function measure(){
@@ -48,29 +38,18 @@
     while(pos <= -setW) pos += setW;
     while(pos > 0) pos -= setW;
   }
-  function apply(){ track.style.transform = 'translate3d(' + pos + 'px,0,0) skewX(' + lean.toFixed(2) + 'deg)'; }
+  function apply(){ track.style.transform = 'translate3d(' + pos + 'px,0,0)'; }
 
   function frame(t){
     var dt = Math.max(0, Math.min((t - last) / 1000, 0.05));
     last = t;
-    scale += (target - scale) * (1 - Math.exp(-4 * dt));
-    var y = window.scrollY, dy = y - lastY;
-    lastY = y;
-    if(!drag){
-      if(dy) vel = clamp(vel + dy * PUSH, MAX);
-      vel *= Math.exp(-FRICTION * dt);
-      pos -= (SPEED * scale + vel) * dt;
-      wrap();
-    }
-    var speed = drag ? drag.v : SPEED * scale + vel;
-    lean += (clamp(speed / FULL, 1) * LEAN - lean) * (1 - Math.exp(-6 * dt));
-    apply();
+    v += (target - v) * (1 - Math.exp(-dt / 0.35));
+    if(!drag){ pos -= SPEED * v * dt; wrap(); apply(); }
     raf = onScreen && !document.hidden ? requestAnimationFrame(frame) : 0;
   }
   function start(){
     if(still || raf || !onScreen || document.hidden) return;
     last = performance.now();
-    lastY = window.scrollY; // scrolling done while the reel was away doesn't count
     raf = requestAnimationFrame(frame);
   }
 
@@ -86,7 +65,7 @@
     requestAnimationFrame(function(){ resizeQueued = false; measure(); wrap(); apply(); });
   }, { signal: signal });
 
-  reel.addEventListener('pointerenter', function(e){ if(e.pointerType === 'mouse') target = HOVER; });
+  reel.addEventListener('pointerenter', function(e){ if(e.pointerType === 'mouse') target = 0; });
   reel.addEventListener('pointerleave', function(e){ if(e.pointerType === 'mouse') target = 1; });
   reel.addEventListener('focusin', function(e){
     target = 0;
@@ -102,8 +81,7 @@
 
   reel.addEventListener('pointerdown', function(e){
     if(e.button !== 0) return;
-    // v: the reel's speed under the finger, px/s leftward (smoothed), for the throw
-    drag = { x: e.clientX, pos: pos, id: e.pointerId, lx: e.clientX, lt: e.timeStamp, v: 0 };
+    drag = { x: e.clientX, pos: pos, id: e.pointerId };
     moved = false;
   });
   addEventListener('pointermove', function(e){
@@ -114,16 +92,13 @@
       reel.setPointerCapture(drag.id);
       reel.classList.add('is-drag');
     }
-    var ms = e.timeStamp - drag.lt;
-    if(ms > 0){ drag.v += (-(e.clientX - drag.lx) / ms * 1000 - drag.v) * 0.3; drag.lx = e.clientX; drag.lt = e.timeStamp; }
     if(moved){ pos = drag.pos + dx; wrap(); apply(); }
   }, { signal: signal });
   function endDrag(){
     if(!drag) return;
-    // let go while still moving: the reel keeps that speed and glides out
-    vel = moved ? clamp(drag.v - SPEED * scale, MAX) : vel;
     drag = null;
     reel.classList.remove('is-drag');
+    v = 0; // ease back up to speed rather than snapping
   }
   addEventListener('pointerup', endDrag, { signal: signal });
   addEventListener('pointercancel', endDrag, { signal: signal });
@@ -139,6 +114,6 @@
     if(Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     pos -= e.deltaX; wrap(); apply();
-    vel = 0;
+    v = 0;
   }, { passive: false });
 });

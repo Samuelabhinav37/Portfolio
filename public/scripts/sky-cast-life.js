@@ -74,7 +74,7 @@
       const v = document.createElement('video');
       v.className = 'sc-jelly'; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
       v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-      v.poster = narrowSky() ? '/images/contact-jelly-poster.w120.webp' : '/images/contact-jelly-poster.webp'; // phones draw it ~40px wide v.style.width = w.toFixed(0) + 'px';
+      v.poster = narrowSky() ? '/images/contact-jelly-poster.w120.webp' : '/images/contact-jelly-poster.webp'; v.style.width = w.toFixed(0) + 'px';
       for (const [ext, type] of [['webm', 'video/webm'], ['mp4', 'video/mp4']]) {
         const src = document.createElement('source'); src.src = '/videos/contact-jelly.' + ext; src.type = type; v.appendChild(src);
       }
