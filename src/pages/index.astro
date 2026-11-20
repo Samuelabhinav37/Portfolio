@@ -37,6 +37,7 @@ const writingCards = fieldCards(
   (await getCollection('blog', ({ id, data }) => !data.draft && !id.includes('/')))
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 );
+import ThemeScript from '../components/ThemeScript.astro';
 ---
 
 <!DOCTYPE html>
@@ -78,7 +79,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<script is:inline src="/scripts/theme.js"></script>
+<ThemeScript />
 <script is:inline defer src="/scripts/title-manager.js"></script>
 <Fonts />
 <ClientRouter fallback="swap" />
@@ -271,7 +272,6 @@ footer#site-footer{
 <div class="page-grain" aria-hidden="true"></div>
 
 <SiteMenu currentPath="/" />
-<h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
 
 
 
@@ -287,6 +287,10 @@ footer#site-footer{
 <div id="chrome-damp"></div>
 
 <Glitches />
+
+<!-- the page's main landmark: the terminal, projects and blog (the sky, nav and footer sit outside) -->
+<main id="main-content">
+<h1 class="sr-only">Samuel Abhinav — Security Engineer, Detection &amp; Response</h1>
 
 <!-- ════ Terminal window — floating CRT feed; Beat 1 expands it to fullscreen ════
      Sits at z-index 3: above the sky background (#sky) and its sea
@@ -479,6 +483,7 @@ footer#site-footer{
     </div>
   </section>
 </div>
+</main>
 <script is:inline defer src="/scripts/index-writing-reel.js"></script>
 
 <!-- ═══════════════ LIGHT THEME: this page's colours (the sky and basics are in SiteSky) ═══════════════ -->

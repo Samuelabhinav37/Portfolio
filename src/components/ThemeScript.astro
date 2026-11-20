@@ -1,0 +1,10 @@
+---
+/**
+ * /scripts/theme.js written into <head> inline instead of fetched: it has to
+ * run before the first paint (saved theme, no flash), so as a file it held up
+ * rendering for a whole request (Lighthouse "render-blocking requests").
+ * The build's CSP pass hashes it like every other inline script.
+ */
+import code from '../../public/scripts/theme.js?raw';
+---
+<script is:inline set:html={code}></script>

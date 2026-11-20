@@ -24,11 +24,12 @@ const no = (n: number) => String(n + 1).padStart(2, '0');
 const url = `https://samuelabhinav.com/work/${p.slug}/`;
 const title = `Samuel Abhinav — ${p.name}`;
 const og = 'https://samuelabhinav.com/images/og-home.jpg';
+import ThemeScript from '../../components/ThemeScript.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script is:inline src="/scripts/theme.js"></script>
+<ThemeScript />
 <script is:inline>
 window.SITE=window.SITE||{};
 window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -33,13 +33,15 @@
   Cache-Control: public, max-age=31536000, immutable
 
 # Images and videos aren't fingerprinted either, but they're effectively
-# write-once (a changed image gets a new name in practice). A week of fresh
-# cache plus a day of stale-while-revalidate, instead of Cloudflare Pages'
-# default 4h must-revalidate, so returning visitors skip the round trip.
+# write-once (a changed image gets a new name, e.g. kai-body.w160.webp).
+# 30 days fresh plus a week of stale-while-revalidate (was 7d; Lighthouse
+# flagged it), instead of Cloudflare Pages' default 4h must-revalidate.
+# Replacing an image in place under the same name would leave returning
+# visitors on the old one for up to a month: rename it instead.
 # /scripts/* deliberately keeps the default: those filenames stay the same
 # when their content changes, and a long cache could pair new HTML with old JS.
 /images/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
 
 /videos/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800

@@ -25,6 +25,7 @@ const rows: Photo[][] = [
   [P(1.8), P(1.8), P(1.8), P(1.8)],
   [P(1.42), P(1.42), P(1.42)],
 ];
+import ThemeScript from '../components/ThemeScript.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -33,7 +34,7 @@ const rows: Photo[][] = [
 window.SITE=window.SITE||{};
 window.SITE.LOW_POWER = matchMedia('(max-width:900px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches;
 </script>
-<script is:inline src="/scripts/theme.js"></script>
+<ThemeScript />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">

@@ -11,6 +11,10 @@ export default defineConfig({
   // head start). The router's fetch reuses it; Chrome's Speculation-Rules prefetch
   // could not be, since it only serves full page loads.
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
+  // Each page's CSS (~30 KB) goes into its HTML instead of 4-5 separate files
+  // that held up the first paint (Lighthouse: ~600ms of render-blocking
+  // requests). CSP allows it: style-src keeps 'unsafe-inline' (functions/_middleware.js).
+  build: { inlineStylesheets: 'always' },
   markdown: {
     // css-variables theme lets blog.css own the code palette
     // (green strings, grey keywords) instead of a stock Shiki theme.

@@ -31,12 +31,13 @@ type Tone = 'aged' | 'cool' | 'mono' | 'holo' | 'holo-mono' | 'paper';
 const tone = 'paper' as Tone;
 const bodyTone = tone === 'holo-mono' || tone === 'paper' ? 'holo' : tone;
 const holoAttr = tone === 'holo-mono' ? 'mono' : tone === 'paper' ? 'paper' : undefined;
+import ThemeScript from '../components/ThemeScript.astro';
 ---
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script is:inline src="/scripts/theme.js"></script>
+<ThemeScript />
 <script is:inline>
 window.SITE=window.SITE||{};
 (function(){

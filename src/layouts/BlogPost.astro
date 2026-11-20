@@ -153,12 +153,13 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
   /</g,
   '\\u003c'
 );
+import ThemeScript from '../components/ThemeScript.astro';
 ---
 
 <!doctype html>
 <html lang={lang}>
   <head>
-    <script is:inline src="/scripts/theme.js"></script>
+    <ThemeScript />
     <script is:inline>
     window.SITE=window.SITE||{};
     (function(){

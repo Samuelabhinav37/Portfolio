@@ -49,6 +49,7 @@ const jsonLd = JSON.stringify({
     datePublished: p.data.pubDate.toISOString(),
   })),
 });
+import ThemeScript from '../../components/ThemeScript.astro';
 ---
 
 <!DOCTYPE html>
@@ -90,7 +91,7 @@ window.SITE=window.SITE||{};
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<script is:inline src="/scripts/theme.js"></script>
+<ThemeScript />
 <script is:inline src="/scripts/title-manager.js"></script>
 <Fonts />
 <ClientRouter fallback="swap" />

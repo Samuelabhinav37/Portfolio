@@ -171,7 +171,7 @@
     var kai, launch = null;
     if (corner) {
       // one Kai on screen: the corner Kai does the talking
-      kai = window.Kai(root.querySelector('.kc-corner'), { src: opts.kaiSrc, imgWidth: 320, auto: true });
+      kai = window.Kai(root.querySelector('.kc-corner'), { src: opts.kaiSrc, imgWidth: 160, auto: true }); // at most 80px wide (--kc-kai): 160 is sharp at 2x
     } else {
       var mini = window.Kai(root.querySelector('.kc-mini'), { src: opts.kaiSrc, imgWidth: 160, lite: true });
       kai = window.Kai(root.querySelector('.kc-kai'), { src: opts.kaiSrc, imgWidth: 320, auto: true });
@@ -309,7 +309,7 @@
     status.textContent = STATUS;
     var body = root.querySelector('.kc-body'), log = root.querySelector('.kc-log');
     var btn = root.querySelector('.kc-kaibtn');
-    var kai = window.Kai(root.querySelector('.kc-corner'), { src: opts.kaiSrc, imgWidth: 320, calm: true });
+    var kai = window.Kai(root.querySelector('.kc-corner'), { src: opts.kaiSrc, imgWidth: 160, calm: true });
     if (opts.theme === 'light') kai.root.classList.add('on-light');
     var busy = false;
 
